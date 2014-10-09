@@ -37,7 +37,7 @@
 #ifndef LibMultiSense_SysNetworkMessage
 #define LibMultiSense_SysNetworkMessage
 
-#include "details/utility/Portability.hh"
+#include "../utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

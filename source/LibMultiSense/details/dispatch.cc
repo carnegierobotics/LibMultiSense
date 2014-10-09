@@ -346,6 +346,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.sensorTime = pps.ppsNanoSeconds;
 
+        sensorToLocalTime(static_cast<double>(pps.ppsNanoSeconds) / 1e9,
+                          header.timeSeconds, header.timeMicroSeconds);
+
         dispatchPps(header);
 
         break;

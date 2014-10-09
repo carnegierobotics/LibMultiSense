@@ -109,7 +109,7 @@ class DirectedStream {
 public:
 
     /** Default UDP target port */
-    static CONSTEXPR uint16_t DFL_UDP_PORT = 10001; 
+    static CONSTEXPR uint16_t DFL_UDP_PORT = 10001;
 
     /** The data source to stream to a given device */
     DataSource  mask;
@@ -449,7 +449,7 @@ public:
 
     void setResolution        (uint32_t w,
                                uint32_t h) { m_width=w;m_height=h; };
-  
+
     /**
      * For stereo sensors, set the desired number of disparities used
      * to search for matching features between the left and right
@@ -1398,6 +1398,11 @@ public:
 
     /** The sensor time in nanoseconds when a given PPS event occurred  */
     int64_t sensorTime;
+
+    /** The local time's seconds value */
+    uint32_t timeSeconds;
+    /** The local time's microseconds value */
+    uint32_t timeMicroSeconds;
 };
 
 /**

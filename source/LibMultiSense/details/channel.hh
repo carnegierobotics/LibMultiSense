@@ -174,7 +174,7 @@ private:
     //
     // The version of this API
 
-    static CONSTEXPR VersionType API_VERSION = 0x0303; // 3.3
+    static CONSTEXPR VersionType API_VERSION = 0x0304; // 3.4
 
     //
     // Misc. internal constants
@@ -221,12 +221,12 @@ private:
 
     class UdpTracker {
     public:
-        
+
         UdpTracker(uint32_t                     t,
                    UdpAssembler                 a,
                    utility::BufferStreamWriter& s) :
             m_totalBytesInMessage(t),
-            m_bytesAssembled(0), 
+            m_bytesAssembled(0),
             m_packetsAssembled(0),
             m_lastByteOffset(-1),
             m_assembler(a),
@@ -234,7 +234,7 @@ private:
 
         utility::BufferStreamWriter& stream() { return m_stream;           };
         uint32_t packets()                    { return m_packetsAssembled; };
-        
+
         bool assemble(uint32_t       bytes,
                       uint32_t       offset,
                       const uint8_t *dataP) {
@@ -258,7 +258,7 @@ private:
         uint32_t                    m_totalBytesInMessage;
         uint32_t                    m_bytesAssembled;
         uint32_t                    m_packetsAssembled;
-        int64_t                     m_lastByteOffset; 
+        int64_t                     m_lastByteOffset;
         UdpAssembler                m_assembler;
         utility::BufferStreamWriter m_stream;
     };
@@ -273,7 +273,7 @@ private:
     // The address of the sensor
 
     struct sockaddr_in m_sensorAddress;
-    
+
     //
     // The operating MTU of the sensor
 
@@ -298,7 +298,7 @@ private:
 
     //
     // A pool of RX buffers, to reduce the amount of internal copying
-    
+
     typedef std::vector<utility::BufferStreamWriter*> BufferPool;
 
     BufferPool m_rxLargeBufferPool;
@@ -311,7 +311,7 @@ private:
 
     //
     // A map of custom UDP assemblers
-    
+
     typedef std::map<wire::IdType, UdpAssembler> UdpAssemblerMap;
 
     UdpAssemblerMap m_udpAssemblerMap;
@@ -362,7 +362,7 @@ private:
 
     //
     // The mask of currently enabled streams (desired)
-    
+
     DataSource m_streamsEnabled;
 
     //
@@ -389,8 +389,8 @@ private:
                                                wire::IdType  id=MSG_ID(T::ID),
                                                const double& timeout=double(DEFAULT_ACK_TIMEOUT),
                                                int32_t       attempts=DEFAULT_ACK_ATTEMPTS);
-    
-    template<class T> void       publish      (const T& message); 
+
+    template<class T> void       publish      (const T& message);
     void                         publish      (const utility::BufferStreamWriter& stream);
     void                         dispatch     (utility::BufferStreamWriter& buffer);
     void                         dispatchImage(utility::BufferStream& buffer,
