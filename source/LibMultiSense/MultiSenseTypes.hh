@@ -42,7 +42,15 @@
 #include <string>
 #include <vector>
 
-#include "details/utility/Portability.hh"
+//
+// Add compatibility for C++ 11
+#if __cplusplus > 199711L
+// This compiler supports C++11.
+#define CONSTEXPR constexpr
+#else
+// This compiler does not support C++11.
+#define CONSTEXPR const
+#endif
 
 namespace crl {
 namespace multisense {

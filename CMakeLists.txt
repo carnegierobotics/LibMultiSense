@@ -2,8 +2,6 @@
 # 
 # Top level build instructions.
 #
-# Significant history (date, user, job code, action):
-#   2012-05-07, dtascione@carnegierobotics.com, RD1034, Created file.
 
 #
 # Make sure there is a reasonable version of CMAKE installed.
@@ -17,6 +15,19 @@ else()
     set(BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     set(SOURCE_DIRECTORY )
 endif()
+
+# For compatibility with the ROS build system. OpenCV should be linked
+# via catkin_LIBRARIES specified in package.xml
+if (OpenCV_LIBS)
+    set(OPENCV_FOUND 1)
+else()
+    find_package(OpenCV)
+    if (OpenCV_FOUND)
+        set(OPENCV_FOUND 1)
+    endif()
+endif()
+
+
 
 # Define where the result of the build should go.
 
