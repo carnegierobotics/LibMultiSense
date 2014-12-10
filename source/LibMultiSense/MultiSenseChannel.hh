@@ -66,7 +66,7 @@ namespace multisense {
  * \endcode
  *
  */
-class Channel {
+class MULTISENSE_API Channel {
 public:
 
     /**

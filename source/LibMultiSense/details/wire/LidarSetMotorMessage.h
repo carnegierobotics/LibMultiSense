@@ -49,8 +49,8 @@ namespace wire {
 
 class LidarSetMotor {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_LIDAR_SET_MOTOR;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_LIDAR_SET_MOTOR;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Desired output RPM

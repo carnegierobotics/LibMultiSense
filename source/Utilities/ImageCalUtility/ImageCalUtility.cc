@@ -34,15 +34,30 @@
  *   2013-05-23, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fstream>
+#include <map>
+#include <string.h>
 
-#include <opencv/cv.h>
-
+#include <Utilities/portability/getopt/getopt.h>
+#include <Utilities/shared/CalibrationYaml.hh>
 #include <LibMultiSense/MultiSenseChannel.hh>
+
+using namespace crl::multisense;
 
 namespace {  // anonymous
 
@@ -65,9 +80,27 @@ bool fileExists(const std::string& name)
     return (0 == stat(name.c_str(), &sbuf));
 }
 
-}; // anonymous
+std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration const& calibration)
+{
+    stream << "%YAML:1.0\n";
+    writeMatrix (stream, "M1", 3, 3, &calibration.left.M[0][0]);
+    writeMatrix (stream, "D1", 1, 8, &calibration.left.D[0]);
+    writeMatrix (stream, "M2", 3, 3, &calibration.right.M[0][0]);
+    writeMatrix (stream, "D2", 1, 8, &calibration.right.D[0]);
+    return stream;
+}
 
-using namespace crl::multisense;
+std::ostream& writeImageExtrinics (std::ostream& stream, image::Calibration const& calibration)
+{
+    stream << "%YAML:1.0\n";
+    writeMatrix (stream, "R1", 3, 3, &calibration.left.R[0][0]);
+    writeMatrix (stream, "P1", 3, 4, &calibration.left.P[0][0]);
+    writeMatrix (stream, "R2", 3, 3, &calibration.right.R[0][0]);
+    writeMatrix (stream, "P2", 3, 4, &calibration.right.P[0][0]);
+    return stream;
+}
+
+}; // anonymous
 
 int main(int    argc, 
          char **argvPP)
@@ -164,127 +197,72 @@ int main(int    argc,
             goto clean_out;
         }
 
-        CvFileStorage *inFile, *exFile;
+        std::ofstream inFile, exFile;
 
-        inFile = cvOpenFileStorage(intrinsicsFile.c_str(), NULL, CV_STORAGE_WRITE);
+        inFile.open (intrinsicsFile.c_str (), std::ios_base::out | std::ios_base::trunc);
 
-        if (NULL == inFile) {
-            fprintf(stderr, "failed to cvOpenFileStorage(%s) for writing\n", 
+        if (!inFile) {
+            fprintf(stderr, "failed to open '%s' for writing\n", 
                     intrinsicsFile.c_str());
             goto clean_out;
         }
 
-        exFile = cvOpenFileStorage(extrinsicsFile.c_str(), NULL, CV_STORAGE_WRITE);
+        exFile.open (extrinsicsFile.c_str (), std::ios_base::out | std::ios_base::trunc);
 
-        if (NULL == exFile) {
-            fprintf(stderr, "failed to cvOpenFileStorage(%s) for writing\n", 
+        if (!exFile) {
+            fprintf(stderr, "failed to open '%s' for writing\n", 
                     extrinsicsFile.c_str());
             goto clean_out;
         }
 
-        CvMat *M1, *D1, *M2, *D2, *R1, *R2, *P1, *P2;
+        writeImageIntrinics (inFile, c);
+        writeImageExtrinics (exFile, c);
 
-        M1 = cvCreateMat(3, 3, CV_64FC1);
-        D1 = cvCreateMat(1, 8, CV_64FC1);
-        R1 = cvCreateMat(3, 3, CV_64FC1);
-        P1 = cvCreateMat(3, 4, CV_64FC1);
-        M2 = cvCreateMat(3, 3, CV_64FC1);
-        D2 = cvCreateMat(1, 8, CV_64FC1);
-        R2 = cvCreateMat(3, 3, CV_64FC1);
-        P2 = cvCreateMat(3, 4, CV_64FC1);
-
-#define CPY_ARR_1(t_,a_,n_)                                             \
-        for(int i_=0; i_<(n_); i_++)                                    \
-            CV_MAT_ELEM(*(t_), double, 0, i_) = (a_)[i_];               \
-
-#define CPY_ARR_2(t_,a_,n_,m_)                                          \
-        for(int i_=0; i_<(n_); i_++)                                    \
-            for(int j_=0; j_<(m_); j_++)                                \
-                CV_MAT_ELEM(*(t_), double, i_, j_) = (a_)[i_][j_];      \
-        
-        CPY_ARR_2(M1, c.left.M, 3, 3);
-        CPY_ARR_1(D1, c.left.D, 8);
-        CPY_ARR_2(R1, c.left.R, 3, 3);
-        CPY_ARR_2(P1, c.left.P, 3, 4);
-
-        CPY_ARR_2(M2, c.right.M, 3, 3);
-        CPY_ARR_1(D2, c.right.D, 8);
-        CPY_ARR_2(R2, c.right.R, 3, 3);
-        CPY_ARR_2(P2, c.right.P, 3, 4);
-        
-        cvWrite(inFile, "M1", M1, cvAttrList(0,0));
-        cvWrite(inFile, "D1", D1, cvAttrList(0,0));
-        cvWrite(inFile, "M2", M2, cvAttrList(0,0));
-        cvWrite(inFile, "D2", D2, cvAttrList(0,0));
-        
-        cvWrite(exFile, "R1", R1, cvAttrList(0,0));
-        cvWrite(exFile, "P1", P1, cvAttrList(0,0));
-        cvWrite(exFile, "R2", R2, cvAttrList(0,0));
-        cvWrite(exFile, "P2", P2, cvAttrList(0,0));
-
-        cvReleaseFileStorage(&inFile);
-        cvReleaseFileStorage(&exFile);
-
-        cvReleaseMat(&M1);
-        cvReleaseMat(&D1);
-        cvReleaseMat(&R1);
-        cvReleaseMat(&P1);
-        cvReleaseMat(&M2);
-        cvReleaseMat(&D2);
-        cvReleaseMat(&R2);
-        cvReleaseMat(&P2);
+        inFile.flush ();
+        exFile.flush ();
 
     } else {
 
-        CvFileStorage *inFile, *exFile;
+        std::ifstream inFile, exFile;
+        std::map<std::string, std::vector<float> > data;
 
-        inFile = cvOpenFileStorage(intrinsicsFile.c_str(), NULL, CV_STORAGE_READ);
+        inFile.open (intrinsicsFile.c_str ());
         
-        if (NULL == inFile) {
-            fprintf(stderr, "failed to cvOpenFileStorage(%s) for reading\n", 
+        if (!inFile) {
+            fprintf(stderr, "failed to open '%s' for reading\n", 
                     intrinsicsFile.c_str());
             goto clean_out;
         }
 
-        CvMat *M1, *D1, *M2, *D2, *R1, *R2, *P1, *P2;
+        parseYaml (inFile, data);
 
-        M1 = (CvMat *) cvReadByName(inFile, NULL, "M1", NULL);
-        D1 = (CvMat *) cvReadByName(inFile, NULL, "D1", NULL);
-        M2 = (CvMat *) cvReadByName(inFile, NULL, "M2", NULL);
-        D2 = (CvMat *) cvReadByName(inFile, NULL, "D2", NULL);
-        
-        cvReleaseFileStorage(&inFile);
+        inFile.close ();
 
-        if(!M1 || !D1 || !M2 || !D2 ||
-           M1->rows != 3 || M1->cols != 3 ||
-           D1->rows != 1 || D1->cols < 5  ||
-           M2->rows != 3 || M2->cols != 3 ||
-           D2->rows != 1 || D2->cols < 5) {
+        if (data["M1"].size () != 3 * 3 ||
+            (data["D1"].size () != 5 && data["D1"].size () != 8) ||
+            data["M2"].size () != 3 * 3 ||
+            (data["D2"].size () != 5 && data["D2"].size () != 8)) {
             fprintf(stderr, "intrinsic matrices incomplete in %s\n",
                     intrinsicsFile.c_str());
             goto clean_out;
         }
 
-        exFile = cvOpenFileStorage(extrinsicsFile.c_str(), NULL, CV_STORAGE_READ);
+        exFile.open (extrinsicsFile.c_str ());
 
-        if (NULL == exFile) {
-            fprintf(stderr, "failed to cvOpenFileStorage(%s) for reading\n", 
+        if (!exFile) {
+            fprintf(stderr, "failed to open '%s' for reading\n", 
                     extrinsicsFile.c_str());
             goto clean_out;
         }
 
-        R1 = (CvMat *) cvReadByName(exFile, NULL, "R1", NULL);
-        P1 = (CvMat *) cvReadByName(exFile, NULL, "P1", NULL);
-        R2 = (CvMat *) cvReadByName(exFile, NULL, "R2", NULL);
-        P2 = (CvMat *) cvReadByName(exFile, NULL, "P2", NULL);
-        
-        cvReleaseFileStorage(&exFile);
+        parseYaml (exFile, data);
 
-        if (!R1 || !P1 || !R2 || !P2 ||
-            R1->rows != 3 || R1->cols != 3 ||
-            P1->rows != 3 || P1->cols != 4 ||
-            R2->rows != 3 || R2->cols != 3 ||
-            P2->rows != 3 || P2->cols != 4) {
+        exFile.close ();
+
+        if (data["R1"].size () != 3 * 3 ||
+            data["P1"].size () != 3 * 4 ||
+            data["R2"].size () != 3 * 3 ||
+            data["P2"].size () != 3 * 4) {
             fprintf(stderr, "extrinsic matrices incomplete in %s\n",
                     extrinsicsFile.c_str());
             goto clean_out;
@@ -292,36 +270,18 @@ int main(int    argc,
 
         image::Calibration c;
 
-#define CPY_MAT_1(a_,t_,n_)                                             \
-        for(int i_=0; i_<(n_); i_++)                                    \
-            (a_)[i_] = CV_MAT_ELEM(*(t_), double, 0, i_);               \
+        memcpy (&c.left.M[0][0], &data["M1"].front (), data["M1"].size () * sizeof (float));
+        memset (&c.left.D[0], 0, sizeof (c.left.D));
+        memcpy (&c.left.D[0], &data["D1"].front (), data["D1"].size () * sizeof (float));
+        memcpy (&c.left.R[0][0], &data["R1"].front (), data["R1"].size () * sizeof (float));
+        memcpy (&c.left.P[0][0], &data["P1"].front (), data["P1"].size () * sizeof (float));
 
-#define CPY_MAT_2(a_,t_,n_,m_)                                          \
-        for(int i_=0; i_<(n_); i_++)                                    \
-            for(int j_=0; j_<(m_); j_++)                                \
-                (a_)[i_][j_] = CV_MAT_ELEM(*(t_), double, i_, j_);      \
+        memcpy (&c.right.M[0][0], &data["M2"].front (), data["M2"].size () * sizeof (float));
+        memset (&c.right.D[0], 0, sizeof (c.right.D));
+        memcpy (&c.right.D[0], &data["D2"].front (), data["D2"].size () * sizeof (float));
+        memcpy (&c.right.R[0][0], &data["R2"].front (), data["R2"].size () * sizeof (float));
+        memcpy (&c.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
 
-        CPY_MAT_2(c.left.M, M1, 3, 3);
-        memset(&(c.left.D[0]), 0, sizeof(c.left.D));
-        CPY_MAT_1(c.left.D, D1, D1->cols);
-        CPY_MAT_2(c.left.R, R1, 3, 3);
-        CPY_MAT_2(c.left.P, P1, 3, 4);
-
-        CPY_MAT_2(c.right.M, M2, 3, 3);
-        memset(&(c.right.D[0]), 0, sizeof(c.right.D));
-        CPY_MAT_1(c.right.D, D2, D2->cols);
-        CPY_MAT_2(c.right.R, R2, 3, 3);
-        CPY_MAT_2(c.right.P, P2, 3, 4);
-
-        cvReleaseMat(&M1);
-        cvReleaseMat(&D1);
-        cvReleaseMat(&R1);
-        cvReleaseMat(&P1);
-        cvReleaseMat(&M2);
-        cvReleaseMat(&D2);
-        cvReleaseMat(&R2);
-        cvReleaseMat(&P2);
-               
         status = channelP->setImageCalibration(c);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to set image calibration: %s\n", 

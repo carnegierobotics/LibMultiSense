@@ -35,6 +35,7 @@
  **/
 
 #include <stdlib.h>
+#include <algorithm>
 
 #include "details/utility/Functional.hh"
 
@@ -92,7 +93,7 @@ namespace details {
 // The user may "hold on" to the buffer back-end
 // of a datum within a callback thread.
 
-__thread utility::BufferStream *dispatchBufferReferenceTP = NULL;
+CRL_THREAD_LOCAL utility::BufferStream *dispatchBufferReferenceTP = NULL;
 
 //
 //
@@ -551,7 +552,7 @@ Status impl::setLightingConfig(const lighting::Config& c)
         float duty = c.getDutyCycle(i);
         if (duty >= 0.0f) {  // less than zero == not set
             msg.mask |= (1<<i);
-            msg.intensity[i] = 255.0f * (utility::boundValue(duty, 0.0f, 100.0f) / 100.0f);
+            msg.intensity[i] = static_cast<uint8_t> (255.0f * (utility::boundValue(duty, 0.0f, 100.0f) / 100.0f));
         }
     }
 
@@ -581,11 +582,7 @@ Status impl::getApiVersion(VersionType& version)
 
 Status impl::getVersionInfo(system::VersionInfo& v)
 {
-    char dateP[128] = {0};
-
-    snprintf(dateP, 128, "%s, %s", __DATE__, __TIME__);
-
-    v.apiBuildDate            = std::string(dateP);
+    v.apiBuildDate            = std::string(__DATE__ ", " __TIME__);
     v.apiVersion              = API_VERSION;
     v.sensorFirmwareBuildDate = m_sensorVersion.firmwareBuildDate;
     v.sensorFirmwareVersion   = m_sensorVersion.firmwareVersion;

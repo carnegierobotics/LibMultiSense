@@ -49,8 +49,8 @@ namespace wire {
 
 class CamControl {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CONSTEXPR VersionType VERSION = 3;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
+    static CRL_CONSTEXPR VersionType VERSION = 3;
 
     //
     // Parameters representing the current camera configuration

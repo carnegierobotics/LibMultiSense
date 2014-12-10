@@ -49,8 +49,8 @@ namespace wire {
 
 class StatusRequest {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_GET_STATUS;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_GET_STATUS;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

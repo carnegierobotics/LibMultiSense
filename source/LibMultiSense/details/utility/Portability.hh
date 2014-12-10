@@ -31,17 +31,62 @@
 #define CRL_MULTISENSE_DETAILS_PORTABILITY_HH
 
 #if __cplusplus > 199711L
-
-// This compiler supports C++11.
-
-#define CONSTEXPR constexpr
-
+    // This compiler supports C++11.
+    #define CRL_CONSTEXPR constexpr
 #else
+    // This compiler does not support C++11.
+    #define CRL_CONSTEXPR const
+#endif
 
-// This compiler does not support C++11.
+#if __cplusplus > 199711L
+    // Use C++ 11 standard language features.
+    #define CRL_THREAD_LOCAL thread_local
+#elif defined (__GNUC__)
+    // GNU GCC uses __thread to declare thread local variables.
+    #define CRL_THREAD_LOCAL __thread
+#elif defined (_MSC_VER)
+    // MS Visual C++ uses __declspec(thread) to declare thread local variables.
+    #define CRL_THREAD_LOCAL __declspec(thread)
+#else
+    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at http://support.carnegierobotics.com for assistance."
+#endif
 
-#define CONSTEXPR const
+#if defined (__GNUC__)
+    // GNU GCC uses __PRETTY_FUNCTION__ to get the undecorated name of the current function
+    // with its type signature.
+    #define CRL_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#elif defined (_MSC_VER)
+    // MS Visual C++ uses __FUNCSIG__ to get the undecorated name of the current function
+    #define CRL_PRETTY_FUNCTION __FUNCSIG__
+#elif __STDC_VERSION >= 199901L
+    // Use C99 standard macros to get the undecorated name of the current function
+    #define CRL_PRETTY_FUNCTION __func__
+#else
+    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at http://support.carnegierobotics.com for assistance."
+#endif
 
+#if !defined(MULTISENSE_API)
+#if defined (_MSC_VER)
+#if defined (MultiSense_EXPORTS)
+#define MULTISENSE_API __declspec(dllexport)
+#else
+#define MULTISENSE_API __declspec(dllimport)
+#endif
+#else
+#define MULTISENSE_API
+#endif
+#endif
+
+#ifdef WIN32
+#ifndef NOMINMAX
+#define NOMINMAX 1
+#endif
+
+#define usleep(usec) Sleep((usec)/1000)
+#endif
+
+#ifndef WIN32
+#define closesocket close
 #endif
 
 #endif /* #ifndef CRL_MULTISENSE_DETAILS_PORTABILITY_HH */

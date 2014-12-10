@@ -48,7 +48,7 @@ namespace wire {
     
 class CameraCalData {
 public:
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     float M[3][3];
     float D[8];
@@ -68,8 +68,8 @@ public:
 
 class SysCameraCalibration {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_SYS_CAMERA_CAL;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_CAMERA_CAL;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // 2 MPix 

@@ -34,18 +34,30 @@
  *   2013-06-14, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#else
 #include <unistd.h>
+#include <arpa/inet.h> // htons
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <string>
 #include <fstream>
-#include <unistd.h>
-#include <getopt.h>
+#include <iostream>
+#include <iomanip>
 
-#include <arpa/inet.h> // htons
+#include <Utilities/portability/getopt/getopt.h>
 
+#include <LibMultiSense/details/utility/Portability.hh>
 #include <LibMultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
@@ -56,19 +68,27 @@ volatile bool doneG = false;
 
 void usage(const char *programNameP) 
 {
-    fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
-    fprintf(stderr, "Where <options> are:\n");
-    fprintf(stderr, "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)\n");
+	std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
+    std::cerr << "Where <options> are:" << std::endl;
+	std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
     
     exit(-1);
 }
 
+#ifdef WIN32
+BOOL WINAPI signalHandler(DWORD dwCtrlType)
+{
+	std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
+    doneG = true;
+    return TRUE;
+}
+#else
 void signalHandler(int sig)
 {
-    fprintf(stderr, "Shutting down on signal: %s\n",
-            strsignal(sig));
+	std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
     doneG = true;
 }
+#endif
 
 bool savePgm(const std::string& fileName,
              uint32_t           width,
@@ -79,7 +99,7 @@ bool savePgm(const std::string& fileName,
     std::ofstream outputStream(fileName.c_str(), std::ios::binary | std::ios::out);
     
     if (false == outputStream.good()) {
-        fprintf(stderr, "failed to open \"%s\"\n", fileName.c_str());
+		std::cerr << "Failed to open \"" << fileName << "\"" << std::endl;
         return false;
     }
 
@@ -121,13 +141,13 @@ bool savePgm(const std::string& fileName,
 void ppsCallback(const pps::Header& header,
                  void              *userDataP)
 {
-    fprintf(stderr, "PPS: %ld ns\n", header.sensorTime);
+	std::cerr << "PPS: " << header.sensorTime << " ns" << std::endl;
 }                
 
 void laserCallback(const lidar::Header& header,
                    void                *userDataP)
 {
-//    fprintf(stderr, "lidar: %d\n", header.pointCount);
+// 	std::cerr << "lidar: " << header.pointCount << std::endl;
 }
 
 void imageCallback(const image::Header& header,
@@ -150,9 +170,8 @@ void imageCallback(const image::Header& header,
 
     image::Histogram histogram;
 
-    if (Status_Ok != channelP->getImageHistogram(header.frameId, histogram))
-        fprintf(stderr, "failed to get histogram for frame %ld\n",
-                header.frameId);
+	if (Status_Ok != channelP->getImageHistogram(header.frameId, histogram))
+		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
 }; // anonymous
@@ -163,7 +182,11 @@ int main(int    argc,
     std::string currentAddress = "10.66.171.21";
     int32_t mtu = 7200;
 
+#if WIN32
+    SetConsoleCtrlHandler (signalHandler, TRUE);
+#else
     signal(SIGINT, signalHandler);
+#endif
 
     //
     // Parse args
@@ -182,9 +205,8 @@ int main(int    argc,
 
     Channel *channelP = Channel::Create(currentAddress);
     if (NULL == channelP) {
-	fprintf(stderr, "Failed to establish communications with \"%s\"\n",
-		currentAddress.c_str());
-	return -1;
+		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
+        return -1;
     }
 
     //
@@ -195,18 +217,18 @@ int main(int    argc,
 
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor version: %s\n", 
-                Channel::statusString(status));
+		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-    fprintf(stdout, "API build date      :  %s\n", v.apiBuildDate.c_str());
-    fprintf(stdout, "API version         :  0x%04x\n", v.apiVersion);
-    fprintf(stdout, "Firmware build date :  %s\n", v.sensorFirmwareBuildDate.c_str());
-    fprintf(stdout, "Firmware version    :  0x%04x\n", v.sensorFirmwareVersion);
-    fprintf(stdout, "Hardware version    :  0x%lx\n", v.sensorHardwareVersion);
-    fprintf(stdout, "Hardware magic      :  0x%lx\n", v.sensorHardwareMagic);
-    fprintf(stdout, "FPGA DNA            :  0x%lx\n", v.sensorFpgaDna);
+	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
+    std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
+	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
+	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
+	std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
+	std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
+	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
+	std::cout << std::dec;
 
     //
     // Change framerate
@@ -216,8 +238,7 @@ int main(int    argc,
 
         status = channelP->getImageConfig(cfg);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to get image config: %s\n",
-                    Channel::statusString(status));
+			std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
             goto clean_out;
         } else {
 
@@ -226,8 +247,7 @@ int main(int    argc,
         
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
-                fprintf(stderr, "failed to configure sensor: %s\n",
-                        Channel::statusString(status));
+				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
                 goto clean_out;
             }
         }
@@ -238,8 +258,7 @@ int main(int    argc,
 
     status = channelP->setMtu(mtu);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to set MTU to %d: %s\n",
-                mtu, Channel::statusString(status));
+		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
@@ -248,8 +267,7 @@ int main(int    argc,
 
     status = channelP->setTriggerSource(Trigger_Internal);
     if (Status_Ok != status) {
-        fprintf(stderr, "Failed to set trigger source: %s\n",
-                Channel::statusString(status));
+		std::cerr << "Failed to set trigger source: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
@@ -265,8 +283,7 @@ int main(int    argc,
 
     status = channelP->startStreams(Source_Luma_Rectified_Left | Source_Lidar_Scan);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to start streams: %s\n", 
-                Channel::statusString(status));
+		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
@@ -275,8 +292,7 @@ int main(int    argc,
 
     status = channelP->stopStreams(Source_All);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to stop streams: %s\n", 
-                Channel::statusString(status));
+		std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
     }
 
 clean_out:

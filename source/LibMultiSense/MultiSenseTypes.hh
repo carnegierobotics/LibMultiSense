@@ -46,10 +46,35 @@
 // Add compatibility for C++ 11
 #if __cplusplus > 199711L
 // This compiler supports C++11.
-#define CONSTEXPR constexpr
+#define CRL_CONSTEXPR constexpr
 #else
 // This compiler does not support C++11.
-#define CONSTEXPR const
+#define CRL_CONSTEXPR const
+#endif
+
+// Define MULTISENSE_API appropriately. This is needed to correctly link with
+// LibMultiSense when it is built as a DLL on Windows.
+#if !defined(MULTISENSE_API)
+#if defined (_MSC_VER)
+#if defined (MultiSense_EXPORTS)
+#define MULTISENSE_API __declspec(dllexport)
+#else
+#define MULTISENSE_API __declspec(dllimport)
+#endif
+#else
+#define MULTISENSE_API
+#endif
+#endif
+
+#if defined (_MSC_VER)
+/*
+ * C4251 warns about exporting classes with members not marked as __declspec(export).
+ * It is not easy to work around this without breaking the MultiSense API, but it
+ * is safe to ignore this warning as long as the MultiSense DLL is compiled with the
+ * same compiler version and STL version.
+ */
+#pragma warning (push)
+#pragma warning (disable: 4251)
 #endif
 
 namespace crl {
@@ -70,13 +95,13 @@ typedef int32_t  Status;
 //
 // General status codes
 
-static CONSTEXPR Status Status_Ok          =  0;
-static CONSTEXPR Status Status_TimedOut    = -1;
-static CONSTEXPR Status Status_Error       = -2;
-static CONSTEXPR Status Status_Failed      = -3;
-static CONSTEXPR Status Status_Unsupported = -4;
-static CONSTEXPR Status Status_Unknown     = -5;
-static CONSTEXPR Status Status_Exception   = -6;
+static CRL_CONSTEXPR Status Status_Ok          =  0;
+static CRL_CONSTEXPR Status Status_TimedOut    = -1;
+static CRL_CONSTEXPR Status Status_Error       = -2;
+static CRL_CONSTEXPR Status Status_Failed      = -3;
+static CRL_CONSTEXPR Status Status_Unsupported = -4;
+static CRL_CONSTEXPR Status Status_Unknown     = -5;
+static CRL_CONSTEXPR Status Status_Exception   = -6;
 
 /**
  * Data sources typedef representing the various data sources
@@ -88,24 +113,24 @@ static CONSTEXPR Status Status_Exception   = -6;
  */
 typedef uint32_t DataSource;
 
-static CONSTEXPR DataSource Source_Unknown                = 0;
-static CONSTEXPR DataSource Source_All                    = 0xffffffff;
-static CONSTEXPR DataSource Source_Raw_Left               = (1<<0);
-static CONSTEXPR DataSource Source_Raw_Right              = (1<<1);
-static CONSTEXPR DataSource Source_Luma_Left              = (1<<2);
-static CONSTEXPR DataSource Source_Luma_Right             = (1<<3);
-static CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1<<4);
-static CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1<<5);
-static CONSTEXPR DataSource Source_Chroma_Left            = (1<<6);
-static CONSTEXPR DataSource Source_Chroma_Right           = (1<<7);
-static CONSTEXPR DataSource Source_Disparity              = (1<<10);
-static CONSTEXPR DataSource Source_Disparity_Left         = (1<<10); // same as Source_Disparity
-static CONSTEXPR DataSource Source_Disparity_Right        = (1<<11);
-static CONSTEXPR DataSource Source_Disparity_Cost         = (1<<12);
-static CONSTEXPR DataSource Source_Jpeg_Left              = (1<<16);
-static CONSTEXPR DataSource Source_Rgb_Left               = (1<<17);
-static CONSTEXPR DataSource Source_Lidar_Scan             = (1<<24);
-static CONSTEXPR DataSource Source_Imu                    = (1<<25);
+static CRL_CONSTEXPR DataSource Source_Unknown                = 0;
+static CRL_CONSTEXPR DataSource Source_All                    = 0xffffffff;
+static CRL_CONSTEXPR DataSource Source_Raw_Left               = (1<<0);
+static CRL_CONSTEXPR DataSource Source_Raw_Right              = (1<<1);
+static CRL_CONSTEXPR DataSource Source_Luma_Left              = (1<<2);
+static CRL_CONSTEXPR DataSource Source_Luma_Right             = (1<<3);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1<<4);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1<<5);
+static CRL_CONSTEXPR DataSource Source_Chroma_Left            = (1<<6);
+static CRL_CONSTEXPR DataSource Source_Chroma_Right           = (1<<7);
+static CRL_CONSTEXPR DataSource Source_Disparity              = (1<<10);
+static CRL_CONSTEXPR DataSource Source_Disparity_Left         = (1<<10); // same as Source_Disparity
+static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1<<11);
+static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1<<12);
+static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1<<16);
+static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1<<17);
+static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1<<24);
+static CRL_CONSTEXPR DataSource Source_Imu                    = (1<<25);
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -113,11 +138,11 @@ static CONSTEXPR DataSource Source_Imu                    = (1<<25);
  * Monocular IP Camera.  This functionality is not supported by any of
  * CRL's stereo sensor products.
  */
-class DirectedStream {
+class MULTISENSE_API DirectedStream {
 public:
 
     /** Default UDP target port */
-    static CONSTEXPR uint16_t DFL_UDP_PORT = 10001;
+    static CRL_CONSTEXPR uint16_t DFL_UDP_PORT = 10001;
 
     /** The data source to stream to a given device */
     DataSource  mask;
@@ -162,16 +187,16 @@ public:
 typedef uint32_t TriggerSource;
 
 /** Default internal trigger source. Corresponds to image::config.setFps() */
-static CONSTEXPR TriggerSource Trigger_Internal    = 0;
+static CRL_CONSTEXPR TriggerSource Trigger_Internal    = 0;
 /** External OPTO_RX trigger input */
-static CONSTEXPR TriggerSource Trigger_External    = 1;
+static CRL_CONSTEXPR TriggerSource Trigger_External    = 1;
 
 
 
 /**
  * Base Header class for sensor callbacks
  */
-class HeaderBase {
+class MULTISENSE_API HeaderBase {
 public:
     /**
      * This default implementation of the inMask member function will
@@ -304,7 +329,7 @@ namespace image {
  * }
  * \endcode
  */
-class Header : public HeaderBase {
+class MULTISENSE_API Header : public HeaderBase {
 public:
 
     /** DataSource corresponding to imageDataP*/
@@ -343,7 +368,7 @@ public:
      * Member function used to determine if the data contained in the header
      * is contained in a specific image mask
      */
-    virtual bool inMask(DataSource mask) { return (mask & source);};
+    virtual bool inMask(DataSource mask) { return (mask & source) != 0;};
 };
 
 /**
@@ -441,7 +466,7 @@ typedef void (*Callback)(const Header& header,
  * \endcode
  *
  */
-class Config {
+class MULTISENSE_API Config {
 public:
 
     //
@@ -969,13 +994,13 @@ protected:
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class Calibration {
+class MULTISENSE_API Calibration {
 public:
 
     /**
      * Class to store camera calibration matrices.
      */
-    class Data {
+    class MULTISENSE_API Data {
     public:
 
         /**Camera un-rectified 3x3 projection matrix */
@@ -1031,7 +1056,7 @@ public:
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class Histogram {
+class MULTISENSE_API Histogram {
 public:
 
     /**
@@ -1068,7 +1093,7 @@ typedef uint32_t IntensityType;
  *
  * See crl::multisense::Channel::addIsolatedCallback
  */
-class Header : public HeaderBase {
+class MULTISENSE_API Header : public HeaderBase {
 public:
 
     /**
@@ -1194,7 +1219,7 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class Calibration {
+class MULTISENSE_API Calibration {
 public:
 
     /** A 4x4 homogeneous transform matrix corresponding to the transform from
@@ -1213,9 +1238,9 @@ namespace lighting {
 
 
 /** The maximum number of lights for a given sensor */
-static CONSTEXPR uint32_t MAX_LIGHTS     = 8;
+static CRL_CONSTEXPR uint32_t MAX_LIGHTS     = 8;
 /** The maximum duty cycle for adjusting light intensity */
-static CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
+static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
 
 /**
  * Class used to store a specific lighting configuration. Member of this class
@@ -1298,7 +1323,7 @@ static CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class Config {
+class MULTISENSE_API Config {
 public:
 
     /**
@@ -1401,7 +1426,7 @@ namespace pps {
  *
  * See crl::multisense::Channel::addIsolatedCallback
  */
-class Header : public HeaderBase {
+class MULTISENSE_API Header : public HeaderBase {
 public:
 
     /** The sensor time in nanoseconds when a given PPS event occurred  */
@@ -1429,15 +1454,15 @@ namespace imu {
  * Class containing a single IMU sample. A sample can contain data
  * either accelerometer data, gyroscope data, or magnetometer data.
  */
-class Sample {
+class MULTISENSE_API Sample {
 public:
 
     /** Typedef used to determine which data source a sample came from */
     typedef uint16_t Type;
 
-    static CONSTEXPR Type Type_Accelerometer = 1;
-    static CONSTEXPR Type Type_Gyroscope     = 2;
-    static CONSTEXPR Type Type_Magnetometer  = 3;
+    static CRL_CONSTEXPR Type Type_Accelerometer = 1;
+    static CRL_CONSTEXPR Type Type_Gyroscope     = 2;
+    static CRL_CONSTEXPR Type Type_Magnetometer  = 3;
 
     /** The type of data contained in the instance of imu::Sample */
     Type       type;
@@ -1490,7 +1515,7 @@ public:
  *
  * See crl::multisense::Channel::addIsolatedCallback
  */
-class Header : public HeaderBase {
+class MULTISENSE_API Header : public HeaderBase {
 public:
 
     /** The sequence number for each header containing IMU samples. This
@@ -1551,7 +1576,7 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class Info {
+class MULTISENSE_API Info {
 public:
 
     /**
@@ -1679,7 +1704,7 @@ public:
  * \endcode
  *
  */
-class Config {
+class MULTISENSE_API Config {
 public:
 
     /** The name of a specific IMU source corresponding to
@@ -1724,7 +1749,7 @@ namespace system {
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class DeviceMode {
+class MULTISENSE_API DeviceMode {
 public:
 
     /** The image width configuration for a given device mode */
@@ -1791,7 +1816,7 @@ public:
  * \endcode
  *
  */
-class VersionInfo {
+class MULTISENSE_API VersionInfo {
 public:
 
     /** The build date of libMultiSense */
@@ -1826,7 +1851,7 @@ public:
  * Class used to store PCB information for the various circuit boards in
  * a sensor
  */
-class PcbInfo {
+class MULTISENSE_API PcbInfo {
 public:
 
     /** The name of a PCB */
@@ -1875,26 +1900,26 @@ public:
  *
  * Setting sensor device info is not publicly supported.
  */
-class DeviceInfo {
+class MULTISENSE_API DeviceInfo {
 public:
 
     /** The maximum number of PCBs in a device */
-    static CONSTEXPR uint32_t MAX_PCBS                   = 8;
+    static CRL_CONSTEXPR uint32_t MAX_PCBS                   = 8;
 
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL    = 1;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7    = 2;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S     = HARDWARE_REV_MULTISENSE_S7; // alias for backward source compatibility
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M     = 3;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S   = 4;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21   = 5;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21  = 6;
-    static CONSTEXPR uint32_t HARDWARE_REV_BCAM             = 100;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL    = 1;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7    = 2;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S     = HARDWARE_REV_MULTISENSE_S7; // alias for backward source compatibility
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M     = 3;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S   = 4;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21   = 5;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21  = 6;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM             = 100;
 
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
-    static CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
 
     /** The name of a given device */
     std::string name;
@@ -2027,7 +2052,7 @@ public:
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
-class NetworkConfig {
+class MULTISENSE_API NetworkConfig {
 public:
 
     /** An Ipv4 address corresponding to a sensor */
@@ -2065,5 +2090,9 @@ public:
 }; // namespace system
 }; // namespace multisense
 }; // namespace crl
+
+#if defined (_MSC_VER)
+#pragma warning (pop)
+#endif
 
 #endif // LibMultiSense_MultiSenseTypes_hh

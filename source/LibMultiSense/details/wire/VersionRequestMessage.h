@@ -49,8 +49,8 @@ namespace wire {
 
 class VersionRequest {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_GET_VERSION;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_GET_VERSION;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

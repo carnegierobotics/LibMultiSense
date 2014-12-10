@@ -49,16 +49,16 @@ namespace wire {
 
 class SysFlashResponse {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_SYS_FLASH_RESPONSE;
-    static CONSTEXPR VersionType VERSION = 1; 
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_FLASH_RESPONSE;
+    static CRL_CONSTEXPR VersionType VERSION = 1; 
 
     //
     // Parameters representing the desired flash operation
 
-    static CONSTEXPR uint32_t STATUS_IDLE              = 0;// no operation in progress or requested
-    static CONSTEXPR uint32_t STATUS_SUCCESS           = 1;// requested operation succeeded/started
-    static CONSTEXPR uint32_t STATUS_FAILURE           = 2;// requested operation failed
-    static CONSTEXPR uint32_t STATUS_ERASE_IN_PROGRESS = 3;// operation not possible
+    static CRL_CONSTEXPR uint32_t STATUS_IDLE              = 0;// no operation in progress or requested
+    static CRL_CONSTEXPR uint32_t STATUS_SUCCESS           = 1;// requested operation succeeded/started
+    static CRL_CONSTEXPR uint32_t STATUS_FAILURE           = 2;// requested operation failed
+    static CRL_CONSTEXPR uint32_t STATUS_ERASE_IN_PROGRESS = 3;// operation not possible
 
     uint32_t status;
 

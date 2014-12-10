@@ -210,7 +210,7 @@ public:
             CRL_EXCEPTION("unusually large string: %d bytes",
                                    length);
         else if (length > 0) {
-            char buffer[length+1];
+            char buffer[512+1]; // length is guaranteed to be less than or equal to 512
             buffer[length] = '\0';
             this->read(buffer, length);
             value = std::string(buffer);

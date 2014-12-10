@@ -46,15 +46,15 @@ namespace wire {
 
 class SysNetwork {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_SYS_SET_NETWORK;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_SET_NETWORK;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Configurable interfaces
 
-    static CONSTEXPR uint8_t Interface_Unknown   = 0;
-    static CONSTEXPR uint8_t Interface_Primary   = 1;  // external GigE
-    static CONSTEXPR uint8_t Interface_Secondary = 2;  // internal 100Mb
+    static CRL_CONSTEXPR uint8_t Interface_Unknown   = 0;
+    static CRL_CONSTEXPR uint8_t Interface_Primary   = 1;  // external GigE
+    static CRL_CONSTEXPR uint8_t Interface_Secondary = 2;  // internal 100Mb
 
     //
     // IPV4 parameters

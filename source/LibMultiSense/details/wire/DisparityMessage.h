@@ -51,13 +51,13 @@ namespace wire {
 class WIRE_HEADER_ATTRIBS_ DisparityHeader {
 public:
 
-    static CONSTEXPR IdType      ID      = ID_DATA_DISPARITY;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_DISPARITY;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    static CONSTEXPR uint8_t  WIRE_BITS_PER_PIXEL = 12;
-    static CONSTEXPR uint8_t  WIRE_BYTE_ALIGNMENT = 3;
-    static CONSTEXPR uint8_t  API_BITS_PER_PIXEL  = 16; // after custom assemble()
-    static CONSTEXPR uint32_t META_LENGTH         = 16; // packed, includes type/version
+    static CRL_CONSTEXPR uint8_t  WIRE_BITS_PER_PIXEL = 12;
+    static CRL_CONSTEXPR uint8_t  WIRE_BYTE_ALIGNMENT = 3;
+    static CRL_CONSTEXPR uint8_t  API_BITS_PER_PIXEL  = 16; // after custom assemble()
+    static CRL_CONSTEXPR uint32_t META_LENGTH         = 16; // packed, includes type/version
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
@@ -103,7 +103,7 @@ public:
         message & width;
         message & height;
 
-        const uint32_t imageSize = std::ceil(((double) API_BITS_PER_PIXEL / 8.0) * width * height);
+        const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) API_BITS_PER_PIXEL / 8.0) * width * height));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
           

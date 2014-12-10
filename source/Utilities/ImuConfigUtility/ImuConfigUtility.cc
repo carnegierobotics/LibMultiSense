@@ -34,15 +34,31 @@
  *   2013-11-12, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <getopt.h>
 #include <errno.h>
+#include <iostream>
+#include <iomanip>
 
 #include <LibMultiSense/MultiSenseChannel.hh>
+
+#include <Utilities/portability/getopt/getopt.h>
+
+#ifdef WIN32
+#define strcasecmp _stricmp
+#endif
 
 using namespace crl::multisense;
 
@@ -55,20 +71,20 @@ uint32_t                 sensor_maxSamplesPerMessage = 0;
 
 void usage(const char *programNameP) 
 {
-    fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
-    fprintf(stderr, "Where <options> are:\n");
-    fprintf(stderr, "\t-a <ip_address>        : IPV4 address (default=10.66.171.21)\n");
-    fprintf(stderr, "\t-q                     : query and report IMU configuration\n");
-    fprintf(stderr, "\t-f                     : store IMU configuration in non-volatile flash\n");
-    fprintf(stderr, "\t-s <samples>           : set IMU samples-per-message\n");
-    fprintf(stderr, "\t-c \"<sensor_config>\"   : IMU sensor configuration string\n\n");
-    fprintf(stderr, "And \"<sensor_config>\" is of the following form:\n");
-    fprintf(stderr, "\t\"<sensor_name> <enabled> <rate_table_index> <range_table_index>\"\n\n");
-    fprintf(stderr, "For example, to enable the accelerometer, and have it use rate index 1 and range index 2:\n\n");
-    fprintf(stderr, "\t-c \"accelerometer true 1 2\"\n\n");
-    fprintf(stderr, "Multiple \"-c\" options may be specified to configure more than 1 sensor\n\n");
-    fprintf(stderr, "Please note that small values for samples-per-message combined with high IMU sensor rates\n");
-    fprintf(stderr, "may interfere with the acquisition and transmission of image and lidar data, if applicable\n");
+	std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
+	std::cerr << "Where <options> are:" << std::endl;
+	std::cerr << "\t-a <ip_address>        : IPV4 address (default=10.66.171.21)" << std::endl;
+	std::cerr << "\t-q                     : query and report IMU configuration" << std::endl;
+	std::cerr << "\t-f                     : store IMU configuration in non-volatile flash" << std::endl;
+	std::cerr << "\t-s <samples>           : set IMU samples-per-message" << std::endl;
+	std::cerr << "\t-c \"<sensor_config>\"   : IMU sensor configuration string\n" << std::endl;
+	std::cerr << "And \"<sensor_config>\" is of the following form:" << std::endl;
+	std::cerr << "\t\"<sensor_name> <enabled> <rate_table_index> <range_table_index>\"\n" << std::endl;
+	std::cerr << "For example, to enable the accelerometer, and have it use rate index 1 and range index 2:\n" << std::endl;
+	std::cerr << "\t-c \"accelerometer true 1 2\"\n" << std::endl;
+	std::cerr << "Multiple \"-c\" options may be specified to configure more than 1 sensor\n" << std::endl;
+	std::cerr << "Please note that small values for samples-per-message combined with high IMU sensor rates" << std::endl;
+	std::cerr << "may interfere with the acquisition and transmission of image and lidar data, if applicable" << std::endl;
 
     exit(-1);
 }
@@ -118,7 +134,7 @@ int main(int    argc,
     // if you do not want to change the default.
 
     if (user_samplesPerMessage < 0) {
-        fprintf(stderr, "invalid samples-per-message: %d\n", user_samplesPerMessage);
+		std::cerr << "Invalid samples-per-message: " << user_samplesPerMessage << std::endl;
         exit(-2);
     }
 
@@ -133,8 +149,7 @@ int main(int    argc,
 
     Channel *channelP = Channel::Create(currentAddress);
     if (NULL == channelP) {
-	fprintf(stderr, "Failed to establish communications with \"%s\"\n",
-		currentAddress.c_str());
+		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
 	return -1;
     }
 
@@ -145,30 +160,28 @@ int main(int    argc,
 
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor version: %s\n", 
-                Channel::statusString(status));
+		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
     if (query) {
-        fprintf(stdout, "Version information:\n");
-        fprintf(stdout, "\tAPI build date      :  %s\n", v.apiBuildDate.c_str());
-        fprintf(stdout, "\tAPI version         :  0x%04x\n", v.apiVersion);
-        fprintf(stdout, "\tFirmware build date :  %s\n", v.sensorFirmwareBuildDate.c_str());
-        fprintf(stdout, "\tFirmware version    :  0x%04x\n", v.sensorFirmwareVersion);
-        fprintf(stdout, "\tHardware version    :  0x%lx\n", v.sensorHardwareVersion);
-        fprintf(stdout, "\tHardware magic      :  0x%lx\n", v.sensorHardwareMagic);
-        fprintf(stdout, "\tFPGA DNA            :  0x%lx\n", v.sensorFpgaDna);
+		std::cout << "Version information:\n";
+		std::cout << "\tAPI build date      :  " << v.apiBuildDate << "\n";
+        std::cout << "\tAPI version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
+		std::cout << "\tFirmware build date :  " << v.sensorFirmwareBuildDate << "\n";
+		std::cout << "\tFirmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
+		std::cout << "\tHardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
+		std::cout << "\tHardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
+		std::cout << "\tFPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
+		std::cout << std::dec;
     }
 
     //
     // Make sure firmware supports IMU
 
     if (v.sensorFirmwareVersion <= 0x0202) {
-        fprintf(stderr, "IMU support requires sensor firmware version v2.3 or greater, sensor is "
-                "running v%d.%d\n",
-                v.sensorFirmwareVersion >> 8,
-                v.sensorFirmwareVersion & 0xff);
+		std::cerr << "IMU support requires sensor firmware version v2.3 or greater, sensor is " <<
+			"running v" << (v.sensorFirmwareVersion >> 8) << "." << (v.sensorFirmwareVersion & 0xff) << std::endl;
             goto clean_out;
     }
 
@@ -178,53 +191,45 @@ int main(int    argc,
     status = channelP->getImuInfo(sensor_maxSamplesPerMessage,
                                   sensor_infos);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query imu info: %s\n", 
-                Channel::statusString(status));
+		std::cerr << "Failed to query imu info: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
     status = channelP->getImuConfig(sensor_samplesPerMessage, sensor_configs);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query imu config: %s\n", 
-                Channel::statusString(status));
+		std::cerr << "Failed to query imu config: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
     if (query) {
-        fprintf(stdout, "\nMax IMU samples-per-message: %d\n", sensor_maxSamplesPerMessage);
-        fprintf(stdout, "%ld IMU sensors:\n", sensor_infos.size());
+		std::cout << "\nMax IMU samples-per-message: " << sensor_maxSamplesPerMessage << "\n";
+        std::cout << sensor_infos.size () << " IMU sensors:\n";
         for(uint32_t i=0; i<sensor_infos.size(); i++) {
 
         const imu::Info& m = sensor_infos[i];
 
-        fprintf(stdout, "\t%s:\n", m.name.c_str());
-        fprintf(stdout, "\t\tdevice:   %s\n", m.device.c_str());
-        fprintf(stdout, "\t\tunits :   %s\n", m.units.c_str());
-        fprintf(stdout, "\t\trates :   %ld: rate (Hz), bandwidthCutoff (Hz)\n", 
-                m.rates.size());
-        for(uint32_t j=0; j<m.rates.size(); j++)
-            fprintf(stdout, "\t\t\t\t%d: %.1f, %.3f\n", j,
-                    m.rates[j].sampleRate,
-                    m.rates[j].bandwidthCutoff);
-        fprintf(stdout, "\t\tranges:   %ld: range (+/- %s), resolution (%s)\n", 
-                    m.ranges.size(),
-                    m.units.c_str(),
-                    m.units.c_str());
-        for(uint32_t j=0; j<m.ranges.size(); j++)
-            fprintf(stdout, "\t\t\t\t%d: %.1f, %.6f\n", j,
-                    m.ranges[j].range,
-                    m.ranges[j].resolution);
+		std::cout << "\t" << m.name << ":\n";
+		std::cout << "\t\tdevice:   " << m.device << "\n";
+		std::cout << "\t\tunits :   " << m.units << "\n";
+		std::cout << "\t\trates :   " << m.rates.size() << ": rate (Hz), bandwidthCutoff (Hz)\n";
+		for (uint32_t j = 0; j < m.rates.size(); j++)
+			std::cout << "\t\t\t\t" << j << ": " << std::fixed << std::setprecision(1) << m.rates[j].sampleRate << "," <<
+                                 			      std::fixed << std::setprecision(3) << m.rates[j].bandwidthCutoff << "\n";
+		std::cout << "\t\tranges:   " << m.ranges.size() << ": range (+/- " << m.units << "), resolution (" << m.units << ")\n";
+		for (uint32_t j = 0; j < m.ranges.size(); j++)
+			std::cout << "\t\t\t\t" << j << ": " << std::fixed << std::setprecision(1) << m.ranges[j].range << ", " <<
+  			                                        std::fixed << std::setprecision(6) << m.ranges[j].resolution << "\n";
         }
 
-        fprintf(stdout, "\nCurrent IMU configuration:\n");
-        fprintf(stdout, "\t-s %d ", sensor_samplesPerMessage);
+        std::cout << "\nCurrent IMU configuration:\n";
+		std::cout << "\t-s " << sensor_samplesPerMessage << " ";
         for(uint32_t i=0; i<sensor_configs.size(); i++) {
             
             const imu::Config& c = sensor_configs[i];
             
-            fprintf(stdout, "-c \"%s %s %d %d\" ", c.name.c_str(), c.enabled ? "true" : "false",
-                    c.rateTableIndex, c.rangeTableIndex);
+			std::cout << "-c \"" << c.name << " " << (c.enabled ? "true" : "false") << " " <<
+				c.rateTableIndex << " " << c.rangeTableIndex << "\" ";
         }
-        fprintf(stdout, "\n");
+        std::cout << "\n";
     }
 
     //
@@ -236,8 +241,7 @@ int main(int    argc,
         bool                     configValid = true;
 
         if (user_samplesPerMessage > static_cast<int32_t>(sensor_maxSamplesPerMessage)) {
-            fprintf(stderr, "invalid samples-per-message %d, valid values are in [1,%d]\n",
-                    user_samplesPerMessage, sensor_maxSamplesPerMessage);
+			std::cerr << "Invalid samples-per-message " << user_samplesPerMessage << ", valid values are in [1," << sensor_maxSamplesPerMessage << "]" << std::endl;
             configValid = false;
         }
 
@@ -253,17 +257,14 @@ int main(int    argc,
 
             if (4 != sscanf(cli_configs[i].c_str(), "%31s %31s %d %d",
                             nameP, enabledP, &rate, &range)) {
-                fprintf(stderr, "malformed IMU config: \"%s\"\n", 
-                        cli_configs[i].c_str());
+				std::cerr << "Malformed IMU config: \"" << cli_configs[i] << "\"" << std::endl;
                 configValid = false;
                 continue;  // keep parsing for maximum feedback
             }
 
             if (0 != strcasecmp(enabledP, "true") &&
                 0 != strcasecmp(enabledP, "false")) {
-                fprintf(stderr, 
-                        "malformed <enabled> string \"%s\", must be one of \"true\" or \"false\"\n",
-                        enabledP);
+				std::cerr << "Malformed <enabled> string \"" << enabledP << "\", must be one of \"true\" or \"false\"" << std::endl;
                 configValid = false;
                 continue;
             }
@@ -273,9 +274,7 @@ int main(int    argc,
 
             imu::Info info;
             if (false == imuInfoByName(nameP, info)) {
-                fprintf(stderr, 
-                        "unknown <sensor_name> \"%s\", query config for a list of valid names\n",
-                        nameP);
+				std::cerr << "Unknown <sensor_name> \"" << nameP << "\", query config for a list of valid names" << std::endl;
                 configValid = false;
                 continue;
             }
@@ -284,15 +283,12 @@ int main(int    argc,
             // Validate the rate/range indices
 
             if (rate < 0 || rate >= static_cast<int32_t>(info.rates.size())) {
-                fprintf(stderr, 
-                        "invalid rate table index %d for \"%s\", valid indices are in [0,%lu]\n",
-                        rate, nameP, info.rates.size() - 1);
+				std::cerr << "Invalid rate table index " << rate << " for \"" << nameP << "\", valid indices are in [0," << (info.rates.size() - 1) << "]" << std::endl;
                 configValid = false;
             }
             if (range < 0 || range >= static_cast<int32_t>(info.ranges.size())) {
-                fprintf(stderr,
-                        "invalid range table index %d for \"%s\", valid indices are in [0,%lu]\n",
-                        range, nameP, info.ranges.size() - 1);
+				std::cerr << "Invalid range table index " << range << " for \"" << nameP << "\", " <<
+					         "valid indices are in [0," << (info.ranges.size() - 1) << "]" << std::endl;
                 configValid = false;
             }
 
@@ -311,17 +307,16 @@ int main(int    argc,
             user_configs.push_back(c);
         }
 
-        if (false == configValid)
-            fprintf(stderr, "errors exist in configuration, aborting\n");
+		if (false == configValid)
+			std::cerr << "Errors exist in configuration, aborting" << std::endl;
         else {
             status = channelP->setImuConfig(storeInFlash,
                                             user_samplesPerMessage,
                                             user_configs); // can be empty
-            if (Status_Ok != status)
-                fprintf(stderr, "failed to set IMU configuration: %s\n",
-                        Channel::statusString(status));
-            else
-                fprintf(stdout, "IMU configuration updated successfully\n");
+			if (Status_Ok != status)
+				std::cerr << "Failed to set IMU configuration: " << Channel::statusString(status) << std::endl;
+			else
+				std::cout << "IMU configuration updated successfully\n";
         }
     }
 

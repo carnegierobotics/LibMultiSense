@@ -47,8 +47,8 @@ namespace imu {
 
 class Config {
 public:
-    static CONSTEXPR VersionType VERSION       = 1;
-    static CONSTEXPR uint32_t    FLAGS_ENABLED = (1<<0);
+    static CRL_CONSTEXPR VersionType VERSION       = 1;
+    static CRL_CONSTEXPR uint32_t    FLAGS_ENABLED = (1<<0);
 
     std::string name;
     uint32_t    flags;
@@ -73,8 +73,8 @@ public:
 
 class ImuConfig {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_IMU_CONFIG;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMU_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     uint8_t                  storeSettingsInFlash;  // boolean
     uint32_t                 samplesPerMessage;     // 0 to ignore

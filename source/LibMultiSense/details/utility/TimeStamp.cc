@@ -41,7 +41,9 @@
 
 #include "TimeStamp.hh"
 
+#ifndef WIN32
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 namespace crl {
@@ -53,6 +55,31 @@ namespace utility {
 // Initialize static routines.
 
 double TimeStamp::timeSynchronizationOffset = 0.0;
+
+#if defined (WIN32)
+
+//
+// The FILETIME structure in Windows measures time in 100-nanosecond intervals
+// since 1601-Jan-01. The timeval structure measures time in second intervals
+// since 1970-Jan-01. This function computes the number of seconds (as a double)
+// that we need to apply as an offset to ensure that clock times are all tracked
+// from the same epoch.
+static ULARGE_INTEGER initOffsetSecondsSince1970 ()
+{
+    SYSTEMTIME epochTimeAsSystemTime = { 1970, 1, 0, 1, 0, 0, 0, 0 };
+    FILETIME epochTimeAsFileTime;
+    SystemTimeToFileTime (&epochTimeAsSystemTime, &epochTimeAsFileTime);
+
+    ULARGE_INTEGER epochTime;
+    epochTime.LowPart = epochTimeAsFileTime.dwLowDateTime;
+    epochTime.HighPart = epochTimeAsFileTime.dwHighDateTime;
+
+    return epochTime;
+}
+
+ULARGE_INTEGER TimeStamp::offsetSecondsSince1970 = initOffsetSecondsSince1970 ();
+
+#endif
 
 /*
  * Constructor. Empty. We rely on the getter methods to do
@@ -157,7 +184,23 @@ TimeStamp TimeStamp::getCurrentTime()
 
     TimeStamp timeStamp;
 
+#if defined (WIN32)
+
+    // gettimeofday does not exist on Windows
+    FILETIME currentTimeAsFileTime;
+    GetSystemTimeAsFileTime (&currentTimeAsFileTime);
+
+    ULARGE_INTEGER currentTimeAsLargeInteger;
+    currentTimeAsLargeInteger.LowPart = currentTimeAsFileTime.dwLowDateTime;
+    currentTimeAsLargeInteger.HighPart = currentTimeAsFileTime.dwHighDateTime;
+    currentTimeAsLargeInteger.QuadPart -= offsetSecondsSince1970.QuadPart;
+
+    timeStamp.time.tv_sec = static_cast<long> (currentTimeAsLargeInteger.QuadPart / 10000000);
+    timeStamp.time.tv_usec = static_cast<long> ((currentTimeAsLargeInteger.QuadPart - timeStamp.time.tv_sec * 10000000) / 10);
+
+#else
     gettimeofday(&timeStamp.time, 0);
+#endif
 
     //
     // Transform it into a double... Notice that this (quite handily)
@@ -178,34 +221,6 @@ TimeStamp TimeStamp::getCurrentTime()
     //
     // Return the final timestamp.
     //
-
-    return timeStamp;
-}
-
-/*
- * Returns the monotonic time. This clock is not affected by time synchronization
- * and should never time-jump. It will be completely unrelated to the normal wall
- * time, though.
- */
-TimeStamp TimeStamp::getMonotonicTime()
-{
-    //
-    // Retrieve the monotonic time, in nanoseconds.
-    //
-
-    struct timespec time = { 0 };
-
-    clock_gettime(CLOCK_MONOTONIC, &time);
-
-    //
-    // Copy into a timeval, taking care to convert nanoseconds
-    // into microseconds.
-    //
-
-    TimeStamp timeStamp;
-
-    timeStamp.time.tv_sec = time.tv_sec;
-    timeStamp.time.tv_usec = time.tv_nsec / 1000;
 
     return timeStamp;
 }
@@ -242,8 +257,8 @@ TimeStamp::operator double() const
  */
 TimeStamp& TimeStamp::operator=(double timeStamp)
 {
-    this->time.tv_sec = ((unsigned long long) timeStamp);
-    this->time.tv_usec = ((unsigned long long) ((timeStamp - this->time.tv_sec) * 1000000));
+    this->time.tv_sec = ((unsigned long) timeStamp);
+    this->time.tv_usec = ((unsigned long) ((timeStamp - this->time.tv_sec) * 1000000));
 
     // This call avoids having negative microseconds if the input
     // argument is less than zero and non-integral.

@@ -48,9 +48,9 @@ namespace wire {
 
 class SysTestMtuResponse {
 public:
-    static CONSTEXPR IdType      ID          = ID_DATA_SYS_TEST_MTU_RESPONSE;
-    static CONSTEXPR VersionType VERSION     = 1;
-    static CONSTEXPR uint32_t    HEADER_SIZE = sizeof(uint32_t);
+    static CRL_CONSTEXPR IdType      ID          = ID_DATA_SYS_TEST_MTU_RESPONSE;
+    static CRL_CONSTEXPR VersionType VERSION     = 1;
+    static CRL_CONSTEXPR uint32_t    HEADER_SIZE = sizeof(uint32_t);
 
     uint32_t payloadSize;
 

@@ -47,7 +47,9 @@
 
 #include "details/utility/Functional.hh"
 
+#ifndef WIN32
 #include <netdb.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
 
@@ -91,6 +93,13 @@ impl::impl(const std::string& address) :
     m_networkTimeSyncEnabled(true),
     m_sensorVersion()
 {
+#if WIN32
+    WSADATA wsaData;
+    int result = WSAStartup (MAKEWORD (0x02, 0x02), &wsaData);
+    if (result != 0)
+        CRL_EXCEPTION("WSAStartup() failed: %d", result);
+#endif
+
     //
     // Make sure the sensor address is sane
 
@@ -213,7 +222,11 @@ void impl::cleanup()
         delete *it;
 
     if (m_serverSocket > 0)
-        close(m_serverSocket);
+        closesocket(m_serverSocket);
+
+#if WIN32
+    WSACleanup ();
+#endif
 }
 
 //
@@ -240,19 +253,24 @@ void impl::bind()
 
     //
     // Turn non-blocking on.
-
+#if WIN32
+    u_long ioctl_arg = 1;
+    if (0 != ioctlsocket(m_serverSocket, FIONBIO, &ioctl_arg))
+        CRL_EXCEPTION("failed to make a socket non-blocking: %d",WSAGetLastError ());
+#else
     const int flags = fcntl(m_serverSocket, F_GETFL, 0);
     
     if (0 != fcntl(m_serverSocket, F_SETFL, flags | O_NONBLOCK))
         CRL_EXCEPTION("failed to make a socket non-blocking: %s",
                       strerror(errno));
+#endif
 
     //
     // Allow reusing sockets.
 
     int reuseSocket = 1;
 
-    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_REUSEADDR, (void*) &reuseSocket, 
+    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_REUSEADDR, (char*) &reuseSocket, 
                         sizeof(reuseSocket)))
         CRL_EXCEPTION("failed to turn on socket reuse flag: %s",
                       strerror(errno));
@@ -262,9 +280,9 @@ void impl::bind()
 
     int bufferSize = 48 * 1024 * 1024;
 
-    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_RCVBUF, (void*) &bufferSize, 
+    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_RCVBUF, (char*) &bufferSize, 
                         sizeof(bufferSize)) ||
-        0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_SNDBUF, (void*) &bufferSize, 
+        0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_SNDBUF, (char*) &bufferSize, 
                         sizeof(bufferSize)))
         CRL_EXCEPTION("failed to adjust socket buffer sizes (%d bytes): %s",
                       bufferSize, strerror(errno));
@@ -284,8 +302,11 @@ void impl::bind()
 
     //
     // Retrieve the system assigned local UDP port
-
+#if WIN32
+    int len = sizeof(address);
+#else
     socklen_t len = sizeof(address);
+#endif
     if (0 != getsockname(m_serverSocket, (struct sockaddr*) &address, &len))
         CRL_EXCEPTION("getsockname() failed: %s", strerror(errno));
     m_serverSocketPort = htons(address.sin_port);
@@ -305,14 +326,20 @@ void impl::publish(const utility::BufferStreamWriter& stream)
     header.version            = wire::HEADER_VERSION;
     header.group              = wire::HEADER_GROUP;
     header.flags              = 0;
+#if WIN32
+    // TBD: This returns the post-incremented value
+    header.sequenceIdentifier = InterlockedIncrement16((short*)&m_txSeqId);
+#else
+    // TBD: This returns the pre-incremented value
     header.sequenceIdentifier = __sync_fetch_and_add(&m_txSeqId, 1);
+#endif
     header.messageLength      = stream.tell() - sizeof(wire::Header);
     header.byteOffset         = 0;
 
     //
     // Send the packet along
 
-    const int32_t ret = sendto(m_serverSocket, stream.data(), stream.tell(), 0,
+    const int32_t ret = sendto(m_serverSocket, (char*)stream.data(), stream.tell(), 0,
                                (struct sockaddr *) &m_sensorAddress,
                                sizeof(m_sensorAddress));        
     
@@ -469,7 +496,11 @@ void impl::sensorToLocalTime(const double& sensorTime,
 //
 // An internal thread for status/time-synchroniziation
 
+#ifdef WIN32
+DWORD impl::statusThread(void *userDataP)
+#else
 void *impl::statusThread(void *userDataP)
+#endif
 {
     impl *selfP = reinterpret_cast<impl*>(userDataP);
 
@@ -532,7 +563,7 @@ void *impl::statusThread(void *userDataP)
         //
         // Recompute offset at ~1Hz
 
-        usleep(1e6);
+        usleep(static_cast<unsigned int> (1e6));
     }
 
     return NULL;

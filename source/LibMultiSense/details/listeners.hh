@@ -49,17 +49,17 @@ namespace details {
 //
 // For access to a buffer back-end in a dispatch thread
 
-extern __thread utility::BufferStream *dispatchBufferReferenceTP;
+extern CRL_THREAD_LOCAL utility::BufferStream *dispatchBufferReferenceTP;
 
 //
 // The dispatch mechanism. Each instance represents a bound
 // listener to a datum stream.
 
-template<class HEADER, class CALLBACK>
+template<class THeader, class TCallback>
 class Listener {
 public:
     
-    Listener(CALLBACK   c,
+    Listener(TCallback   c,
              DataSource s,
              void      *d,
              uint32_t   m=0)
@@ -90,7 +90,7 @@ public:
         }
     };
 
-    void dispatch(HEADER& header) {
+    void dispatch(THeader& header) {
 
         if (header.inMask(m_sourceMask))
             m_queue.post(Dispatch(m_callback,
@@ -99,7 +99,7 @@ public:
     };
 
     void dispatch(utility::BufferStream& buffer,
-                  HEADER&                header) {
+                  THeader&                header) {
 
         if (header.inMask(m_sourceMask))
             m_queue.post(Dispatch(m_callback,
@@ -108,7 +108,7 @@ public:
                                   m_userDataP));
     };
 
-    CALLBACK callback() { return m_callback; };
+    TCallback callback() { return m_callback; };
 
 private:
 
@@ -118,17 +118,17 @@ private:
     class Dispatch {
     public:
 
-        Dispatch(CALLBACK  c,
-                 HEADER&   h,
+        Dispatch(TCallback  c,
+                 THeader&   h,
                  void     *d) :
             m_callback(c),
             m_exposeBuffer(false),
             m_header(h),
             m_userDataP(d) {};
 
-        Dispatch(CALLBACK               c,
+        Dispatch(TCallback               c,
                  utility::BufferStream& b,
-                 HEADER&                h,
+                 THeader&                h,
                  void                  *d) :
             m_callback(c),
             m_buffer(b),
@@ -154,10 +154,10 @@ private:
 
     private:
 
-        CALLBACK              m_callback;
+        TCallback              m_callback;
         utility::BufferStream m_buffer;
         bool                  m_exposeBuffer;
-        HEADER                m_header;
+        THeader                m_header;
         void                 *m_userDataP;
     };
 
@@ -168,9 +168,13 @@ private:
     // HEADER by std::deque, but the image/lidar data
     // is zero-copy (reference-counted by BufferStream)
 
+#if WIN32
+    static DWORD WINAPI dispatchThread(void *argumentP) {
+#else
     static void *dispatchThread(void *argumentP) {
+#endif
         
-        Listener<HEADER,CALLBACK> *selfP = reinterpret_cast< Listener<HEADER,CALLBACK> * >(argumentP);
+        Listener<THeader,TCallback> *selfP = reinterpret_cast< Listener<THeader,TCallback> * >(argumentP);
     
         while(selfP->m_running) {
             try {
@@ -192,7 +196,7 @@ private:
     //
     // Set by user
 
-    CALLBACK   m_callback;
+    TCallback   m_callback;
     DataSource m_sourceMask;
     void      *m_userDataP;
 

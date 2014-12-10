@@ -89,13 +89,21 @@ private:
     volatile int32_t *m_countP;
         
     void share() {
-        if (m_countP) 
+        if (m_countP)
+#if WIN32
+            InterlockedIncrement((LONG*)m_countP);
+#else
             __sync_fetch_and_add(m_countP, 1);
+#endif
     }
 
     void release() {
         if (m_countP) {
+#if WIN32
+            int32_t count = InterlockedDecrement((LONG*)m_countP);
+#else
             int32_t count = __sync_sub_and_fetch(m_countP, 1);
+#endif
             if (count <= 0)
                 delete m_countP;
             m_countP = NULL;

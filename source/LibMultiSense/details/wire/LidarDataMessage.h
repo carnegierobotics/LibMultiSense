@@ -52,9 +52,9 @@ namespace wire {
 class WIRE_HEADER_ATTRIBS_ LidarDataHeader {
 public:
 
-    static CONSTEXPR IdType      ID          = ID_DATA_LIDAR_SCAN;
-    static CONSTEXPR VersionType VERSION     = 1;
-    static CONSTEXPR uint32_t    SCAN_POINTS = 1081;
+    static CRL_CONSTEXPR IdType      ID          = ID_DATA_LIDAR_SCAN;
+    static CRL_CONSTEXPR VersionType VERSION     = 1;
+    static CRL_CONSTEXPR uint32_t    SCAN_POINTS = 1081;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;

@@ -46,8 +46,8 @@ namespace wire {
 
 class ImuGetInfo {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_IMU_GET_INFO;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_IMU_GET_INFO;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

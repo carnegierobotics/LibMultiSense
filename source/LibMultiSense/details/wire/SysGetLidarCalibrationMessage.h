@@ -48,8 +48,8 @@ namespace wire {
 
 class SysGetLidarCalibration {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_SYS_GET_LIDAR_CAL;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_GET_LIDAR_CAL;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

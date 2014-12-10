@@ -34,24 +34,36 @@
  *   2013-05-22, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <getopt.h>
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
 
-#include <errno.h>
-#include <string.h>
+#include <windows.h>
+#include <winsock2.h>
+#else
+#include <unistd.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+
+#include <errno.h>
+#include <string.h>
+
+#include <LibMultiSense/details/utility/Portability.hh>
 #include <LibMultiSense/MultiSenseChannel.hh>
 
 #include <LibMultiSense/details/utility/BufferStream.hh>
 #include <LibMultiSense/details/wire/Protocol.h>
 #include <LibMultiSense/details/wire/SysNetworkMessage.h>
+
+#include <Utilities/portability/getopt/getopt.h>
 
 namespace {  // anonymous
 
@@ -63,7 +75,9 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-A <new_address>        : NEW IPV4 address     (default=10.66.171.21)\n");
     fprintf(stderr, "\t-G <new_gateway>        : NEW IPV4 gateway     (default=10.66.171.1)\n");
     fprintf(stderr, "\t-N <new_netmask>        : NEW IPV4 address     (default=255.255.240.0)\n");
+#ifndef WIN32
     fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface (requires root)\n");
+#endif
     fprintf(stderr, "\t-y                      : disable confirmation prompt\n");
     
     exit(-1);
@@ -130,6 +144,10 @@ int main(int    argc,
     }
     else
     {
+#ifdef WIN32
+        perror ("broadcast is not yet supported on Windows");
+        goto clean_out;
+#else
         int broadcast=1;
 
         // create UDP socket
@@ -140,7 +158,7 @@ int main(int    argc,
         }
 
         // enable support for sending to broadcast address
-        if (setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,&broadcast,sizeof(broadcast))==-1) {
+        if (setsockopt(sockfd,SOL_SOCKET,SO_BROADCAST,reinterpret_cast<char const*>(&broadcast),sizeof(broadcast))==-1) {
             perror("setsockopt(...SO_BROADCAST) failed");
             goto clean_out;
         }
@@ -151,6 +169,7 @@ int main(int    argc,
             perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
             goto clean_out;
         }
+#endif
     }
     
     if(prompt)
@@ -191,6 +210,7 @@ int main(int    argc,
     }
     else
     {
+#ifndef WIN32
         struct sockaddr_in si;
 
         // construct destination address
@@ -227,12 +247,13 @@ int main(int    argc,
         header.byteOffset         = 0;
 
         // send packet
-        if(sendto(sockfd,buffer.data(),buffer.tell(),0,reinterpret_cast<sockaddr*>(&si),sizeof(si)) == -1) {
+        if(sendto(sockfd,reinterpret_cast<char const*>(buffer.data()),buffer.tell(),0,reinterpret_cast<sockaddr*>(&si),sizeof(si)) == -1) {
             perror("sendto() failed");
             goto clean_out;
         }
 
         fprintf(stdout, "Successfully transmitted network parameter change command\n");
+#endif
     }
 
 clean_out:
@@ -240,7 +261,11 @@ clean_out:
     if(channelP)
         Channel::Destroy(channelP);
     if(sockfd != -1)
+#ifdef WIN32
+        closesocket(sockfd);
+#else
         close(sockfd);
+#endif
 
     return 0;
 }

@@ -48,8 +48,8 @@ namespace wire {
     
 class SysLidarCalibration {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_SYS_LIDAR_CAL;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_LIDAR_CAL;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     float laserToSpindle[4][4];
     float cameraToSpindleFixed[4][4];

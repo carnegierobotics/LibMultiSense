@@ -49,8 +49,8 @@ namespace wire {
 
 class CamSetResolution {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_CAM_SET_RESOLUTION;
-    static CONSTEXPR VersionType VERSION = 2;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_SET_RESOLUTION;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Parameters

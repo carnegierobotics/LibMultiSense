@@ -120,7 +120,7 @@ void impl::programOrVerifyFlashRegion(std::ifstream& file,
     // Get file size
 
     file.seekg(0, file.end);
-    int fileLength = file.tellg();
+    std::streamoff fileLength = file.tellg();
     file.seekg(0, file.beg);
 
     wire::SysFlashOp op(operation, region, 0,
@@ -160,7 +160,7 @@ void impl::programOrVerifyFlashRegion(std::ifstream& file,
         //
         // Print out progress
 
-        int progress = (100 * op.start_address) / fileLength;
+        int progress = static_cast<int> ((100 * op.start_address) / fileLength);
         if (progress != prevProgress && 0 == (progress % 5))
             CRL_DEBUG("%s... %3d%%\n", opNameP, progress);
 

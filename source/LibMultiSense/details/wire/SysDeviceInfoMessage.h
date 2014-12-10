@@ -39,6 +39,7 @@
 #ifndef LibMultiSense_SysDeviceInfoMessage
 #define LibMultiSense_SysDeviceInfoMessage
 
+#include <algorithm>
 #include <string>
 #include "Protocol.h"
 #include "../utility/BufferStream.hh"
@@ -50,7 +51,7 @@ namespace wire {
 
 class PcbInfo {
 public:
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     std::string name;
     uint32_t    revision;
@@ -66,8 +67,8 @@ public:
 
 class SysDeviceInfo {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_INFO;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_INFO;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // These constants are stored in flash on the device, do
@@ -78,21 +79,21 @@ public:
     // map any differences when translating between
     // WIRE and API.)
 
-    static CONSTEXPR uint8_t  MAX_PCBS = 8;
+    static CRL_CONSTEXPR uint8_t  MAX_PCBS = 8;
 
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL    = 1;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7    = 2;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M     = 3;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S   = 4;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21   = 5;
-    static CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21  = 6;
-    static CONSTEXPR uint32_t HARDWARE_REV_BCAM             = 100;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL    = 1;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7    = 2;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M     = 3;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S   = 4;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21   = 5;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21  = 6;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM             = 100;
 
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
-    static CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
-    static CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
 
     std::string key;
     std::string name;

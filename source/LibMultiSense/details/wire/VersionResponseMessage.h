@@ -49,8 +49,8 @@ namespace wire {
 
 class VersionResponse {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_VERSION;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_VERSION;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     std::string firmwareBuildDate;
     VersionType firmwareVersion;

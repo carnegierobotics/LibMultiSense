@@ -46,8 +46,8 @@ namespace wire {
 
 class SysGetDirectedStreams {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_SYS_GET_DIRECTED_STREAMS;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_GET_DIRECTED_STREAMS;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

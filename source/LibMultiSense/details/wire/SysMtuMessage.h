@@ -47,8 +47,8 @@ namespace wire {
 
 class SysMtu {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_SYS_MTU;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_MTU;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Parameters

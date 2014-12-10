@@ -34,14 +34,26 @@
  *   2013-05-22, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#else
 #include <unistd.h>
+#endif
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <getopt.h>
 
 #include <LibMultiSense/MultiSenseChannel.hh>
+
+#include <Utilities/portability/getopt/getopt.h>
 
 using namespace crl::multisense;
 
@@ -135,6 +147,10 @@ bool parseFile(const std::string& fileName,
         const char *s = skipSpace(lineP);
         if (!s || '#' == *s || '\0' == *s)
             continue;
+
+#ifdef WIN32
+#define strncasecmp _strnicmp
+#endif
 
 #define CASE_STR(str_,x_)                                               \
             if (0 == strncasecmp(s, str_, strlen(str_))) {              \

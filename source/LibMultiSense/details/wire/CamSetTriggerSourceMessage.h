@@ -48,11 +48,11 @@ namespace wire {
 
 class CamSetTriggerSource {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_CAM_SET_TRIGGER_SOURCE;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_SET_TRIGGER_SOURCE;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    static CONSTEXPR uint32_t    SOURCE_INTERNAL = 0;
-    static CONSTEXPR uint32_t    SOURCE_EXTERNAL = 1; // OPTO_RX
+    static CRL_CONSTEXPR uint32_t    SOURCE_INTERNAL = 0;
+    static CRL_CONSTEXPR uint32_t    SOURCE_EXTERNAL = 1; // OPTO_RX
 
     //
     // Parameters

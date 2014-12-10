@@ -63,8 +63,8 @@ public:
 
 class SysDeviceModes {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_MODES;
-    static CONSTEXPR VersionType VERSION = 2;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_MODES;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Available formats

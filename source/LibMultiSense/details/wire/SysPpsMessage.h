@@ -46,8 +46,8 @@ namespace wire {
 
 class SysPps {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_SYS_PPS;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_PPS;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Sensor system clock at time of last PPS pulse

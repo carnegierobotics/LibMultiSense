@@ -46,7 +46,7 @@ namespace wire {
 
 class DirectedStream {
 public:
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     uint32_t    mask;
     std::string address;
@@ -79,12 +79,12 @@ public:
 
 class SysDirectedStreams {
 public:
-    static CONSTEXPR IdType      ID        = ID_DATA_SYS_DIRECTED_STREAMS;
-    static CONSTEXPR VersionType VERSION   = 1;
+    static CRL_CONSTEXPR IdType      ID        = ID_DATA_SYS_DIRECTED_STREAMS;
+    static CRL_CONSTEXPR VersionType VERSION   = 1;
 
-    static CONSTEXPR uint32_t    CMD_NONE  = 0;
-    static CONSTEXPR uint32_t    CMD_START = 1;
-    static CONSTEXPR uint32_t    CMD_STOP  = 2;
+    static CRL_CONSTEXPR uint32_t    CMD_NONE  = 0;
+    static CRL_CONSTEXPR uint32_t    CMD_START = 1;
+    static CRL_CONSTEXPR uint32_t    CMD_STOP  = 2;
 
     uint32_t                          command;
     std::vector<wire::DirectedStream> streams;

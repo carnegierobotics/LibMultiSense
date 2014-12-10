@@ -43,34 +43,41 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <syslog.h>
 #include <exception>
 #include <string>
 
 #include "TimeStamp.hh"
 
 #ifdef CRL_DEBUG_SYSLOG
+#include <syslog.h>
 #define CRL_DEBUG_REDIRECTION syslog(LOG_USER|LOG_INFO,
 #else
 #define CRL_DEBUG_REDIRECTION fprintf(stderr,
 #endif // CRL_DEBUG_SYSLOG
 
+#ifdef WIN32
+#define CRL_FILENAME                            \
+	(strrchr(__FILE__,'\\')                     \
+	 ? strrchr(__FILE__,'\\')+1                 \
+	 : __FILE__)
+#else
 #define CRL_FILENAME                            \
     (strrchr(__FILE__,'/')                      \
      ? strrchr(__FILE__,'/')+1                  \
      : __FILE__)
+#endif
 
 #define CRL_EXCEPTION(fmt, ...)                                         \
     do {                                                                \
         throw crl::multisense::details::utility::Exception("%s(%d): %s: " fmt,CRL_FILENAME,__LINE__, \
-                                                           __PRETTY_FUNCTION__,##__VA_ARGS__); \
+                                                           CRL_PRETTY_FUNCTION,##__VA_ARGS__); \
     } while(0)
 
 #define CRL_DEBUG(fmt, ...)                                             \
     do {                                                                \
         double now = crl::multisense::details::utility::TimeStamp::getCurrentTime(); \
         CRL_DEBUG_REDIRECTION "[%.3f] %s(%d): %s: " fmt,now,CRL_FILENAME,__LINE__, \
-                __PRETTY_FUNCTION__,##__VA_ARGS__);                     \
+                CRL_PRETTY_FUNCTION,##__VA_ARGS__);                     \
     } while(0)
 
 

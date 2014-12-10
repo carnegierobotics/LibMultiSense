@@ -50,8 +50,8 @@ namespace wire {
 class WIRE_HEADER_ATTRIBS_ ImageHeader {
 public:
 
-static CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
-static CONSTEXPR VersionType VERSION = 1;
+static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
+static CRL_CONSTEXPR VersionType VERSION = 1;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
@@ -103,7 +103,7 @@ public:
         message & width;
         message & height;
 
-        const uint32_t imageSize = std::ceil(((double) bitsPerPixel / 8.0) * width * height);
+        const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) bitsPerPixel / 8.0) * width * height));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
           

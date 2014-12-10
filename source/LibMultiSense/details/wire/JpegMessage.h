@@ -50,8 +50,8 @@ namespace wire {
 class WIRE_HEADER_ATTRIBS_ JpegImageHeader {
 public:
 
-static CONSTEXPR IdType      ID      = ID_DATA_JPEG_IMAGE;
-static CONSTEXPR VersionType VERSION = 1;
+static CRL_CONSTEXPR IdType      ID      = ID_DATA_JPEG_IMAGE;
+static CRL_CONSTEXPR VersionType VERSION = 1;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;

@@ -49,8 +49,8 @@ namespace wire {
 
 class LedSet {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_LED_SET;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_LED_SET;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Bit mask selecting which LEDs to update

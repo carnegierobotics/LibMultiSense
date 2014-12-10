@@ -49,6 +49,37 @@ namespace multisense {
 namespace details {
 namespace utility {
 
+#ifndef NEED_VASPRINTF
+#define NEED_VASPRINTF 0
+#endif
+
+#if NEED_VASPRINTF
+int vasprintf (char** strp, const char* fmt, va_list ap)
+{
+    int len = _vscprintf (fmt, ap);
+    if (len < 0)
+    {
+        *strp = NULL;
+        return len;
+    }
+
+    *strp = (char*)malloc ((size_t)len + 1);
+    if (*strp == NULL)
+    {
+        return -1;
+    }
+
+    len = _vsnprintf (*strp, (size_t)len + 1, fmt, ap);
+    if (len < 0)
+    {
+        free (*strp);
+        *strp = NULL;
+    }
+
+    return len;
+}
+#endif
+
 /**
  * Constructor. Initializes with the reason given.
  *
@@ -56,7 +87,7 @@ namespace utility {
  */
 Exception::Exception(const char *failureReason, ...)
 {
-    char   *stringP=NULL;
+    char   *stringP;
     va_list ap;
     int returnValue;
 

@@ -49,9 +49,11 @@
 #include "details/wire/ImageMetaMessage.h"
 #include "details/wire/VersionResponseMessage.h"
 
+#ifndef WIN32
 #include <netinet/ip.h>
-
 #include <unistd.h>
+#endif
+
 #include <vector>
 #include <list>
 #include <set>
@@ -174,23 +176,23 @@ private:
     //
     // The version of this API
 
-    static CONSTEXPR VersionType API_VERSION = 0x0304; // 3.4
+    static CRL_CONSTEXPR VersionType API_VERSION = 0x0305; // 3.5
 
     //
     // Misc. internal constants
 
-    static CONSTEXPR uint32_t MAX_MTU_SIZE               = 9000;
-    static CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT     = 9001;
-    static CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE  = (10 * (1024 * 1024));
-    static CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT = 50;
-    static CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE  = (10 * (1024));
-    static CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT = 100;
+    static CRL_CONSTEXPR uint32_t MAX_MTU_SIZE               = 9000;
+    static CRL_CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT     = 9001;
+    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE  = (10 * (1024 * 1024));
+    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT = 50;
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE  = (10 * (1024));
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT = 100;
 
-    static CONSTEXPR double   DEFAULT_ACK_TIMEOUT        = 0.2; // seconds
-    static CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
-    static CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 20;
-    static CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 10;
-    static CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY     = 8;
+    static CRL_CONSTEXPR double DEFAULT_ACK_TIMEOUT ()         { return 0.2; }
+    static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
+    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 20;
+    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 10;
+    static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY     = 8;
 
     //
     // We must protect ourselves from user callbacks misbehaving
@@ -199,22 +201,22 @@ private:
     // These define the maximum number of datums that we will
     // queue up in a user dispatch thread.
 
-    static CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 5;
-    static CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 20;
+    static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 5;
+    static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 20;
 
     //
     // PPS and IMU callbacks do not reserve an RX buffer, so queue
     // depths are limited by RAM (via heap.)
 
-    static CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
-    static CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 50;
+    static CRL_CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
+    static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 50;
 
     //
     // The maximum number of directed streams
     //  (this is completely arbitrary, TODO: determine
     //   reasonable values per hardware type)
 
-    static CONSTEXPR uint32_t MAX_DIRECTED_STREAMS = 10;
+    static CRL_CONSTEXPR uint32_t MAX_DIRECTED_STREAMS = 10;
 
     //
     // A re-assembler for multi-packet messages
@@ -383,12 +385,22 @@ private:
 
     template<class T, class U> Status waitData(const T&      command,
                                                U&            data,
-                                               const double& timeout=double(DEFAULT_ACK_TIMEOUT),
+                                               const double& timeout=DEFAULT_ACK_TIMEOUT(),
                                                int32_t       attempts=DEFAULT_ACK_ATTEMPTS);
+#if defined (_MSC_VER)
+    template<class T> Status          waitAck (const T&      msg,
+                                               wire::IdType  id,
+                                               const double& timeout,
+                                               int32_t       attempts);
+    template<class T> Status          waitAck (const T&      msg) {
+        return waitAck (msg, MSG_ID(T::ID), double(DEFAULT_ACK_TIMEOUT()), DEFAULT_ACK_ATTEMPTS);
+    }
+#else
     template<class T> Status          waitAck (const T&      msg,
                                                wire::IdType  id=MSG_ID(T::ID),
-                                               const double& timeout=double(DEFAULT_ACK_TIMEOUT),
+                                               const double& timeout=DEFAULT_ACK_TIMEOUT(),
                                                int32_t       attempts=DEFAULT_ACK_ATTEMPTS);
+#endif
 
     template<class T> void       publish      (const T& message);
     void                         publish      (const utility::BufferStreamWriter& stream);
@@ -433,8 +445,13 @@ private:
     static uint32_t              hardwareWireToApi(uint32_t h);
     static uint32_t              imagerApiToWire(uint32_t h);
     static uint32_t              imagerWireToApi(uint32_t h);
+#if WIN32
+    static DWORD WINAPI          rxThread       (void *userDataP);
+    static DWORD WINAPI          statusThread   (void *userDataP);
+#else
     static void                 *rxThread       (void *userDataP);
     static void                 *statusThread   (void *userDataP);
+#endif
 };
 
 

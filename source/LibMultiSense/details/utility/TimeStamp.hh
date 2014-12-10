@@ -42,7 +42,16 @@
 #ifndef CRL_MULTISENSE_TIMESTAMP_HH
 #define CRL_MULTISENSE_TIMESTAMP_HH
 
+#if defined(WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h> // Provides a declaration for struct timeval
+#else
 #include <sys/time.h>
+#endif
 #include <stdint.h>
 
 namespace crl {
@@ -72,6 +81,9 @@ private:
     //
 
     static double timeSynchronizationOffset;
+#if defined (WIN32)
+    static ULARGE_INTEGER offsetSecondsSince1970;
+#endif
 
 public:
 
@@ -80,7 +92,6 @@ public:
     //
 
     static TimeStamp getCurrentTime();
-    static TimeStamp getMonotonicTime();
 
     static void setTimeAtPps(TimeStamp& local, TimeStamp& remote);
     static void setTimeAtPps(struct timeval& local, struct timeval& remote);

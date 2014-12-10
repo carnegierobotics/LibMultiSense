@@ -51,29 +51,29 @@ namespace wire {
 
 class SysFlashOp {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_SYS_FLASH_OP;
-    static CONSTEXPR VersionType VERSION = 1; 
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_FLASH_OP;
+    static CRL_CONSTEXPR VersionType VERSION = 1; 
 
     //
     // Maximum payload length per operation
 
-    static CONSTEXPR uint32_t MAX_LENGTH = 1024;
+    static CRL_CONSTEXPR uint32_t MAX_LENGTH = 1024;
 
     //
     // Parameters representing the desired flash operation
 
-    static CONSTEXPR uint32_t OP_STATUS  = 0; // just check status
-    static CONSTEXPR uint32_t OP_ERASE   = 1; // erase entire region
-    static CONSTEXPR uint32_t OP_PROGRAM = 2; // program/verify chunk within region
-    static CONSTEXPR uint32_t OP_VERIFY  = 3; // just verify chunk within region
+    static CRL_CONSTEXPR uint32_t OP_STATUS  = 0; // just check status
+    static CRL_CONSTEXPR uint32_t OP_ERASE   = 1; // erase entire region
+    static CRL_CONSTEXPR uint32_t OP_PROGRAM = 2; // program/verify chunk within region
+    static CRL_CONSTEXPR uint32_t OP_VERIFY  = 3; // just verify chunk within region
 
     uint32_t operation;
 
     //
     // Parameters representing the desired flash region
 
-    static CONSTEXPR uint32_t RGN_BITSTREAM   = 0; // FPGA configuration bitstream
-    static CONSTEXPR uint32_t RGN_FIRMWARE    = 1; // Microblaze firmware
+    static CRL_CONSTEXPR uint32_t RGN_BITSTREAM   = 0; // FPGA configuration bitstream
+    static CRL_CONSTEXPR uint32_t RGN_FIRMWARE    = 1; // Microblaze firmware
 
     uint32_t region;
 

@@ -3,6 +3,14 @@
 #
 
 #
+# Platform checks
+#
+
+include(CheckFunctionExists)
+
+check_function_exists(vasprintf HAVE_VASPRINTF)
+
+#
 # Include all of our child directories.
 #
 
@@ -27,6 +35,10 @@ set(DETAILS_SRC details/channel.cc
                 details/utility/TimeStamp.cc
                 details/utility/Exception.cc)
 
+if(NOT HAVE_VASPRINTF)
+    add_definitions(-DNEED_VASPRINTF=1)
+endif()
+
 #
 # Add in all of the source files in this directory.
 #
@@ -38,13 +50,17 @@ add_library(MultiSense SHARED ${MULTISENSE_HEADERS}
 # Versioning...someday lets automate this somehow
 #
 
-set_target_properties(MultiSense PROPERTIES VERSION "3.4")
+set_target_properties(MultiSense PROPERTIES VERSION "3.5")
 
 #
 # We want to link against our child libraries.
 #
 
-target_link_libraries(MultiSense pthread rt)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_link_libraries(MultiSense ws2_32)
+else()
+    target_link_libraries(MultiSense pthread rt)
+endif()
 
 # create install targets
 install(TARGETS MultiSense

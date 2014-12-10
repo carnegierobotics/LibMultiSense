@@ -50,15 +50,15 @@ namespace wire {
 
 class CamHistory {
 public:
-    static CONSTEXPR IdType ID           = ID_DATA_CAM_HISTORY;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType ID           = ID_DATA_CAM_HISTORY;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // To help debug network issues with the customer, we keep track of
     // the frame numbers of the images we send.  This constant determines
     // how much history we should remember
 
-    static CONSTEXPR uint32_t HISTORY_LENGTH = 50;
+    static CRL_CONSTEXPR uint32_t HISTORY_LENGTH = 50;
 
     //
     // A list of recently-sent frame numbers. '-1' if invalid

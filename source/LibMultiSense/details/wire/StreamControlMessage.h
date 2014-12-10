@@ -46,8 +46,8 @@ namespace wire {
 
 class StreamControl {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_STREAM_CONTROL;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_STREAM_CONTROL;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Set modify mask bit high to have the device

@@ -49,8 +49,8 @@ namespace wire {
 
 class CamGetConfig {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_CAM_GET_CONFIG;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_GET_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

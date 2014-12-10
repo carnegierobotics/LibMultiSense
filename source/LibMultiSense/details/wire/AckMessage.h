@@ -46,8 +46,8 @@ namespace wire {
 
 class Ack {
 public:
-    static CONSTEXPR IdType      ID      = ID_ACK;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_ACK;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     IdType command; // the command being [n]ack'd
     Status status;

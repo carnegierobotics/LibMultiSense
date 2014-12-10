@@ -34,23 +34,36 @@
  *   2013-11-12, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
-#include <unistd.h>
-#include <getopt.h>
 #include <errno.h>
+#include <iostream>
+#include <iomanip>
 
+#include <LibMultiSense/details/utility/Portability.hh>
 #include <LibMultiSense/MultiSenseChannel.hh>
+
+#include <Utilities/portability/getopt/getopt.h>
 
 using namespace crl::multisense;
 
 namespace {  // anonymous
 
 volatile bool doneG         = false;
-FILE         *logFileP      = stdout;
+FILE*         logFileP      = stdout;
 uint32_t      accel_samples = 0;
 uint32_t      gyro_samples  = 0;
 uint32_t      mag_samples   = 0;
@@ -60,21 +73,29 @@ uint32_t      dropped       = 0;
 
 void usage(const char *programNameP) 
 {
-    fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
-    fprintf(stderr, "Where <options> are:\n");
-    fprintf(stderr, "\t-a <ip_address>    : IPV4 address (default=10.66.171.21)\n");
-    fprintf(stderr, "\t-m <mtu>           : default=7200\n");
-    fprintf(stderr, "\t-f <log_file>      : FILE to log IMU data (stdout by default)\n");
+    std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
+    std::cerr << "Where <options> are:" << std::endl;
+    std::cerr << "\t-a <ip_address>    : IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-m <mtu>           : default=7200" << std::endl;
+    std::cerr << "\t-f <log_file>      : FILE to log IMU data (stdout by default)" << std::endl;
     
     exit(-1);
 }
 
+#ifdef WIN32
+BOOL WINAPI signalHandler(DWORD dwCtrlType)
+{
+    std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
+    doneG = true;
+    return TRUE;
+}
+#else
 void signalHandler(int sig)
 {
-    fprintf(stderr, "Shutting down on signal: %s\n",
-            strsignal(sig));
+    std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
     doneG = true;
 }
+#endif
 
 void imuCallback(const imu::Header& header,
                  void              *userDataP)
@@ -101,7 +122,7 @@ void imuCallback(const imu::Header& header,
     if (-1 == sequence)
         sequence = header.sequence;
     else if ((sequence + 1) != header.sequence) {
-        const int32_t d = (header.sequence - (sequence + 1));
+        const int32_t d = static_cast<int32_t> (header.sequence - (sequence + 1));
         dropped += d;
     }
 
@@ -118,7 +139,11 @@ int main(int    argc,
     const char *logFileNameP   = NULL;
     uint32_t    mtu            = 7200;
 
+#if WIN32
+    SetConsoleCtrlHandler (signalHandler, TRUE);
+#else
     signal(SIGINT, signalHandler);
+#endif
 
     //
     // Parse args
@@ -138,9 +163,8 @@ int main(int    argc,
 
     Channel *channelP = Channel::Create(currentAddress);
     if (NULL == channelP) {
-	fprintf(stderr, "Failed to establish communications with \"%s\"\n",
-		currentAddress.c_str());
-	return -1;
+        std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
+        return -1;
     }
 
     //
@@ -150,8 +174,7 @@ int main(int    argc,
 
     Status status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor version: %s\n", 
-                Channel::statusString(status));
+        std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl; 
         goto clean_out;
     }
 
@@ -159,11 +182,9 @@ int main(int    argc,
     // Make sure firmware supports IMU
 
     if (v.sensorFirmwareVersion <= 0x0202) {
-        fprintf(stderr, "IMU support requires sensor firmware version v2.3 or greater, sensor is "
-                "running v%d.%d\n",
-                v.sensorFirmwareVersion >> 8,
-                v.sensorFirmwareVersion & 0xff);
-            goto clean_out;
+        std::cerr << "IMU support requires sensor firmware version v2.3 or greater, sensor is " <<
+                "running v" << (v.sensorFirmwareVersion >> 8) << "." << (v.sensorFirmwareVersion & 0xff) << std::endl;
+        goto clean_out;
     }
 
     //
@@ -171,8 +192,7 @@ int main(int    argc,
 
     status = channelP->stopStreams(Source_All);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to stop streams: %s\n", 
-                Channel::statusString(status));
+        std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl; 
         goto clean_out;
     }
 
@@ -186,7 +206,7 @@ int main(int    argc,
 
         logFileP = fopen(logFileNameP, "w+");
         if (NULL == logFileP) {
-            fprintf(stderr, "failed to open \"%s\" for writing: %s\n", logFileNameP, strerror(errno));
+            std::cerr << "Failed to open \"" << logFileNameP << "\" for writing: " << strerror(errno) << std::endl;
             goto clean_out;
         }
 
@@ -197,8 +217,7 @@ int main(int    argc,
 
     status = channelP->setMtu(mtu);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to set MTU to %d: %s\n", mtu,
-                Channel::statusString(status));
+        std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
@@ -212,8 +231,7 @@ int main(int    argc,
 
     status = channelP->startStreams(Source_Imu);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to start streams: %s\n", 
-                Channel::statusString(status));
+        std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl; 
         goto clean_out;
     }
 
@@ -225,8 +243,7 @@ int main(int    argc,
 
     status = channelP->stopStreams(Source_All);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to stop streams: %s\n", 
-                Channel::statusString(status));
+        std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
     }
 
     //
@@ -235,17 +252,16 @@ int main(int    argc,
     {
         int64_t imu_total = accel_samples + gyro_samples + mag_samples;
         if (imu_total > 0) {
-            fprintf(stderr, "IMU samples : total: %ld, accel: %.1f%%, gyro: %.1f%%, mag: %.1f%%\n",
-                    imu_total,
-                    100.0 * static_cast<double>(accel_samples) / static_cast<double>(imu_total),
-                    100.0 * static_cast<double>(gyro_samples) / static_cast<double>(imu_total),
-                    100.0 * static_cast<double>(mag_samples) / static_cast<double>(imu_total));
+            std::cerr << "IMU samples : " <<
+                         "total: " << imu_total << ", " <<
+                         "accel: " << std::fixed << std::setprecision(1) << (100.0 * static_cast<double>(accel_samples) / static_cast<double>(imu_total)) << "%, " <<
+                         "gyro: " << std::fixed << std::setprecision(1) << (100.0 * static_cast<double>(gyro_samples) / static_cast<double>(imu_total)) << "%, " <<
+                         "mag: " << std::fixed << std::setprecision(1) << (100.0 * static_cast<double>(mag_samples) / static_cast<double>(imu_total)) << "%" << std::endl;
         }
         
         if (messages > 0) 
-            fprintf(stderr, "IMU messages: total: %u, dropped: %u (%.6f%%)\n",
-                    messages, dropped, 
-                    100* static_cast<double>(dropped) / static_cast<double>(messages+dropped));
+            std::cerr << "IMU messages: total: " << messages << ", " <<
+                         "dropped: " << dropped << "(" << std::fixed << std::setprecision(6) << (100* static_cast<double>(dropped) / static_cast<double>(messages+dropped)) << "%)" << std::endl;
     }
 
 clean_out:

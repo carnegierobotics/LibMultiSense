@@ -34,15 +34,30 @@
  *   2013-05-23, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fstream>
+#include <map>
+#include <string.h>
 
-#include <opencv/cv.h>
-
+#include <Utilities/portability/getopt/getopt.h>
+#include <Utilities/shared/CalibrationYaml.hh>
 #include <LibMultiSense/MultiSenseChannel.hh>
+
+using namespace crl::multisense;
 
 namespace {  // anonymous
 
@@ -68,9 +83,17 @@ bool fileExists(const std::string& name)
 const char *laserToSpindleNameP       = "laser_T_spindle";
 const char *cameraToSpindleFixedNameP = "camera_T_spindle_fixed";
 
-}; // anonymous
 
-using namespace crl::multisense;
+std::ostream& writeLaserCal (std::ostream& stream, lidar::Calibration const& calibration)
+{
+    stream << "%YAML:1.0\n";
+    writeMatrix (stream, laserToSpindleNameP, 4, 4, &calibration.laserToSpindle[0][0]);
+    writeMatrix (stream, cameraToSpindleFixedNameP, 4, 4, &calibration.cameraToSpindleFixed[0][0]);
+    return stream;
+}
+
+
+}; // anonymous
 
 int main(int    argc, 
          char **argvPP)
@@ -161,52 +184,35 @@ int main(int    argc,
             goto clean_out;
         }
 
-        CvFileStorage *cvFile = cvOpenFileStorage(calFile.c_str(), NULL, CV_STORAGE_WRITE);
+        std::ofstream cvFile (calFile.c_str (), std::ios_base::out | std::ios_base::trunc);
 
-        if (NULL == cvFile) {
-            fprintf(stderr, "failed to cvOpenFileStorage(%s) for writing\n", 
+        if (!cvFile) {
+            fprintf(stderr, "failed to open '%s' for writing\n", 
                     calFile.c_str());
             goto clean_out;
         }
 
-        CvMat *laserToSpindle       = cvCreateMat(4, 4, CV_64FC1);
-        CvMat *cameraToSpindleFixed = cvCreateMat(4, 4, CV_64FC1);
+        writeLaserCal (cvFile, c);
 
-#define CPY_ARR_2(t_,a_,n_,m_)                                          \
-        for(int i_=0; i_<(n_); i_++)                                    \
-            for(int j_=0; j_<(m_); j_++)                                \
-                CV_MAT_ELEM(*(t_), double, i_, j_) = (a_)[i_][j_];      \
-        
-
-        CPY_ARR_2(laserToSpindle, c.laserToSpindle, 4, 4);
-        CPY_ARR_2(cameraToSpindleFixed, c.cameraToSpindleFixed, 4, 4);
-        
-        cvWrite(cvFile, laserToSpindleNameP, laserToSpindle, cvAttrList(0,0));
-        cvWrite(cvFile, cameraToSpindleFixedNameP, cameraToSpindleFixed, cvAttrList(0,0));
-
-        cvReleaseFileStorage(&cvFile);
-
-        cvReleaseMat(&laserToSpindle);
-        cvReleaseMat(&cameraToSpindleFixed);
+        cvFile.flush ();
 
     } else {
 
-        CvFileStorage *cvFile = cvOpenFileStorage(calFile.c_str(), NULL, CV_STORAGE_READ);
- 
-        if (NULL == cvFile) {
-            fprintf(stderr, "failed to cvOpenFileStorage(%s) for reading\n", 
+        std::map<std::string, std::vector<float> > data;
+        std::ifstream cvFile (calFile.c_str ());
+
+        if (!cvFile) {
+            fprintf(stderr, "failed to open '%s' for reading\n", 
                     calFile.c_str());
             goto clean_out;
         }
 
-        CvMat *laserToSpindle       = (CvMat *) cvReadByName(cvFile, NULL, laserToSpindleNameP, NULL);
-        CvMat *cameraToSpindleFixed = (CvMat *) cvReadByName(cvFile, NULL, cameraToSpindleFixedNameP, NULL);
-        
-        cvReleaseFileStorage(&cvFile);
+        parseYaml (cvFile, data);
 
-        if (NULL == laserToSpindle          || NULL == cameraToSpindleFixed    ||
-            laserToSpindle->rows       != 4 || laserToSpindle->cols       != 4 ||
-            cameraToSpindleFixed->rows != 4 || cameraToSpindleFixed->cols != 4) {
+        cvFile.close ();
+
+        if (data[laserToSpindleNameP].size () != 4 * 4 ||
+            data[cameraToSpindleFixedNameP].size () != 4 * 4) {
 
             fprintf(stderr, "calibration matrices incomplete in %s, "
                     "expecting two 4x4 matrices\n", calFile.c_str());
@@ -215,16 +221,8 @@ int main(int    argc,
 
         lidar::Calibration c;
 
-#define CPY_MAT_2(a_,t_,n_,m_)                                          \
-        for(int i_=0; i_<(n_); i_++)                                    \
-            for(int j_=0; j_<(m_); j_++)                                \
-                (a_)[i_][j_] = CV_MAT_ELEM(*(t_), double, i_, j_);      \
-
-        CPY_MAT_2(c.laserToSpindle, laserToSpindle, 4, 4);
-        CPY_MAT_2(c.cameraToSpindleFixed, cameraToSpindleFixed, 4, 4);
-
-        cvReleaseMat(&laserToSpindle);
-        cvReleaseMat(&cameraToSpindleFixed);
+        memcpy (&c.laserToSpindle[0][0], &data[laserToSpindleNameP].front (), data[laserToSpindleNameP].size () * sizeof (float));
+        memcpy (&c.cameraToSpindleFixed[0][0], &data[cameraToSpindleFixedNameP].front (), data[cameraToSpindleFixedNameP].size () * sizeof (float));
         
         status = channelP->setLidarCalibration(c);
         if (Status_Ok != status) {

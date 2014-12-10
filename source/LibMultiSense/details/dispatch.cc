@@ -186,8 +186,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         wire::LidarData scan(stream, version);
         lidar::Header   header;
 
-	const int32_t  scanArc  = utility::degreesToRadians(270.0) * 1e6; // microradians
-	const uint32_t maxRange = 30.0 * 1e3; // mm
+	const int32_t  scanArc  = static_cast<int32_t> (utility::degreesToRadians(270.0) * 1e6); // microradians
+	const uint32_t maxRange = static_cast<uint32_t> (30.0 * 1e3); // mm
 
         if (false == m_networkTimeSyncEnabled) {
 
@@ -537,7 +537,7 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
         // Seed
 
         if (-1 == m_lastRxSeqId)
-            m_lastRxSeqId = m_unWrappedRxSeqId = wireId;
+			m_unWrappedRxSeqId = m_lastRxSeqId = wireId;
 
         //
         // Detect forward 16-bit wrap
@@ -574,8 +574,8 @@ void impl::handle()
         //
         // Receive the packet
         
-        const ssize_t bytesRead = recvfrom(m_serverSocket,
-                                           m_incomingBuffer.data(),
+        const int bytesRead = recvfrom(m_serverSocket,
+                                           (char*)m_incomingBuffer.data(),
                                            m_incomingBuffer.size(),
                                            0, NULL, NULL);
         //
@@ -587,7 +587,7 @@ void impl::handle()
         //
         // Check for undersized packets
 
-        else if (bytesRead < (ssize_t) sizeof(wire::Header))
+        else if (bytesRead < (int)sizeof(wire::Header))
             CRL_EXCEPTION("undersized packet: %d/%d bytes\n",
                           bytesRead, sizeof(wire::Header));
 
@@ -675,7 +675,11 @@ void impl::handle()
 //
 // This thread waits for UDP packets
 
+#if WIN32
+DWORD impl::rxThread(void *userDataP)
+#else
 void *impl::rxThread(void *userDataP)
+#endif
 {
     impl     *selfP  = reinterpret_cast<impl*>(userDataP);
     const int server = selfP->m_serverSocket;

@@ -49,7 +49,7 @@ namespace imu {
 
 class RateType {
 public:
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     float sampleRate;
     float bandwidthCutoff;
@@ -65,7 +65,7 @@ public:
 
 class RangeType {
 public:
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     float range;
     float resolution;
@@ -81,7 +81,7 @@ public:
 
 class Details {
 public:
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     std::string            name;
     std::string            device;
@@ -105,8 +105,8 @@ public:
 
 class ImuInfo {
 public:
-    static CONSTEXPR IdType      ID      = ID_DATA_IMU_INFO;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMU_INFO;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // IMU details per sensor
