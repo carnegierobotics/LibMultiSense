@@ -418,6 +418,35 @@ public:
     virtual Status startDirectedStream(const DirectedStream& stream) = 0;
 
     /**
+     * Start several directed streams used to stream data to multiple 3rd parties.
+     *
+     * NOTE: Directed streams are currently only supported by CRL's
+     *       Monocular IP Camera.  MultiSense S* hardware variations
+     *       are not supported (the following functions will return
+     *       the 'Status_Unknown' error code.)
+     *
+     * Secondary stream control.  In addition to the primary stream control
+     * above, a set of streams may be directed to a 3rd party (or multiple
+     * 3rd parties), where a 3rd party is uniquely defined as an IP address /
+     * UDP port pair.
+     *
+     * The number of simulataneous parties supported can be queried via
+     * maxDirectedStreams(). If the number of maximum directed streams has
+     * already been achieved, startDirectedStream() will return an error code.
+     *
+     * If the stream address/port combination already exists as a streaming
+     * destination, then startDirectedStream() will update the data source
+     * mask and FPS decimation.
+     *
+     * @param streams A vector of DrirectedStream to either add or
+     * update setting of
+     *
+     * @return A crl::multisense::Status indicating if the DirectedStream was
+     * successfully started
+     */
+    virtual Status startDirectedStreams(const std::vector<DirectedStream>& streams) = 0;
+
+    /**
      * Stop a specific directed stream.
      *
      * NOTE: Directed streams are currently only supported by CRL's

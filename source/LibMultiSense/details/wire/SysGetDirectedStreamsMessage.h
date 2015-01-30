@@ -62,7 +62,8 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        // nothing yet
+        //
+        // Nothing. Query only. Use a SysDirectedStreamsMessage for response
     }
 };
 

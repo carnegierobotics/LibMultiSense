@@ -447,6 +447,21 @@ Status impl::startDirectedStream(const DirectedStream& stream)
     return waitAck(cmd);
 }
 
+Status impl::startDirectedStreams(const std::vector<DirectedStream>& streams)
+{
+    wire::SysDirectedStreams cmd(wire::SysDirectedStreams::CMD_START);
+
+    for (uint32_t index = 0 ; index < streams.size() ; ++index) {
+        DirectedStream stream = streams[index];
+
+        cmd.streams.push_back(wire::DirectedStream(stream.mask,
+                                                   stream.address,
+                                                   stream.udpPort,
+                                                   stream.fpsDecimation));
+    }
+    return waitAck(cmd);
+}
+
 Status impl::stopDirectedStream(const DirectedStream& stream)
 {
     wire::SysDirectedStreams cmd(wire::SysDirectedStreams::CMD_STOP);

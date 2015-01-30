@@ -210,8 +210,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.scanId            = scan.scanCount;
         header.spindleAngleStart = scan.angleStart;
         header.spindleAngleEnd   = scan.angleEnd;
-	header.scanArc           = scanArc;
-	header.maxRange          = maxRange;
+        header.scanArc           = scanArc;
+        header.maxRange          = maxRange;
         header.pointCount        = scan.points;
         header.rangesP           = scan.distanceP;
         header.intensitiesP      = scan.intensityP;

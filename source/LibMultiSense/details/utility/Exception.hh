@@ -47,6 +47,7 @@
 #include <string>
 
 #include "TimeStamp.hh"
+#include "Portability.hh"
 
 #ifdef CRL_DEBUG_SYSLOG
 #include <syslog.h>
@@ -93,11 +94,11 @@ private:
     std::string reason;
 
 public:
-    
+
     Exception(const char *failureReason, ...);
     Exception(const std::string& failureReason);
     ~Exception() throw();
-    
+
     virtual const char* what() const throw();
 };
 

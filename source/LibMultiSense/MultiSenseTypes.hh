@@ -218,115 +218,156 @@ namespace image {
  * Example code to extract 8 bit image data from a image header and display it
  * using OpenCV (header.bitsPerPixel = 8)
  * \code{.cpp}
- * //
- * // Anonymous namespace for locally scoped symbols
- * {
- *     //
- *     // Shim for the C-style callbacks accepted by
- *     // crl::mulisense::Channel::addIsolatedCallback
- *     monoCallback(const image::Header& header, void* userDataP)
- *     { reinterpret_cast<Camera*>(userDataP)->imageCallback(header); }
- * }
+ *  #include <iostream>
+ *  #include <stdexcept>
+ *  #include <signal.h>
+ *  #include <unistd.h>
  *
- * class Camera
- * {
- *     Camera(Channel* channel)
- *     {
- *         crl::multisense::Status status;
+ *  #include <MultiSenseTypes.hh>
+ *  #include <MultiSenseChannel.hh>
  *
- *         //
- *         // Attach our monoCallback to our Channel instance. It will get
- *         // called every time there is new Left Luma or Right luma image
- *         // data.
- *         status = channel->addIsolatedCallback(monoCallback, Source_Luma_Left | Source_Luma_Right, this);
+ *  //
+ *  // Note this example has only been tested under Linux
+ *  #include <opencv2/opencv.hpp>
  *
- *         //
- *         // Check to see if the callback was successfully attached
- *         if(crl::multisense::Status_Ok != status) {
- *             throw std::runtime_error("Unable to attach isolated callback");
- *         }
+ *  volatile bool doneG = false;
  *
- *         //
- *         // Start streaming luma images for the left and right cameras.
- *         channel->startStreams(Source_Luma_Left | Source_Luma_Right);
+ *  void signalHandler(int sig)
+ *  {
+ *      std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
+ *      doneG = true;
+ *  }
  *
- *         //
- *         // Check to see if the streams were sucessfully started
- *         if(crl::multisense::Status_Ok != status) {
- *             throw std::runtime_error("Unable to start image streams");
- *         }
- *     }
+ *  class Camera
+ *  {
+ *      public:
+ *          Camera(crl::multisense::Channel* channel);
+ *          ~Camera();
+ *          void imageCallback(const crl::multisense::image::Header& header);
  *
- *     ~Camera()
- *     {
- *         crl::multisense::Status status;
+ *      private:
+ *          crl::multisense::Channel* m_channel;
+ *  };
  *
- *         //
- *         // Remove our isolated callback.
- *         status = channel->removeIsolatedCallback(monoCallback);
+ *  namespace {
+ *      //
+ *      // Shim for the C-style callbacks accepted by
+ *      // crl::mulisense::Channel::addIsolatedCallback
+ *      void monoCallback(const crl::multisense::image::Header& header, void* userDataP)
+ *      { reinterpret_cast<Camera*>(userDataP)->imageCallback(header); }
+ *  };
  *
- *         //
- *         // Check to see if the callback was successfully removed
- *         if(crl::multisense::Status_Ok != status) {
- *             throw std::runtime_error("Unable to remove isolated callback");
- *         }
  *
- *         //
- *         // Stop streaming luma images for the left and right cameras
- *         channel->stopStreams(Source_Luma_Left | Source_Luma_Right);
+ *  Camera::Camera(crl::multisense::Channel* channel):
+ *      m_channel(channel)
+ *  {
+ *      crl::multisense::Status status;
  *
- *         //
- *         // Check to see if the image streams were successfully stopped
- *         if(crl::multisense::Status_Ok != status) {
- *             throw std::runtime_error("Unable to stop streams");
- *         }
- *     }
+ *      //
+ *      // Attach our monoCallback to our Channel instance. It will get
+ *      // called every time there is new Left Luma or Right luma image
+ *      // data.
+ *      status = m_channel->addIsolatedCallback(monoCallback,
+ *                                             crl::multisense::Source_Luma_Left | crl::multisense::Source_Luma_Right,
+ *                                             this);
  *
- *     void imageCallback(const image::Header& header)
- *     {
- *         //
- *         // Create a container for the image data
- *         std::vector<uint8_t> imageData;
- *         std::vector.resize(header.imageLength);
+ *      //
+ *      // Check to see if the callback was successfully attached
+ *      if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to attach isolated callback");
+ *      }
  *
- *         //
- *         // Copy image data from the header's image data pointer to our
- *         // image container
- *         memcpy(&(imageData[0]), header.imageDataP, header.imageLength);
+ *      //
+ *      // Start streaming luma images for the left and right cameras.
+ *      m_channel->startStreams(crl::multisense::Source_Luma_Left | crl::multisense::Source_Luma_Right);
  *
- *         //
- *         // Create a OpenCV matrix using our image container
- *         cv::Mat_<uint8_t> imageMat(header.height, header.width, &(imageData[0]));
+ *      //
+ *      // Check to see if the streams were sucessfully started
+ *      if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to start image streams");
+ *      }
+ *  }
  *
- *         //
- *         // Display the image using OpenCV
- *         cv::namedWindow("Example");
- *         cv::imshow("Example", imageMat);
- *         cv::waitKey(1000./header.framesPerSecond);
- *     }
- * }
+ *  Camera::~Camera()
+ *  {
+ *      crl::multisense::Status status;
  *
- * int main()
- * {
- *     //
- *     // Instantiate a channel connecting to a sensor at the factory default
- *     // IP address
- *     crl::multisense::Channel* channel;
- *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *      //
+ *      // Remove our isolated callback.
+ *      status = m_channel->removeIsolatedCallback(monoCallback);
  *
- *     try
- *     {
- *         Camera(channel);
- *     }
- *     catch(std::exception& e)
- *     {
- *         std::cerr << e.what() << std::endl;
- *     }
+ *      //
+ *      // Check to see if the callback was successfully removed
+ *      if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to remove isolated callback");
+ *      }
  *
- *     //
- *     // Destroy the channel instance
- *     crl::multisense::Channel::Destroy(channel);
- * }
+ *      //
+ *      // Stop streaming luma images for the left and right cameras
+ *      m_channel->stopStreams(crl::multisense::Source_Luma_Left | crl::multisense::Source_Luma_Right);
+ *
+ *      //
+ *      // Check to see if the image streams were successfully stopped
+ *      if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to stop streams");
+ *      }
+ *  }
+ *
+ *  void Camera::imageCallback(const crl::multisense::image::Header& header)
+ *  {
+ *      //
+ *      // Create a container for the image data
+ *      std::vector<uint8_t> imageData;
+ *      imageData.resize(header.imageLength);
+ *
+ *      //
+ *      // Copy image data from the header's image data pointer to our
+ *      // image container
+ *      memcpy(&(imageData[0]), header.imageDataP, header.imageLength);
+ *
+ *      //
+ *      // Create a OpenCV matrix using our image container
+ *      cv::Mat_<uint8_t> imageMat(header.height, header.width, &(imageData[0]));
+ *
+ *      //
+ *      // Display the image using OpenCV
+ *      cv::namedWindow("Example");
+ *      cv::imshow("Example", imageMat);
+ *      cv::waitKey(1000./header.framesPerSecond);
+ *  }
+ *
+ *
+ *  int main()
+ *  {
+ *      //
+ *      // Setup a signal handler to kill the application
+ *      signal(SIGINT, signalHandler);
+ *
+ *      //
+ *      // Instantiate a channel connecting to a sensor at the factory default
+ *      // IP address
+ *      crl::multisense::Channel* channel;
+ *      channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *      channel->setMtu(7200);
+ *
+ *      try
+ *      {
+ *          Camera camera(channel);
+ *          while(!doneG)
+ *          {
+ *              usleep(100000);
+ *          }
+ *      }
+ *      catch(std::exception& e)
+ *      {
+ *          std::cerr << e.what() << std::endl;
+ *      }
+ *
+ *      //
+ *      // Destroy the channel instance
+ *      crl::multisense::Channel::Destroy(channel);
+ *  }
  * \endcode
  */
 class MULTISENSE_API Header : public HeaderBase {
@@ -398,6 +439,8 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create a imageConfig instance to store the queried configuration
  *     crl::multisense::image::Config imageConfig;
@@ -427,6 +470,8 @@ typedef void (*Callback)(const Header& header,
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a imageConfig instance to store the queried configuration
@@ -620,7 +665,10 @@ public:
 
     /**
      * Set the HDR enable flag. This feature is only available in sensor
-     * firmware version greater than 3.1.  Default value: false
+     * firmware version greater than 3.1.  Default value: false. Note
+     * enabling HDR will disable image white balance. It may also degrade the
+     * stereo performance. It is advised to manually tune exposure and gain
+     * settings to achieve desired performance.
      *
      * @param e A boolean used to enable or disable HDR on the camera imagers
      */
@@ -931,6 +979,8 @@ protected:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create a image::Calibration instance to store the queried calibration
  *     crl::multisense::image::Calibration imageCalibration;
@@ -960,6 +1010,8 @@ protected:
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a image::Calibration instance to store the queried calibration
@@ -1032,6 +1084,8 @@ public:
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a histogram instance to store histogram data
@@ -1155,6 +1209,8 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create a lidarCalibration instance to store the queried laser calibration
  *     crl::multisense::lidar::Calibration lidarCalibration;
@@ -1184,6 +1240,8 @@ typedef void (*Callback)(const Header& header,
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a lidarCalibration instance to store the new laser calibration
@@ -1255,6 +1313,8 @@ static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create a lightingConfig instance to store our queried lighting configuration
  *     crl::multisense::lighting::Config lightingConfig;
@@ -1284,6 +1344,8 @@ static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a lightingConfig instance to store our queried lighting configuration
@@ -1548,6 +1610,8 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create a vector of IMU info instances to store information for
  *     // each IMU sensor
@@ -1623,6 +1687,8 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create local variables to store the information returned by
  *     // reference from getImuConfig().
@@ -1654,6 +1720,8 @@ public:
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a vector of IMU configurations to store the queried IMU configuration
@@ -1735,6 +1803,8 @@ namespace system {
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     std::vector<crl::multisense::system::DeviceMode> deviceModeVect;
  *
  *     crl::multisense::Status status = channel->getDeviceModes(deviceModeVect));
@@ -1792,6 +1862,8 @@ public:
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a VersionInfo instance to store the sensors version info
@@ -1875,6 +1947,8 @@ public:
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a instance of Device info to store the sensors device information
@@ -2000,6 +2074,8 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
+ *     channel->setMtu(7200);
+ *
  *     //
  *     // Create a instance of NetworkConfig to store the sensor's network configuration
  *     crl::multisense::system::NetworkConfig networkConfig;
@@ -2029,6 +2105,8 @@ public:
  *     // IP address
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
  *
  *     //
  *     // Create a new instance of a Network configuration with the new desired

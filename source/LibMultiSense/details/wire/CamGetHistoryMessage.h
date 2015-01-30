@@ -50,8 +50,8 @@ namespace wire {
 
 class CamGetHistory {
 public:
-    static CONSTEXPR IdType      ID      = ID_CMD_CAM_GET_HISTORY;
-    static CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_GET_HISTORY;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors

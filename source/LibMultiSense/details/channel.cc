@@ -406,6 +406,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
     case system::DeviceInfo::HARDWARE_REV_BCAM:             return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);

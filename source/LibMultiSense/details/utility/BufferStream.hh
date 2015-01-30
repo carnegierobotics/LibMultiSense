@@ -42,6 +42,7 @@
 #include "Exception.hh"
 #include "TimeStamp.hh"
 #include "ReferenceCount.hh"
+#include "Portability.hh"
 
 #include <stdint.h>
 #include <cstddef>
@@ -85,7 +86,7 @@ public:
     //
     // Move the r/w pointer in the buffer, checking bounds
 
-    void seek(std::size_t idx)  { 
+    void seek(std::size_t idx)  {
 
         if (idx > m_size)
             CRL_EXCEPTION("invalid seek location %d, [0, %d] valid\n",
@@ -105,8 +106,8 @@ public:
     //
     // Construction, we allocate memory
 
-    BufferStream(std::size_t size) : 
-        m_alloced(false), 
+    BufferStream(std::size_t size) :
+        m_alloced(false),
         m_size(size),
         m_tell(0),
         m_bufferP(NULL) {
@@ -116,24 +117,24 @@ public:
             CRL_EXCEPTION("unable to allocate %d bytes", size);
         m_alloced = true;
     };
-    
+
     //
     // Construction, memory is already allocated
 
-    BufferStream(uint8_t *bufP, std::size_t size) : 
-        m_alloced(false), 
-        m_size(size), 
+    BufferStream(uint8_t *bufP, std::size_t size) :
+        m_alloced(false),
+        m_size(size),
         m_tell(0),
         m_bufferP(bufP) {};
 
     //
     // Destruction, free memory only if we allocated
 
-    virtual ~BufferStream() { 
+    virtual ~BufferStream() {
 #ifdef SENSORPOD_FIRMWARE
-        if (m_alloced) 
+        if (m_alloced)
 #else
-        if (m_alloced && false == m_ref.isShared()) 
+        if (m_alloced && false == m_ref.isShared())
 #endif // SENSORPOD_FIRMWARE
             delete[] m_bufferP;
     };

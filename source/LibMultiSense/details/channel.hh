@@ -105,6 +105,7 @@ public:
     virtual Status getEnabledStreams     (DataSource& mask);
 
     virtual Status startDirectedStream   (const DirectedStream& stream);
+    virtual Status startDirectedStreams  (const std::vector<DirectedStream>& streams);
     virtual Status stopDirectedStream    (const DirectedStream& stream);
     virtual Status getDirectedStreams    (std::vector<DirectedStream>& streams);
     virtual Status maxDirectedStreams    (uint32_t& maximum);
@@ -213,10 +214,8 @@ private:
 
     //
     // The maximum number of directed streams
-    //  (this is completely arbitrary, TODO: determine
-    //   reasonable values per hardware type)
 
-    static CRL_CONSTEXPR uint32_t MAX_DIRECTED_STREAMS = 10;
+    static CRL_CONSTEXPR uint32_t MAX_DIRECTED_STREAMS = 8;
 
     //
     // A re-assembler for multi-packet messages
