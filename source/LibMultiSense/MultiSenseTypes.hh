@@ -131,6 +131,7 @@ static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1<<17);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                    = (1<<25);
+static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -719,6 +720,7 @@ public:
 
     float    gain              () const { return m_gain;      };
 
+
     /**
      * Query the current image configuration's exposure setting
      *
@@ -1070,6 +1072,100 @@ public:
     Data left;
     /**Full resolution camera calibration corresponding to the right camera */
     Data right;
+};
+
+/**
+ * Class to store sensor gains used to perform a DC level adjustment to calibrate
+ * the left imager to the right imager. For more information on the specific
+ * applications please email support@carnegierobotics.com
+ *
+ * Example code to query a devices's imager calibration:
+ * \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of SensorCalibration to store the device's imager
+ *     // calibration
+ *     crl::multisense::image::SensorCalibration sensorCalibration;
+ *
+ *     //
+ *     // Query the imager calibration from the Channel instance
+ *     crl::multisense::Status status = channel->getSensorCalibration(sensorCalibration));
+ *
+ *     //
+ *     // Check to see if the network configuration query succeeded
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to query device's imager calibration");
+ *     }
+ *
+ *     //
+ *     // Use the image calibration...
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ *
+ * Example code to set a devices imager calibration:
+ ** \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of SensorCalibration to store the device's imager
+ *     // calibration
+ *     crl::multisense::image::SensorCalibration sensorCalibration;
+ *
+ *     //
+ *     // Query the imager calibration from the Channel instance
+ *     crl::multisense::Status status = channel->getSensorCalibration(sensorCalibration));
+ *
+ *     //
+ *     // Modify the imager calibration gains based on the pre-existing default
+ *     // values
+ *     sensorCalibration.adc_gain[0] += 1;
+ *     sensorCalibration.adc_gain[1] += 1;
+ *     sensorCalibration.bl_offset[0] += 1;
+ *     sensorCalibration.bl_offset[1] += 1;
+ *
+ *
+ *     //
+ *     // Send the new imager calibration to the device
+ *     crl::multisense::Status status = channel->setSensorCalibration(sensorCalibration));
+ *
+ *     //
+ *     // Check to see if the new network configuration was received
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to set the devices's imager calibration");
+ *     }
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API SensorCalibration {
+public:
+
+    /** The CMV2000/CMV4000 ADC gain applied to each pixel value. Index 0
+     * corresponds to the left imager, index 1 corresponds to the right imager */
+    uint8_t adc_gain[2];
+
+    /** The imager black level offset for each imager. Index 0 corresponds
+     * to the left imager, index 1 corresponds to the right imager */
+    int16_t bl_offset[2];
+
 };
 
 /**
@@ -2163,6 +2259,117 @@ public:
         ipv4Address(a),
         ipv4Gateway(g),
         ipv4Netmask(n) {};
+};
+
+/**
+ * Class containing status information for a particular device. This
+ * should be queried in a loop timed at 1Hz
+ *
+ * Example code to query a single sensor's status:
+ * \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of StatusMessage to store the sensor's status
+ *     crl::multisense::system::StatusMessage statusMessage;
+ *
+ *     //
+ *     // Query the network configuration from the Channel instance
+ *     crl::multisense::Status status = channel->getDeviceStatus(statusMessage);
+ *
+ *     //
+ *     // Check to see if the network configuration query succeeded
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to query sensor's status");
+ *     }
+ *
+ *     //
+ *     // Use the device status...
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API StatusMessage {
+    public:
+
+        /** The system uptime of the MultiSense in seconds.
+         * True corresonds to healthy */
+        double uptime;
+
+        /** A boolean flag indicating if the overall system status is good.
+         * True corresonds to healthy */
+        bool systemOk;
+
+        /** A boolean flag indicating if the laser is functioning.
+         * True corresonds to healthy */
+        bool laserOk;
+
+        /** A boolean flag indicating if the laser motor controller is functioning.
+         * True corresonds to healthy */
+        bool laserMotorOk;
+
+        /** A boolean flag indicating if the imagers are functioning.
+         * True corresonds to healthy */
+        bool camerasOk;
+
+        /** A boolean flag indicating if the imu is functioning.
+         * True corresonds to healthy */
+        bool imuOk;
+
+        /** The temperature of the internal switching mode power supply.
+         * Temperature is is Celsius */
+        float powerSupplyTemperature;
+
+        /** The temperature of the FPGA. Temperature is is Celsius */
+        float fpgaTemperature;
+
+        /** The temperature of the left imager. Temperature is is Celsius */
+        float leftImagerTemperature;
+
+        /** The temperature of the right imager. Temperature is is Celsius */
+        float rightImagerTemperature;
+
+        /** The input voltage supplied to the MultiSense. Value is in Volts */
+        float inputVoltage;
+
+        /** The current drawn from the input power supply by the MultiSense. Value
+         * is in Amperes */
+        float inputCurrent;
+
+        /** The power consumed by the FPGA. Value is in Watts */
+        float fpgaPower;
+
+        /** The power consumed by the MicroBlaze CPU. Value is in Watts */
+        float logicPower;
+
+        /** The power consumed by the imager chips. Value is in Watts */
+        float imagerPower;
+
+        /** Default constructor for a single StatusMessage object */
+        StatusMessage():
+            uptime(0.),
+            systemOk(false),
+            laserOk(false),
+            laserMotorOk(false),
+            camerasOk(false),
+            imuOk(false),
+            powerSupplyTemperature(0.),
+            fpgaTemperature(0.),
+            leftImagerTemperature(0.),
+            rightImagerTemperature(0.),
+            inputVoltage(0.),
+            inputCurrent(0.),
+            fpgaPower(0.),
+            logicPower(0.),
+            imagerPower(0.) {};
 };
 
 }; // namespace system

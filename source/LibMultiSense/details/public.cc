@@ -72,6 +72,8 @@
 #include "details/wire/SysDeviceInfoMessage.h"
 #include "details/wire/SysGetCameraCalibrationMessage.h"
 #include "details/wire/SysCameraCalibrationMessage.h"
+#include "details/wire/SysGetSensorCalibrationMessage.h"
+#include "details/wire/SysSensorCalibrationMessage.h"
 #include "details/wire/SysGetLidarCalibrationMessage.h"
 #include "details/wire/SysLidarCalibrationMessage.h"
 #include "details/wire/SysGetDeviceModesMessage.h"
@@ -749,6 +751,35 @@ Status impl::setImageCalibration(const image::Calibration& c)
 }
 
 //
+// Get sensor calibration
+
+Status impl::getSensorCalibration(image::SensorCalibration& c)
+{
+    wire::SysSensorCalibration d;
+
+    Status status = waitData(wire::SysGetSensorCalibration(), d);
+    if (Status_Ok != status)
+        return status;
+    CPY_ARRAY_1(c.adc_gain, d.adc_gain, 2);
+    CPY_ARRAY_1(c.bl_offset, d.bl_offset, 2);
+
+    return Status_Ok;
+}
+
+//
+// Set sensor calibration
+
+Status impl::setSensorCalibration(const image::SensorCalibration& c)
+{
+    wire::SysSensorCalibration d;
+
+    CPY_ARRAY_1(d.adc_gain, c.adc_gain, 2);
+    CPY_ARRAY_1(d.bl_offset, c.bl_offset, 2);
+
+    return waitAck(d);
+}
+
+//
 // Get lidar calibration
 
 Status impl::getLidarCalibration(lidar::Calibration& c)
@@ -912,6 +943,31 @@ Status impl::getDeviceInfo(system::DeviceInfo& info)
     info.motorName               = w.motorName;
     info.motorType               = w.motorType;
     info.motorGearReduction      = w.motorGearReduction;
+
+    return Status_Ok;
+}
+
+
+Status impl::getDeviceStatus(system::StatusMessage& status)
+{
+    status.uptime = m_statusResponseMessage.uptime;
+
+    status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) == 1;
+    status.laserOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_OK) == 1;
+    status.laserMotorOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_MOTOR_OK) == 1;
+    status.camerasOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CAMERAS_OK) == 1;
+    status.imuOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_IMU_OK) == 1;
+
+    status.powerSupplyTemperature = m_statusResponseMessage.temperature0;
+    status.fpgaTemperature = m_statusResponseMessage.temperature1;
+    status.leftImagerTemperature = m_statusResponseMessage.temperature2;
+    status.rightImagerTemperature = m_statusResponseMessage.temperature3;
+
+    status.inputVoltage = m_statusResponseMessage.inputVolts;
+    status.inputCurrent = m_statusResponseMessage.inputCurrent;
+    status.fpgaPower = m_statusResponseMessage.fpgaPower;
+    status.logicPower = m_statusResponseMessage.logicPower;
+    status.imagerPower = m_statusResponseMessage.imagerPower;
 
     return Status_Ok;
 }

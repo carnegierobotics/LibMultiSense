@@ -47,6 +47,7 @@
 #include "details/storage.hh"
 #include "details/wire/Protocol.h"
 #include "details/wire/ImageMetaMessage.h"
+#include "details/wire/StatusResponseMessage.h"
 #include "details/wire/VersionResponseMessage.h"
 
 #ifndef WIN32
@@ -127,6 +128,9 @@ public:
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 
+	virtual Status getSensorCalibration   (image::SensorCalibration& c);
+	virtual Status setSensorCalibration   (const image::SensorCalibration& c);
+
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
 
@@ -143,6 +147,8 @@ public:
     virtual Status getDeviceInfo         (system::DeviceInfo& info);
     virtual Status setDeviceInfo         (const std::string& key,
                                           const system::DeviceInfo& i);
+
+    virtual Status getDeviceStatus       (system::StatusMessage& status);
 
     virtual Status flashBitstream        (const std::string& file);
     virtual Status flashFirmware         (const std::string& file);
@@ -378,6 +384,11 @@ private:
     // Cached version info from the device
 
     wire::VersionResponse m_sensorVersion;
+
+    //
+    // Cached StatusResponseMessage from the MultiSense
+
+    wire::StatusResponse m_statusResponseMessage;
 
     //
     // Private procedures

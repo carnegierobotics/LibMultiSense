@@ -160,11 +160,13 @@ void imageCallback(const image::Header& header,
     static int64_t lastFrameId = -1;
 
     if (-1 == lastFrameId)
+    {
         savePgm("test.pgm",
                 header.width,
                 header.height,
                 header.bitsPerPixel,
                 header.imageDataP);
+    }
 
     lastFrameId = header.frameId;
 
@@ -214,7 +216,8 @@ int main(int    argc,
 
     Status status;
     system::VersionInfo v;
-
+    VersionType version;
+    status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
 		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
@@ -288,7 +291,26 @@ int main(int    argc,
     }
 
     while(!doneG)
-        usleep(100000);
+    {
+        system::StatusMessage statusMessage;
+        status = channelP->getDeviceStatus(statusMessage);
+
+        if (Status_Ok == status) {
+            std::cout << "Uptime: " << statusMessage.uptime << ", " <<
+            "SystemOk: " << statusMessage.systemOk << ", " <<
+            "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
+            "Left Imager Temp: " << statusMessage.leftImagerTemperature << ", " <<
+            "Right Imager Temp: " << statusMessage.rightImagerTemperature << ", " <<
+            "Input Voltage: " << statusMessage.inputVoltage << ", " <<
+            "Input Current: " << statusMessage.inputCurrent << ", " <<
+            "FPGA Power: " << statusMessage.fpgaPower << ", " <<
+            "Logic Power: " << statusMessage.logicPower << ", " <<
+            "Imager Power: " << statusMessage.imagerPower << std::endl;
+        }
+
+
+        usleep(1e6);
+    }
 
     status = channelP->stopStreams(Source_All);
     if (Status_Ok != status) {

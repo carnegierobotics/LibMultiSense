@@ -36,8 +36,8 @@
  *   2013-05-23, ekratzer@carnegierobotics.com, PR1044, created file.
  **/
 
-#ifndef LibMultiSense_SysCameraCalibrationMessage
-#define LibMultiSense_SysCameraCalibrationMessage
+#ifndef LibMultiSense_SysSensorCalibrationMessage
+#define LibMultiSense_SysSensorCalibrationMessage
 
 #include "details/utility/Portability.hh"
 
@@ -45,43 +45,21 @@ namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
-    
-class CameraCalData {
+
+class SysSensorCalibration {
 public:
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_SENSOR_CAL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    float M[3][3];
-    float D[8];
-    float R[3][3];
-    float P[3][4];
 
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        SER_ARRAY_2(M, 3, 3);
-        SER_ARRAY_1(D, 8);
-        SER_ARRAY_2(R, 3, 3);
-        SER_ARRAY_2(P, 3, 4);
-    };
-};
-
-class SysCameraCalibration {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_CAMERA_CAL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    //
-    // 2 MPix 
-
-    CameraCalData left;
-    CameraCalData right;
+    uint8_t adc_gain[2];
+    int16_t bl_offset[2];
 
     //
     // Constructors
 
-    SysCameraCalibration(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SysCameraCalibration() {};
+    SysSensorCalibration(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SysSensorCalibration() {};
 
     //
     // Serialization routine
@@ -90,10 +68,11 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        left.serialize(message, version);
-        right.serialize(message, version);
+        SER_ARRAY_1(adc_gain,2);
+        SER_ARRAY_1(bl_offset,2);
     }
 };
+
 }}}}; // namespaces
 
 #endif

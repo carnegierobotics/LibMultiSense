@@ -371,6 +371,7 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Rgb_Left)               wire_mask |= wire::SOURCE_RGB_LEFT;
     if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
     if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
+    if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
 
     return wire_mask;
 };
@@ -393,7 +394,8 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_JPEG_LEFT)         api_mask |= Source_Jpeg_Left;
     if (mask & wire::SOURCE_RGB_LEFT)          api_mask |= Source_Rgb_Left;
     if (mask & wire::SOURCE_LIDAR_SCAN)        api_mask |= Source_Lidar_Scan;
-    if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu; 
+    if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu;
+    if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
 
     return api_mask;
 };
@@ -540,6 +542,7 @@ void *impl::statusThread(void *userDataP)
                 wire::StatusResponse msg;
                 selfP->m_messages.extract(msg);
 
+
                 //
                 // Estimate 'msg.uptime' capture using half of the round trip period
 
@@ -550,6 +553,11 @@ void *impl::statusThread(void *userDataP)
 
                 const double offset = (ping + latency) - static_cast<double>(msg.uptime);
                 selfP->applySensorTimeOffset(offset);
+
+                //
+                // Cache the status message
+
+                selfP->m_statusResponseMessage = msg;
             }
         
         } catch (const std::exception& e) {

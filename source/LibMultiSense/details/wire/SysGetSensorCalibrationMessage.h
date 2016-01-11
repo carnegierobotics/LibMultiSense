@@ -1,7 +1,7 @@
 /**
- * @file LibMultiSense/SysCameraCalibrationMessage.h
+ * @file LibMultiSense/SysGetCameraCalibrationMessage.h
  *
- * This message contains camera calibration
+ * This message contains a request for camera calibration
  *
  * Copyright 2013
  * Carnegie Robotics, LLC
@@ -36,8 +36,8 @@
  *   2013-05-23, ekratzer@carnegierobotics.com, PR1044, created file.
  **/
 
-#ifndef LibMultiSense_SysCameraCalibrationMessage
-#define LibMultiSense_SysCameraCalibrationMessage
+#ifndef LibMultiSense_SysGetSensorCalibrationMessage
+#define LibMultiSense_SysGetSensorCalibrationMessage
 
 #include "details/utility/Portability.hh"
 
@@ -45,55 +45,29 @@ namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
-    
-class CameraCalData {
+
+class SysGetSensorCalibration {
 public:
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_GET_SENSOR_CAL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    float M[3][3];
-    float D[8];
-    float R[3][3];
-    float P[3][4];
-
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        SER_ARRAY_2(M, 3, 3);
-        SER_ARRAY_1(D, 8);
-        SER_ARRAY_2(R, 3, 3);
-        SER_ARRAY_2(P, 3, 4);
-    };
-};
-
-class SysCameraCalibration {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_CAMERA_CAL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    //
-    // 2 MPix 
-
-    CameraCalData left;
-    CameraCalData right;
 
     //
     // Constructors
 
-    SysCameraCalibration(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SysCameraCalibration() {};
+    SysGetSensorCalibration(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SysGetSensorCalibration() {};
 
     //
     // Serialization routine
-    
+
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        left.serialize(message, version);
-        right.serialize(message, version);
+        // nothing yet
     }
 };
+
 }}}}; // namespaces
 
 #endif

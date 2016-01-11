@@ -79,7 +79,7 @@ static CRL_CONSTEXPR uint16_t HEADER_GROUP   = 0x0001;
 typedef struct {
 #else
 typedef struct __attribute__ ((__packed__)) {
-#endif    
+#endif
     //
     // The magic number
 
@@ -127,12 +127,12 @@ typedef uint16_t IdType;
 typedef uint16_t VersionType;
 
 //
-// Every command responsds with an ID_ACK message, 
+// Every command responsds with an ID_ACK message,
 // regardless if a data message is also following.
 
 //
 // TODO: this message set is still awkward in places:
-//       - Missing 1:1 get/set 
+//       - Missing 1:1 get/set
 //       - Some "Data" messages are also commands
 //       - Duplicated information (CAM_GET_CONFIG, SYS_GET_CAMERA_CAL, etc.)
 
@@ -142,7 +142,7 @@ typedef uint16_t VersionType;
 static CRL_CONSTEXPR IdType ID_ACK = 0x0001;
 
 //
-// Commands 
+// Commands
 
 static CRL_CONSTEXPR IdType ID_CMD_GET_VERSION              = 0x0002;
 static CRL_CONSTEXPR IdType ID_CMD_GET_STATUS               = 0x0003;
@@ -170,9 +170,10 @@ static CRL_CONSTEXPR IdType ID_CMD_IMU_GET_INFO             = 0x001f;
 static CRL_CONSTEXPR IdType ID_CMD_IMU_GET_CONFIG           = 0x0020;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_TEST_MTU             = 0x0021;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DIRECTED_STREAMS = 0x0022;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_SENSOR_CAL       = 0x0023;
 
 //
-// Data 
+// Data
 
 static CRL_CONSTEXPR IdType ID_DATA_VERSION               = 0x0102;
 static CRL_CONSTEXPR IdType ID_DATA_STATUS                = 0x0103;
@@ -196,6 +197,7 @@ static CRL_CONSTEXPR IdType ID_DATA_IMU_CONFIG            = 0x0116;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_TEST_MTU_RESPONSE = 0x0117;
 static CRL_CONSTEXPR IdType ID_DATA_JPEG_IMAGE            = 0x0118;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_DIRECTED_STREAMS  = 0x0119;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_SENSOR_CAL        = 0x011a;
 
 //
 // Data sources
@@ -219,6 +221,7 @@ static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT         = (1<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT          = (1<<17);
 static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN        = (1<<24);
 static CRL_CONSTEXPR SourceType SOURCE_IMU               = (1<<25);
+static CRL_CONSTEXPR SourceType SOURCE_PPS               = (1<<26);
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
                                                             SOURCE_LUMA_LEFT       |
@@ -242,7 +245,7 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
 #define SER_ARRAY_1(a_,n_)                    \
     for(uint32_t i_=0; i_<(n_); i_++)         \
         message & (a_)[i_];                   \
-    
+
 #define SER_ARRAY_2(a_,n_,m_)                 \
     for(uint32_t i_=0; i_<(n_); i_++)         \
         for(uint32_t j_=0; j_<(m_); j_++)     \
