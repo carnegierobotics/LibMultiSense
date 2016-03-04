@@ -95,6 +95,10 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
 
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_SL_INTERNAL = 1;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_EXTERNAL = 2;
+
     std::string key;
     std::string name;
     std::string buildDate;

@@ -498,9 +498,6 @@ public:
 
     virtual Status maxDirectedStreams (uint32_t& maximum) = 0;
 
-
-
-
     /**
      * Set a new image trigger source. This is used to specify which source
      * is used to trigger a image capture.
@@ -556,6 +553,14 @@ public:
      */
 
     virtual Status setLightingConfig   (const lighting::Config& c)          = 0;
+
+    /**
+     * Get the status of the sensors attached to the external lighting platform
+     *
+     * @param status The status of the external lighting sensors returned by
+     * reference
+     */
+    virtual Status getLightingSensorStatus (lighting::SensorStatus& status) = 0;
 
     /**
      * Get the API version of the sensor firmware.
@@ -826,6 +831,26 @@ public:
      * queried
      */
     virtual Status getDeviceStatus     (system::StatusMessage& status) = 0;
+
+    /**
+     * Get the external calibration associated with the MultiSense device
+     *
+     * @param calibration The external calibration object to query from non-volatile flash
+     *
+     * @return A crl::multisense::Status indicating if the calibration was successfully
+     * queried
+     */
+    virtual Status getExternalCalibration (system::ExternalCalibration& calibration) = 0;
+
+    /**
+     * Set the external calibration associated with the MultiSense device
+     *
+     * @param calibration The external calibration object to write to non-volatile flash
+     *
+     * @return A crl::multisense::Status indicating if the calibration was successfully
+     * set
+     */
+    virtual Status setExternalCalibration (const system::ExternalCalibration& calibration) = 0;
 
     /**
      * Flash a new FPGA bitstream file to the sensor.

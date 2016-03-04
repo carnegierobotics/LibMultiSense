@@ -1,0 +1,6 @@
+%YAML:1.0
+external_calibration: !!opencv-matrix
+   rows: 1
+   cols: 6
+   dt: d
+   data: [ 0.0, 1.2, 2.3, 3.4, 4.5, 5.6]

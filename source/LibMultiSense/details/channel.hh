@@ -118,6 +118,8 @@ public:
     virtual Status getLightingConfig     (lighting::Config& c);
     virtual Status setLightingConfig     (const lighting::Config& c);
 
+    virtual Status getLightingSensorStatus (lighting::SensorStatus& status);
+
     virtual Status getSensorVersion      (VersionType& version);
     virtual Status getApiVersion         (VersionType& version);
     virtual Status getVersionInfo        (system::VersionInfo& v);
@@ -149,6 +151,9 @@ public:
                                           const system::DeviceInfo& i);
 
     virtual Status getDeviceStatus       (system::StatusMessage& status);
+
+    virtual Status getExternalCalibration (system::ExternalCalibration& calibration);
+    virtual Status setExternalCalibration (const system::ExternalCalibration& calibration);
 
     virtual Status flashBitstream        (const std::string& file);
     virtual Status flashFirmware         (const std::string& file);
@@ -183,7 +188,7 @@ private:
     //
     // The version of this API
 
-    static CRL_CONSTEXPR VersionType API_VERSION = 0x0305; // 3.5
+    static CRL_CONSTEXPR VersionType API_VERSION = 0x0306; // 3.6
 
     //
     // Misc. internal constants

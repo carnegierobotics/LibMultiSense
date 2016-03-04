@@ -63,6 +63,9 @@
 #include "details/wire/LedSetMessage.h"
 #include "details/wire/LedStatusMessage.h"
 
+#include "details/wire/LedGetSensorStatusMessage.h"
+#include "details/wire/LedSensorStatusMessage.h"
+
 #include "details/wire/SysMtuMessage.h"
 #include "details/wire/SysGetMtuMessage.h"
 #include "details/wire/SysFlashOpMessage.h"
@@ -78,6 +81,8 @@
 #include "details/wire/SysLidarCalibrationMessage.h"
 #include "details/wire/SysGetDeviceModesMessage.h"
 #include "details/wire/SysDeviceModesMessage.h"
+#include "details/wire/SysGetExternalCalibrationMessage.h"
+#include "details/wire/SysExternalCalibrationMessage.h"
 
 #include "details/wire/ImuGetInfoMessage.h"
 #include "details/wire/ImuGetConfigMessage.h"
@@ -576,6 +581,20 @@ Status impl::setLightingConfig(const lighting::Config& c)
     return waitAck(msg);
 }
 
+Status impl::getLightingSensorStatus(lighting::SensorStatus& status)
+{
+    Status          requestStatus;
+    wire::LedSensorStatus data;
+
+    requestStatus = waitData(wire::LedGetSensorStatus(), data);
+    if (Status_Ok != requestStatus)
+        return requestStatus;
+
+    status.ambientLightPercentage = data.ambientLightPercentage;
+
+    return Status_Ok;
+}
+
 //
 // Requests version from sensor
 
@@ -952,11 +971,20 @@ Status impl::getDeviceStatus(system::StatusMessage& status)
 {
     status.uptime = m_statusResponseMessage.uptime;
 
-    status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) == 1;
-    status.laserOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_OK) == 1;
-    status.laserMotorOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_MOTOR_OK) == 1;
-    status.camerasOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CAMERAS_OK) == 1;
-    status.imuOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_IMU_OK) == 1;
+    status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==
+        wire::StatusResponse::STATUS_GENERAL_OK;
+    status.laserOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_OK) ==
+        wire::StatusResponse::STATUS_LASER_OK;
+    status.laserMotorOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_MOTOR_OK) ==
+        wire::StatusResponse::STATUS_LASER_MOTOR_OK;
+    status.camerasOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CAMERAS_OK) ==
+        wire::StatusResponse::STATUS_CAMERAS_OK;
+    status.imuOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_IMU_OK) ==
+        wire::StatusResponse::STATUS_IMU_OK;
+    status.externalLedsOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_EXTERNAL_LED_OK) ==
+        wire::StatusResponse::STATUS_EXTERNAL_LED_OK;
+    status.processingPipelineOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_PIPELINE_OK) ==
+        wire::StatusResponse::STATUS_PIPELINE_OK;
 
     status.powerSupplyTemperature = m_statusResponseMessage.temperature0;
     status.fpgaTemperature = m_statusResponseMessage.temperature1;
@@ -968,6 +996,40 @@ Status impl::getDeviceStatus(system::StatusMessage& status)
     status.fpgaPower = m_statusResponseMessage.fpgaPower;
     status.logicPower = m_statusResponseMessage.logicPower;
     status.imagerPower = m_statusResponseMessage.imagerPower;
+
+    return Status_Ok;
+}
+
+Status impl::getExternalCalibration(system::ExternalCalibration& calibration)
+{
+    wire::SysExternalCalibration d;
+
+    Status status = waitData(wire::SysGetExternalCalibration(), d);
+    if (Status_Ok != status)
+        return status;
+
+    calibration.x = d.calibration[0];
+    calibration.y = d.calibration[1];
+    calibration.z = d.calibration[2];
+    calibration.roll = d.calibration[3];
+    calibration.pitch = d.calibration[4];
+    calibration.yaw = d.calibration[5];
+
+    return Status_Ok;
+}
+
+Status impl::setExternalCalibration(const system::ExternalCalibration& calibration)
+{
+    wire::SysExternalCalibration w;
+
+    w.calibration[0] = calibration.x;
+    w.calibration[1] = calibration.y;
+    w.calibration[2] = calibration.z;
+    w.calibration[3] = calibration.roll;
+    w.calibration[4] = calibration.pitch;
+    w.calibration[5] = calibration.yaw;
+
+    return waitAck(w);
 
     return Status_Ok;
 }
@@ -1206,5 +1268,4 @@ Status impl::getLocalUdpPort(uint16_t& port)
     port = m_serverSocketPort;
     return Status_Ok;
 }
-
 }}}; // namespaces

@@ -1395,6 +1395,8 @@ namespace lighting {
 static CRL_CONSTEXPR uint32_t MAX_LIGHTS     = 8;
 /** The maximum duty cycle for adjusting light intensity */
 static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
+/** The maxmimum value of the ambient light sensor */
+static CRL_CONSTEXPR float    MAX_AMBIENT_LIGHTING = 100.0;
 
 /**
  * Class used to store a specific lighting configuration. Member of this class
@@ -1566,6 +1568,55 @@ private:
 
     bool               m_flashEnabled;
     std::vector<float> m_dutyCycle;
+};
+
+/**
+ * A external sensor status. This is only supported by external LED attachements
+ * for S21 devices
+ *
+ * Example code to query the lighting sensor status :
+ * \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a lightingConfig instance to store our queried lighting configuration
+ *     crl::multisense::lighting::SensorStatus lightingSensors;
+ *
+ *     //
+ *     // Query the lighting configuration from the Channel instance
+ *     crl::multisense::Status status = channel->getLightingSensorStatus(lightingSensors);
+ *
+ *     //
+ *     // Check to see if the lighting sensor query was successful
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to query lighting sensor status");
+ *     }
+ *
+ *     //
+ *     // Use the lighting sensor status...
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API SensorStatus {
+public:
+
+    /**
+     * This represents the percentage of light the ambient sensor currently sees.
+     * External ambient sensors are only available on S21 units with the external
+     * lighting attachement. This value ranges between 0 and 100
+     */
+    float ambientLightPercentage;
+
+    SensorStatus() : ambientLightPercentage(100.0f) {};
 };
 
 }; // namespace lighting
@@ -2091,6 +2142,10 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
 
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_SL_INTERNAL = 1;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_EXTERNAL = 2;
+
     /** The name of a given device */
     std::string name;
     /** The date the device was manufactured */
@@ -2324,6 +2379,13 @@ class MULTISENSE_API StatusMessage {
          * True corresonds to healthy */
         bool imuOk;
 
+        /** A boolean flag indicating if the external LEDs are OK. This flag
+         * will only be true if external LEDs are present */
+        bool externalLedsOk;
+
+        /** A boolean indicating if the processing pipeline is ok */
+        bool processingPipelineOk;
+
         /** The temperature of the internal switching mode power supply.
          * Temperature is is Celsius */
         float powerSupplyTemperature;
@@ -2361,6 +2423,8 @@ class MULTISENSE_API StatusMessage {
             laserMotorOk(false),
             camerasOk(false),
             imuOk(false),
+            externalLedsOk(false),
+            processingPipelineOk(false),
             powerSupplyTemperature(0.),
             fpgaTemperature(0.),
             leftImagerTemperature(0.),
@@ -2370,6 +2434,116 @@ class MULTISENSE_API StatusMessage {
             fpgaPower(0.),
             logicPower(0.),
             imagerPower(0.) {};
+};
+
+/**
+ * A external calibration associated with the MultiSense. This is user defined
+ * non-volatile storage so the location of the MultiSense can be stored dynamically
+ * on the sensor. This can be used to store the mounting location of the sensor
+ * relative to a base coordinate frame. This is not used internally by the MultiSense
+ * or the ROS driver.
+ *
+ * Example code to query a devices's external calibration:
+ * \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of ExternalCalibration to store the device's imager
+      // calibration
+ *     crl::multisense::system::ExternalCalibration externalCalibration;
+ *
+ *     //
+ *     // Query the imager calibration from the Channel instance
+ *     crl::multisense::Status status = channel->getExternalCalibration(externalCalibration));
+ *
+ *     //
+ *     // Check to see if the network configuration query succeeded
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to query device's external calibration");
+ *     }
+ *
+ *     //
+ *     // Use the external calibration...
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ *
+ * Example code to set a devices external calibration:
+ ** \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of ExternalCalibration to store the device's imager
+ *     // calibration
+ *     crl::multisense::system::ExternalCalibration externalCalibration;
+ *
+ *     //
+ *     // Set the external calibration values
+ *     externalCalibration.x = 0.1;
+ *     externalCalibration.y = 0.2;
+ *     externalCalibration.z = 0.3;
+ *     externalCalibration.roll = 2.5;
+ *     externalCalibration.pitch = 3.67;
+ *     externalCalibration.yaw = 1.2;
+ *
+ *     //
+ *     // Send the new external calibration to the device
+ *     crl::multisense::Status status = channel->setExternalCalibration(externalCalibration));
+ *
+ *     //
+ *     // Check to see if the new network configuration was received
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to set the devices's imager calibration");
+ *     }
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API ExternalCalibration {
+    public:
+
+        /** The external x translation of the MultiSense in meters */
+        float x;
+
+        /** The external y translation of the MultiSense in meters */
+        float y;
+
+        /** The external z translation of the MultiSense in meters */
+        float z;
+
+        /** The external roll translation of the MultiSense in degrees */
+        float roll;
+
+        /** The external pitch translation of the MultiSense in degrees */
+        float pitch;
+
+        /** The external yaw translation of the MultiSense in degrees */
+        float yaw;
+
+        /** Default constructor. By default this transform is Identity */
+        ExternalCalibration():
+            x(0.),
+            y(0.),
+            z(0.),
+            roll(0.),
+            pitch(0.),
+            yaw(0.) {};
 };
 
 }; // namespace system

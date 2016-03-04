@@ -50,7 +50,7 @@ add_library(MultiSense SHARED ${MULTISENSE_HEADERS}
 # Versioning...someday lets automate this somehow
 #
 
-set_target_properties(MultiSense PROPERTIES VERSION "3.5")
+set_target_properties(MultiSense PROPERTIES VERSION "3.6")
 
 #
 # We want to link against our child libraries.

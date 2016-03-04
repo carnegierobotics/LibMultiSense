@@ -53,6 +53,8 @@
 
 #include "details/wire/LedStatusMessage.h"
 
+#include "details/wire/LedSensorStatusMessage.h"
+
 #include "details/wire/SysMtuMessage.h"
 #include "details/wire/SysNetworkMessage.h"
 #include "details/wire/SysFlashResponseMessage.h"
@@ -61,6 +63,7 @@
 #include "details/wire/SysSensorCalibrationMessage.h"
 #include "details/wire/SysLidarCalibrationMessage.h"
 #include "details/wire/SysDeviceModesMessage.h"
+#include "details/wire/SysExternalCalibrationMessage.h"
 
 #include "details/wire/SysPpsMessage.h"
 
@@ -405,6 +408,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     case MSG_ID(wire::LedStatus::ID):
         m_messages.store(wire::LedStatus(stream, version));
         break;
+    case MSG_ID(wire::LedSensorStatus::ID):
+        m_messages.store(wire::LedSensorStatus(stream, version));
+        break;
     case MSG_ID(wire::SysFlashResponse::ID):
         m_messages.store(wire::SysFlashResponse(stream, version));
         break;
@@ -446,6 +452,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysDirectedStreams::ID):
         m_messages.store(wire::SysDirectedStreams(stream, version));
+        break;
+    case MSG_ID(wire::SysExternalCalibration::ID):
+        m_messages.store(wire::SysExternalCalibration(stream, version));
         break;
     default:
 

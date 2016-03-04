@@ -50,17 +50,19 @@ namespace wire {
 class StatusResponse {
 public:
     static CRL_CONSTEXPR IdType      ID                  = ID_DATA_STATUS;
-    static CRL_CONSTEXPR VersionType VERSION             = 2;
+    static CRL_CONSTEXPR VersionType VERSION             = 3;
 	static CRL_CONSTEXPR float       INVALID_TEMPERATURE() { return -99999.0f; }
 
     //
     // Subsytem status
 
-    static CRL_CONSTEXPR uint32_t STATUS_GENERAL_OK     = (1<<0);
-    static CRL_CONSTEXPR uint32_t STATUS_LASER_OK       = (1<<1);
-    static CRL_CONSTEXPR uint32_t STATUS_LASER_MOTOR_OK = (1<<2);
-    static CRL_CONSTEXPR uint32_t STATUS_CAMERAS_OK     = (1<<3);
-    static CRL_CONSTEXPR uint32_t STATUS_IMU_OK         = (1<<4);
+    static CRL_CONSTEXPR uint32_t STATUS_GENERAL_OK      = (1<<0);
+    static CRL_CONSTEXPR uint32_t STATUS_LASER_OK        = (1<<1);
+    static CRL_CONSTEXPR uint32_t STATUS_LASER_MOTOR_OK  = (1<<2);
+    static CRL_CONSTEXPR uint32_t STATUS_CAMERAS_OK      = (1<<3);
+    static CRL_CONSTEXPR uint32_t STATUS_IMU_OK          = (1<<4);
+    static CRL_CONSTEXPR uint32_t STATUS_EXTERNAL_LED_OK = (1<<5);
+    static CRL_CONSTEXPR uint32_t STATUS_PIPELINE_OK     = (1<<6);
 
     //
     // The reported uptime for the system
@@ -70,7 +72,7 @@ public:
     uint32_t           status;
     float              temperature0; // celsius
     float              temperature1;
-    
+
     //
     // Version 2 additions
 
@@ -87,9 +89,9 @@ public:
     // Constructors
 
     StatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    StatusResponse() : uptime(), 
-                       status(0), 
-                       temperature0(INVALID_TEMPERATURE()), 
+    StatusResponse() : uptime(),
+                       status(0),
+                       temperature0(INVALID_TEMPERATURE()),
                        temperature1(INVALID_TEMPERATURE()),
                        temperature2(INVALID_TEMPERATURE()),
                        temperature3(INVALID_TEMPERATURE()),
@@ -98,7 +100,7 @@ public:
                        fpgaPower(-1.0),
                        logicPower(-1.0),
                        imagerPower(-1.0) {};
-                       
+
     //
     // Serialization routine
 
@@ -119,7 +121,14 @@ public:
             message & fpgaPower;
             message & logicPower;
             message & imagerPower;
-        }   
+        }
+
+        //
+        // Enable the LED OK and pipeline OK status for older messages
+        if (version < 3) {
+            status |= STATUS_EXTERNAL_LED_OK;
+            status |= STATUS_PIPELINE_OK;
+        }
     }
 };
 

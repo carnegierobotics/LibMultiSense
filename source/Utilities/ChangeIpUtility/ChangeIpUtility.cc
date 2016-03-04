@@ -83,6 +83,24 @@ void usage(const char *programNameP)
     exit(-1);
 }
 
+bool decodeIpv4(const std::string& addr,
+                unsigned int&      p1,
+                unsigned int&      p2,
+                unsigned int&      p3,
+                unsigned int&      p4)
+{
+    if (addr.empty() ||
+        4 != sscanf(addr.c_str(), "%3u.%3u.%3u.%3u",
+                    &p1, &p2, &p3, &p4) ||
+        (p1 > 255 || p2 > 255 || p3 > 255 || p4 > 255)) {
+        fprintf(stderr, "Unable to decode \"%s\" as IPV4 dotted-quad \n",
+                        addr.c_str());
+        fflush(stderr);
+        return false;
+    }
+    return true;
+}
+
 }; // anonymous
 
 using namespace crl::multisense;
@@ -117,6 +135,14 @@ int main(int    argc,
     Status status;
     Channel *channelP = NULL;
     int sockfd = -1;
+
+    system::DeviceInfo deviceInfo;
+
+    uint32_t a1 = 0;
+    uint32_t a2 = 0;
+    uint32_t a3 = 0;
+    uint32_t a4 = 0;
+
 
     if(!blind)
     {
@@ -171,9 +197,35 @@ int main(int    argc,
         }
 #endif
     }
-    
+
+    status = channelP->getDeviceInfo(deviceInfo);
+
+    if (Status_Ok != status) {
+        fprintf(stderr, "failed to qyery device info %s\n",
+                Channel::statusString(status));
+        goto clean_out;
+    }
+
+
+    if (!decodeIpv4(desiredAddress, a1, a2, a3, a4))
+    {
+        goto clean_out;
+    }
+
+    // MultiSense SL units use the 192.168.0 subnet to talk to the Hokuyo
+    // laser. Setting the ip address of the MultiSense to 192.168.0.X will
+    // interfere with the networking configuration
+    if (deviceInfo.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL &&
+        192 == a1  && 168 == a2 && 0 == a3)
+    {
+        fprintf(stderr, "Invalid IP address on the 192.168.0 subnet. Aborting\n");
+        fflush(stderr);
+        goto clean_out;
+    }
+
     if(prompt)
     {
+
         fprintf(stdout, "NEW address: %s\n", desiredAddress.c_str());
         fprintf(stdout, "NEW gateway: %s\n", desiredGateway.c_str());
         fprintf(stdout, "NEW netmask: %s\n\n", desiredNetmask.c_str());
