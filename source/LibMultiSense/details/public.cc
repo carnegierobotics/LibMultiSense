@@ -76,7 +76,9 @@
 #include "details/wire/SysGetCameraCalibrationMessage.h"
 #include "details/wire/SysCameraCalibrationMessage.h"
 #include "details/wire/SysGetSensorCalibrationMessage.h"
+#include "details/wire/SysGetTransmitDelayMessage.h"
 #include "details/wire/SysSensorCalibrationMessage.h"
+#include "details/wire/SysTransmitDelayMessage.h"
 #include "details/wire/SysGetLidarCalibrationMessage.h"
 #include "details/wire/SysLidarCalibrationMessage.h"
 #include "details/wire/SysGetDeviceModesMessage.h"
@@ -699,7 +701,9 @@ Status impl::setImageConfig(const image::Config& c)
 
     status = waitAck(wire::CamSetResolution(c.width(), 
                                             c.height(),
-                                            c.disparities()));
+                                            c.disparities(),
+                                            c.camMode(),
+                                            c.offset()));
     if (Status_Ok != status)
         return status;
 
@@ -794,6 +798,33 @@ Status impl::setSensorCalibration(const image::SensorCalibration& c)
 
     CPY_ARRAY_1(d.adc_gain, c.adc_gain, 2);
     CPY_ARRAY_1(d.bl_offset, c.bl_offset, 2);
+
+    return waitAck(d);
+}
+
+//
+// Get sensor calibration
+
+Status impl::getTransmitDelay(image::TransmitDelay& c)
+{
+    wire::SysTransmitDelay d;
+
+    Status status = waitData(wire::SysGetTransmitDelay(), d);
+    if (Status_Ok != status)
+        return status;
+    c.delay = d.delay;
+
+    return Status_Ok;
+}
+
+//
+// Set sensor calibration
+
+Status impl::setTransmitDelay(const image::TransmitDelay& c)
+{
+    wire::SysTransmitDelay d;
+
+    d.delay = c.delay;;
 
     return waitAck(d);
 }

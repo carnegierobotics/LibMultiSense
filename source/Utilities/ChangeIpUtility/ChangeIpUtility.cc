@@ -67,7 +67,7 @@
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
     fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
     fprintf(stderr, "Where <options> are:\n");
@@ -79,7 +79,7 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface (requires root)\n");
 #endif
     fprintf(stderr, "\t-y                      : disable confirmation prompt\n");
-    
+
     exit(-1);
 }
 
@@ -105,7 +105,7 @@ bool decodeIpv4(const std::string& addr,
 
 using namespace crl::multisense;
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
@@ -143,6 +143,11 @@ int main(int    argc,
     uint32_t a3 = 0;
     uint32_t a4 = 0;
 
+    if (!decodeIpv4(desiredAddress, a1, a2, a3, a4))
+    {
+        goto clean_out;
+    }
+
 
     if(!blind)
     {
@@ -167,6 +172,26 @@ int main(int    argc,
                     Channel::statusString(status));
             goto clean_out;
         }
+
+        status = channelP->getDeviceInfo(deviceInfo);
+
+        if (Status_Ok != status) {
+            fprintf(stderr, "failed to query device info %s\n",
+                    Channel::statusString(status));
+            goto clean_out;
+        }
+
+        if (deviceInfo.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL &&
+            192 == a1  && 168 == a2 && 0 == a3)
+        {
+            fprintf(stderr, "MultiSense SL units use the 192.168.0 subnet to talk to the Hokuyo ");
+            fprintf(stderr, "laser. Setting the IP address of the MultiSense to 192.168.0.X will ");
+            fprintf(stderr, "interfere with the networking configuration.\n");
+            fprintf(stderr, "\n");
+            fprintf(stderr, "Aborting IP Change.\n");
+            fflush(stderr);
+            goto clean_out;
+        }
     }
     else
     {
@@ -175,6 +200,18 @@ int main(int    argc,
         goto clean_out;
 #else
         int broadcast=1;
+
+        if (192 == a1  && 168 == a2 && 0 == a3)
+        {
+            fprintf(stderr, "MultiSense SL units use the 192.168.0 subnet to talk to the Hokuyo ");
+            fprintf(stderr, "laser. Setting the IP address of the MultiSense to 192.168.0.X will ");
+            fprintf(stderr, "interfere with the networking configuration.  This unit may be a ");
+            fprintf(stderr, "MultiSense SL as in broadcast mode this tool cannot query the device.\n");
+            fprintf(stderr, "\n");
+            fprintf(stderr, "Aborting IP Change.\n");
+            fflush(stderr);
+            goto clean_out;
+        }
 
         // create UDP socket
         sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -188,7 +225,7 @@ int main(int    argc,
             perror("setsockopt(...SO_BROADCAST) failed");
             goto clean_out;
         }
-        
+
         // bind to a specific interface so broadcast packet goes to the right place
         // note: on most systems, this will require elevated privileges
         if (setsockopt(sockfd,SOL_SOCKET,SO_BINDTODEVICE,iface.c_str(),iface.size()+1)==-1) {
@@ -196,31 +233,6 @@ int main(int    argc,
             goto clean_out;
         }
 #endif
-    }
-
-    status = channelP->getDeviceInfo(deviceInfo);
-
-    if (Status_Ok != status) {
-        fprintf(stderr, "failed to qyery device info %s\n",
-                Channel::statusString(status));
-        goto clean_out;
-    }
-
-
-    if (!decodeIpv4(desiredAddress, a1, a2, a3, a4))
-    {
-        goto clean_out;
-    }
-
-    // MultiSense SL units use the 192.168.0 subnet to talk to the Hokuyo
-    // laser. Setting the ip address of the MultiSense to 192.168.0.X will
-    // interfere with the networking configuration
-    if (deviceInfo.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL &&
-        192 == a1  && 168 == a2 && 0 == a3)
-    {
-        fprintf(stderr, "Invalid IP address on the 192.168.0 subnet. Aborting\n");
-        fflush(stderr);
-        goto clean_out;
     }
 
     if(prompt)
@@ -257,7 +269,7 @@ int main(int    argc,
         if (Status_Ok != status)
             fprintf(stderr, "Failed to set the network configuration: %s\n",
                     Channel::statusString(status));
-        else 
+        else
             fprintf(stdout, "Network parameters changed successfully\n");
     }
     else

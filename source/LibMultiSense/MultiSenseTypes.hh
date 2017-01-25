@@ -535,10 +535,30 @@ public:
      * images when computing the output disparity image. Default
      * value: 128
      *
-     * @param d The number of disparites
+     * @param d The number of disparities
      */
 
     void setDisparities       (uint32_t d) { m_disparities=d;      };
+
+    /**
+     * Set a desired output mode. Only valid for CMV4000 cameras.
+     * 4000 (default) : Set camera to act as a 4MP imager
+     * 2000           : Set camera to act as a 2MP imager
+     *
+     * @param m The new output mask for CMV4000 cameras
+     */
+
+    void setCamMode          (int m) { m_cam_mode=m; };
+
+    /**
+     * Set a desired crop offset between 0 and 960 px.  For the
+     * CMV2000 mode crop, default is 480 which positions the ROI
+     * in the center of the CMV4000's FOV.
+     *
+     * @param o The offset from the bottom of the imager's FOV.
+     */
+
+    void setOffset         (int o) { m_offset=o; };
 
     /**
      * Set the width of the desired output resolution. Default value:
@@ -560,6 +580,9 @@ public:
 
     /**
      * Set the desired output frames per second. Default value: 5
+     *
+     * @note If an external trigger is selected, this value acts as
+     *       an upper bounds to the framerate.
      *
      * @param f The desired frames per second
      */
@@ -703,6 +726,22 @@ public:
      */
 
     uint32_t disparities () const { return m_disparities; };
+
+    /**
+     * Query the current image configuration's mode
+     *
+     * @return The current camera mode
+     */
+
+    int camMode () const { return m_cam_mode; };
+
+    /**
+     * Query the current image configuration's offset
+     *
+     * @return The current offset
+     */
+
+    int offset () const { return m_offset; };
 
     /**
      * Query the current image configuration's frames-per-second setting
@@ -938,7 +977,7 @@ public:
     Config() : m_fps(5.0f), m_gain(1.0f),
                m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeDecay(7), m_aeThresh(0.75f),
                m_wbBlue(1.0f), m_wbRed(1.0f), m_wbEnabled(true), m_wbDecay(3), m_wbThresh(0.5f),
-               m_width(1024), m_height(544), m_disparities(128), m_spfStrength(0.5f), m_hdrEnabled(false),
+               m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f), m_hdrEnabled(false),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -956,6 +995,8 @@ private:
     float    m_wbThresh;
     uint32_t m_width, m_height;
     uint32_t m_disparities;
+    int      m_cam_mode;
+    int      m_offset;
     float    m_spfStrength;
     bool     m_hdrEnabled;
 
@@ -1165,6 +1206,14 @@ public:
     /** The imager black level offset for each imager. Index 0 corresponds
      * to the left imager, index 1 corresponds to the right imager */
     int16_t bl_offset[2];
+
+};
+
+class MULTISENSE_API TransmitDelay {
+public:
+
+    /** Delay between completing a frame and actually sending it over the network (in ms) */
+    int delay;
 
 };
 

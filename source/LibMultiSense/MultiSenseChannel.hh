@@ -676,6 +676,29 @@ public:
 	virtual Status setSensorCalibration (const image::SensorCalibration& c)        = 0;
 
     /**
+     * Query the current device network delay.
+     *
+     * @param c The network delay instance which will be returned by
+     * reference
+     *
+     * @return A crl::multisense::Status indicating if the network delay
+     * was successfully queried
+     */
+    virtual Status getTransmitDelay (image::TransmitDelay& c)              = 0;
+
+    /**
+     * Set the devices network delay (in ms). Default 0ms delay
+     * Delay scales down based on a max delay setting driven by the current FPS dynamically
+     *
+     * @param c The desired network delay in ms which will be returned by
+     * reference
+     *
+     * @return A crl::multisense::Status indicating if the transmit delay
+     * was successfully received by the sensor
+     */
+	virtual Status setTransmitDelay (const image::TransmitDelay& c)        = 0;
+
+    /**
      * Query the current laser calibration.
      *
      * See lidar::Calibration for a usage example

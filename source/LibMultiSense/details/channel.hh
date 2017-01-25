@@ -133,6 +133,9 @@ public:
 	virtual Status getSensorCalibration   (image::SensorCalibration& c);
 	virtual Status setSensorCalibration   (const image::SensorCalibration& c);
 
+	virtual Status getTransmitDelay   (image::TransmitDelay& c);
+	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
+
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
 
@@ -188,7 +191,7 @@ private:
     //
     // The version of this API
 
-    static CRL_CONSTEXPR VersionType API_VERSION = 0x0306; // 3.6
+    static CRL_CONSTEXPR VersionType API_VERSION = 0x0308; // 3.8
 
     //
     // Misc. internal constants

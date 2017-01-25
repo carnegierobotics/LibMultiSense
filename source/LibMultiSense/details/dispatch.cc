@@ -61,6 +61,7 @@
 #include "details/wire/SysDeviceInfoMessage.h"
 #include "details/wire/SysCameraCalibrationMessage.h"
 #include "details/wire/SysSensorCalibrationMessage.h"
+#include "details/wire/SysTransmitDelayMessage.h"
 #include "details/wire/SysLidarCalibrationMessage.h"
 #include "details/wire/SysDeviceModesMessage.h"
 #include "details/wire/SysExternalCalibrationMessage.h"
@@ -422,6 +423,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysSensorCalibration::ID):
         m_messages.store(wire::SysSensorCalibration(stream, version));
+        break;
+    case MSG_ID(wire::SysTransmitDelay::ID):
+            m_messages.store(wire::SysTransmitDelay(stream, version));
         break;
     case MSG_ID(wire::SysLidarCalibration::ID):
         m_messages.store(wire::SysLidarCalibration(stream, version));
