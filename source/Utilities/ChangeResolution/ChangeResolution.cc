@@ -147,7 +147,7 @@ int main(int    argc,
 	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
 	std::cout << std::dec;
 
-    if (v.sensorFirmwareVersion <= 0x0305) {
+    if (v.sensorFirmwareVersion < 0x0305) {
         if (mode != 0 || offset >= 0) {
             std::cerr << "Changing crop mode of a CMV4000 imager requires v3.5 or greater, sensor is " <<
             "running v" << (v.sensorFirmwareVersion >> 8) << "." << (v.sensorFirmwareVersion & 0xff) << std::endl;
