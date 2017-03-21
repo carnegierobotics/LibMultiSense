@@ -66,12 +66,12 @@ namespace {  // anonymous
 
 volatile bool doneG = false;
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
 	std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
 	std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    
+
     exit(-1);
 }
 
@@ -97,7 +97,7 @@ bool savePgm(const std::string& fileName,
              const void        *dataP)
 {
     std::ofstream outputStream(fileName.c_str(), std::ios::binary | std::ios::out);
-    
+
     if (false == outputStream.good()) {
 		std::cerr << "Failed to open \"" << fileName << "\"" << std::endl;
         return false;
@@ -106,13 +106,13 @@ bool savePgm(const std::string& fileName,
     const uint32_t imageSize = height * width;
 
     switch(bitsPerPixel) {
-    case 8: 
+    case 8:
     {
 
         outputStream << "P5\n"
                      << width << " " << height << "\n"
                      << 0xFF << "\n";
-        
+
         outputStream.write(reinterpret_cast<const char*>(dataP), imageSize);
 
         break;
@@ -124,7 +124,7 @@ bool savePgm(const std::string& fileName,
                      << 0xFFFF << "\n";
 
         const uint16_t *imageP = reinterpret_cast<const uint16_t*>(dataP);
-        
+
         for (uint32_t i=0; i<imageSize; ++i) {
             uint16_t o = htons(imageP[i]);
             outputStream.write(reinterpret_cast<const char*>(&o), sizeof(uint16_t));
@@ -133,7 +133,7 @@ bool savePgm(const std::string& fileName,
         break;
     }
     }
-        
+
     outputStream.close();
     return true;
 }
@@ -142,7 +142,7 @@ void ppsCallback(const pps::Header& header,
                  void              *userDataP)
 {
 	std::cerr << "PPS: " << header.sensorTime << " ns" << std::endl;
-}                
+}
 
 void laserCallback(const lidar::Header& header,
                    void                *userDataP)
@@ -154,9 +154,9 @@ void imageCallback(const image::Header& header,
                    void                *userDataP)
 {
     Channel *channelP = reinterpret_cast<Channel*>(userDataP);
-    
+
 //    double timeStamp = header.timeSeconds + 1e-6 * header.timeMicroSeconds;
-    
+
     static int64_t lastFrameId = -1;
 
     if (-1 == lastFrameId)
@@ -178,7 +178,7 @@ void imageCallback(const image::Header& header,
 
 }; // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
@@ -247,7 +247,7 @@ int main(int    argc,
 
             cfg.setResolution(1024, 544);
             cfg.setFps(30.0);
-        
+
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
 				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;

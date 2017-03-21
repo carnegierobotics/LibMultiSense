@@ -36,6 +36,8 @@
 
 #if defined(WIN32)
 #include "win32/Thread.hh"
+#elif __APPLE__
+#include "macos/Thread.hh"
 #else
 #include "linux/Thread.hh"
 #endif

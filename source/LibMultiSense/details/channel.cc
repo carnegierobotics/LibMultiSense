@@ -157,14 +157,14 @@ impl::impl(const std::string& address) :
     } else {
 
         //
-        // Use the same MTU for TX 
+        // Use the same MTU for TX
 
         m_sensorMtu = mtu.mtu;
     }
 
     //
     // Request version info from the device
-    
+
     status = waitData(wire::VersionRequest(), m_sensorVersion);
     if (Status_Ok != status) {
         cleanup();
@@ -259,7 +259,7 @@ void impl::bind()
         CRL_EXCEPTION("failed to make a socket non-blocking: %d",WSAGetLastError ());
 #else
     const int flags = fcntl(m_serverSocket, F_GETFL, 0);
-    
+
     if (0 != fcntl(m_serverSocket, F_SETFL, flags | O_NONBLOCK))
         CRL_EXCEPTION("failed to make a socket non-blocking: %s",
                       strerror(errno));
@@ -270,7 +270,7 @@ void impl::bind()
 
     int reuseSocket = 1;
 
-    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_REUSEADDR, (char*) &reuseSocket, 
+    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_REUSEADDR, (char*) &reuseSocket,
                         sizeof(reuseSocket)))
         CRL_EXCEPTION("failed to turn on socket reuse flag: %s",
                       strerror(errno));
@@ -278,11 +278,16 @@ void impl::bind()
     //
     // We want very large buffers to store several images
 
+#if __APPLE__
+    // MacOS cannot reliably allocate a buffer larger than this
+    int bufferSize = 4 * 1024 * 1024;
+#else
     int bufferSize = 48 * 1024 * 1024;
+#endif
 
-    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_RCVBUF, (char*) &bufferSize, 
+    if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_RCVBUF, (char*) &bufferSize,
                         sizeof(bufferSize)) ||
-        0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_SNDBUF, (char*) &bufferSize, 
+        0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_SNDBUF, (char*) &bufferSize,
                         sizeof(bufferSize)))
         CRL_EXCEPTION("failed to adjust socket buffer sizes (%d bytes): %s",
                       bufferSize, strerror(errno));
@@ -297,7 +302,7 @@ void impl::bind()
     address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (0 != ::bind(m_serverSocket, (struct sockaddr*) &address, sizeof(address)))
-        CRL_EXCEPTION("failed to bind the server socket to system-assigned port: %s", 
+        CRL_EXCEPTION("failed to bind the server socket to system-assigned port: %s",
                       strerror(errno));
 
     //
@@ -318,10 +323,10 @@ void impl::bind()
 void impl::publish(const utility::BufferStreamWriter& stream)
 {
     //
-    // Install the header 
-   
+    // Install the header
+
     wire::Header& header = *(reinterpret_cast<wire::Header*>(stream.data()));
-     
+
     header.magic              = wire::HEADER_MAGIC;
     header.version            = wire::HEADER_VERSION;
     header.group              = wire::HEADER_GROUP;
@@ -341,10 +346,10 @@ void impl::publish(const utility::BufferStreamWriter& stream)
 
     const int32_t ret = sendto(m_serverSocket, (char*)stream.data(), stream.tell(), 0,
                                (struct sockaddr *) &m_sensorAddress,
-                               sizeof(m_sensorAddress));        
-    
+                               sizeof(m_sensorAddress));
+
     if (static_cast<size_t>(ret) != stream.tell())
-        CRL_EXCEPTION("error sending data to sensor, %d/%d bytes written: %s", 
+        CRL_EXCEPTION("error sending data to sensor, %d/%d bytes written: %s",
                       ret, stream.tell(), strerror(errno));
 }
 
@@ -400,7 +405,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     return api_mask;
 };
 
-uint32_t impl::hardwareApiToWire(uint32_t a) 
+uint32_t impl::hardwareApiToWire(uint32_t a)
 {
     switch(a) {
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
@@ -415,7 +420,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
         return a; // pass through
     }
 }
-uint32_t impl::hardwareWireToApi(uint32_t w) 
+uint32_t impl::hardwareWireToApi(uint32_t w)
 {
     switch(w) {
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL:    return system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL;
@@ -430,7 +435,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
         return w; // pass through
     }
 }
-uint32_t impl::imagerApiToWire(uint32_t a) 
+uint32_t impl::imagerApiToWire(uint32_t a)
 {
     switch(a) {
     case system::DeviceInfo::IMAGER_TYPE_CMV2000_GREY:  return wire::SysDeviceInfo::IMAGER_TYPE_CMV2000_GREY;
@@ -443,7 +448,7 @@ uint32_t impl::imagerApiToWire(uint32_t a)
         return a; // pass through
     }
 }
-uint32_t impl::imagerWireToApi(uint32_t w) 
+uint32_t impl::imagerWireToApi(uint32_t w)
 {
     switch(w) {
     case wire::SysDeviceInfo::IMAGER_TYPE_CMV2000_GREY:  return system::DeviceInfo::IMAGER_TYPE_CMV2000_GREY;
@@ -469,7 +474,7 @@ void impl::applySensorTimeOffset(const double& offset)
         m_timeOffsetInit = true;
         return;
     }
-    
+
     const double samples = static_cast<double>(TIME_SYNC_OFFSET_DECAY);
 
     m_timeOffset = utility::decayedAverage(m_timeOffset, samples, offset);
@@ -559,7 +564,7 @@ void *impl::statusThread(void *userDataP)
 
                 selfP->m_statusResponseMessage = msg;
             }
-        
+
         } catch (const std::exception& e) {
 
             CRL_DEBUG("exception: %s\n", e.what());
@@ -601,7 +606,7 @@ void Channel::Destroy(Channel *instanceP)
             delete static_cast<details::impl*>(instanceP);
 
     } catch (const std::exception& e) {
-        
+
         CRL_DEBUG("exception: %s\n", e.what());
     }
 }

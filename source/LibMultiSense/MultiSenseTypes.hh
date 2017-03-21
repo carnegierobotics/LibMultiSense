@@ -135,9 +135,7 @@ static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
- * stream destination (UDP port), currently supported only by CRL's
- * Monocular IP Camera.  This functionality is not supported by any of
- * CRL's stereo sensor products.
+ * stream destination (UDP port).
  */
 class MULTISENSE_API DirectedStream {
 public:

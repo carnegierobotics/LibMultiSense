@@ -226,12 +226,19 @@ int main(int    argc,
             goto clean_out;
         }
 
+        #ifdef __APPLE__
+        if (setsockopt(sockfd,SOL_SOCKET,IP_RECVIF,iface.c_str(),iface.size()+1)==-1) {
+            perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
+            goto clean_out;
+        }
+        #else
         // bind to a specific interface so broadcast packet goes to the right place
         // note: on most systems, this will require elevated privileges
         if (setsockopt(sockfd,SOL_SOCKET,SO_BINDTODEVICE,iface.c_str(),iface.size()+1)==-1) {
             perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
             goto clean_out;
         }
+        #endif
 #endif
     }
 

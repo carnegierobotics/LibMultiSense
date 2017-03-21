@@ -391,11 +391,6 @@ public:
     /**
      * Start a directed stream used to stream data to multiple 3rd parties.
      *
-     * NOTE: Directed streams are currently only supported by CRL's
-     *       Monocular IP Camera.  MultiSense S* hardware variations
-     *       are not supported (the following functions will return
-     *       the 'Status_Unknown' error code.)
-     *
      * Secondary stream control.  In addition to the primary stream control
      * above, a set of streams may be directed to a 3rd party (or multiple
      * 3rd parties), where a 3rd party is uniquely defined as an IP address /
@@ -419,11 +414,6 @@ public:
 
     /**
      * Start several directed streams used to stream data to multiple 3rd parties.
-     *
-     * NOTE: Directed streams are currently only supported by CRL's
-     *       Monocular IP Camera.  MultiSense S* hardware variations
-     *       are not supported (the following functions will return
-     *       the 'Status_Unknown' error code.)
      *
      * Secondary stream control.  In addition to the primary stream control
      * above, a set of streams may be directed to a 3rd party (or multiple
@@ -449,11 +439,6 @@ public:
     /**
      * Stop a specific directed stream.
      *
-     * NOTE: Directed streams are currently only supported by CRL's
-     *       Monocular IP Camera.  MultiSense S* hardware variations
-     *       are not supported (the following functions will return
-     *       the 'Status_Unknown' error code.)
-     *
      * @param stream A DirectedStream to stop
      *
      * @return A crl::multisense::Status indicating if the DirectedStream was
@@ -464,11 +449,6 @@ public:
 
     /**
      * Get the current list of active streams.
-     *
-     * NOTE: Directed streams are currently only supported by CRL's
-     *       Monocular IP Camera.  MultiSense S* hardware variations
-     *       are not supported (the following functions will return
-     *       the 'Status_Unknown' error code.)
      *
      * @param streams A vector of DirectedStreams which is populated by
      * getDirectedStreams()
@@ -481,11 +461,6 @@ public:
 
     /**
      * Query the number of simultaneous parties which can be supported.
-     *
-     * NOTE: Directed streams are currently only supported by CRL's
-     *       Monocular IP Camera.  MultiSense S* hardware variations
-     *       are not supported (the following functions will return
-     *       the 'Status_Unknown' error code.)
      *
      * If the number of maximum directed streams has
      * already been achieved, startDirectedStream() will return an error code.

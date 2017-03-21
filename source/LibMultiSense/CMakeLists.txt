@@ -58,6 +58,8 @@ set_target_properties(MultiSense PROPERTIES VERSION "3.8")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     target_link_libraries(MultiSense ws2_32)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(MultiSense pthread)
 else()
     target_link_libraries(MultiSense pthread rt)
 endif()

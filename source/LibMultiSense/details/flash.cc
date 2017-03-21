@@ -133,7 +133,7 @@ void impl::programOrVerifyFlashRegion(std::ifstream& file,
     switch(operation) {
     case wire::SysFlashOp::OP_PROGRAM: opNameP = "programming"; break;
     case wire::SysFlashOp::OP_VERIFY:  opNameP = "verifying";   break;
-    default: 
+    default:
         CRL_EXCEPTION("unknown operation type: %d", operation);
     }
 
@@ -153,9 +153,10 @@ void impl::programOrVerifyFlashRegion(std::ifstream& file,
         Status status = waitData(op, rsp, 0.5, 4);
         if (Status_Ok != status)
             CRL_EXCEPTION("SysFlashOp (%s) failed: %d", opNameP, status);
-        else if (wire::SysFlashResponse::STATUS_SUCCESS != rsp.status)
-            CRL_EXCEPTION("%s failed @ %d/%d bytes", opNameP,
-                          file.tellg(), fileLength);
+        else if (wire::SysFlashResponse::STATUS_SUCCESS != rsp.status) {
+            unsigned int fileSize = (unsigned int)file.tellg();
+            CRL_EXCEPTION("%s failed @ %d/%d bytes", opNameP, fileSize, fileLength);
+        }
 
         //
         // Print out progress
@@ -186,11 +187,11 @@ Status impl::doFlashOp(const std::string& filename,
                        uint32_t           region)
 {
     try {
-        std::ifstream file(filename.c_str(), 
+        std::ifstream file(filename.c_str(),
                            std::ios::in | std::ios::binary);
 
-        if (!file.good()) 
-            CRL_EXCEPTION("unable to open file: \"%s\"", 
+        if (!file.good())
+            CRL_EXCEPTION("unable to open file: \"%s\"",
                           filename.c_str());
 
         if (wire::SysFlashOp::OP_PROGRAM == operation)
@@ -204,6 +205,6 @@ Status impl::doFlashOp(const std::string& filename,
     }
 
     return Status_Ok;
-}    
+}
 
 }}}; // namespaces
