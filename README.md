@@ -33,6 +33,9 @@ family of sensors from Carnegie Robotics. For more information on the
 various MultiSense products please visit
 http://carnegierobotics.com/products/
 
+LibMultiSense was previously hosted as a Mercurial repository on Bitbucket
+with the following URL: https://bitbucket.org/crl/libmultisense
+
 ### Installation
 
 #### Linux
@@ -41,13 +44,13 @@ LibMultiSense uses CMake for its build system.
 
 To build the standalone LibMultiSense library and demonstration applications.
 
-    > hg clone http://bitbucket.org/crl/LibMultiSense
+    > git clone git@github.com:carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > mkdir build
     > cd build && cmake ..
     > make
 
-Integrating LibMultiSense into an existing CMake project is easy. Simply 
+Integrating LibMultiSense into an existing CMake project is easy. Simply
 clone the LibMultiSense repository into the existing project's source tree.
  In the main CMakeLists.txt file of the project, add the following lines:
 
@@ -63,8 +66,7 @@ to build the LibMultiSense DLL.
 Download and install CMake on Windows (http://www.cmake.org/download/), making
 sure CMake is included included in the system PATH.
 
-Clone LibMultiSense to the Windows machine using a Windows Mercurial client.
-TortiseHg works well for this application http://tortoisehg.bitbucket.org/
+Clone LibMultiSense to the Windows machine using a Windows Git client.
 
 Open a command prompt and execute the following commands:
 
@@ -98,9 +100,8 @@ Usage examples are included in the Doxygen documentation.
 
 ###Support
 
-Please direct all issues, questions, and feature requests to
-support@carnegierobotics.com
+To report an issue with this library or request a new feature,
+please use the [GitHub issues system](https://github.com/carnegierobotics/LibMultiSense/issues)
 
-
-
-
+For product support, please see the [support section of our website](https://carnegierobotics.com/support)
+Individual support requests can be created in our [support portal](https://support.carnegierobotics.com/hc/en-us)
