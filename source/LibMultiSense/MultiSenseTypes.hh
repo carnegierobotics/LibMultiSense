@@ -1459,6 +1459,8 @@ public:
 
 } // namespace lidar
 
+
+
 namespace lighting {
 
 
@@ -2005,6 +2007,9 @@ public:
 };
 
 } // namespace imu
+
+
+
 
 namespace system {
 
