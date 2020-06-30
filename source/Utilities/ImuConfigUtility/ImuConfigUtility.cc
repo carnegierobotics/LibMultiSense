@@ -69,7 +69,7 @@ std::vector<imu::Config> sensor_configs;
 uint32_t                 sensor_samplesPerMessage    = 0;
 uint32_t                 sensor_maxSamplesPerMessage = 0;
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
 	std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
 	std::cerr << "Where <options> are:" << std::endl;
@@ -93,7 +93,7 @@ bool imuInfoByName(const std::string& name, imu::Info& info)
 {
     std::vector<imu::Info>::const_iterator it = sensor_infos.begin();
 
-    for(; it != sensor_infos.end(); ++it) 
+    for(; it != sensor_infos.end(); ++it)
         if (name == (*it).name) {
             info = (*it);
             return true;
@@ -102,9 +102,9 @@ bool imuInfoByName(const std::string& name, imu::Info& info)
     return false;
 }
 
-}; // anonymous
+} // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string              currentAddress         = "10.66.171.21";
@@ -223,9 +223,9 @@ int main(int    argc,
         std::cout << "\nCurrent IMU configuration:\n";
 		std::cout << "\t-s " << sensor_samplesPerMessage << " ";
         for(uint32_t i=0; i<sensor_configs.size(); i++) {
-            
+
             const imu::Config& c = sensor_configs[i];
-            
+
 			std::cout << "-c \"" << c.name << " " << (c.enabled ? "true" : "false") << " " <<
 				c.rateTableIndex << " " << c.rangeTableIndex << "\" ";
         }
@@ -249,7 +249,7 @@ int main(int    argc,
         // Validate each command line config option against IMU information from the head
 
         for(uint32_t i=0; i<cli_configs.size(); i++) {
-        
+
             char nameP[32]    = {0};
             char enabledP[32] = {0};
             int  rate         = -1;
@@ -321,7 +321,7 @@ int main(int    argc,
     }
 
 clean_out:
-        
+
     Channel::Destroy(channelP);
     return 0;
 }

@@ -89,7 +89,7 @@ void usage(const char *programNameP)
     exit(-1);
 }
 
-}; // anonymous
+} // anonymous
 
 using namespace crl::multisense;
 

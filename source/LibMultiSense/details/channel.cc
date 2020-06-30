@@ -379,7 +379,7 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
 
     return wire_mask;
-};
+}
 
 DataSource impl::sourceWireToApi(wire::SourceType mask)
 {
@@ -403,7 +403,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
 
     return api_mask;
-};
+}
 
 uint32_t impl::hardwareApiToWire(uint32_t a)
 {
@@ -571,7 +571,7 @@ void *impl::statusThread(void *userDataP)
 
         } catch (...) {
 
-            CRL_DEBUG("unknown exception\n");
+            CRL_DEBUG_RAW("unknown exception\n");
         }
 
         //
@@ -583,7 +583,7 @@ void *impl::statusThread(void *userDataP)
     return NULL;
 }
 
-}; // namespace details
+} // namespace details
 
 Channel* Channel::Create(const std::string& address)
 {
@@ -626,5 +626,5 @@ const char *Channel::statusString(Status status)
     return "Unknown Error";
 }
 
-}; // namespace multisense
-}; // namespace crl
+} // namespace multisense
+} // namespace crl

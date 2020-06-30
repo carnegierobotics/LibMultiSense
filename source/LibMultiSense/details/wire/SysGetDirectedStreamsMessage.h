@@ -62,11 +62,13 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) message;
+        (void) version;
         //
         // Nothing. Query only. Use a SysDirectedStreamsMessage for response
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

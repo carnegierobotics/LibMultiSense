@@ -80,11 +80,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & modifyMask;
         message & controlMask;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

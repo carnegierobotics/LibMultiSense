@@ -87,7 +87,7 @@ void impl::eraseFlashRegion(uint32_t region)
 
         status = waitData(wire::SysFlashOp(), response);
         if (Status_Ok != status)
-            CRL_EXCEPTION("failed to request flash erase status");
+            CRL_EXCEPTION_RAW("failed to request flash erase status");
 
         //
         // IDLE means the flash has been erased
@@ -207,4 +207,4 @@ Status impl::doFlashOp(const std::string& filename,
     return Status_Ok;
 }
 
-}}}; // namespaces
+}}} // namespaces

@@ -62,6 +62,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & type;
         message & timeNanoSeconds;
         message & x;
@@ -94,6 +95,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & sequence;
         message & samples;
     }
@@ -101,6 +103,6 @@ public:
 
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

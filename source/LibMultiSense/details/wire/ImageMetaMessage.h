@@ -70,7 +70,7 @@ public:
     uint32_t           timeMicroSeconds;
     int32_t            angle; // microradians
 
-    ImageMetaHeader() 
+    ImageMetaHeader()
         :
 #ifdef SENSORPOD_FIRMWARE
         id(ID),
@@ -81,7 +81,7 @@ public:
         gain(0.0),
         exposureTime(0),
         timeSeconds(0),
-        timeMicroSeconds(0),    
+        timeMicroSeconds(0),
         angle(0) {};
 };
 
@@ -97,7 +97,7 @@ public:
 
     ImageMeta(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     ImageMeta() {};
-  
+
     //
     // Serialization routine
 
@@ -105,6 +105,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & frameId;
         message & framesPerSecond;
         message & gain;
@@ -112,7 +113,7 @@ public:
         message & timeSeconds;
         message & timeMicroSeconds;
         message & angle;
-        
+
         if (typeid(Archive) == typeid(utility::BufferStreamWriter))
             message.write(histogramP, HISTOGRAM_LENGTH);
         else
@@ -122,6 +123,6 @@ public:
 
 #endif // !SENSORPOD_FIRMWARE
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

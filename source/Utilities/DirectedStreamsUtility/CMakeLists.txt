@@ -13,3 +13,9 @@ add_executable(DirectedStreamsUtility DirectedStreamsUtility.cc)
 #
 
 target_link_libraries (DirectedStreamsUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS DirectedStreamsUtility RUNTIME DESTINATION "bin")

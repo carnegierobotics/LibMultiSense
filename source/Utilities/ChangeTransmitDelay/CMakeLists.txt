@@ -13,3 +13,9 @@ add_executable(ChangeTransmitDelay ChangeTransmitDelay.cc)
 #
 
 target_link_libraries (ChangeTransmitDelay ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS ChangeTransmitDelay RUNTIME DESTINATION "bin")

@@ -50,7 +50,7 @@ namespace wire {
 class SysFlashResponse {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_FLASH_RESPONSE;
-    static CRL_CONSTEXPR VersionType VERSION = 1; 
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Parameters representing the desired flash operation
@@ -80,6 +80,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & status;
         message & erase_progress;
 
@@ -95,6 +96,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

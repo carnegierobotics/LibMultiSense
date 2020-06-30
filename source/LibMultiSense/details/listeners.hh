@@ -58,7 +58,7 @@ extern CRL_THREAD_LOCAL utility::BufferStream *dispatchBufferReferenceTP;
 template<class THeader, class TCallback>
 class Listener {
 public:
-    
+
     Listener(TCallback   c,
              DataSource s,
              void      *d,
@@ -69,7 +69,7 @@ public:
           m_running(false),
           m_queue(m),
           m_dispatchThreadP(NULL) {
-        
+
         m_running         = true;
         m_dispatchThreadP = new utility::Thread(dispatchThread, this);
     };
@@ -173,9 +173,9 @@ private:
 #else
     static void *dispatchThread(void *argumentP) {
 #endif
-        
+
         Listener<THeader,TCallback> *selfP = reinterpret_cast< Listener<THeader,TCallback> * >(argumentP);
-    
+
         while(selfP->m_running) {
             try {
                 Dispatch d;
@@ -186,7 +186,7 @@ private:
                 CRL_DEBUG("exception invoking image callback: %s\n",
                           e.what());
             } catch ( ... ) {
-                CRL_DEBUG("unknown exception invoking image callback\n");
+                CRL_DEBUG_RAW("unknown exception invoking image callback\n");
             }
         };
 
@@ -202,7 +202,7 @@ private:
 
     //
     // Dispatch mechanism
-    
+
     volatile bool                m_running;
     utility::WaitQueue<Dispatch> m_queue;
     utility::Thread             *m_dispatchThreadP;
@@ -213,9 +213,9 @@ typedef Listener<lidar::Header, lidar::Callback> LidarListener;
 typedef Listener<pps::Header,   pps::Callback>   PpsListener;
 typedef Listener<imu::Header,   imu::Callback>   ImuListener;
 
-}; // namespace details
-}; // namespace multisense
-}; // namespace crl
+} // namespace details
+} // namespace multisense
+} // namespace crl
 
 
 #endif //  LibMultiSense_impl_listeners

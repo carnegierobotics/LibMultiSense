@@ -54,7 +54,7 @@ public:
     DeviceMode(uint32_t w=0,
                uint32_t h=0,
                uint32_t s=0,
-               uint32_t d=0) : 
+               uint32_t d=0) :
         width(w),
         height(h),
         supportedDataSources(s),
@@ -74,10 +74,10 @@ public:
     //
     // Constructors
 
-    SysDeviceModes(utility::BufferStreamReader& r, 
+    SysDeviceModes(utility::BufferStreamReader& r,
                    VersionType                  v) {serialize(r,v);};
     SysDeviceModes() {};
-        
+
     //
     // Serialization routine
 
@@ -85,6 +85,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         uint32_t length = modes.size();
         message & length;
         modes.resize(length);
@@ -105,6 +106,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

@@ -13,3 +13,9 @@ add_executable(ChangeResolution ChangeResolution.cc)
 #
 
 target_link_libraries (ChangeResolution ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS ChangeResolution RUNTIME DESTINATION "bin")

@@ -146,6 +146,8 @@ public:
     virtual Status getMtu                (int32_t& mtu);
     virtual Status setMtu                (int32_t mtu);
 
+    virtual Status getMotorPos           (int32_t& mtu);
+
     virtual Status getNetworkConfig      (system::NetworkConfig& c);
     virtual Status setNetworkConfig      (const system::NetworkConfig& c);
 
@@ -255,7 +257,7 @@ private:
                       const uint8_t *dataP) {
 
             if (offset <= m_lastByteOffset)
-                CRL_EXCEPTION("out-of-order or duplicate packet");
+                CRL_EXCEPTION("out-of-order or duplicate packet", "");
 
             m_assembler(m_stream, dataP, offset, bytes);
 
@@ -473,6 +475,6 @@ private:
 };
 
 
-}}}; // namespaces
+}}} // namespaces
 
 #endif // LibMultiSense_details_channel_hh

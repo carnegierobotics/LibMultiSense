@@ -63,11 +63,19 @@ public:
     // Constructors
 
     SysSensorCalibration(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SysSensorCalibration() {};
+    SysSensorCalibration()
+    {
+        adc_gain[0] = 0;
+        adc_gain[1] = 0;
+        bl_offset[0] = 0;
+        bl_offset[1] = 0;
+        vramp[0] = 0;
+        vramp[1] = 0;
+    };
 
     //
     // Serialization routine
-    
+
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
@@ -84,6 +92,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

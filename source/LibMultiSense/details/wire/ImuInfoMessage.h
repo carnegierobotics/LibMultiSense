@@ -58,6 +58,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & sampleRate;
         message & bandwidthCutoff;
     }
@@ -74,6 +75,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & range;
         message & resolution;
     }
@@ -93,6 +95,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & name;
         message & device;
         message & units;
@@ -119,7 +122,7 @@ public:
 
     ImuInfo(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     ImuInfo() {};
-        
+
     //
     // Serialization routine
 
@@ -127,11 +130,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & maxSamplesPerMessage;
         message & details;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

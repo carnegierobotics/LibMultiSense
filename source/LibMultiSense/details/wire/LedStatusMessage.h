@@ -75,11 +75,12 @@ public:
 
     //
     // Serialization routine
-    
+
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & available;
         for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++)
             message & intensity[i];
@@ -87,6 +88,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

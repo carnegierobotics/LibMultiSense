@@ -45,7 +45,7 @@ namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
-    
+
 class SysLidarCalibration {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_LIDAR_CAL;
@@ -62,16 +62,17 @@ public:
 
     //
     // Serialization routine
-    
+
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         SER_ARRAY_2(laserToSpindle, 4, 4);
         SER_ARRAY_2(cameraToSpindleFixed, 4, 4);
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

@@ -60,9 +60,10 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & name;
         message & revision;
-    };
+    }
 };
 
 class SysDeviceInfo {
@@ -188,6 +189,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

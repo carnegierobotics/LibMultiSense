@@ -62,6 +62,8 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
+
         message & name;
         message & flags;
         message & rateTableIndex;
@@ -93,12 +95,13 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & storeSettingsInFlash;
         message & samplesPerMessage;
         message & configs;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

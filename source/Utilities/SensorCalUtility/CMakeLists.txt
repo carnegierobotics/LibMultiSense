@@ -13,3 +13,9 @@ add_executable(SensorCalUtility SensorCalUtility.cc)
 #
 
 target_link_libraries (SensorCalUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS SensorCalUtility RUNTIME DESTINATION "bin")
