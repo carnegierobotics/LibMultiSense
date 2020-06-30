@@ -49,11 +49,15 @@ namespace wire {
 class SysSensorCalibration {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_SENSOR_CAL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
 
     uint8_t adc_gain[2];
     int16_t bl_offset[2];
+
+    //version 2
+
+    uint8_t vramp[2];
 
     //
     // Constructors
@@ -70,6 +74,13 @@ public:
     {
         SER_ARRAY_1(adc_gain,2);
         SER_ARRAY_1(bl_offset,2);
+
+        if(version >=2) {
+        	SER_ARRAY_1(vramp,2);
+        } else {
+            vramp[0] = 109;
+            vramp[1] = 109;
+        }
     }
 };
 

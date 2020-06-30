@@ -220,9 +220,10 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        fprintf(stdout,"left sensor gain: %hu\nright sensor gain %hu\nleft sensor black level: %d\nright sensor black level %d\n", 
+        fprintf(stdout,"left sensor gain: %hu\nright sensor gain %hu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n", 
                     sensorCalibration.adc_gain[0], sensorCalibration.adc_gain[1],
-                    sensorCalibration.bl_offset[0], sensorCalibration.bl_offset[1]);
+                    sensorCalibration.bl_offset[0], sensorCalibration.bl_offset[1],
+                    sensorCalibration.vramp[0], sensorCalibration.vramp[1]);
 
     } else {
 

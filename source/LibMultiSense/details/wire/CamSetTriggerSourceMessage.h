@@ -53,6 +53,7 @@ public:
 
     static CRL_CONSTEXPR uint32_t    SOURCE_INTERNAL = 0;
     static CRL_CONSTEXPR uint32_t    SOURCE_EXTERNAL = 1; // OPTO_RX
+    static CRL_CONSTEXPR uint32_t    SOURCE_EXTERNAL_INVERTED = 2; // OPTO_RX
 
     //
     // Parameters

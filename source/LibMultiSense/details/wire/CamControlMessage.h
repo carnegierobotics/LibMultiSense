@@ -50,14 +50,14 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 3;
+    static CRL_CONSTEXPR VersionType VERSION = 4;
 
     //
     // Parameters representing the current camera configuration
 
     float    framesPerSecond;
     float    gain;
-    
+
     uint32_t exposure;
     uint8_t  autoExposure;
     uint32_t autoExposureMax;
@@ -79,6 +79,11 @@ public:
     // Additions in version 3
 
     bool     hdrEnabled;
+
+    //
+    // Additions in version 4
+
+    bool  storeSettingsInFlash;  // boolean
 
     //
     // Constructors
@@ -117,6 +122,11 @@ public:
             message & hdrEnabled;
         else
             hdrEnabled = false;
+
+        if (version >= 4)
+            message & storeSettingsInFlash;
+        else
+            storeSettingsInFlash = false;
     }
 };
 

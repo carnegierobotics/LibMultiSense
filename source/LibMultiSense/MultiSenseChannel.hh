@@ -1043,7 +1043,7 @@ public:
 };
 
 
-}; // namespace multisense
-}; // namespace crl
+} // namespace multisense
+} // namespace crl
 
 #endif // LibMultiSense_MultiSenseChannel_hh
