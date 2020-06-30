@@ -50,7 +50,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 4;
+    static CRL_CONSTEXPR VersionType VERSION = 5;
 
     //
     // Parameters representing the current camera configuration
@@ -93,6 +93,13 @@ public:
     bool hdrEnabled;
 
     //
+    // Version 5 additions
+    uint16_t autoExposureRoiX;
+    uint16_t autoExposureRoiY;
+    uint16_t autoExposureRoiWidth;
+    uint16_t autoExposureRoiHeight;
+
+    //
     // Constructors
 
     CamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
@@ -123,7 +130,11 @@ public:
         yaw(0.0),
         disparities(0),
         stereoPostFilterStrength(0.0),
-        hdrEnabled(false)
+        hdrEnabled(false),
+        autoExposureRoiX(0),
+        autoExposureRoiY(0),
+        autoExposureRoiWidth(0),
+        autoExposureRoiHeight(0)
         {};
 
     //
@@ -178,6 +189,21 @@ public:
             message & hdrEnabled;
         else
             hdrEnabled = false;
+
+        if (version >= 5)
+        {
+            message & autoExposureRoiX;
+            message & autoExposureRoiY;
+            message & autoExposureRoiWidth;
+            message & autoExposureRoiHeight;
+        }
+        else
+        {
+            autoExposureRoiX = 0;
+            autoExposureRoiY = 0;
+            autoExposureRoiWidth = 0;
+            autoExposureRoiHeight = 0;
+        }
     }
 };
 

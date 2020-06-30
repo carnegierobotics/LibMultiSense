@@ -690,6 +690,9 @@ Status impl::getImageConfig(image::Config& config)
     a.setStereoPostFilterStrength(d.stereoPostFilterStrength);
     a.setHdr(d.hdrEnabled);
 
+    a.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
+                         d.autoExposureRoiWidth, d.autoExposureRoiHeight);
+
     a.setCal(d.fx, d.fy, d.cx, d.cy,
              d.tx, d.ty, d.tz,
              d.roll, d.pitch, d.yaw);
@@ -734,6 +737,11 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.stereoPostFilterStrength = c.stereoPostFilterStrength();
     cmd.hdrEnabled               = c.hdrEnabled();
     cmd.storeSettingsInFlash     = c.storeSettingsInFlash();
+
+    cmd.autoExposureRoiX         = c.autoExposureRoiX();
+    cmd.autoExposureRoiY         = c.autoExposureRoiY();
+    cmd.autoExposureRoiWidth     = c.autoExposureRoiWidth();
+    cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
 
     return waitAck(cmd);
 }
