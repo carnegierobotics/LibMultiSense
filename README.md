@@ -1,9 +1,3 @@
-LibMultiSense
-Copyright 2014
-Carnegie Robotics, LLC
-4501 Hatfield Street, Pittsburgh, PA 15201
-http://www.carnegierobotics.com
-
 # LibMultiSense
 
 LibMultiSense is a C++ library used to interface with the MultiSense S
