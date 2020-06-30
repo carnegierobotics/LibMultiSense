@@ -5,6 +5,10 @@
 *.orig
 
 # Common output directories
+build/
+bin/
+lib/
+share/
 install/
 docs/html/
 docs/latex/
