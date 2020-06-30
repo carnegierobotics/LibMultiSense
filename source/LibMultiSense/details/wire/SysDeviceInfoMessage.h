@@ -99,6 +99,7 @@ public:
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_SL_INTERNAL = 1;
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_EXTERNAL = 2;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_PATTERN_PROJECTOR = 3;
 
     std::string key;
     std::string name;

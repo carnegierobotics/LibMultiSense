@@ -135,7 +135,9 @@ static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
- * stream destination (UDP port).
+ * stream destination (UDP port), currently supported only by CRL's
+ * Monocular IP Camera.  This functionality is not supported by any of
+ * CRL's stereo sensor products.
  */
 class MULTISENSE_API DirectedStream {
 public:
@@ -697,6 +699,16 @@ public:
 
     void setHdr                     (bool  e)    { m_hdrEnabled  = e;    };
 
+    /**
+     * Set the flag to write the image configuration to flash. This will
+     * result in the camera defaulting to these settings on boot.
+     * NOTE: This should be enabled sparingly. The MultiSense flash has a
+     * limited number of writes
+     *
+     * @param e A boolean used to enable or disable writing the camera
+     *          configuration to flash
+     */
+    void setStoreSettingsInFlash    (bool e)     {m_storeSettingsInFlash = e;    };
 
     //
     // Query
@@ -853,7 +865,12 @@ public:
      */
     bool     hdrEnabled              () const { return m_hdrEnabled;  };
 
-
+    /**
+     * Query the current image configuration's flag to write parameters to flash
+     *
+     * @return The current image configuration's write to flash flag
+     */
+    bool     storeSettingsInFlash    () const { return m_storeSettingsInFlash; };
 
     //
     // Query camera calibration (read-only)
@@ -975,7 +992,8 @@ public:
     Config() : m_fps(5.0f), m_gain(1.0f),
                m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeDecay(7), m_aeThresh(0.75f),
                m_wbBlue(1.0f), m_wbRed(1.0f), m_wbEnabled(true), m_wbDecay(3), m_wbThresh(0.5f),
-               m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f), m_hdrEnabled(false),
+               m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f),
+               m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -997,6 +1015,7 @@ private:
     int      m_offset;
     float    m_spfStrength;
     bool     m_hdrEnabled;
+    bool     m_storeSettingsInFlash;
 
 protected:
 
@@ -1205,6 +1224,10 @@ public:
      * to the left imager, index 1 corresponds to the right imager */
     int16_t bl_offset[2];
 
+    /** The imager vramp pair for each imager. Index 0 corresponds
+    * to the left imager, index 1 corresponds to the right imager */
+    uint8_t vramp[2];
+
 };
 
 class MULTISENSE_API TransmitDelay {
@@ -1272,7 +1295,7 @@ public:
     std::vector<uint32_t> data;
 };
 
-}; // namespace image
+} // namespace image
 
 
 
@@ -1431,7 +1454,7 @@ public:
     float cameraToSpindleFixed[4][4];
 };
 
-}; // namespace lidar
+} // namespace lidar
 
 
 
@@ -1442,8 +1465,6 @@ namespace lighting {
 static CRL_CONSTEXPR uint32_t MAX_LIGHTS     = 8;
 /** The maximum duty cycle for adjusting light intensity */
 static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
-/** The maxmimum value of the ambient light sensor */
-static CRL_CONSTEXPR float    MAX_AMBIENT_LIGHTING = 100.0;
 
 /**
  * Class used to store a specific lighting configuration. Member of this class
@@ -1666,7 +1687,7 @@ public:
     SensorStatus() : ambientLightPercentage(100.0f) {};
 };
 
-}; // namespace lighting
+} // namespace lighting
 
 
 
@@ -1982,7 +2003,7 @@ public:
     uint32_t    rangeTableIndex;
 };
 
-}; // namespace imu
+} // namespace imu
 
 
 
@@ -2593,9 +2614,9 @@ class MULTISENSE_API ExternalCalibration {
             yaw(0.) {};
 };
 
-}; // namespace system
-}; // namespace multisense
-}; // namespace crl
+} // namespace system
+} // namespace multisense
+} // namespace crl
 
 #if defined (_MSC_VER)
 #pragma warning (pop)

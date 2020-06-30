@@ -113,15 +113,15 @@ CRL_THREAD_LOCAL utility::BufferStream *dispatchBufferReferenceTP = NULL;
 //
 // Adds a new image listener
 
-Status impl::addIsolatedCallback(image::Callback callback, 
+Status impl::addIsolatedCallback(image::Callback callback,
                                  DataSource     imageSourceMask,
                                  void           *userDataP)
 {
     try {
 
         utility::ScopedLock lock(m_dispatchLock);
-        m_imageListeners.push_back(new ImageListener(callback, 
-                                                     imageSourceMask, 
+        m_imageListeners.push_back(new ImageListener(callback,
+                                                     imageSourceMask,
                                                      userDataP,
                                                      MAX_USER_IMAGE_QUEUE_SIZE));
 
@@ -135,13 +135,13 @@ Status impl::addIsolatedCallback(image::Callback callback,
 //
 // Adds a new laser listener
 
-Status impl::addIsolatedCallback(lidar::Callback callback, 
+Status impl::addIsolatedCallback(lidar::Callback callback,
                                  void           *userDataP)
 {
     try {
 
         utility::ScopedLock lock(m_dispatchLock);
-        m_lidarListeners.push_back(new LidarListener(callback, 
+        m_lidarListeners.push_back(new LidarListener(callback,
                                                      0,
                                                      userDataP,
                                                      MAX_USER_LASER_QUEUE_SIZE));
@@ -156,13 +156,13 @@ Status impl::addIsolatedCallback(lidar::Callback callback,
 //
 // Adds a new PPS listener
 
-Status impl::addIsolatedCallback(pps::Callback callback, 
+Status impl::addIsolatedCallback(pps::Callback callback,
                                  void         *userDataP)
 {
     try {
 
         utility::ScopedLock lock(m_dispatchLock);
-        m_ppsListeners.push_back(new PpsListener(callback, 
+        m_ppsListeners.push_back(new PpsListener(callback,
                                                  0,
                                                  userDataP,
                                                  MAX_USER_PPS_QUEUE_SIZE));
@@ -177,13 +177,13 @@ Status impl::addIsolatedCallback(pps::Callback callback,
 //
 // Adds a new IMU listener
 
-Status impl::addIsolatedCallback(imu::Callback callback, 
+Status impl::addIsolatedCallback(imu::Callback callback,
                                  void         *userDataP)
 {
     try {
 
         utility::ScopedLock lock(m_dispatchLock);
-        m_imuListeners.push_back(new ImuListener(callback, 
+        m_imuListeners.push_back(new ImuListener(callback,
                                                  0,
                                                  userDataP,
                                                  MAX_USER_IMU_QUEUE_SIZE));
@@ -207,7 +207,7 @@ Status impl::removeIsolatedCallback(image::Callback callback)
         for(it  = m_imageListeners.begin();
             it != m_imageListeners.end();
             it ++) {
-        
+
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_imageListeners.erase(it);
@@ -235,7 +235,7 @@ Status impl::removeIsolatedCallback(lidar::Callback callback)
         for(it  = m_lidarListeners.begin();
             it != m_lidarListeners.end();
             it ++) {
-        
+
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_lidarListeners.erase(it);
@@ -263,7 +263,7 @@ Status impl::removeIsolatedCallback(pps::Callback callback)
         for(it  = m_ppsListeners.begin();
             it != m_ppsListeners.end();
             it ++) {
-        
+
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_ppsListeners.erase(it);
@@ -291,7 +291,7 @@ Status impl::removeIsolatedCallback(imu::Callback callback)
         for(it  = m_imuListeners.begin();
             it != m_imuListeners.end();
             it ++) {
-        
+
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_imuListeners.erase(it);
@@ -317,13 +317,13 @@ void *impl::reserveCallbackBuffer()
         try {
 
             return reinterpret_cast<void*>(new utility::BufferStream(*dispatchBufferReferenceTP));
-            
+
         } catch (const std::exception& e) {
-            
+
             CRL_DEBUG("exception: %s\n", e.what());
-            
+
         } catch (...) {
-            
+
             CRL_DEBUG("unknown exception\n");
         }
     }
@@ -343,12 +343,12 @@ Status impl::releaseCallbackBuffer(void *referenceP)
             return Status_Ok;
 
         } catch (const std::exception& e) {
-            
+
             CRL_DEBUG("exception: %s\n", e.what());
             return Status_Exception;
-            
+
         } catch (...) {
-            
+
             CRL_DEBUG("unknown exception\n");
             return Status_Exception;
         }
@@ -364,12 +364,12 @@ Status impl::getImageHistogram(int64_t           frameId,
                                image::Histogram& histogram)
 {
     try {
-        
+
         utility::ScopedLock lock(m_imageMetaCache.mutex());
 
         const wire::ImageMeta *metaP = m_imageMetaCache.find_nolock(frameId);
         if (NULL == metaP) {
-            CRL_DEBUG("no meta cached for frameId %ld", 
+            CRL_DEBUG("no meta cached for frameId %ld",
                       static_cast<long int>(frameId));
             return Status_Failed;
         }
@@ -492,7 +492,7 @@ Status impl::getDirectedStreams(std::vector<DirectedStream>& streams)
     status = waitData(wire::SysGetDirectedStreams(), rsp);
     if (Status_Ok != status)
         return status;
-    
+
     std::vector<wire::DirectedStream>::const_iterator it = rsp.streams.begin();
     for(; it != rsp.streams.end(); ++it)
         streams.push_back(DirectedStream((*it).mask,
@@ -516,7 +516,7 @@ Status impl::setTriggerSource(TriggerSource s)
     uint32_t wireSource;
 
     switch(s) {
-    case Trigger_Internal: 
+    case Trigger_Internal:
 
         wireSource = wire::CamSetTriggerSource::SOURCE_INTERNAL;
         break;
@@ -553,7 +553,7 @@ Status impl::getLightingConfig(lighting::Config& c)
     status = waitData(wire::LedGetStatus(), data);
     if (Status_Ok != status)
         return status;
-        
+
     for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++) {
         float duty=0.0f;
         if ((1<<i) & data.available)
@@ -572,7 +572,7 @@ Status impl::setLightingConfig(const lighting::Config& c)
 
     msg.flash = c.getFlash() ? 1 : 0;
     for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++) {
-      
+
         float duty = c.getDutyCycle(i);
         if (duty >= 0.0f) {  // less than zero == not set
             msg.mask |= (1<<i);
@@ -650,14 +650,14 @@ Status impl::getImageConfig(image::Config& config)
                     float tx, float ty, float tz,
                     float r,  float p,  float w) {
             m_fx = fx; m_fy = fy; m_cx = cx; m_cy = cy;
-            m_tx = tx; m_ty = ty; m_tz = tz; 
+            m_tx = tx; m_ty = ty; m_tz = tz;
             m_roll = r; m_pitch = p; m_yaw = w;
         };
     };
-      
+
     // what is the proper c++ cast for this?
     ConfigAccess& a = *((ConfigAccess *) &config);
-    
+
     a.setResolution(d.width, d.height);
     if (-1 == d.disparities) { // pre v2.3 firmware
         if (1024 == d.width)   // TODO: check for monocular
@@ -668,13 +668,13 @@ Status impl::getImageConfig(image::Config& config)
     a.setDisparities(d.disparities);
     a.setFps(d.framesPerSecond);
     a.setGain(d.gain);
-    
+
     a.setExposure(d.exposure);
     a.setAutoExposure(d.autoExposure != 0);
     a.setAutoExposureMax(d.autoExposureMax);
     a.setAutoExposureDecay(d.autoExposureDecay);
     a.setAutoExposureThresh(d.autoExposureThresh);
-    
+
     a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
     a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
     a.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
@@ -682,10 +682,10 @@ Status impl::getImageConfig(image::Config& config)
     a.setStereoPostFilterStrength(d.stereoPostFilterStrength);
     a.setHdr(d.hdrEnabled);
 
-    a.setCal(d.fx, d.fy, d.cx, d.cy, 
+    a.setCal(d.fx, d.fy, d.cx, d.cy,
              d.tx, d.ty, d.tz,
              d.roll, d.pitch, d.yaw);
-    
+
     return Status_Ok;
 }
 
@@ -699,7 +699,7 @@ Status impl::setImageConfig(const image::Config& c)
 {
     Status status;
 
-    status = waitAck(wire::CamSetResolution(c.width(), 
+    status = waitAck(wire::CamSetResolution(c.width(),
                                             c.height(),
                                             c.disparities(),
                                             c.camMode(),
@@ -711,7 +711,7 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.framesPerSecond = c.fps();
     cmd.gain            = c.gain();
-    
+
     cmd.exposure           = c.exposure();
     cmd.autoExposure       = c.autoExposure() ? 1 : 0;
     cmd.autoExposureMax    = c.autoExposureMax();
@@ -725,6 +725,7 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.autoWhiteBalanceThresh   = c.autoWhiteBalanceThresh();
     cmd.stereoPostFilterStrength = c.stereoPostFilterStrength();
     cmd.hdrEnabled               = c.hdrEnabled();
+    cmd.storeSettingsInFlash     = c.storeSettingsInFlash();
 
     return waitAck(cmd);
 }
@@ -785,6 +786,7 @@ Status impl::getSensorCalibration(image::SensorCalibration& c)
         return status;
     CPY_ARRAY_1(c.adc_gain, d.adc_gain, 2);
     CPY_ARRAY_1(c.bl_offset, d.bl_offset, 2);
+    CPY_ARRAY_1(c.vramp, d.vramp, 2);
 
     return Status_Ok;
 }
@@ -798,6 +800,7 @@ Status impl::setSensorCalibration(const image::SensorCalibration& c)
 
     CPY_ARRAY_1(d.adc_gain, c.adc_gain, 2);
     CPY_ARRAY_1(d.bl_offset, c.bl_offset, 2);
+    CPY_ARRAY_1(d.vramp, c.vramp, 2);
 
     return waitAck(d);
 }
@@ -873,7 +876,7 @@ Status impl::getDeviceModes(std::vector<system::DeviceMode>& modes)
     modes.resize(d.modes.size());
     for(uint32_t i=0; i<d.modes.size(); i++) {
 
-        system::DeviceMode&     a = modes[i]; 
+        system::DeviceMode&     a = modes[i];
         const wire::DeviceMode& w = d.modes[i];
 
         a.width                = w.width;
@@ -881,10 +884,10 @@ Status impl::getDeviceModes(std::vector<system::DeviceMode>& modes)
         a.supportedDataSources = sourceWireToApi(w.supportedDataSources);
         if (m_sensorVersion.firmwareVersion >= 0x0203)
             a.disparities = w.disparities;
-        else 
+        else
             a.disparities = (a.width == 1024) ? 128 : 0;
     }
-                        
+
     return Status_Ok;
 }
 
@@ -976,7 +979,7 @@ Status impl::getDeviceInfo(system::DeviceInfo& info)
 
         info.pcbs.push_back(pcb);
     }
-        
+
     info.imagerName              = w.imagerName;
     info.imagerType              = imagerWireToApi(w.imagerType);
     info.imagerWidth             = w.imagerWidth;
@@ -1078,13 +1081,13 @@ Status impl::setDeviceInfo(const std::string& key,
     w.buildDate        = info.buildDate;
     w.serialNumber     = info.serialNumber;
     w.hardwareRevision = hardwareApiToWire(info.hardwareRevision);
-    w.numberOfPcbs     = std::min((uint32_t) info.pcbs.size(), 
+    w.numberOfPcbs     = std::min((uint32_t) info.pcbs.size(),
                                   (uint32_t) wire::SysDeviceInfo::MAX_PCBS);
     for(uint32_t i=0; i<w.numberOfPcbs; i++) {
         w.pcbs[i].name     = info.pcbs[i].name;
         w.pcbs[i].revision = info.pcbs[i].revision;
     }
-        
+
     w.imagerName              = info.imagerName;
     w.imagerType              = imagerApiToWire(info.imagerType);
     w.imagerWidth             = info.imagerWidth;
@@ -1169,7 +1172,7 @@ Status impl::getImuInfo(uint32_t& maxSamplesPerMessage,
         info[i].name   = d.name;
         info[i].device = d.device;
         info[i].units  = d.units;
-        
+
         info[i].rates.resize(d.rates.size());
         for(uint32_t j=0; j<d.rates.size(); j++) {
             info[i].rates[j].sampleRate      = d.rates[j].sampleRate;
@@ -1245,7 +1248,7 @@ Status impl::getLargeBufferDetails(uint32_t& bufferCount,
 {
     bufferCount = RX_POOL_LARGE_BUFFER_COUNT;
     bufferSize  = RX_POOL_LARGE_BUFFER_SIZE;
-    
+
     return Status_Ok;
 }
 
@@ -1257,17 +1260,17 @@ Status impl::setLargeBuffers(const std::vector<uint8_t*>& buffers,
 {
     if (buffers.size() < RX_POOL_LARGE_BUFFER_COUNT)
         CRL_DEBUG("WARNING: supplying less than recommended number of large buffers: %ld/%ld\n",
-                  static_cast<long int>(buffers.size()), 
+                  static_cast<long int>(buffers.size()),
                   static_cast<long int>(RX_POOL_LARGE_BUFFER_COUNT));
     if (bufferSize < RX_POOL_LARGE_BUFFER_SIZE)
         CRL_DEBUG("WARNING: supplying smaller than recommended large buffers: %ld/%ld bytes\n",
-                  static_cast<long int>(bufferSize), 
+                  static_cast<long int>(bufferSize),
                   static_cast<long int>(RX_POOL_LARGE_BUFFER_SIZE));
 
     try {
 
         utility::ScopedLock lock(m_rxLock); // halt potential pool traversal
-        
+
         //
         // Deletion is safe even if the buffer is in use elsewhere
         // (BufferStream is reference counted.)
