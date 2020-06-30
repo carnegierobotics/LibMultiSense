@@ -45,7 +45,7 @@ namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
-    
+
 class CameraCalData {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
@@ -59,11 +59,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         SER_ARRAY_2(M, 3, 3);
         SER_ARRAY_1(D, 8);
         SER_ARRAY_2(R, 3, 3);
         SER_ARRAY_2(P, 3, 4);
-    };
+    }
 };
 
 class SysCameraCalibration {
@@ -72,7 +73,7 @@ public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // 2 MPix 
+    // 2 MPix
 
     CameraCalData left;
     CameraCalData right;
@@ -85,7 +86,7 @@ public:
 
     //
     // Serialization routine
-    
+
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
@@ -94,6 +95,6 @@ public:
         right.serialize(message, version);
     }
 };
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

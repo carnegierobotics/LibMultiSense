@@ -100,6 +100,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

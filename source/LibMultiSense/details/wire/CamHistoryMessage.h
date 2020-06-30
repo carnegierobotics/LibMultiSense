@@ -78,11 +78,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         for(unsigned int i = 0; i < HISTORY_LENGTH; i++)
             message & historyP[i];
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

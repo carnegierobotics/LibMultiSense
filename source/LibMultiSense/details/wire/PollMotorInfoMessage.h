@@ -1,7 +1,9 @@
 /**
- * @file LibMultiSense/SysDirectedStreamsMessage.h
+ * @file LibMultiSense/SysGetDeviceInfoMessage.h
  *
- * Copyright 2014
+ * This message contains a request for the motor encoder position
+ *
+ * Copyright 2018
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,11 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2014-06-10, ekratzer@carnegierobotics.com, IR1069, created file.
+ *   2017-03-19, cniessl@carnegierobotics.com, PR1044, Created File
  **/
 
-#ifndef LibMultiSense_SysDirectedStreamsMessage
-#define LibMultiSense_SysDirectedStreamsMessage
+#ifndef LibMultiSense_PollMotorInfoMessage
+#define LibMultiSense_PollMotorInfoMessage
 
 #include "details/utility/Portability.hh"
 
@@ -44,72 +46,29 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class DirectedStream {
+class MotorPoll {
 public:
+
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_MOTOR_POLL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    uint32_t    mask;
-    std::string address;
-    uint16_t    udpPort;
-    uint32_t    fpsDecimation;
+	int32_t angleStart;
 
-    DirectedStream() {};
-    DirectedStream(uint32_t           m,
-                   const std::string& addr,
-                   uint16_t           p,
-                   uint32_t           dec) :
-        mask(m),
-        address(addr),
-        udpPort(p),
-        fpsDecimation(dec) {};
+    MotorPoll(utility::BufferStreamReader& r,
+                   VersionType v) {serialize(r,v);};
+
+	MotorPoll() :
+        angleStart(0){};
+
+	MotorPoll(int32_t a) :
+        angleStart(a){};
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
         (void) version;
-        VersionType thisVersion = VERSION;
-
-        message & thisVersion;
-        message & mask;
-        message & address;
-        message & udpPort;
-        message & fpsDecimation;
-    }
-};
-
-class SysDirectedStreams {
-public:
-    static CRL_CONSTEXPR IdType      ID        = ID_DATA_SYS_DIRECTED_STREAMS;
-    static CRL_CONSTEXPR VersionType VERSION   = 1;
-
-    static CRL_CONSTEXPR uint32_t    CMD_NONE  = 0;
-    static CRL_CONSTEXPR uint32_t    CMD_START = 1;
-    static CRL_CONSTEXPR uint32_t    CMD_STOP  = 2;
-
-    uint32_t                          command;
-    std::vector<wire::DirectedStream> streams;
-
-    //
-    // Constructors
-
-    SysDirectedStreams(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SysDirectedStreams(uint32_t cmd) : command(cmd) {};
-    SysDirectedStreams() : command(CMD_NONE) {};
-
-    //
-    // Serialization routine
-
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        message & command;
-        uint32_t elements = streams.size();
-        message & elements;
-        streams.resize(elements);
-        for(uint32_t i=0; i<elements; i++)
-            streams[i].serialize(message, version);
+    	message & angleStart;
     }
 };
 

@@ -13,3 +13,9 @@ add_executable(ExternalCalUtility ExternalCalUtility.cc)
 #
 
 target_link_libraries (ExternalCalUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS ExternalCalUtility RUNTIME DESTINATION "bin")

@@ -66,6 +66,9 @@
 #include "details/wire/LedGetSensorStatusMessage.h"
 #include "details/wire/LedSensorStatusMessage.h"
 
+#include "details/wire/LidarPollMotorMessage.h"
+#include "details/wire/PollMotorInfoMessage.h"
+
 #include "details/wire/SysMtuMessage.h"
 #include "details/wire/SysGetMtuMessage.h"
 #include "details/wire/SysFlashOpMessage.h"
@@ -324,7 +327,7 @@ void *impl::reserveCallbackBuffer()
 
         } catch (...) {
 
-            CRL_DEBUG("unknown exception\n");
+            CRL_DEBUG_RAW("unknown exception\n");
         }
     }
 
@@ -349,7 +352,7 @@ Status impl::releaseCallbackBuffer(void *referenceP)
 
         } catch (...) {
 
-            CRL_DEBUG("unknown exception\n");
+            CRL_DEBUG_RAW("unknown exception\n");
             return Status_Exception;
         }
     }
@@ -524,6 +527,11 @@ Status impl::setTriggerSource(TriggerSource s)
     case Trigger_External:
 
         wireSource = wire::CamSetTriggerSource::SOURCE_EXTERNAL;
+        break;
+
+    case Trigger_External_Inverted:
+
+        wireSource = wire::CamSetTriggerSource::SOURCE_EXTERNAL_INVERTED;
         break;
 
     default:
@@ -930,6 +938,17 @@ Status impl::getMtu(int32_t& mtu)
     return status;
 }
 
+Status impl::getMotorPos(int32_t& pos)
+{
+    wire::MotorPoll resp;
+
+    Status status = waitData(wire::LidarPollMotor(), resp);
+    if (Status_Ok == status)
+    	pos = resp.angleStart;
+
+    return status;
+}
+
 //
 // Set/get the network configuration
 
@@ -1302,4 +1321,4 @@ Status impl::getLocalUdpPort(uint16_t& port)
     port = m_serverSocketPort;
     return Status_Ok;
 }
-}}}; // namespaces
+}}} // namespaces

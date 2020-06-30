@@ -61,15 +61,16 @@ public:
 
     //
     // Serialization routine
-    
+
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & delay;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

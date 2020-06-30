@@ -67,6 +67,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & payloadSize;
         for(uint32_t i=0; i<payloadSize; ++i) {
             uint8_t dummy = 0;
@@ -75,6 +76,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

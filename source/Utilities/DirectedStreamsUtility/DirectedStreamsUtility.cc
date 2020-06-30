@@ -143,12 +143,14 @@ bool savePgm(const std::string& fileName,
 void ppsCallback(const pps::Header& header,
                  void              *userDataP)
 {
+    (void) userDataP;
 	std::cerr << "PPS: " << header.sensorTime << " ns" << std::endl;
 }
 
 void laserCallback(const lidar::Header& header,
                    void                *userDataP)
 {
+    (void) userDataP;
     double timeStamp = header.timeStartSeconds + 1e-6 * header.timeStartMicroSeconds;
     static double lastTimeStamp = timeStamp;
 
@@ -220,9 +222,9 @@ void disparityCallback(const image::Header& header,
 		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
-}; // anonymous
+} // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
@@ -306,7 +308,7 @@ int main(int    argc,
 
             cfg.setResolution(1024, 544);
             cfg.setFps(30.0);
-        
+
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
 				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;

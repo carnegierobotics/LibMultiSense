@@ -75,7 +75,7 @@ private:
     typedef utility::WaitVar<Status>        Signal;
     typedef std::map<wire::IdType, Signal*> Map;
 
-    void insert(wire::IdType type, 
+    void insert(wire::IdType type,
 		Signal      *signalP) {
         utility::ScopedLock lock(m_lock);
 
@@ -83,7 +83,7 @@ private:
 
         //
         // Hmm.. this will prohibit multiple threads
-        // simultaneously commanding the sensor with this 
+        // simultaneously commanding the sensor with this
 	// message ID.
 
         if (m_map.end() != it)
@@ -122,7 +122,7 @@ public:
 	m_map.remove(m_id);
     };
 
-    bool wait(Status&       status, 
+    bool wait(Status&       status,
 	      const double& timeout) {
 	return m_signal.timedWait(status, timeout);
     };
@@ -134,9 +134,9 @@ private:
     MessageWatch::Signal m_signal;
 };
 
-}; // namespace details
-}; // namespace multisense
-}; // namespace crl
+} // namespace details
+} // namespace multisense
+} // namespace crl
 
 
 #endif //  LibMultiSense_details_signal_hh

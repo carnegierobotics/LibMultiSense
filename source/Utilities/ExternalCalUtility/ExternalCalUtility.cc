@@ -61,16 +61,16 @@ using namespace crl::multisense;
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
-    fprintf(stderr, 
-            "USAGE: %s -f <calibration_file> [<options>]\n", 
+    fprintf(stderr,
+            "USAGE: %s -f <calibration_file> [<options>]\n",
             programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-s                   : set the external calibration (default is query)\n");
     fprintf(stderr, "\t-y                   : disable confirmation prompts\n");
-    
+
     exit(-1);
 }
 
@@ -100,9 +100,9 @@ std::ostream& writeCal (std::ostream& stream, system::ExternalCalibration const&
 }
 
 
-}; // anonymous
+} // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string        ipAddress = "10.66.171.21";
@@ -133,15 +133,15 @@ int main(int    argc,
     }
 
     if (true == setCal && false == fileExists(calFile)) {
-        
+
         fprintf(stderr, "file not found: \"%s\"\n", calFile.c_str());
         usage(*argvPP);
     }
-    
+
     if (false == setCal && true == prompt &&
         true == fileExists(calFile)) {
-        
-        fprintf(stdout, 
+
+        fprintf(stdout,
                 "\"%s\" already exists.\n\n"
                 "Really overwrite this file? (y/n): ",
                 calFile.c_str());
@@ -172,11 +172,11 @@ int main(int    argc,
 
     status = channelP->getSensorVersion(version);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor version: %s\n", 
+        fprintf(stderr, "failed to query sensor version: %s\n",
                 Channel::statusString(status));
         goto clean_out;
     }
-    
+
     //
     // Query
 
@@ -186,7 +186,7 @@ int main(int    argc,
 
         status = channelP->getExternalCalibration(c);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to query external calibration: %s\n", 
+            fprintf(stderr, "failed to query external calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }
@@ -194,7 +194,7 @@ int main(int    argc,
         std::ofstream cvFile (calFile.c_str (), std::ios_base::out | std::ios_base::trunc);
 
         if (!cvFile) {
-            fprintf(stderr, "failed to open '%s' for writing\n", 
+            fprintf(stderr, "failed to open '%s' for writing\n",
                     calFile.c_str());
             goto clean_out;
         }
@@ -209,7 +209,7 @@ int main(int    argc,
         std::ifstream cvFile (calFile.c_str ());
 
         if (!cvFile) {
-            fprintf(stderr, "failed to open '%s' for reading\n", 
+            fprintf(stderr, "failed to open '%s' for reading\n",
                     calFile.c_str());
             goto clean_out;
         }
@@ -236,7 +236,7 @@ int main(int    argc,
 
         status = channelP->setExternalCalibration(c);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to set external calibration: %s\n", 
+            fprintf(stderr, "failed to set external calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }

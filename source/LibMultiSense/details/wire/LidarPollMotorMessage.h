@@ -1,7 +1,9 @@
 /**
- * @file LibMultiSense/SysDirectedStreamsMessage.h
+ * @file LibMultiSense/LidarPollMotorMessage.h
  *
- * Copyright 2014
+ * This message requests the current motor encoder position of the SLB
+ *
+ * Copyright 2018
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,11 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2014-06-10, ekratzer@carnegierobotics.com, IR1069, created file.
+ *   2017-03-19, cniessl@carnegierobotics.com, PR1044, Created File
  **/
 
-#ifndef LibMultiSense_SysDirectedStreamsMessage
-#define LibMultiSense_SysDirectedStreamsMessage
+#ifndef LibMultiSense_LidarPollMotorMessage
+#define LibMultiSense_LidarPollMotorMessage
 
 #include "details/utility/Portability.hh"
 
@@ -44,58 +46,16 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class DirectedStream {
+class LidarPollMotor {
 public:
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_MOTOR_POLL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    uint32_t    mask;
-    std::string address;
-    uint16_t    udpPort;
-    uint32_t    fpsDecimation;
-
-    DirectedStream() {};
-    DirectedStream(uint32_t           m,
-                   const std::string& addr,
-                   uint16_t           p,
-                   uint32_t           dec) :
-        mask(m),
-        address(addr),
-        udpPort(p),
-        fpsDecimation(dec) {};
-
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        VersionType thisVersion = VERSION;
-
-        message & thisVersion;
-        message & mask;
-        message & address;
-        message & udpPort;
-        message & fpsDecimation;
-    }
-};
-
-class SysDirectedStreams {
-public:
-    static CRL_CONSTEXPR IdType      ID        = ID_DATA_SYS_DIRECTED_STREAMS;
-    static CRL_CONSTEXPR VersionType VERSION   = 1;
-
-    static CRL_CONSTEXPR uint32_t    CMD_NONE  = 0;
-    static CRL_CONSTEXPR uint32_t    CMD_START = 1;
-    static CRL_CONSTEXPR uint32_t    CMD_STOP  = 2;
-
-    uint32_t                          command;
-    std::vector<wire::DirectedStream> streams;
-
     //
-    // Constructors
+    // Contructors
 
-    SysDirectedStreams(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SysDirectedStreams(uint32_t cmd) : command(cmd) {};
-    SysDirectedStreams() : command(CMD_NONE) {};
+    LidarPollMotor(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    LidarPollMotor() {};
 
     //
     // Serialization routine
@@ -104,12 +64,9 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & command;
-        uint32_t elements = streams.size();
-        message & elements;
-        streams.resize(elements);
-        for(uint32_t i=0; i<elements; i++)
-            streams[i].serialize(message, version);
+        (void) message;
+        (void) version;
+        //Do nothing
     }
 };
 

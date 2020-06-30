@@ -752,6 +752,20 @@ public:
     virtual Status getMtu              (int32_t& mtu)                       = 0;
 
     /**
+     * Query the maxon or SLB motor for its current encoder position in
+     * microradians.
+     *
+     * @param mtu An int32_t returned by reference containing the current
+     * motor encoder position in microradians
+     *
+     * @return A crl::multisense::Status indicating success if a motor was
+     * found and could report its encoder position, or fail if no motor
+     * is present.
+     */
+
+    virtual Status getMotorPos          (int32_t& mtu)                      = 0;
+
+    /**
      * Set the current sensor's MTU.
      *
      * @param mtu The new MTU to configure the sensor with

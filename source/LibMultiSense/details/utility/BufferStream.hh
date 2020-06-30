@@ -77,10 +77,14 @@ public:
 #endif // SENSORPOD_FIRMWARE
 
     virtual void read (void *bufferP, std::size_t length) {
-        CRL_EXCEPTION("not implemented");
+        (void) bufferP;
+        (void) length;
+        CRL_EXCEPTION("not implemented", "");
     };
     virtual void write(const void *bufferP, std::size_t length) {
-        CRL_EXCEPTION("not implemented");
+        (void) bufferP;
+        (void) length;
+        CRL_EXCEPTION("not implemented", "");
     };
 
     //
@@ -185,12 +189,12 @@ public:
 
         memcpy(bufferP, &(m_bufferP[m_tell]), length);
         m_tell += length;
-    };
+    }
 
     template <typename T> BufferStreamReader& operator&(T &value) {
         this->read(&value, sizeof(T));
         return *this;
-    };
+    }
 
     template <typename T> BufferStreamReader& operator&(std::vector<T>& v) {
         uint16_t version;
@@ -217,7 +221,7 @@ public:
             value = std::string(buffer);
         }
         return *this;
-    };
+    }
 
     BufferStreamReader& operator&(TimeStamp& value) {
         uint32_t seconds;
@@ -229,7 +233,7 @@ public:
         value = seconds + 1e-6 * microseconds;
 
         return *this;
-    };
+    }
 };
 
 //
@@ -257,7 +261,7 @@ public:
     template <typename T> BufferStreamWriter& operator&(const T& value) {
         this->write(&value, sizeof(T));
         return *this;
-    };
+    }
 
     template <typename T> BufferStreamWriter& operator&(const std::vector<T>& v) {
         uint16_t version = T::VERSION;

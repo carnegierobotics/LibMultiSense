@@ -74,6 +74,12 @@
                                                            CRL_PRETTY_FUNCTION,##__VA_ARGS__); \
     } while(0)
 
+#define CRL_EXCEPTION_RAW(fmt)                                         \
+    do {                                                                \
+        throw crl::multisense::details::utility::Exception("%s(%d): %s: " fmt,CRL_FILENAME,__LINE__, \
+                                                           CRL_PRETTY_FUNCTION); \
+    } while(0)
+
 #define CRL_DEBUG(fmt, ...)                                             \
     do {                                                                \
         double now = crl::multisense::details::utility::TimeStamp::getCurrentTime(); \
@@ -81,6 +87,12 @@
                 CRL_PRETTY_FUNCTION,##__VA_ARGS__);                     \
     } while(0)
 
+#define CRL_DEBUG_RAW(fmt)                                             \
+    do {                                                                \
+        double now = crl::multisense::details::utility::TimeStamp::getCurrentTime(); \
+        CRL_DEBUG_REDIRECTION "[%.3f] %s(%d): %s: " fmt,now,CRL_FILENAME,__LINE__, \
+                CRL_PRETTY_FUNCTION);                     \
+    } while(0)
 
 namespace crl {
 namespace multisense {

@@ -141,21 +141,21 @@ bool savePgm(const std::string& fileName,
 void ppsCallback(const pps::Header& header,
                  void              *userDataP)
 {
+    (void) userDataP;
 	std::cerr << "PPS: " << header.sensorTime << " ns" << std::endl;
 }
 
 void laserCallback(const lidar::Header& header,
                    void                *userDataP)
 {
-// 	std::cerr << "lidar: " << header.pointCount << std::endl;
+    (void) userDataP;
+    std::cerr << "lidar: " << header.pointCount << std::endl;
 }
 
 void imageCallback(const image::Header& header,
                    void                *userDataP)
 {
     Channel *channelP = reinterpret_cast<Channel*>(userDataP);
-
-//    double timeStamp = header.timeSeconds + 1e-6 * header.timeMicroSeconds;
 
     static int64_t lastFrameId = -1;
 
@@ -176,7 +176,7 @@ void imageCallback(const image::Header& header,
 		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
-}; // anonymous
+} // anonymous
 
 int main(int    argc,
          char **argvPP)

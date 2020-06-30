@@ -104,6 +104,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & scanCount;
         message & timeStartSeconds;
         message & timeStartMicroSeconds;
@@ -134,6 +135,6 @@ public:
 
 #endif // !SENSORPOD_FIRMWARE
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

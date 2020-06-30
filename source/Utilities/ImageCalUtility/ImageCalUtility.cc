@@ -61,16 +61,16 @@ using namespace crl::multisense;
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
-    fprintf(stderr, 
-            "USAGE: %s -e <extrinisics_file> -i <intrinsics_file> [<options>]\n", 
+    fprintf(stderr,
+            "USAGE: %s -e <extrinisics_file> -i <intrinsics_file> [<options>]\n",
             programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-s                   : set the calibration (default is query)\n");
     fprintf(stderr, "\t-y                   : disable confirmation prompts\n");
-    
+
     exit(-1);
 }
 
@@ -100,9 +100,9 @@ std::ostream& writeImageExtrinics (std::ostream& stream, image::Calibration cons
     return stream;
 }
 
-}; // anonymous
+} // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string ipAddress = "10.66.171.21";
@@ -137,7 +137,7 @@ int main(int    argc,
     if (true == setCal &&
         (false == fileExists(intrinsicsFile) ||
          false == fileExists(extrinsicsFile))) {
-        
+
         fprintf(stderr, "intrinsics or extrinsics file not found\n");
         usage(*argvPP);
     }
@@ -145,8 +145,8 @@ int main(int    argc,
     if (false == setCal && true == prompt &&
         (true == fileExists(intrinsicsFile) ||
          true == fileExists(extrinsicsFile))) {
-        
-        fprintf(stdout, 
+
+        fprintf(stdout,
                 "One or both of \"%s\" and \"%s\" already exists.\n\n"
                 "Really overwrite these files? (y/n): ",
                 intrinsicsFile.c_str(),
@@ -158,7 +158,7 @@ int main(int    argc,
             fprintf(stdout, "Aborting\n");
             return 0;
         }
-    }       
+    }
 
     //
     // Initialize communications.
@@ -178,11 +178,11 @@ int main(int    argc,
 
     status = channelP->getSensorVersion(version);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor version: %s\n", 
+        fprintf(stderr, "failed to query sensor version: %s\n",
                 Channel::statusString(status));
         goto clean_out;
     }
-    
+
     //
     // Query
 
@@ -192,7 +192,7 @@ int main(int    argc,
 
         status = channelP->getImageCalibration(c);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to query image calibration: %s\n", 
+            fprintf(stderr, "failed to query image calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }
@@ -202,7 +202,7 @@ int main(int    argc,
         inFile.open (intrinsicsFile.c_str (), std::ios_base::out | std::ios_base::trunc);
 
         if (!inFile) {
-            fprintf(stderr, "failed to open '%s' for writing\n", 
+            fprintf(stderr, "failed to open '%s' for writing\n",
                     intrinsicsFile.c_str());
             goto clean_out;
         }
@@ -210,7 +210,7 @@ int main(int    argc,
         exFile.open (extrinsicsFile.c_str (), std::ios_base::out | std::ios_base::trunc);
 
         if (!exFile) {
-            fprintf(stderr, "failed to open '%s' for writing\n", 
+            fprintf(stderr, "failed to open '%s' for writing\n",
                     extrinsicsFile.c_str());
             goto clean_out;
         }
@@ -227,9 +227,9 @@ int main(int    argc,
         std::map<std::string, std::vector<float> > data;
 
         inFile.open (intrinsicsFile.c_str ());
-        
+
         if (!inFile) {
-            fprintf(stderr, "failed to open '%s' for reading\n", 
+            fprintf(stderr, "failed to open '%s' for reading\n",
                     intrinsicsFile.c_str());
             goto clean_out;
         }
@@ -250,7 +250,7 @@ int main(int    argc,
         exFile.open (extrinsicsFile.c_str ());
 
         if (!exFile) {
-            fprintf(stderr, "failed to open '%s' for reading\n", 
+            fprintf(stderr, "failed to open '%s' for reading\n",
                     extrinsicsFile.c_str());
             goto clean_out;
         }
@@ -284,7 +284,7 @@ int main(int    argc,
 
         status = channelP->setImageCalibration(c);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to set image calibration: %s\n", 
+            fprintf(stderr, "failed to set image calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }

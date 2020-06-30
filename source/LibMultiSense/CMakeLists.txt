@@ -66,9 +66,13 @@ endif()
 
 # create install targets
 install(TARGETS MultiSense
+  EXPORT MultiSenseConfig
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
 )
+
+install(EXPORT MultiSenseConfig
+    DESTINATION lib/cmake/MultiSense)
 
 install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)

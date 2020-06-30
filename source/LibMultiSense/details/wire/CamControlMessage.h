@@ -130,6 +130,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

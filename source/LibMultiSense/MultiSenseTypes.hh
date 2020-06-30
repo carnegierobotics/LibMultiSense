@@ -191,6 +191,8 @@ typedef uint32_t TriggerSource;
 static CRL_CONSTEXPR TriggerSource Trigger_Internal    = 0;
 /** External OPTO_RX trigger input */
 static CRL_CONSTEXPR TriggerSource Trigger_External    = 1;
+/** External OPTO_RX trigger input with Inverted Polarity */
+static CRL_CONSTEXPR TriggerSource Trigger_External_Inverted    = 2;
 
 
 
@@ -203,7 +205,7 @@ public:
      * This default implementation of the inMask member function will
      * be overridden by derived classes.
      */
-    virtual bool inMask(DataSource mask) { return true; };
+    virtual bool inMask(DataSource mask) { (void) mask; return true; };
     virtual ~HeaderBase() {};
 };
 
@@ -1363,6 +1365,7 @@ public:
 typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
+
 /**
  * Class used to store a laser calibration. Calibrations can be queried or set
  * for a specific sensor
@@ -1455,8 +1458,6 @@ public:
 };
 
 } // namespace lidar
-
-
 
 namespace lighting {
 
@@ -1721,7 +1722,7 @@ public:
 typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
-}; // namespace pps
+} // namespace pps
 
 
 
@@ -2004,9 +2005,6 @@ public:
 };
 
 } // namespace imu
-
-
-
 
 namespace system {
 

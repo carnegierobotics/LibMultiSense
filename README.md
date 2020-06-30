@@ -25,8 +25,11 @@ To build the standalone LibMultiSense library and demonstration applications.
     > git clone git@github.com:carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > mkdir build
-    > cd build && cmake ..
+    > cd build && cmake -DCMAKE_INSTALL_PREFIX=../install ..
     > make
+
+To build the standalone LibMultiSense library without the demonstration applications,
+set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
 Integrating LibMultiSense into an existing CMake project is easy. Simply
 clone the LibMultiSense repository into the existing project's source tree.
