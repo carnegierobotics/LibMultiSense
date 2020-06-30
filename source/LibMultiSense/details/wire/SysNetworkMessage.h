@@ -70,7 +70,7 @@ public:
     SysNetwork(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     SysNetwork(const std::string& a,
                const std::string& g,
-               const std::string& n) : 
+               const std::string& n) :
         interface(Interface_Primary),
         address(a),
         gateway(g),
@@ -80,7 +80,7 @@ public:
         address(),
         gateway(),
         netmask() {};
-        
+
     //
     // Serialization routine
 
@@ -88,6 +88,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & interface;
         message & address;
         message & gateway;
@@ -95,6 +96,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

@@ -61,7 +61,8 @@ public:
     // Contructors
 
     LidarSetMotor(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    LidarSetMotor(float f=0.0) : rpm(f) {};
+    LidarSetMotor() : rpm(0.0) {};
+    LidarSetMotor(float f) : rpm(f) {};
 
     //
     // Serialization routine
@@ -69,12 +70,12 @@ public:
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
-                       
     {
+        (void) version;
         message & rpm;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

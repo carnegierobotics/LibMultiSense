@@ -101,7 +101,7 @@ bool decodeIpv4(const std::string& addr,
     return true;
 }
 
-}; // anonymous
+} // anonymous
 
 using namespace crl::multisense;
 

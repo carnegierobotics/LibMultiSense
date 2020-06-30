@@ -55,7 +55,7 @@ template<class T> void impl::publish(const T& message)
     //
     // An output stream to serialize the data
 
-    utility::BufferStreamWriter stream(m_sensorMtu - 
+    utility::BufferStreamWriter stream(m_sensorMtu -
                                        wire::COMBINED_HEADER_LENGTH);
 
     //
@@ -65,10 +65,10 @@ template<class T> void impl::publish(const T& message)
 
     //
     // Set the ID and version
-    
+
     stream & id;
     stream & version;
-    
+
     //
     // Add the message payload. We cast away const here because
     // we have a single serialize() for both directions, and cannot
@@ -86,7 +86,7 @@ template<class T> void impl::publish(const T& message)
 // Send a message, wait for a particular repsonse, re-trying if
 // necessary
 
-template <class T> Status impl::waitAck(const T&      msg, 
+template <class T> Status impl::waitAck(const T&      msg,
                                         wire::IdType  ackId,
                                         const double& timeout,
                                         int32_t       attempts)
@@ -97,7 +97,7 @@ template <class T> Status impl::waitAck(const T&      msg,
         while(attempts-- > 0) {
 
             publish(msg);
-            
+
             Status status;
             if (false == ack.wait(status, timeout))
                 continue;
@@ -114,7 +114,7 @@ template <class T> Status impl::waitAck(const T&      msg,
 }
 
 //
-// Send a message (with retry), expecting data message, 
+// Send a message (with retry), expecting data message,
 // extract data payload for user
 
 template <class T, class U> Status impl::waitData(const T&      command,
@@ -142,14 +142,14 @@ template <class T, class U> Status impl::waitData(const T&      command,
         Status commandStatus;
         if (false == commandAck.wait(commandStatus, 0.0))
             commandStatus = Status_TimedOut;
-    
+
         //
         // If we did not receive the data message, return the response from
-        // the command code instead, unless there was an exception or the 
+        // the command code instead, unless there was an exception or the
         // command ack'd OK.
 
         if (Status_Ok != dataStatus) {
-            if (Status_Exception == dataStatus ||   // exception 
+            if (Status_Exception == dataStatus ||   // exception
                 Status_Ok        == commandStatus)  // data payload timeout or MTU error
                 return dataStatus;
             else
@@ -158,15 +158,15 @@ template <class T, class U> Status impl::waitData(const T&      command,
 
         //
         // We have received the data message, extract it for the user.
-        
+
         return m_messages.extract(data);
-        
+
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
         return Status_Exception;
     }
 }
 
-}}}; // namespaces
+}}} // namespaces
 
 #endif // _LibMultiSense_details_publish_hh

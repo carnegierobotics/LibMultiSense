@@ -69,21 +69,21 @@
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
     fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-d transmit delay in ms\n");
-    
+
     exit(-1);
 }
 
-}; // anonymous
+} // anonymous
 
 using namespace crl::multisense;
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
@@ -144,7 +144,7 @@ int main(int    argc,
         } else {
 
             TransmitDelay.delay = delay;
-        
+
             status = channelP->setTransmitDelay(TransmitDelay);
             if (Status_Ok != status) {
 				std::cerr << "Failed to configure transmit delay: " << Channel::statusString(status) << std::endl;

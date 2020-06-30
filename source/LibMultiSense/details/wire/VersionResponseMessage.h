@@ -75,6 +75,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & firmwareBuildDate;
         message & firmwareVersion;
         message & hardwareVersion;
@@ -83,6 +84,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

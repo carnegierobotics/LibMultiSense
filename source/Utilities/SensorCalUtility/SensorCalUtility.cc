@@ -86,10 +86,10 @@ std::string bytes_to_binary(uint64_t x, int bits)
     return b.erase(0,(currentByte*8 - bits));
 }
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
-    fprintf(stderr, 
-            "USAGE: %s [<options>]\n", 
+    fprintf(stderr,
+            "USAGE: %s [<options>]\n",
             programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
@@ -98,19 +98,13 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-r                   : set the right calibration \n");
     fprintf(stderr, "\t-e                   : set the right black level \n");
     fprintf(stderr, "\t-k                   : set the left black level \n");
-    
+
     exit(-1);
 }
 
-bool fileExists(const std::string& name)
-{
-    struct stat sbuf;
-    return (0 == stat(name.c_str(), &sbuf));
-}
+} // anonymous
 
-}; // anonymous
-
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     Status status = Status_Ok;
@@ -119,8 +113,8 @@ int main(int    argc,
     std::string rightIn = "50";
     std::string leftBlackIn = "-61";
     std::string rightBlackIn = "-61";
-	uint8_t left;
-	uint8_t right;
+	int left;
+	int right;
     int16_t leftBlack;
     int16_t rightBlack;
     bool        setCal=false;
@@ -171,7 +165,7 @@ int main(int    argc,
 
     status = channelP->getSensorCalibration(sensorCalibration);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor calibration: %s\n", 
+        fprintf(stderr, "failed to query sensor calibration: %s\n",
                 Channel::statusString(status));
         goto clean_out;
     }
@@ -220,7 +214,7 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        fprintf(stdout,"left sensor gain: %hu\nright sensor gain %hu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n", 
+        fprintf(stdout,"left sensor gain: %hu\nright sensor gain %hu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n",
                     sensorCalibration.adc_gain[0], sensorCalibration.adc_gain[1],
                     sensorCalibration.bl_offset[0], sensorCalibration.bl_offset[1],
                     sensorCalibration.vramp[0], sensorCalibration.vramp[1]);
@@ -230,7 +224,7 @@ int main(int    argc,
         fprintf(stdout,"Setting :\nleft sensor gain: %5hu binary: %s\n"
                                    "right sensor gain %5hu binary: %s\n"
                                    "left sensor black level: %d binary: %s\n"
-                                   "right sensor black level %d binary: %s\n", 
+                                   "right sensor black level %d binary: %s\n",
                     sensorCalibration.adc_gain[0],byte_to_binary(sensorCalibration.adc_gain[0]).c_str(),
                     sensorCalibration.adc_gain[1],byte_to_binary(sensorCalibration.adc_gain[1]).c_str(),
                     sensorCalibration.bl_offset[0],bytes_to_binary(sensorCalibration.bl_offset[0], 14).c_str(),
@@ -238,7 +232,7 @@ int main(int    argc,
 
         status = channelP->setSensorCalibration(sensorCalibration);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to set sensor calibration: %s\n", 
+            fprintf(stderr, "failed to set sensor calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }

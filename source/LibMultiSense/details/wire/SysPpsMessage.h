@@ -67,10 +67,11 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & ppsNanoSeconds;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

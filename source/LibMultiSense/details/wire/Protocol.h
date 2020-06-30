@@ -175,6 +175,7 @@ static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_EXTERNAL_CAL     = 0x0024;
 static CRL_CONSTEXPR IdType ID_CMD_LED_GET_SENSOR_STATUS    = 0x0025;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_TRANSMIT_DELAY   = 0x0026;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_TRANSMIT_DELAY   = 0x0027;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_MOTOR_POLL           = 0x0028;
 
 //
 // Data
@@ -204,6 +205,7 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_DIRECTED_STREAMS  = 0x0119;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_SENSOR_CAL        = 0x011a;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_EXTERNAL_CAL      = 0x011b;
 static CRL_CONSTEXPR IdType ID_DATA_LED_SENSOR_STATUS     = 0x011c;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL        = 0x011d;
 
 //
 // Data sources
@@ -225,6 +227,7 @@ static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT   = (1<<11);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST    = (1<<12);
 static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT         = (1<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT          = (1<<17);
+static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR         = (1<<23);
 static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN        = (1<<24);
 static CRL_CONSTEXPR SourceType SOURCE_IMU               = (1<<25);
 static CRL_CONSTEXPR SourceType SOURCE_PPS               = (1<<26);
@@ -266,6 +269,6 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
         for(uint32_t j_=0; j_<(m_); j_++)       \
             (d_)[i_][j_] = (s_)[i_][j_];        \
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

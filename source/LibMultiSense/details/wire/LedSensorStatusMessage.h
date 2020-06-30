@@ -69,10 +69,11 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & ambientLightPercentage;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

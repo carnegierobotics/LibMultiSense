@@ -68,10 +68,11 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & mtu;
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

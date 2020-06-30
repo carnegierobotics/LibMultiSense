@@ -65,7 +65,7 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     uint32_t length;
     uint32_t quality;
 
-    JpegImageHeader() : 
+    JpegImageHeader() :
 #ifdef SENSORDPOD_FIRMWARE
         id(ID),
         version(VERSION),
@@ -98,6 +98,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & source;
         message & frameId;
         message & width;
@@ -106,7 +107,7 @@ public:
         message & quality;
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-          
+
             message.write(dataP, length);
 
         } else {
@@ -119,6 +120,6 @@ public:
 
 #endif // !SENSORPOD_FIRMWARE
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

@@ -69,11 +69,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         SER_ARRAY_1(calibration, 6);
     }
 
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

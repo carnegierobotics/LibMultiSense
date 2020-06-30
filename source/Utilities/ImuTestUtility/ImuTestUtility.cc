@@ -71,14 +71,14 @@ int64_t       sequence      = -1;
 uint32_t      messages      = 0;
 uint32_t      dropped       = 0;
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <ip_address>    : IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>           : default=7200" << std::endl;
     std::cerr << "\t-f <log_file>      : FILE to log IMU data (stdout by default)" << std::endl;
-    
+
     exit(-1);
 }
 
@@ -100,6 +100,7 @@ void signalHandler(int sig)
 void imuCallback(const imu::Header& header,
                  void              *userDataP)
 {
+    (void) userDataP;
     std::vector<imu::Sample>::const_iterator it = header.samples.begin();
 
     for(; it!=header.samples.end(); ++it) {
@@ -114,7 +115,7 @@ void imuCallback(const imu::Header& header,
 
         if (logFileP)
             fprintf(logFileP, "%d %.6f %.6f %.6f %.6f\n",
-                    s.type, 
+                    s.type,
                     s.timeSeconds + 1e-6 * s.timeMicroSeconds,
                     s.x, s.y, s.z);
     }
@@ -130,9 +131,9 @@ void imuCallback(const imu::Header& header,
     messages ++;
 }
 
-}; // anonymous
+} // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
@@ -174,7 +175,7 @@ int main(int    argc,
 
     Status status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
-        std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl; 
+        std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
@@ -192,7 +193,7 @@ int main(int    argc,
 
     status = channelP->stopStreams(Source_All);
     if (Status_Ok != status) {
-        std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl; 
+        std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
@@ -200,7 +201,7 @@ int main(int    argc,
     // Was logging requested ?
 
     if (NULL != logFileNameP) {
-        
+
         //
         // Open the log file
 
@@ -231,13 +232,13 @@ int main(int    argc,
 
     status = channelP->startStreams(Source_Imu);
     if (Status_Ok != status) {
-        std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl; 
+        std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
     while(!doneG)
         usleep(100000);
-        
+
     //
     // Stop streaming
 
@@ -258,14 +259,14 @@ int main(int    argc,
                          "gyro: " << std::fixed << std::setprecision(1) << (100.0 * static_cast<double>(gyro_samples) / static_cast<double>(imu_total)) << "%, " <<
                          "mag: " << std::fixed << std::setprecision(1) << (100.0 * static_cast<double>(mag_samples) / static_cast<double>(imu_total)) << "%" << std::endl;
         }
-        
-        if (messages > 0) 
+
+        if (messages > 0)
             std::cerr << "IMU messages: total: " << messages << ", " <<
                          "dropped: " << dropped << "(" << std::fixed << std::setprecision(6) << (100* static_cast<double>(dropped) / static_cast<double>(messages+dropped)) << "%)" << std::endl;
     }
 
 clean_out:
-        
+
     if (logFileNameP)
         fclose(logFileP);
 

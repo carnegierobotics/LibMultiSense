@@ -13,3 +13,9 @@ add_executable(ImuTestUtility ImuTestUtility.cc)
 #
 
 target_link_libraries (ImuTestUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS ImuTestUtility RUNTIME DESTINATION "bin")

@@ -13,3 +13,9 @@ add_executable(LidarCalUtility LidarCalUtility.cc)
 #
 
 target_link_libraries (LidarCalUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS LidarCalUtility RUNTIME DESTINATION "bin")

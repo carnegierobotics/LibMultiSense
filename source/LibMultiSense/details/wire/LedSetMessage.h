@@ -80,6 +80,7 @@ public:
         void serialize(Archiver&      archive,
                        const VersionType version)
     {
+        (void) version;
         archive & mask;
         for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++)
             archive & intensity[i];
@@ -87,6 +88,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

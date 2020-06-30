@@ -69,22 +69,22 @@
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
     fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-f fps\n");
 
-    
+
     exit(-1);
 }
 
-}; // anonymous
+} // anonymous
 
 using namespace crl::multisense;
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
@@ -145,7 +145,7 @@ int main(int    argc,
         } else {
 
             cfg.setFps(fps);
-        
+
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
 				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;

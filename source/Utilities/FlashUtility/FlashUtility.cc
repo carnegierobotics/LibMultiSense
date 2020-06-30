@@ -56,7 +56,7 @@
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
     fprintf(stderr, "USAGE: %s <options>\n", programNameP);
     fprintf(stderr, "Where <options> are:\n");
@@ -99,11 +99,11 @@ bool verifyFileWithExtension(const std::string& description,
     return false;
 }
 
-}; // anonymous
+} // anonymous
 
 using namespace crl::multisense;
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string ipAddress  = "10.66.171.21";
@@ -131,10 +131,10 @@ int main(int    argc,
     //
     // Verify that the bitstream/firmware filenames are sane, and that the files exist
 
-    if (false == bitstreamFile.empty() && 
+    if (false == bitstreamFile.empty() &&
         false == verifyFileWithExtension("Bitstream", bitstreamFile, "bin"))
         exit(-2);
-    if (false == firmwareFile.empty() && 
+    if (false == firmwareFile.empty() &&
         false == verifyFileWithExtension("Firmware", firmwareFile, "srec"))
         exit(-3);
 
@@ -147,7 +147,7 @@ int main(int    argc,
 		ipAddress.c_str());
         exit(-4);
     }
-    
+
     //
     // Perform any programming operations first
 
@@ -156,21 +156,21 @@ int main(int    argc,
     if (programOp) {
 
         if (!bitstreamFile.empty()) {
-            
+
             fprintf(stderr, "Programming bitstream: %s\n",
                     bitstreamFile.c_str());
 
-            status = channelP->flashBitstream(bitstreamFile); 
+            status = channelP->flashBitstream(bitstreamFile);
             if (Status_Ok != status) {
                 fprintf(stderr, "Programming bitstream failed: %s\n",
                         Channel::statusString(status));
-                returnCode = -6; 
+                returnCode = -6;
                 goto clean_out;
             }
         }
 
         if (!firmwareFile.empty()) {
-            
+
             fprintf(stderr, "Programming firmware: %s\n",
                     firmwareFile.c_str());
 
@@ -190,7 +190,7 @@ int main(int    argc,
     if (verifyOp) {
 
         if (!bitstreamFile.empty()) {
-            
+
             fprintf(stderr, "Verifying bitstream: %s\n",
                     bitstreamFile.c_str());
 
@@ -204,7 +204,7 @@ int main(int    argc,
         }
 
         if (!firmwareFile.empty()) {
-            
+
             fprintf(stderr, "Verifying firmware: %s\n",
                     firmwareFile.c_str());
 

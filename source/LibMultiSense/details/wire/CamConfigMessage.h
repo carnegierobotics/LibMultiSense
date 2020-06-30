@@ -96,7 +96,35 @@ public:
     // Constructors
 
     CamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    CamConfig() {};
+    CamConfig():
+        width(0),
+        height(0),
+        framesPerSecond(0.0),
+        gain(0.0),
+        exposure(0),
+        autoExposure(0),
+        autoExposureMax(0),
+        autoExposureDecay(0),
+        autoExposureThresh(0.0),
+        whiteBalanceRed(0.0),
+        whiteBalanceBlue(0.0),
+        autoWhiteBalance(0),
+        autoWhiteBalanceDecay(0),
+        autoWhiteBalanceThresh(0.0),
+        fx(0.0),
+        fy(0.0),
+        cx(0.0),
+        cy(0.0),
+        tx(0.0),
+        ty(0.0),
+        tz(0.0),
+        roll(0.0),
+        pitch(0.0),
+        yaw(0.0),
+        disparities(0),
+        stereoPostFilterStrength(0.0),
+        hdrEnabled(false)
+        {};
 
     //
     // Serialization routine
@@ -116,7 +144,7 @@ public:
         message & autoExposureMax;
         message & autoExposureDecay;
         message & autoExposureThresh;
-        
+
         message & whiteBalanceRed;
         message & whiteBalanceBlue;
         message & autoWhiteBalance;
@@ -153,6 +181,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

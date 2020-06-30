@@ -59,7 +59,7 @@ using namespace crl::multisense;
 
 namespace {  // anonymous
 
-void usage(const char *programNameP) 
+void usage(const char *programNameP)
 {
     fprintf(stderr, "USAGE: %s [<options>]\n", programNameP);
     fprintf(stderr, "Where <options> are:\n");
@@ -68,7 +68,7 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-s <file_name>     : set device info from file\n");
     fprintf(stderr, "\t-q                 : query device info (default)\n");
     fprintf(stderr, "\t-y                 : disable confirmation prompt\n");
-    
+
     exit(-1);
 }
 
@@ -94,24 +94,24 @@ void printDeviceInfo(const system::DeviceInfo& info,
      fprintf(fP, "buildDate: %s\n", info.buildDate.c_str());
      fprintf(fP, "serialNumber: %s\n", info.serialNumber.c_str());
      fprintf(fP, "hardwareRevision: %d\n\n", info.hardwareRevision);
-          
+
      fprintf(fP, "imagerName: %s\n", info.imagerName.c_str());
      fprintf(fP, "imagerType: %d\n", info.imagerType);
      fprintf(fP, "imagerWidth: %d\n", info.imagerWidth);
      fprintf(fP, "imagerHeight: %d\n\n", info.imagerHeight);
-     
+
      fprintf(fP, "lensName: %s\n", info.lensName.c_str());
      fprintf(fP, "lensType: %d\n", info.lensType);
      fprintf(fP, "nominalBaseline: %f\n", info.nominalBaseline);
      fprintf(fP, "nominalFocalLength: %f\n", info.nominalFocalLength);
      fprintf(fP, "nominalRelativeAperture: %f\n\n", info.nominalRelativeAperture);
-     
+
      fprintf(fP, "lightingType: %d\n", info.lightingType);
      fprintf(fP, "numberOfLights: %d\n\n", info.numberOfLights);
-     
+
      fprintf(fP, "laserName: %s\n", info.laserName.c_str());
      fprintf(fP, "laserType: %d\n\n", info.laserType);
-     
+
      fprintf(fP, "motorName: %s\n", info.motorName.c_str());
      fprintf(fP, "motorType: %d\n", info.motorType);
      fprintf(fP, "motorGearReduction: %f\n\n", info.motorGearReduction);
@@ -161,7 +161,7 @@ bool parseFile(const std::string& fileName,
                     x_ = std::string(tempP);                            \
                     continue;                                           \
                 }}                                                      \
-            
+
 #define CASE_INT(str_,x_)                                               \
             if (0 == strncasecmp(s, str_, strlen(str_))) {              \
                 if (1 != sscanf(s, str_"%d\n", &tempi)) {               \
@@ -171,7 +171,7 @@ bool parseFile(const std::string& fileName,
                     x_ = tempi;                                         \
                     continue;                                           \
                 }}                                                      \
-            
+
 #define CASE_FLT(str_,x_)                                               \
             if (0 == strncasecmp(s, str_, strlen(str_))) {              \
                 if (1 != sscanf(s, str_"%f\n", &tempf)) {               \
@@ -188,7 +188,7 @@ bool parseFile(const std::string& fileName,
                 fprintf(stderr, "malformed " str_ " %s\n",s);           \
                 return false;                                           \
             } else                                                      \
-                
+
 
         CASE_STR("deviceName: ",              info.name);
         CASE_STR("buildDate: ",               info.buildDate);
@@ -222,7 +222,7 @@ bool parseFile(const std::string& fileName,
             }
             continue;
         }}
-        
+
         fprintf(stderr, "malformed line: \"%s\"\n", s);
         return false;
     }
@@ -231,9 +231,9 @@ bool parseFile(const std::string& fileName,
     return true;
 }
 
-}; // anonymous
+} // anonymous
 
-int main(int    argc, 
+int main(int    argc,
          char **argvPP)
 {
     std::string ipAddress  = "10.66.171.21";
@@ -258,7 +258,7 @@ int main(int    argc,
         }
 
     if (!fileName.empty() && key.empty()) {
-        fprintf(stderr, 
+        fprintf(stderr,
                 "To program device info, please also specify the device's key with '-k'\n");
         usage(*argvPP);
     }
@@ -284,7 +284,7 @@ int main(int    argc,
 
     status = channelP->getSensorVersion(version);
     if (Status_Ok != status) {
-        fprintf(stderr, "Failed to query sensor version: %s\n", 
+        fprintf(stderr, "Failed to query sensor version: %s\n",
                 Channel::statusString(status));
         goto clean_out;
     }
@@ -293,9 +293,9 @@ int main(int    argc,
     // Parse and send device info, if requested
 
     if (!fileName.empty()) {
-        
+
         system::DeviceInfo info;
-        
+
         if (false == parseFile(fileName, info))
             goto clean_out;
         else {
@@ -305,7 +305,7 @@ int main(int    argc,
                 fprintf(stdout, "\nReally update device information? (y/n): ");
                 fflush(stdout);
                 int c = getchar();
-                
+
                 if ('Y' != c && 'y' != c) {
                     fprintf(stdout, "Aborting\n");
                     goto clean_out;
@@ -314,7 +314,7 @@ int main(int    argc,
 
             status = channelP->setDeviceInfo(key, info);
             if (Status_Ok != status) {
-                fprintf(stderr, "Failed to set the device info: %s\n", 
+                fprintf(stderr, "Failed to set the device info: %s\n",
                         Channel::statusString(status));
                 goto clean_out;
             } else
@@ -324,14 +324,14 @@ int main(int    argc,
 
     //
     // Query the current device information, if requested
-    
+
     if (query) {
 
         system::DeviceInfo info;
 
         status = channelP->getDeviceInfo(info);
         if (Status_Ok != status)
-            fprintf(stderr, "Failed to query device info: %s\n", 
+            fprintf(stderr, "Failed to query device info: %s\n",
                     Channel::statusString(status));
         else
             printDeviceInfo(info);

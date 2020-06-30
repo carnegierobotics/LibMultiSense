@@ -13,3 +13,9 @@ add_executable(DeviceInfoUtility DeviceInfoUtility.cc)
 #
 
 target_link_libraries (DeviceInfoUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS DeviceInfoUtility RUNTIME DESTINATION "bin")

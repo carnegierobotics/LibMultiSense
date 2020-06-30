@@ -52,7 +52,7 @@ namespace wire {
 class SysFlashOp {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_FLASH_OP;
-    static CRL_CONSTEXPR VersionType VERSION = 1; 
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Maximum payload length per operation
@@ -89,10 +89,10 @@ public:
     // Constructors
 
     SysFlashOp(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SysFlashOp(uint32_t op=OP_STATUS, 
+    SysFlashOp(uint32_t op=OP_STATUS,
                uint32_t r=RGN_BITSTREAM,
                uint32_t s=0,
-               uint32_t l=0) : operation(op), 
+               uint32_t l=0) : operation(op),
                                region(r),
                                start_address(s),
                                length(l) {};
@@ -103,6 +103,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & operation;
         message & region;
 
@@ -114,7 +115,7 @@ public:
                 message & length;
 
                 if(length > MAX_LENGTH)
-                    CRL_EXCEPTION("length (%u) exceeds MAX_LENGTH (%u)", 
+                    CRL_EXCEPTION("length (%u) exceeds MAX_LENGTH (%u)",
                                   length, MAX_LENGTH);
 
                 if (typeid(Archive) == typeid(utility::BufferStreamWriter))
@@ -141,6 +142,6 @@ public:
     }
 };
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif

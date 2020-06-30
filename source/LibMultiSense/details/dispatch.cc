@@ -55,6 +55,8 @@
 
 #include "details/wire/LedSensorStatusMessage.h"
 
+#include "details/wire/PollMotorInfoMessage.h"
+
 #include "details/wire/SysMtuMessage.h"
 #include "details/wire/SysNetworkMessage.h"
 #include "details/wire/SysFlashResponseMessage.h"
@@ -94,10 +96,10 @@ void defaultUdpAssembler(utility::BufferStreamWriter& stream,
     stream.write(dataP, length);
 }
 
-}; // anonymous
+} // anonymous
 
 //
-// Publish an image 
+// Publish an image
 
 void impl::dispatchImage(utility::BufferStream& buffer,
                          image::Header&         header)
@@ -173,15 +175,15 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
     stream & id;
     stream & version;
-    
+
     //
-    // Handle the message. 
+    // Handle the message.
     //
-    // Simple, low-rate messages are dynamically stored 
-    // off for possible presentation to the user in a signal 
-    // handler. 
-    // 
-    // Larger data types use a threaded dispatch 
+    // Simple, low-rate messages are dynamically stored
+    // off for possible presentation to the user in a signal
+    // handler.
+    //
+    // Larger data types use a threaded dispatch
     // mechanism with a reference-counted buffer back-end.
 
     switch(id) {
@@ -202,11 +204,11 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         } else {
 
-            sensorToLocalTime(static_cast<double>(scan.timeStartSeconds) + 
+            sensorToLocalTime(static_cast<double>(scan.timeStartSeconds) +
                               1e-6 * static_cast<double>(scan.timeStartMicroSeconds),
                               header.timeStartSeconds, header.timeStartMicroSeconds);
 
-            sensorToLocalTime(static_cast<double>(scan.timeEndSeconds) + 
+            sensorToLocalTime(static_cast<double>(scan.timeEndSeconds) +
                               1e-6 * static_cast<double>(scan.timeEndMicroSeconds),
                               header.timeEndSeconds, header.timeEndMicroSeconds);
         }
@@ -229,7 +231,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         wire::ImageMeta *metaP = new (std::nothrow) wire::ImageMeta(stream, version);
 
         if (NULL == metaP)
-            CRL_EXCEPTION("unable to allocate metadata");
+            CRL_EXCEPTION_RAW("unable to allocate metadata");
 
         m_imageMetaCache.insert(metaP->frameId, metaP); // destroys oldest
 
@@ -252,7 +254,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             header.timeMicroSeconds = metaP->timeMicroSeconds;
 
         } else
-            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) + 
+            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) +
                               1e-6 * static_cast<double>(metaP->timeMicroSeconds),
                               header.timeSeconds, header.timeMicroSeconds);
 
@@ -266,7 +268,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.framesPerSecond  = metaP->framesPerSecond;
         header.imageDataP       = image.dataP;
         header.imageLength      = image.length;
-        
+
         dispatchImage(buffer, header);
 
         break;
@@ -288,7 +290,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             header.timeMicroSeconds = metaP->timeMicroSeconds;
 
         } else
-            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) + 
+            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) +
                               1e-6 * static_cast<double>(metaP->timeMicroSeconds),
                               header.timeSeconds, header.timeMicroSeconds);
 
@@ -315,7 +317,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         if (NULL == metaP)
             break;
             //CRL_EXCEPTION("no meta cached for frameId %d", image.frameId);
-        
+
         image::Header header;
 
         if (false == m_networkTimeSyncEnabled) {
@@ -324,10 +326,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             header.timeMicroSeconds = metaP->timeMicroSeconds;
 
         } else
-            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) + 
+            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) +
                               1e-6 * static_cast<double>(metaP->timeMicroSeconds),
                               header.timeSeconds, header.timeMicroSeconds);
-        
+
         header.source           = Source_Disparity;
         header.bitsPerPixel     = wire::Disparity::API_BITS_PER_PIXEL;
         header.width            = image.width;
@@ -366,7 +368,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.sequence = imu.sequence;
         header.samples.resize(imu.samples.size());
-        
+
         for(uint32_t i=0; i<imu.samples.size(); i++) {
 
             const wire::ImuSample& w = imu.samples[i];
@@ -377,7 +379,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
                 const int64_t oneBillion = static_cast<int64_t>(1e9);
 
                 a.timeSeconds      = static_cast<uint32_t>(w.timeNanoSeconds / oneBillion);
-                a.timeMicroSeconds = static_cast<uint32_t>((w.timeNanoSeconds % oneBillion) / 
+                a.timeMicroSeconds = static_cast<uint32_t>((w.timeNanoSeconds % oneBillion) /
                                                            static_cast<int64_t>(1000));
 
             } else
@@ -412,6 +414,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     case MSG_ID(wire::LedSensorStatus::ID):
         m_messages.store(wire::LedSensorStatus(stream, version));
         break;
+    case MSG_ID(wire::MotorPoll::ID):
+        m_messages.store(wire::MotorPoll(stream, version));
+        break;
     case MSG_ID(wire::SysFlashResponse::ID):
         m_messages.store(wire::SysFlashResponse(stream, version));
         break;
@@ -443,7 +448,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         m_messages.store(wire::VersionResponse(stream, version));
         break;
     case MSG_ID(wire::StatusResponse::ID):
-        m_messages.store(wire::StatusResponse(stream, version));   
+        m_messages.store(wire::StatusResponse(stream, version));
         break;
     case MSG_ID(wire::ImuConfig::ID):
         m_messages.store(wire::ImuConfig(stream, version));
@@ -471,14 +476,14 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     // Signal any listeners (_after_ the message is stored/dispatched)
     //
     // A [n]ack is a special case where we signal
-    // the returned status code of the ack'd command, 
+    // the returned status code of the ack'd command,
     // otherwise we signal valid reception of this message.
 
     switch(id) {
     case MSG_ID(wire::Ack::ID):
         m_watch.signal(wire::Ack(stream, version));
 	break;
-    default:	
+    default:
 	m_watch.signal(id);
 	break;
     }
@@ -497,7 +502,7 @@ impl::UdpAssembler impl::getUdpAssembler(const uint8_t *firstDatagramP,
     utility::BufferStreamReader stream(firstDatagramP, length);
     stream.seek(sizeof(wire::Header));
 
-    wire::IdType messageType; 
+    wire::IdType messageType;
     stream & messageType;
 
     //
@@ -515,9 +520,9 @@ impl::UdpAssembler impl::getUdpAssembler(const uint8_t *firstDatagramP,
 // Find a suitably sized buffer for the incoming message
 
 utility::BufferStreamWriter& impl::findFreeBuffer(uint32_t messageLength)
-{    
+{
     BufferPool *bP = NULL;
-    
+
     if (messageLength <= RX_POOL_SMALL_BUFFER_SIZE)
         bP = &(m_rxSmallBufferPool);
     else if (messageLength <= RX_POOL_LARGE_BUFFER_SIZE)
@@ -587,17 +592,17 @@ void impl::handle()
     utility::ScopedLock lock(m_rxLock);
 
     for(;;) {
- 
+
         //
         // Receive the packet
-        
+
         const int bytesRead = recvfrom(m_serverSocket,
                                            (char*)m_incomingBuffer.data(),
                                            m_incomingBuffer.size(),
                                            0, NULL, NULL);
         //
         // Nothing left to read
-        
+
         if (bytesRead < 0)
             break;
 
@@ -640,7 +645,7 @@ void impl::handle()
         if (NULL == trP) {
 
             //
-            // If we drop first packet, we will drop entire message. Currently we 
+            // If we drop first packet, we will drop entire message. Currently we
             // require the first datagram in order to assign an assembler.
             // TODO: re-think this.
 
@@ -656,7 +661,7 @@ void impl::handle()
                                      findFreeBuffer(header.messageLength));
             }
         }
-     
+
         //
         // Assemble the datagram into the message stream, returns true if the
         // assembly is complete.
@@ -729,16 +734,16 @@ void *impl::rxThread(void *userDataP)
             selfP->handle();
 
         } catch (const std::exception& e) {
-                    
+
             CRL_DEBUG("exception while decoding packet: %s\n", e.what());
 
         } catch ( ... ) {
-            
-            CRL_DEBUG("unknown exception while decoding packet\n");
+
+            CRL_DEBUG_RAW("unknown exception while decoding packet\n");
         }
     }
 
     return NULL;
 }
 
-}}}; // namespaces
+}}} // namespaces

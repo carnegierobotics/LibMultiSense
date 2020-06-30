@@ -16,9 +16,11 @@ target_link_libraries (FlashUtility ${MULTISENSE_UTILITY_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 else()
-    add_custom_target(MultiSenseUpdater ALL
-                      DEPENDS FlashUtility
-                      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/_MultiSenseUpdater
-                      ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MultiSenseUpdater)
-
+    install(PROGRAMS _MultiSenseUpdater DESTINATION bin RENAME MultiSenseUpdater)
 endif()
+
+#
+# Specify the install location
+#
+
+install(TARGETS FlashUtility RUNTIME DESTINATION "bin")

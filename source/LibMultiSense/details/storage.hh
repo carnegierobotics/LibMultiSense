@@ -45,7 +45,7 @@
 namespace crl {
 namespace multisense {
 namespace details {
-    
+
     //
     // A message storage interface
     //
@@ -64,7 +64,7 @@ namespace details {
             }
 
             m_map[MSG_ID(T::ID)] = Holder::Create<T>(msg);
-        };
+        }
 
         template<class T> Status extract(T& msg) {
             utility::ScopedLock lock(m_lock);
@@ -77,32 +77,32 @@ namespace details {
             m_map.erase(it);
 
             return Status_Ok;
-        };
-        
+        }
+
     private:
 
         class Holder {
         public:
-       
+
             Holder(void *r=NULL) : m_refP(r) {};
-            
+
             template<class T> static Holder Create(const T& msg) {
                 return Holder(reinterpret_cast<void *>(new T(msg)));
-            };
-      
+            }
+
             template<class T> void destroy() {
                 if (NULL == m_refP)
-                    CRL_EXCEPTION("destroying NULL reference");
+                    CRL_EXCEPTION("destroying NULL reference", "");
                 delete reinterpret_cast<T*>(m_refP);
-            };
-        
+            }
+
             template<class T> void extract(T& msg) {
                 if (NULL == m_refP)
-                    CRL_EXCEPTION("extracting NULL reference");
+                    CRL_EXCEPTION("extracting NULL reference", "");
                 msg = *(reinterpret_cast<T*>(m_refP));
                 destroy<T>();
-            };
-            
+            }
+
         private:
             void *m_refP;
         };
@@ -124,14 +124,14 @@ namespace details {
     // DATA objects are assumed to be allocated on the heap, and memory management
     // of the object is delegated here upon insert().
     //
-    // For *_nolock() variations, lock-management must be 
+    // For *_nolock() variations, lock-management must be
     // done by the user.
 
     template<class KEY, class DATA>
     class DepthCache {
     public:
-        
-        DepthCache(std::size_t depth, KEY min) : 
+
+        DepthCache(std::size_t depth, KEY min) :
             m_depth(depth),
             m_minimum(min) {};
 
@@ -145,8 +145,8 @@ namespace details {
             }
         };
 
-        utility::Mutex& mutex() { 
-            return m_lock; 
+        utility::Mutex& mutex() {
+            return m_lock;
         };
 
         DATA* find_nolock(KEY key) {
@@ -219,6 +219,6 @@ namespace details {
         utility::Mutex    m_lock;
     };
 
-}}}; // namespaces
+}}} // namespaces
 
 #endif // LibMultiSense_details_storage_hh

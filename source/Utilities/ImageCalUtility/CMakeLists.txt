@@ -13,3 +13,9 @@ add_executable(ImageCalUtility ImageCalUtility.cc)
 #
 
 target_link_libraries (ImageCalUtility ${MULTISENSE_UTILITY_LIBS})
+
+#
+# Specify the install location
+#
+
+install(TARGETS ImageCalUtility RUNTIME DESTINATION "bin")

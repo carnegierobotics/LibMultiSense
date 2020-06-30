@@ -64,8 +64,8 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     uint16_t width;
     uint16_t height;
 
-    ImageHeader() 
-        : 
+    ImageHeader()
+        :
 #ifdef SENSORDPOD_FIRMWARE
         id(ID),
         version(VERSION),
@@ -97,6 +97,7 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
         message & source;
         message & bitsPerPixel;
         message & frameId;
@@ -106,7 +107,7 @@ public:
         const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) bitsPerPixel / 8.0) * width * height));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-          
+
             message.write(dataP, imageSize);
 
         } else {
@@ -119,6 +120,6 @@ public:
 
 #endif // !SENSORPOD_FIRMWARE
 
-}}}}; // namespaces
+}}}} // namespaces
 
 #endif
