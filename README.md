@@ -73,7 +73,7 @@ Html and LaTex documentation will be generated in the docs directory.
 
 Usage examples are included in the Doxygen documentation.
 
-###Support
+### Support
 
 To report an issue with this library or request a new feature,
 please use the [GitHub issues system](https://github.com/carnegierobotics/LibMultiSense/issues)
