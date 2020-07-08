@@ -12,6 +12,7 @@ share/
 install/
 docs/html/
 docs/latex/
+.idea
 
 # GitHub standard C++ gitignore
 # Prerequisites

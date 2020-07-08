@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Threads REQUIRED)
+
+
+if(NOT TARGET LibMultiSense::LibMultiSense)
+    include(${CMAKE_CURRENT_LIST_DIR}/MultiSenseTargets.cmake)
+endif()
+
+check_required_components(MultiSense)

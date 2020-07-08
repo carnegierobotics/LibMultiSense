@@ -1,0 +1,21 @@
+#
+# LidarCalUtility - Makefile
+#
+
+#
+# Setup the executable that we will use.
+#
+
+add_executable(LidarCalUtility LidarCalUtility.cc)
+
+#
+# Specify libraries against which to link.
+#
+
+target_link_libraries (LidarCalUtility MultiSense::MultiSense MultiSense::CalibrationYaml)
+
+#
+# Specify the install location
+#
+
+install(TARGETS LidarCalUtility RUNTIME DESTINATION "bin")

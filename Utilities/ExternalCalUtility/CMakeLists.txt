@@ -1,0 +1,21 @@
+#
+# ExternalCalUtility - Makefile
+#
+
+#
+# Setup the executable that we will use.
+#
+
+add_executable(ExternalCalUtility ExternalCalUtility.cc)
+
+#
+# Specify libraries against which to link.
+#
+
+target_link_libraries (ExternalCalUtility MultiSense::MultiSense MultiSense::CalibrationYaml)
+
+#
+# Specify the install location
+#
+
+install(TARGETS ExternalCalUtility RUNTIME DESTINATION "bin")
