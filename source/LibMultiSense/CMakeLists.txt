@@ -79,5 +79,3 @@ install(TARGETS MultiSense
 
 install(EXPORT MultiSenseConfig
     DESTINATION lib/cmake/MultiSense)
-
-#install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)
