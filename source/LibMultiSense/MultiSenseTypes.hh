@@ -717,6 +717,7 @@ public:
      * x axis is horizontal and y axis is vertical.
      * (0,0) coordinate starts in the upper left corner of the image.
      * If (x + w > image width) or (y + h > image height) the sensor will return an error
+     * Setting to default:(0,0,0,0) will use the entire image for the ROI
      * This feature is only available in sensor firmware version 4.3 and greater
      *
      * @param start_x The X coordinate where the ROI starts
@@ -911,6 +912,7 @@ public:
 
     /**
      * Query the current image configuration's auto-exposure ROI width value
+     * Will return 0 for the default setting, when the ROI covers the entire image
      *
      * @return The current image configuration's auto-exposure ROI width value
      */
@@ -918,6 +920,7 @@ public:
 
     /**
      * Query the current image configuration's auto-exposure ROI height value
+     * Will return 0 for the default setting, when the ROI covers the entire image
      *
      * @return The current image configuration's auto-exposure ROI height value
      */
@@ -1046,7 +1049,7 @@ public:
                m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f),
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_autoExposureRoiX(0), m_autoExposureRoiY(0),
-               m_autoExposureRoiWidth(m_width), m_autoExposureRoiHeight(m_height),
+               m_autoExposureRoiWidth(0), m_autoExposureRoiHeight(0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
