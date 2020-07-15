@@ -52,6 +52,10 @@ add_library(MultiSense SHARED ${MULTISENSE_HEADERS}
 
 set_target_properties(MultiSense PROPERTIES VERSION "3.8")
 
+target_include_directories(MultiSense INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include>)
+
+set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}")
+
 #
 # We want to link against our child libraries.
 #
@@ -68,6 +72,7 @@ endif()
 install(TARGETS MultiSense
   EXPORT MultiSenseConfig
   LIBRARY DESTINATION lib
+  PUBLIC_HEADER DESTINATION include/MultiSense
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
 )
@@ -75,4 +80,4 @@ install(TARGETS MultiSense
 install(EXPORT MultiSenseConfig
     DESTINATION lib/cmake/MultiSense)
 
-install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)
+#install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)
