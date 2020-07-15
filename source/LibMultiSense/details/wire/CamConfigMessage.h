@@ -94,6 +94,7 @@ public:
 
     //
     // Version 5 additions
+
     uint16_t autoExposureRoiX;
     uint16_t autoExposureRoiY;
     uint16_t autoExposureRoiWidth;
