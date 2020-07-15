@@ -133,7 +133,6 @@ static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                    = (1<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
 
-
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
  * to set the ROI to the full image regardless of the current resolution
