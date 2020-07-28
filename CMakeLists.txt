@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(LibMultiSense)
 
-add_compile_options(-Wall -Wextra)# -Werror -Wpedantic)
+add_compile_options(-Wall -Wextra -Werror -Wpedantic)
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
 
