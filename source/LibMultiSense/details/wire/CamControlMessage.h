@@ -147,8 +147,8 @@ public:
         {
             autoExposureRoiX = 0;
             autoExposureRoiY = 0;
-            autoExposureRoiWidth = 0;
-            autoExposureRoiHeight = 0;
+            autoExposureRoiWidth = crl::multisense::Roi_Full_Image;
+            autoExposureRoiHeight = crl::multisense::Roi_Full_Image;
         }
     }
 };
