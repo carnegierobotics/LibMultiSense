@@ -134,6 +134,12 @@ static CRL_CONSTEXPR DataSource Source_Imu                    = (1<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
 
 /**
+ * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
+ * to set the ROI to the full image regardless of the current resolution
+ */
+static CRL_CONSTEXPR int Roi_Full_Image = 0;
+
+/**
  * Class used to request that MultiSense data be sent to a 3rd-party
  * stream destination (UDP port), currently supported only by CRL's
  * Monocular IP Camera.  This functionality is not supported by any of
@@ -712,6 +718,29 @@ public:
      */
     void setStoreSettingsInFlash    (bool e)     {m_storeSettingsInFlash = e;    };
 
+    /**
+     * Set the desired ROI to use when computing the auto-exposure.
+     * x axis is horizontal and y axis is vertical.
+     * (0,0) coordinate starts in the upper left corner of the image.
+     * If (x + w > image width) or (y + h > image height) the sensor will return an error
+     * Setting to default:(0,0,crl::multisense::Roi_Full_Image,crl::multisense::Roi_Full_Image)
+     * will use the entire image for the ROI regardless of the current resolution
+     * This feature is only available in sensor firmware version 4.3 and greater
+     *
+     * @param start_x The X coordinate where the ROI starts
+     * @param start_y The Y coordinate where the ROI starts
+     * @param width The width of the ROI
+     * @param height The height of the ROI
+     */
+
+    void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
+    {
+        m_autoExposureRoiX = start_x;
+        m_autoExposureRoiY = start_y;
+        m_autoExposureRoiWidth = width;
+        m_autoExposureRoiHeight = height;
+    }
+
     //
     // Query
 
@@ -874,6 +903,38 @@ public:
      */
     bool     storeSettingsInFlash    () const { return m_storeSettingsInFlash; };
 
+    /**
+     * Query the current image configuration's auto-exposure ROI X value
+     *
+     * @return The current image configuration's auto-exposure ROI X value
+     */
+    uint16_t autoExposureRoiX        () const { return m_autoExposureRoiX; };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI Y value
+     *
+     * @return The current image configuration's auto-exposure ROI Y value
+     */
+    uint16_t autoExposureRoiY        () const { return m_autoExposureRoiY; };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI width value
+     * Will return crl::multisense::Roi_Full_Image for the default setting,
+     * when the ROI covers the entire image regardless of current resolution
+     *
+     * @return The current image configuration's auto-exposure ROI width value
+     */
+    uint16_t autoExposureRoiWidth    () const { return m_autoExposureRoiWidth; };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI height value
+     * Will return crl::multisense::Roi_Full_Image for the default setting,
+     * when the ROI covers the entire image regardless of current resolution
+     *
+     * @return The current image configuration's auto-exposure ROI height value
+     */
+    uint16_t autoExposureRoiHeight   () const { return m_autoExposureRoiHeight; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -996,6 +1057,8 @@ public:
                m_wbBlue(1.0f), m_wbRed(1.0f), m_wbEnabled(true), m_wbDecay(3), m_wbThresh(0.5f),
                m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f),
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
+               m_autoExposureRoiX(0), m_autoExposureRoiY(0),
+               m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1018,6 +1081,10 @@ private:
     float    m_spfStrength;
     bool     m_hdrEnabled;
     bool     m_storeSettingsInFlash;
+    uint16_t m_autoExposureRoiX;
+    uint16_t m_autoExposureRoiY;
+    uint16_t m_autoExposureRoiWidth;
+    uint16_t m_autoExposureRoiHeight;
 
 protected:
 
@@ -1365,7 +1432,6 @@ public:
 typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
-
 /**
  * Class used to store a laser calibration. Calibrations can be queried or set
  * for a specific sensor
@@ -1460,9 +1526,7 @@ public:
 } // namespace lidar
 
 
-
 namespace lighting {
-
 
 /** The maximum number of lights for a given sensor */
 static CRL_CONSTEXPR uint32_t MAX_LIGHTS     = 8;
@@ -1725,7 +1789,6 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace pps
-
 
 
 namespace imu {
@@ -2007,8 +2070,6 @@ public:
 };
 
 } // namespace imu
-
-
 
 
 namespace system {
