@@ -157,6 +157,12 @@ public:
 #endif // SENSORPOD_FIRMWARE
     };
 
+#ifndef SENSORPOD_FIRMWARE
+    BufferStream(BufferStream &&) noexcept = default;
+    BufferStream& operator=(BufferStream const&) = default;
+    BufferStream& operator=(BufferStream &&) noexcept = default;
+#endif // SENSORPOD_FIRMWARE
+
 protected:
 
     bool         m_alloced;

@@ -90,6 +90,11 @@ public:
         }
     };
 
+    Listener(Listener const&) = default;
+    Listener(Listener &&) noexcept = default;
+    Listener& operator=(Listener const&) = default;
+    Listener& operator=(Listener &&) noexcept = default;
+
     void dispatch(THeader& header) {
 
         if (header.inMask(m_sourceMask))
@@ -142,6 +147,11 @@ private:
             m_exposeBuffer(false),
             m_header(),
             m_userDataP(NULL) {};
+
+        Dispatch(Dispatch const&) = default;
+        Dispatch(Dispatch &&) noexcept = default;
+        Dispatch& operator=(Dispatch const&) = default;
+        Dispatch& operator=(Dispatch &&) noexcept = default;
 
         void operator() (void) {
 
