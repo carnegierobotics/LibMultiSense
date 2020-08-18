@@ -13,6 +13,15 @@ project(LibMultiSense)
 
 add_compile_options(-Wall -Wextra -Werror -Wpedantic)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    #
+    # Fix warnings with __VA__OPT__ when we port to c++2a
+    # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
+    #
+    add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+endif()
+
+
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
 
 #
