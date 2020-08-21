@@ -826,7 +826,7 @@ Status impl::setSensorCalibration(const image::SensorCalibration& c)
 
 Status impl::getTransmitDelay(image::TransmitDelay& c)
 {
-    wire::SysTransmitDelay d;
+    wire::SysTransmitDelay d(0);
 
     Status status = waitData(wire::SysGetTransmitDelay(), d);
     if (Status_Ok != status)

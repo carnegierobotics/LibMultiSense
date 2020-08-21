@@ -51,7 +51,7 @@ class StatusResponse {
 public:
     static CRL_CONSTEXPR IdType      ID                  = ID_DATA_STATUS;
     static CRL_CONSTEXPR VersionType VERSION             = 3;
-	static CRL_CONSTEXPR float       INVALID_TEMPERATURE() { return -99999.0f; }
+	static float INVALID_TEMPERATURE() { return -99999.0f; };
 
     //
     // Subsytem status
