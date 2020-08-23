@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(LibMultiSense)
 
-add_compile_options(-Wall -Wextra -Werror -Wpedantic)
+add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     #
@@ -20,15 +20,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     #
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 endif()
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    #
-    # Fix warnings with __VA__OPT__ when we port to c++2a
-    # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
-    #
-    add_compile_options(-Wno-variadic-macros)
-endif()
-
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
 

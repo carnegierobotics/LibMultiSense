@@ -92,9 +92,9 @@ public:
 
     #if __cplusplus > 199711L
         Listener(Listener const&) = default;
-        Listener(Listener &&) noexcept = default;
+        Listener(Listener &&) = default;
         Listener& operator=(Listener const&) = default;
-        Listener& operator=(Listener &&) noexcept = default;
+        Listener& operator=(Listener &&) = default;
     #endif
 
     void dispatch(THeader& header) {
@@ -153,9 +153,9 @@ private:
 
         #if __cplusplus > 199711L
             Dispatch(Dispatch const&) = default;
-            Dispatch(Dispatch &&) noexcept = default;
+            Dispatch(Dispatch &&) = default;
             Dispatch& operator=(Dispatch const&) = default;
-            Dispatch& operator=(Dispatch &&) noexcept = default;
+            Dispatch& operator=(Dispatch &&) = default;
         #endif
 
         void operator() (void) {
