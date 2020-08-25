@@ -214,15 +214,15 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        fprintf(stdout,"left sensor gain: %hu\nright sensor gain %hu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n",
+        fprintf(stdout,"left sensor gain: %hhu\nright sensor gain %hhu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n",
                     sensorCalibration.adc_gain[0], sensorCalibration.adc_gain[1],
                     sensorCalibration.bl_offset[0], sensorCalibration.bl_offset[1],
                     sensorCalibration.vramp[0], sensorCalibration.vramp[1]);
 
     } else {
 
-        fprintf(stdout,"Setting :\nleft sensor gain: %5hu binary: %s\n"
-                                   "right sensor gain %5hu binary: %s\n"
+        fprintf(stdout,"Setting :\nleft sensor gain: %5hhu binary: %s\n"
+                                   "right sensor gain %5hhu binary: %s\n"
                                    "left sensor black level: %d binary: %s\n"
                                    "right sensor black level %d binary: %s\n",
                     sensorCalibration.adc_gain[0],byte_to_binary(sensorCalibration.adc_gain[0]).c_str(),

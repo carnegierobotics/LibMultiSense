@@ -157,11 +157,21 @@ public:
 #endif // SENSORPOD_FIRMWARE
     };
 
+        //
+        // Assignment Operator
+
+    BufferStream& operator=(const BufferStream& source) {
+        m_alloced = source.m_alloced;
+        m_size    = source.m_size;
+        m_tell    = 0;  // reset
+        m_bufferP = source.m_bufferP;
+
 #ifndef SENSORPOD_FIRMWARE
-    BufferStream(BufferStream &&) noexcept = default;
-    BufferStream& operator=(BufferStream const&) = default;
-    BufferStream& operator=(BufferStream &&) noexcept = default;
+        m_ref     = source.m_ref;
 #endif // SENSORPOD_FIRMWARE
+
+        return *this;
+    };
 
 protected:
 

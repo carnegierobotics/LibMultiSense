@@ -58,6 +58,7 @@ public:
 
     SysTransmitDelay(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     SysTransmitDelay() {};
+    SysTransmitDelay(int d): delay(d) {};
 
     //
     // Serialization routine
