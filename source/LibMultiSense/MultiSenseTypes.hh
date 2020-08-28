@@ -2259,16 +2259,17 @@ public:
     /** The maximum number of PCBs in a device */
     static CRL_CONSTEXPR uint32_t MAX_PCBS                   = 8;
 
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL      = 1;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7      = 2;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S       = HARDWARE_REV_MULTISENSE_S7; // alias for backward source compatibility
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M       = 3;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S     = 4;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21     = 5;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21    = 6;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_CAT_S27 = 7;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S30     = 8;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM               = 100;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL       = 1;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7       = 2;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S        = HARDWARE_REV_MULTISENSE_S7; // alias for backward source compatibility
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M        = 3;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S      = 4;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21      = 5;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21     = 6;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_C6S2_S27 = 7;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S30      = 8;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7AR     = 9;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                = 100;
 
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
