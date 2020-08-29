@@ -50,6 +50,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
