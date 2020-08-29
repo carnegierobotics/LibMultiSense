@@ -45,14 +45,15 @@
 #include <unistd.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fstream>
+#include <iostream>
 #include <map>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <sstream>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <Utilities/portability/getopt/getopt.h>
 #include <LibMultiSense/MultiSenseChannel.hh>
@@ -214,21 +215,18 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        fprintf(stdout,"left sensor gain: %hu\nright sensor gain %hu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n",
-                    sensorCalibration.adc_gain[0], sensorCalibration.adc_gain[1],
-                    sensorCalibration.bl_offset[0], sensorCalibration.bl_offset[1],
-                    sensorCalibration.vramp[0], sensorCalibration.vramp[1]);
-
+        std::cout << "left sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[0]) << std::endl;
+        std::cout << "right sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[1]) << std::endl;
+        std::cout << "left sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[0]) << std::endl;
+        std::cout << "right sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[1]) << std::endl;
+        std::cout << "left sensor vramp: "  << static_cast<uint32_t>(sensorCalibration.vramp[0]) << std::endl;
+        std::cout << "right sensor vramp: "  << static_cast<uint32_t>(sensorCalibration.vramp[1]) << std::endl;
     } else {
-
-        fprintf(stdout,"Setting :\nleft sensor gain: %5hu binary: %s\n"
-                                   "right sensor gain %5hu binary: %s\n"
-                                   "left sensor black level: %d binary: %s\n"
-                                   "right sensor black level %d binary: %s\n",
-                    sensorCalibration.adc_gain[0],byte_to_binary(sensorCalibration.adc_gain[0]).c_str(),
-                    sensorCalibration.adc_gain[1],byte_to_binary(sensorCalibration.adc_gain[1]).c_str(),
-                    sensorCalibration.bl_offset[0],bytes_to_binary(sensorCalibration.bl_offset[0], 14).c_str(),
-                    sensorCalibration.bl_offset[1],bytes_to_binary(sensorCalibration.bl_offset[1], 14).c_str());
+        std::cout << "Setting :" << std::endl;
+        std::cout << "left sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[0]) << " binary: " << byte_to_binary(sensorCalibration.adc_gain[0]) << std::endl;
+        std::cout << "right sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[1]) << " binary: " << byte_to_binary(sensorCalibration.adc_gain[1]) << std::endl;
+        std::cout << "left sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[0]) << " binary: " << bytes_to_binary(sensorCalibration.bl_offset[0], 14) << std::endl;
+        std::cout << "right sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[1]) << " binary: " << bytes_to_binary(sensorCalibration.bl_offset[1], 14) << std::endl;
 
         status = channelP->setSensorCalibration(sensorCalibration);
         if (Status_Ok != status) {
