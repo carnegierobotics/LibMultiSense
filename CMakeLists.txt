@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 2.8)
 
 project(LibMultiSense)
 
-add_compile_options(-Wall -Wextra -Werror -Wpedantic)
+add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     #
@@ -20,7 +20,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     #
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 endif()
-
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
 
