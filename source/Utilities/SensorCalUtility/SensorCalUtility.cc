@@ -45,14 +45,14 @@
 #include <unistd.h>
 #endif
 
-#include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <string>
+#include <sstream>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fstream>
-#include <map>
-#include <string.h>
-#include <sstream>
 
 #include <Utilities/portability/getopt/getopt.h>
 #include <LibMultiSense/MultiSenseChannel.hh>
@@ -88,16 +88,14 @@ std::string bytes_to_binary(uint64_t x, int bits)
 
 void usage(const char *programNameP)
 {
-    fprintf(stderr,
-            "USAGE: %s [<options>]\n",
-            programNameP);
-    fprintf(stderr, "Where <options> are:\n");
-    fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
-    fprintf(stderr, "\t-s                   : set the calibration (default is query)\n");
-    fprintf(stderr, "\t-l                   : set the left calibration \n");
-    fprintf(stderr, "\t-r                   : set the right calibration \n");
-    fprintf(stderr, "\t-e                   : set the right black level \n");
-    fprintf(stderr, "\t-k                   : set the left black level \n");
+    std::cerr << "USAGE: " << programNameP << "  [<options>]" << std::endl;
+    std::cerr << "Where <options> are:" << std::endl;
+    std::cerr << "\t-a <ip_address>      : ip address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-s                   : set the calibration (default is query)" << std::endl;
+    std::cerr << "\t-l                   : set the left calibration" << std::endl;
+    std::cerr << "\t-r                   : set the right calibration" << std::endl;
+    std::cerr << "\t-e                   : set the right black level" << std::endl;
+    std::cerr << "\t-k                   : set the left black level" << std::endl;
 
     exit(-1);
 }
@@ -143,19 +141,17 @@ int main(int    argc,
     // Verify options
 
     if (setCal && (!setLeft && !setRight && !setLeftBlack && !setRightBlack)) {
-        fprintf(stderr, "Please specify a value to set using -l, -r, -e, or -k\n");
+        std::cerr << "Please specify a value to set using -l, -r, -e, or -k" << std::endl;
         usage(*argvPP);
     }
 
     //
     // Initialize communications.
-    fprintf(stdout, "Attempting to establish communications with \"%s\"\n",
-		ipAddress.c_str());
+    std::cout << "Attempting to establish communications with: " << ipAddress << std::endl;
 
     Channel *channelP = Channel::Create(ipAddress);
     if (NULL == channelP) {
-        fprintf(stderr, "Failed to establish communications with \"%s\"\n",
-            ipAddress.c_str());
+        std::cerr << "Failed to establish communications with: " << ipAddress << std::endl;
         return -1;
     }
 
@@ -165,8 +161,7 @@ int main(int    argc,
 
     status = channelP->getSensorCalibration(sensorCalibration);
     if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor calibration: %s\n",
-                Channel::statusString(status));
+        std::cerr << "failed to query sensor calibration: " << Channel::statusString(status);
         goto clean_out;
     }
 
@@ -178,7 +173,7 @@ int main(int    argc,
 
         if (left > 255 || left < 0)
         {
-            fprintf(stderr, "Left sensor gain range is 0-255\n");
+            std::cerr << "Left sensor gain range is 0-255" << std::endl;
             usage(*argvPP);
             goto clean_out;
         }
@@ -191,7 +186,7 @@ int main(int    argc,
 
         if (right > 255 || right < 0)
         {
-            fprintf(stderr, "Right sensor gain range is 0-255\n");
+            std::cerr << "Right sensor gain range is 0-255" << std::endl;
             usage(*argvPP);
             goto clean_out;
         }
@@ -214,30 +209,26 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        fprintf(stdout,"left sensor gain: %hhu\nright sensor gain %hhu\nleft sensor black level: %d\nright sensor black level %d\nleft sensor vramp: %d\nright sensor vramp %d\n",
-                    sensorCalibration.adc_gain[0], sensorCalibration.adc_gain[1],
-                    sensorCalibration.bl_offset[0], sensorCalibration.bl_offset[1],
-                    sensorCalibration.vramp[0], sensorCalibration.vramp[1]);
-
+        std::cout << "left sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[0]) << std::endl;
+        std::cout << "right sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[1]) << std::endl;
+        std::cout << "left sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[0]) << std::endl;
+        std::cout << "right sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[1]) << std::endl;
+        std::cout << "left sensor vramp: "  << static_cast<uint32_t>(sensorCalibration.vramp[0]) << std::endl;
+        std::cout << "right sensor vramp: "  << static_cast<uint32_t>(sensorCalibration.vramp[1]) << std::endl;
     } else {
-
-        fprintf(stdout,"Setting :\nleft sensor gain: %5hhu binary: %s\n"
-                                   "right sensor gain %5hhu binary: %s\n"
-                                   "left sensor black level: %d binary: %s\n"
-                                   "right sensor black level %d binary: %s\n",
-                    sensorCalibration.adc_gain[0],byte_to_binary(sensorCalibration.adc_gain[0]).c_str(),
-                    sensorCalibration.adc_gain[1],byte_to_binary(sensorCalibration.adc_gain[1]).c_str(),
-                    sensorCalibration.bl_offset[0],bytes_to_binary(sensorCalibration.bl_offset[0], 14).c_str(),
-                    sensorCalibration.bl_offset[1],bytes_to_binary(sensorCalibration.bl_offset[1], 14).c_str());
+        std::cout << "Setting :" << std::endl;
+        std::cout << "left sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[0]) << " binary: " << byte_to_binary(sensorCalibration.adc_gain[0]) << std::endl;
+        std::cout << "right sensor gain: " << static_cast<uint32_t>(sensorCalibration.adc_gain[1]) << " binary: " << byte_to_binary(sensorCalibration.adc_gain[1]) << std::endl;
+        std::cout << "left sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[0]) << " binary: " << bytes_to_binary(sensorCalibration.bl_offset[0], 14) << std::endl;
+        std::cout << "right sensor black level: " << static_cast<uint32_t>(sensorCalibration.bl_offset[1]) << " binary: " << bytes_to_binary(sensorCalibration.bl_offset[1], 14) << std::endl;
 
         status = channelP->setSensorCalibration(sensorCalibration);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to set sensor calibration: %s\n",
-                    Channel::statusString(status));
+            std::cerr << "failed to set sensor calibration: " << Channel::statusString(status) << std::endl;
             goto clean_out;
         }
 
-        fprintf(stdout, "Sensor calibration successfully updated\n");
+        std::cout <<  "Sensor calibration successfully updated" << std::endl;
     }
 
 clean_out:
