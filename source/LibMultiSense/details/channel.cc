@@ -363,14 +363,19 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
 
     if (mask & Source_Raw_Left)               wire_mask |= wire::SOURCE_RAW_LEFT;
     if (mask & Source_Raw_Right)              wire_mask |= wire::SOURCE_RAW_RIGHT;
+    if (mask & Source_Raw_Aux)                wire_mask |= wire::SOURCE_RAW_AUX;
     if (mask & Source_Luma_Left)              wire_mask |= wire::SOURCE_LUMA_LEFT;
     if (mask & Source_Luma_Right)             wire_mask |= wire::SOURCE_LUMA_RIGHT;
+    if (mask & Source_Luma_Aux)               wire_mask |= wire::SOURCE_LUMA_AUX;
     if (mask & Source_Luma_Rectified_Left)    wire_mask |= wire::SOURCE_LUMA_RECT_LEFT;
     if (mask & Source_Luma_Rectified_Right)   wire_mask |= wire::SOURCE_LUMA_RECT_RIGHT;
+    if (mask & Source_Luma_Rectified_Aux)     wire_mask |= wire::SOURCE_LUMA_RECT_AUX;
     if (mask & Source_Chroma_Left)            wire_mask |= wire::SOURCE_CHROMA_LEFT;
     if (mask & Source_Chroma_Right)           wire_mask |= wire::SOURCE_CHROMA_RIGHT;
+    if (mask & Source_Chroma_Aux)             wire_mask |= wire::SOURCE_CHROMA_AUX;
     if (mask & Source_Disparity)              wire_mask |= wire::SOURCE_DISPARITY;
     if (mask & Source_Disparity_Right)        wire_mask |= wire::SOURCE_DISPARITY_RIGHT;
+    if (mask & Source_Disparity_Aux)          wire_mask |= wire::SOURCE_DISPARITY_AUX;
     if (mask & Source_Disparity_Cost)         wire_mask |= wire::SOURCE_DISPARITY_COST;
     if (mask & Source_Jpeg_Left)              wire_mask |= wire::SOURCE_JPEG_LEFT;
     if (mask & Source_Rgb_Left)               wire_mask |= wire::SOURCE_RGB_LEFT;
@@ -387,14 +392,19 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
 
     if (mask & wire::SOURCE_RAW_LEFT)          api_mask |= Source_Raw_Left;
     if (mask & wire::SOURCE_RAW_RIGHT)         api_mask |= Source_Raw_Right;
+    if (mask & wire::SOURCE_RAW_AUX)           api_mask |= Source_Raw_Aux;
     if (mask & wire::SOURCE_LUMA_LEFT)         api_mask |= Source_Luma_Left;
     if (mask & wire::SOURCE_LUMA_RIGHT)        api_mask |= Source_Luma_Right;
+    if (mask & wire::SOURCE_LUMA_AUX)          api_mask |= Source_Luma_Aux;
     if (mask & wire::SOURCE_LUMA_RECT_LEFT)    api_mask |= Source_Luma_Rectified_Left;
     if (mask & wire::SOURCE_LUMA_RECT_RIGHT)   api_mask |= Source_Luma_Rectified_Right;
+    if (mask & wire::SOURCE_LUMA_RECT_AUX)     api_mask |= Source_Luma_Rectified_Aux;
     if (mask & wire::SOURCE_CHROMA_LEFT)       api_mask |= Source_Chroma_Left;
     if (mask & wire::SOURCE_CHROMA_RIGHT)      api_mask |= Source_Chroma_Right;
+    if (mask & wire::SOURCE_CHROMA_AUX)        api_mask |= Source_Chroma_Aux;
     if (mask & wire::SOURCE_DISPARITY)         api_mask |= Source_Disparity;
     if (mask & wire::SOURCE_DISPARITY_RIGHT)   api_mask |= Source_Disparity_Right;
+    if (mask & wire::SOURCE_DISPARITY_AUX)     api_mask |= Source_Disparity_Aux;
     if (mask & wire::SOURCE_DISPARITY_COST)    api_mask |= Source_Disparity_Cost;
     if (mask & wire::SOURCE_JPEG_LEFT)         api_mask |= Source_Jpeg_Left;
     if (mask & wire::SOURCE_RGB_LEFT)          api_mask |= Source_Rgb_Left;
