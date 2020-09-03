@@ -231,17 +231,27 @@ static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR         = (1<<23);
 static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN        = (1<<24);
 static CRL_CONSTEXPR SourceType SOURCE_IMU               = (1<<25);
 static CRL_CONSTEXPR SourceType SOURCE_PPS               = (1<<26);
+static CRL_CONSTEXPR SourceType SOURCE_RAW_AUX           = (1<<27);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_AUX          = (1<<28);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_AUX     = (1<<29);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_AUX        = (1<<30);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_AUX     = (1<<31);
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
+                                                            SOURCE_RAW_AUX         |
                                                             SOURCE_LUMA_LEFT       |
                                                             SOURCE_LUMA_RIGHT      |
+                                                            SOURCE_LUMA_AUX        |
                                                             SOURCE_LUMA_RECT_LEFT  |
                                                             SOURCE_LUMA_RECT_RIGHT |
+                                                            SOURCE_LUMA_RECT_AUX   |
                                                             SOURCE_CHROMA_LEFT     |
                                                             SOURCE_CHROMA_RIGHT    |
+                                                            SOURCE_CHROMA_AUX      |
                                                             SOURCE_DISPARITY_LEFT  |
                                                             SOURCE_DISPARITY_RIGHT |
                                                             SOURCE_DISPARITY_COST  |
+                                                            SOURCE_DISPARITY_AUX   |
                                                             SOURCE_JPEG_LEFT       |
                                                             SOURCE_RGB_LEFT);
 

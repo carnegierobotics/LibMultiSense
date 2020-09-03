@@ -132,6 +132,11 @@ static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1<<17);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                    = (1<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
+static CRL_CONSTEXPR DataSource Source_Raw_Aux                = (1<<27);
+static CRL_CONSTEXPR DataSource Source_Luma_Aux               = (1<<28);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux     = (1<<29);
+static CRL_CONSTEXPR DataSource Source_Chroma_Aux             = (1<<30);
+static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1<<31);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
