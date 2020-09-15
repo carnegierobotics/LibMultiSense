@@ -767,6 +767,11 @@ Status impl::getImageCalibration(image::Calibration& c)
     CPY_ARRAY_2(c.right.R, d.right.R, 3, 3);
     CPY_ARRAY_2(c.right.P, d.right.P, 3, 4);
 
+    CPY_ARRAY_2(c.aux.M, d.aux.M, 3, 3);
+    CPY_ARRAY_1(c.aux.D, d.aux.D, 8);
+    CPY_ARRAY_2(c.aux.R, d.aux.R, 3, 3);
+    CPY_ARRAY_2(c.aux.P, d.aux.P, 3, 4);
+
     return Status_Ok;
 }
 
@@ -786,6 +791,11 @@ Status impl::setImageCalibration(const image::Calibration& c)
     CPY_ARRAY_1(d.right.D, c.right.D, 8);
     CPY_ARRAY_2(d.right.R, c.right.R, 3, 3);
     CPY_ARRAY_2(d.right.P, c.right.P, 3, 4);
+
+    CPY_ARRAY_2(d.aux.M, c.aux.M, 3, 3);
+    CPY_ARRAY_1(d.aux.D, c.aux.D, 8);
+    CPY_ARRAY_2(d.aux.R, c.aux.R, 3, 3);
+    CPY_ARRAY_2(d.aux.P, c.aux.P, 3, 4);
 
     return waitAck(d);
 }

@@ -1204,6 +1204,8 @@ public:
     Data left;
     /**Full resolution camera calibration corresponding to the right camera */
     Data right;
+    /**Full resolution camera calibration corresponding to aux color camera */
+    Data aux;
 };
 
 /**

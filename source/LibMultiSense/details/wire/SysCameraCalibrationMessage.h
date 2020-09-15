@@ -70,13 +70,13 @@ public:
 class SysCameraCalibration {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_CAMERA_CAL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    //
-    // 2 MPix
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     CameraCalData left;
     CameraCalData right;
+
+    CameraCalData aux;
+
 
     //
     // Constructors
@@ -93,6 +93,11 @@ public:
     {
         left.serialize(message, version);
         right.serialize(message, version);
+
+        if (version >= 2)
+        {
+            aux.serialize(message, version);
+        }
     }
 };
 }}}} // namespaces
