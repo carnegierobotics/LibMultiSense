@@ -87,6 +87,8 @@ std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration cons
     writeMatrix (stream, "D1", 1, 8, &calibration.left.D[0]);
     writeMatrix (stream, "M2", 3, 3, &calibration.right.M[0][0]);
     writeMatrix (stream, "D2", 1, 8, &calibration.right.D[0]);
+    writeMatrix (stream, "M3", 3, 3, &calibration.aux.M[0][0]);
+    writeMatrix (stream, "D3", 1, 8, &calibration.aux.D[0]);
     return stream;
 }
 
@@ -97,6 +99,8 @@ std::ostream& writeImageExtrinics (std::ostream& stream, image::Calibration cons
     writeMatrix (stream, "P1", 3, 4, &calibration.left.P[0][0]);
     writeMatrix (stream, "R2", 3, 3, &calibration.right.R[0][0]);
     writeMatrix (stream, "P2", 3, 4, &calibration.right.P[0][0]);
+    writeMatrix (stream, "R3", 3, 3, &calibration.aux.R[0][0]);
+    writeMatrix (stream, "P3", 3, 4, &calibration.aux.P[0][0]);
     return stream;
 }
 
@@ -241,7 +245,9 @@ int main(int    argc,
         if (data["M1"].size () != 3 * 3 ||
             (data["D1"].size () != 5 && data["D1"].size () != 8) ||
             data["M2"].size () != 3 * 3 ||
-            (data["D2"].size () != 5 && data["D2"].size () != 8)) {
+            (data["D2"].size () != 5 && data["D2"].size () != 8) ||
+            data["M3"].size () != 3 * 3 ||
+            (data["D3"].size () != 5 && data["D3"].size () != 8)) {
             fprintf(stderr, "intrinsic matrices incomplete in %s\n",
                     intrinsicsFile.c_str());
             goto clean_out;
@@ -281,6 +287,12 @@ int main(int    argc,
         memcpy (&c.right.D[0], &data["D2"].front (), data["D2"].size () * sizeof (float));
         memcpy (&c.right.R[0][0], &data["R2"].front (), data["R2"].size () * sizeof (float));
         memcpy (&c.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
+
+        memcpy (&c.aux.M[0][0], &data["M3"].front (), data["M3"].size () * sizeof (float));
+        memset (&c.aux.D[0], 0, sizeof (c.right.D));
+        memcpy (&c.aux.D[0], &data["D3"].front (), data["D3"].size () * sizeof (float));
+        memcpy (&c.aux.R[0][0], &data["R3"].front (), data["R3"].size () * sizeof (float));
+        memcpy (&c.aux.P[0][0], &data["P3"].front (), data["P3"].size () * sizeof (float));
 
         status = channelP->setImageCalibration(c);
         if (Status_Ok != status) {
