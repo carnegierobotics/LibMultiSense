@@ -74,9 +74,7 @@ public:
 
     CameraCalData left;
     CameraCalData right;
-
     CameraCalData aux;
-
 
     //
     // Constructors

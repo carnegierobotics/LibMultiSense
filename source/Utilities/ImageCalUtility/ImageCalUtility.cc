@@ -289,7 +289,7 @@ int main(int    argc,
         memcpy (&c.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
 
         memcpy (&c.aux.M[0][0], &data["M3"].front (), data["M3"].size () * sizeof (float));
-        memset (&c.aux.D[0], 0, sizeof (c.right.D));
+        memset (&c.aux.D[0], 0, sizeof (c.aux.D));
         memcpy (&c.aux.D[0], &data["D3"].front (), data["D3"].size () * sizeof (float));
         memcpy (&c.aux.R[0][0], &data["R3"].front (), data["R3"].size () * sizeof (float));
         memcpy (&c.aux.P[0][0], &data["P3"].front (), data["P3"].size () * sizeof (float));
