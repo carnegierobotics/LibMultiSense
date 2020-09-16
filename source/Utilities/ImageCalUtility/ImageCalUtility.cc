@@ -56,6 +56,7 @@
 #include <Utilities/portability/getopt/getopt.h>
 #include <Utilities/shared/CalibrationYaml.hh>
 #include <LibMultiSense/MultiSenseChannel.hh>
+#include <LibMultiSense/MultiSenseTypes.hh>
 
 using namespace crl::multisense;
 
@@ -80,23 +81,35 @@ bool fileExists(const std::string& name)
     return (0 == stat(name.c_str(), &sbuf));
 }
 
-std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration const& calibration)
+std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
 {
     stream << "%YAML:1.0\n";
     writeMatrix (stream, "M1", 3, 3, &calibration.left.M[0][0]);
     writeMatrix (stream, "D1", 1, 8, &calibration.left.D[0]);
     writeMatrix (stream, "M2", 3, 3, &calibration.right.M[0][0]);
     writeMatrix (stream, "D2", 1, 8, &calibration.right.D[0]);
+
+    if (hasAuxCamera)
+    {
+        writeMatrix (stream, "M3", 3, 3, &calibration.aux.M[0][0]);
+        writeMatrix (stream, "D3", 1, 8, &calibration.aux.D[0]);
+    }
     return stream;
 }
 
-std::ostream& writeImageExtrinics (std::ostream& stream, image::Calibration const& calibration)
+std::ostream& writeImageExtrinics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
 {
     stream << "%YAML:1.0\n";
     writeMatrix (stream, "R1", 3, 3, &calibration.left.R[0][0]);
     writeMatrix (stream, "P1", 3, 4, &calibration.left.P[0][0]);
     writeMatrix (stream, "R2", 3, 3, &calibration.right.R[0][0]);
     writeMatrix (stream, "P2", 3, 4, &calibration.right.P[0][0]);
+
+    if (hasAuxCamera)
+    {
+        writeMatrix (stream, "R3", 3, 3, &calibration.aux.R[0][0]);
+        writeMatrix (stream, "P3", 3, 4, &calibration.aux.P[0][0]);
+    }
     return stream;
 }
 
@@ -171,17 +184,22 @@ int main(int    argc,
     }
 
     //
-    // Query version
+    // Query Device Info
 
     Status status;
-    VersionType version;
 
-    status = channelP->getSensorVersion(version);
-    if (Status_Ok != status) {
-        fprintf(stderr, "failed to query sensor version: %s\n",
+    system::DeviceInfo info;
+    bool hasAuxCamera = false;
+    status = channelP->getDeviceInfo(info);
+    if (Status_Ok != status)
+    {
+        fprintf(stderr, "Failed to query device info: %s\n",
                 Channel::statusString(status));
         goto clean_out;
     }
+
+    hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
+                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
 
     //
     // Query
@@ -215,8 +233,8 @@ int main(int    argc,
             goto clean_out;
         }
 
-        writeImageIntrinics (inFile, c);
-        writeImageExtrinics (exFile, c);
+        writeImageIntrinics (inFile, c, hasAuxCamera);
+        writeImageExtrinics (exFile, c, hasAuxCamera);
 
         inFile.flush ();
         exFile.flush ();
@@ -241,7 +259,9 @@ int main(int    argc,
         if (data["M1"].size () != 3 * 3 ||
             (data["D1"].size () != 5 && data["D1"].size () != 8) ||
             data["M2"].size () != 3 * 3 ||
-            (data["D2"].size () != 5 && data["D2"].size () != 8)) {
+            (data["D2"].size () != 5 && data["D2"].size () != 8) ||
+            data["M3"].size () != 3 * 3 ||
+            (hasAuxCamera && data["D3"].size () != 5 && data["D3"].size () != 8)) {
             fprintf(stderr, "intrinsic matrices incomplete in %s\n",
                     intrinsicsFile.c_str());
             goto clean_out;
@@ -262,7 +282,8 @@ int main(int    argc,
         if (data["R1"].size () != 3 * 3 ||
             data["P1"].size () != 3 * 4 ||
             data["R2"].size () != 3 * 3 ||
-            data["P2"].size () != 3 * 4) {
+            data["P2"].size () != 3 * 4 ||
+            (hasAuxCamera && (data["R3"].size () != 3 * 3 || data["P3"].size () != 3 * 4))) {
             fprintf(stderr, "extrinsic matrices incomplete in %s\n",
                     extrinsicsFile.c_str());
             goto clean_out;
@@ -281,6 +302,15 @@ int main(int    argc,
         memcpy (&c.right.D[0], &data["D2"].front (), data["D2"].size () * sizeof (float));
         memcpy (&c.right.R[0][0], &data["R2"].front (), data["R2"].size () * sizeof (float));
         memcpy (&c.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
+
+        if (hasAuxCamera)
+        {
+            memcpy (&c.aux.M[0][0], &data["M3"].front (), data["M3"].size () * sizeof (float));
+            memset (&c.aux.D[0], 0, sizeof (c.aux.D));
+            memcpy (&c.aux.D[0], &data["D3"].front (), data["D3"].size () * sizeof (float));
+            memcpy (&c.aux.R[0][0], &data["R3"].front (), data["R3"].size () * sizeof (float));
+            memcpy (&c.aux.P[0][0], &data["P3"].front (), data["P3"].size () * sizeof (float));
+        }
 
         status = channelP->setImageCalibration(c);
         if (Status_Ok != status) {
