@@ -189,7 +189,7 @@ int main(int    argc,
     Status status;
 
     system::DeviceInfo info;
-
+    bool hasAuxCamera = false;
     status = channelP->getDeviceInfo(info);
     if (Status_Ok != status)
     {
@@ -198,8 +198,8 @@ int main(int    argc,
         goto clean_out;
     }
 
-    const bool hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
-                              info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
+    hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
+                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
 
     //
     // Query
