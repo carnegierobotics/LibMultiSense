@@ -123,6 +123,7 @@ static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1<<4);
 static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1<<5);
 static CRL_CONSTEXPR DataSource Source_Chroma_Left            = (1<<6);
 static CRL_CONSTEXPR DataSource Source_Chroma_Right           = (1<<7);
+static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux   = (1<<8);
 static CRL_CONSTEXPR DataSource Source_Disparity              = (1<<10);
 static CRL_CONSTEXPR DataSource Source_Disparity_Left         = (1<<10); // same as Source_Disparity
 static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1<<11);
