@@ -221,6 +221,7 @@ static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_LEFT    = (1<<4);
 static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_RIGHT   = (1<<5);
 static CRL_CONSTEXPR SourceType SOURCE_CHROMA_LEFT       = (1<<6);
 static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RIGHT      = (1<<7);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RECT_AUX   = (1<<8);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY         = (1<<10);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_LEFT    = (1<<10); // same as SOURCE_DISPARITY
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT   = (1<<11);
@@ -248,6 +249,7 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_CHROMA_LEFT     |
                                                             SOURCE_CHROMA_RIGHT    |
                                                             SOURCE_CHROMA_AUX      |
+                                                            SOURCE_CHROMA_RECT_AUX |
                                                             SOURCE_DISPARITY_LEFT  |
                                                             SOURCE_DISPARITY_RIGHT |
                                                             SOURCE_DISPARITY_COST  |

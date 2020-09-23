@@ -372,6 +372,7 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Luma_Rectified_Aux)     wire_mask |= wire::SOURCE_LUMA_RECT_AUX;
     if (mask & Source_Chroma_Left)            wire_mask |= wire::SOURCE_CHROMA_LEFT;
     if (mask & Source_Chroma_Right)           wire_mask |= wire::SOURCE_CHROMA_RIGHT;
+    if (mask & Source_Chroma_Rectified_Aux)   wire_mask |= wire::SOURCE_CHROMA_RECT_AUX;
     if (mask & Source_Chroma_Aux)             wire_mask |= wire::SOURCE_CHROMA_AUX;
     if (mask & Source_Disparity)              wire_mask |= wire::SOURCE_DISPARITY;
     if (mask & Source_Disparity_Right)        wire_mask |= wire::SOURCE_DISPARITY_RIGHT;
@@ -402,6 +403,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_CHROMA_LEFT)       api_mask |= Source_Chroma_Left;
     if (mask & wire::SOURCE_CHROMA_RIGHT)      api_mask |= Source_Chroma_Right;
     if (mask & wire::SOURCE_CHROMA_AUX)        api_mask |= Source_Chroma_Aux;
+    if (mask & wire::SOURCE_CHROMA_RECT_AUX)   api_mask |= Source_Chroma_Rectified_Aux;
     if (mask & wire::SOURCE_DISPARITY)         api_mask |= Source_Disparity;
     if (mask & wire::SOURCE_DISPARITY_RIGHT)   api_mask |= Source_Disparity_Right;
     if (mask & wire::SOURCE_DISPARITY_AUX)     api_mask |= Source_Disparity_Aux;
