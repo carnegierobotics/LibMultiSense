@@ -153,7 +153,7 @@ std::istream& parseYaml (std::istream& stream, std::map<std::string, std::vector
     {
         input = 0;
         stream >> input;
-        if (input == '%')
+        if (input == '%' || input == '-')
         {
             std::string comment;
             std::getline (stream, comment);
