@@ -2265,7 +2265,7 @@ class MULTISENSE_API DeviceInfo {
 public:
 
     /** The maximum number of PCBs in a device */
-    static CRL_CONSTEXPR uint32_t MAX_PCBS                   = 8;
+    static CRL_CONSTEXPR uint8_t MAX_PCBS                   = 8;
 
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL       = 1;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7       = 2;
