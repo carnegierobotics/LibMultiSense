@@ -41,6 +41,15 @@
 
 #include "../utility/Portability.hh"
 
+// Expose some configuration constants to the preprocessor (at least until C++17)
+#ifndef MULTISENSE_WIRE_BITS_PER_PIXEL
+#define MULTISENSE_WIRE_BITS_PER_PIXEL (12)
+#endif
+
+#ifndef MULTISENSE_API_BITS_PER_PIXEL
+#define MULTISENSE_API_BITS_PER_PIXEL (16)
+#endif
+
 namespace crl {
 namespace multisense {
 namespace details {
