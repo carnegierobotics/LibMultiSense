@@ -281,7 +281,7 @@ public:
 
     template <typename T> BufferStreamWriter& operator&(const std::vector<T>& v) {
         uint16_t version = T::VERSION;
-        uint32_t num     = v.size();
+        uint32_t num     = static_cast<uint32_t> (v.size());
         *this & version;
         *this & num;
         for(uint32_t i=0; i<num; i++)

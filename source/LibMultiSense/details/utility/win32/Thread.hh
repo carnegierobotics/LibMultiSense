@@ -241,7 +241,7 @@ public:
     bool    decrement() { return wait();    };
     bool    increment() { return post();    };
 
-    Semaphore(std::size_t max=0) :
+    Semaphore(LONG max=0) :
         m_waiters(0)
     {
         m_handle = CreateSemaphore (NULL, 0, (max == 0 || max > LONG_MAX) ? LONG_MAX : max, NULL);

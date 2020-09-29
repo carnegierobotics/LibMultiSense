@@ -596,10 +596,19 @@ void impl::handle()
         //
         // Receive the packet
 
+// disable MSVC warning for narrowing conversion.
+#ifdef WIN32
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
         const int bytesRead = recvfrom(m_serverSocket,
                                            (char*)m_incomingBuffer.data(),
                                            m_incomingBuffer.size(),
                                            0, NULL, NULL);
+#ifdef WIN32
+#pragma warning (pop)
+#endif
+
         //
         // Nothing left to read
 
@@ -722,7 +731,12 @@ void *impl::rxThread(void *userDataP)
         // Wait for a new packet to arrive, timing out every once in awhile
 
         struct timeval tv = {0, 200000}; // 5Hz
-        const int result  = select(server+1, &readSet, NULL, NULL, &tv);
+#ifdef WIN32
+        // Windows is "special" and doesn't have the same call semantics as posix
+        const int result = select (1, &readSet, NULL, NULL, &tv);
+#else
+        const int result = select (server + 1, &readSet, NULL, NULL, &tv);
+#endif
         if (result <= 0)
             continue;
 
