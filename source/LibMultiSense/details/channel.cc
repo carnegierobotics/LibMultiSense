@@ -61,7 +61,7 @@ namespace details {
 // Implementation constructor
 
 impl::impl(const std::string& address) :
-    m_serverSocket(-1),
+    m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
     m_sensorMtu(MAX_MTU_SIZE),

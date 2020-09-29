@@ -704,7 +704,7 @@ void *impl::rxThread(void *userDataP)
 #endif
 {
     impl     *selfP  = reinterpret_cast<impl*>(userDataP);
-    const int server = selfP->m_serverSocket;
+    const impl::socket_t server = selfP->m_serverSocket;
     fd_set    readSet;
 
     //
