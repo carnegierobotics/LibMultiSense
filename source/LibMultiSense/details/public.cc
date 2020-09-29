@@ -394,7 +394,7 @@ Status impl::getImageHistogram(int64_t           frameId,
         return Status_Exception;
     }
     catch (...) {
-        CRL_DEBUG ("unknown exception\n");
+        CRL_DEBUG ("%s\n", "unknown exception");
     }
 
     return Status_Error;
