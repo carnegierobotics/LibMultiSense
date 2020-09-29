@@ -140,8 +140,8 @@ int main(int    argc,
                 calFile.c_str());
         fflush(stdout);
 
-        int c = getchar();
-        if ('Y' != c && 'y' != c) {
+        int reply = getchar();
+        if ('Y' != reply && 'y' != reply) {
             fprintf(stdout, "Aborting\n");
             return 0;
         }
@@ -175,9 +175,9 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        lidar::Calibration c;
+        lidar::Calibration calibration;
 
-        status = channelP->getLidarCalibration(c);
+        status = channelP->getLidarCalibration(calibration);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to query lidar calibration: %s\n",
                     Channel::statusString(status));
@@ -192,7 +192,7 @@ int main(int    argc,
             goto clean_out;
         }
 
-        writeLaserCal (cvFile, c);
+        writeLaserCal (cvFile, calibration);
 
         cvFile.flush ();
 
@@ -219,12 +219,12 @@ int main(int    argc,
             goto clean_out;
         }
 
-        lidar::Calibration c;
+        lidar::Calibration calibration;
 
-        memcpy (&c.laserToSpindle[0][0], &data[laserToSpindleNameP].front (), data[laserToSpindleNameP].size () * sizeof (float));
-        memcpy (&c.cameraToSpindleFixed[0][0], &data[cameraToSpindleFixedNameP].front (), data[cameraToSpindleFixedNameP].size () * sizeof (float));
+        memcpy (&calibration.laserToSpindle[0][0], &data[laserToSpindleNameP].front (), data[laserToSpindleNameP].size () * sizeof (float));
+        memcpy (&calibration.cameraToSpindleFixed[0][0], &data[cameraToSpindleFixedNameP].front (), data[cameraToSpindleFixedNameP].size () * sizeof (float));
 
-        status = channelP->setLidarCalibration(c);
+        status = channelP->setLidarCalibration(calibration);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to set lidar calibration: %s\n",
                     Channel::statusString(status));

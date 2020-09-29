@@ -221,13 +221,13 @@ int main(int    argc,
         }
 
         std::cout << "\nCurrent IMU configuration:\n";
-		std::cout << "\t-s " << sensor_samplesPerMessage << " ";
+        std::cout << "\t-s " << sensor_samplesPerMessage << " ";
         for(uint32_t i=0; i<sensor_configs.size(); i++) {
 
-            const imu::Config& c = sensor_configs[i];
+            const imu::Config& config = sensor_configs[i];
 
-			std::cout << "-c \"" << c.name << " " << (c.enabled ? "true" : "false") << " " <<
-				c.rateTableIndex << " " << c.rangeTableIndex << "\" ";
+            std::cout << "-c \"" << config.name << " " << (config.enabled ? "true" : "false") << " " <<
+                config.rateTableIndex << " " << config.rangeTableIndex << "\" ";
         }
         std::cout << "\n";
     }
@@ -298,13 +298,13 @@ int main(int    argc,
             //
             // We have a valid config, store it
 
-            imu::Config c;
-            c.name            = std::string(nameP);
-            c.enabled         = (0 == strcasecmp(enabledP, "true"));
-            c.rateTableIndex  = rate;
-            c.rangeTableIndex = range;
+            imu::Config config;
+            config.name            = std::string(nameP);
+            config.enabled         = (0 == strcasecmp(enabledP, "true"));
+            config.rateTableIndex  = rate;
+            config.rangeTableIndex = range;
 
-            user_configs.push_back(c);
+            user_configs.push_back(config);
         }
 
 		if (false == configValid)

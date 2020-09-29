@@ -304,9 +304,9 @@ int main(int    argc,
                 printDeviceInfo(info);
                 fprintf(stdout, "\nReally update device information? (y/n): ");
                 fflush(stdout);
-                int c = getchar();
+                int reply = getchar();
 
-                if ('Y' != c && 'y' != c) {
+                if ('Y' != reply && 'y' != reply) {
                     fprintf(stdout, "Aborting\n");
                     goto clean_out;
                 }

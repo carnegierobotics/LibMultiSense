@@ -256,8 +256,8 @@ int main(int    argc,
         fprintf(stdout, "Really update network configuration? (y/n): ");
         fflush(stdout);
 
-        int c = getchar();
-        if ('Y' != c && 'y' != c) {
+        int reply = getchar();
+        if ('Y' != reply && 'y' != reply) {
             fprintf(stdout, "Aborting\n");
             goto clean_out;
         }
