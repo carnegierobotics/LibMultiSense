@@ -95,10 +95,10 @@ void signalHandler(int sig)
 
 struct WorldPoint
 {
-    double x;
-    double y;
-    double z;
-    uint8_t luma;
+    double x = 0.0;
+    double y = 0.0;
+    double z = 0.0;
+    uint8_t luma = 0;
 };
 
 //
@@ -115,13 +115,12 @@ class ChannelWrapper
 
         ~ChannelWrapper()
         {
-            if (channelPtr_)
-            {
+            if (channelPtr_) {
                 Channel::Destroy(channelPtr_);
             }
         }
 
-        Channel* ptr()
+        Channel* ptr() noexcept
         {
             return channelPtr_;
         }
@@ -165,7 +164,7 @@ private:
     ImageBufferWrapper(const ImageBufferWrapper&) = delete;
     ImageBufferWrapper operator=(const ImageBufferWrapper&) = delete;
 
-    crl::multisense::Channel * driver_;
+    crl::multisense::Channel * driver_ = nullptr;
     void* callbackBuffer_;
     const image::Header data_;
 
@@ -271,8 +270,7 @@ bool savePly(const std::string& fileName,
     ply << "property uchar blue\n";
     ply << "end_header\n";
 
-    for (const auto &point : points)
-    {
+    for (const auto &point : points) {
         const uint32_t luma = static_cast<uint32_t>(point.luma);
         ply << point.x << " " << point.y << " " << point.z << " " << luma << " " << luma << " " << luma << "\n";
     }
@@ -285,8 +283,7 @@ void imageCallback(const image::Header& header,
 {
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
 
-    switch (header.source)
-    {
+    switch (header.source) {
         case Source_Luma_Rectified_Left:
         {
             userData->leftRectified = std::make_shared<ImageBufferWrapper>(userData->driver, header);
@@ -324,6 +321,7 @@ void imageCallback(const image::Header& header,
 
     //
     // Note this implementation of writing ply files can be slow since they are written in ascii
+
     savePly(std::to_string(header.frameId) + ".ply", reprojectDisparity(userData->disparity,
                                                                         userData->leftRectified,
                                                                         userData->calibration,
