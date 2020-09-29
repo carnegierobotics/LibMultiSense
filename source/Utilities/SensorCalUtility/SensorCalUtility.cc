@@ -32,6 +32,9 @@
  *
  * Significant history (date, user, job code, action):
  *   2015-09-29, kcarpenter@carnegierobotics.com, Created file.
+ *
+ * References:
+ *   CMV2000 Data Sheet (https://ams.com/documents/20143/36005/CMV2000_DS000733_3-00.pdf)
  **/
 
 #ifdef WIN32
@@ -80,7 +83,7 @@ std::string bytes_to_binary(uint64_t x, int bits)
     uint8_t currentByte;
     for(currentByte = 0; currentByte*8<bits; currentByte++)
     {
-        b = byte_to_binary((x >> currentByte*8)) + " " + b;
+        b = byte_to_binary(static_cast<uint8_t> (x >> (currentByte*8))) + " " + b;
     }
 
     return b.erase(0,(currentByte*8 - bits));
@@ -109,17 +112,19 @@ int main(int    argc,
     std::string ipAddress = "10.66.171.21";
     std::string leftIn = "50";
     std::string rightIn = "50";
+
+    // The default value of the dark level offset as given in section 5.12.1 of the CMV2000 data sheet.
     std::string leftBlackIn = "-61";
     std::string rightBlackIn = "-61";
-	int left;
-	int right;
-    int16_t leftBlack;
-    int16_t rightBlack;
+    int left;
+    int right;
+    int leftBlack;
+    int rightBlack;
     bool        setCal=false;
-	bool        setLeft=false;
-	bool        setRight=false;
-	bool        setLeftBlack=false;
-	bool        setRightBlack=false;
+    bool        setLeft=false;
+    bool        setRight=false;
+    bool        setLeftBlack=false;
+    bool        setRightBlack=false;
 
     //
     // Parse args
@@ -178,7 +183,7 @@ int main(int    argc,
             goto clean_out;
         }
 
-        sensorCalibration.adc_gain[0] = left;
+        sensorCalibration.adc_gain[0] = static_cast<uint8_t> (left);
     }
 
     if (setCal && setRight) {
@@ -191,19 +196,37 @@ int main(int    argc,
             goto clean_out;
         }
 
-        sensorCalibration.adc_gain[1] = right;
+        sensorCalibration.adc_gain[1] = static_cast<uint8_t> (right);
     }
 
     if (setCal && setLeftBlack)
     {
         leftBlack = atoi(leftBlackIn.c_str());
-        sensorCalibration.bl_offset[0] = leftBlack;
+
+        if (leftBlack > 8191 || leftBlack < -8192)
+        {
+            std::cerr << "Left black offset range is -8192 to 8191" << std::endl;
+            usage (*argvPP);
+            goto clean_out;
+        }
+
+        // Per the CMV2000 data sheet, bl_offset is a 14-bit 2-complement integer 
+        sensorCalibration.bl_offset[0] = static_cast<uint16_t> (leftBlack) & 0x7FFF;
     }
 
     if (setCal && setRightBlack)
     {
         rightBlack = atoi(rightBlackIn.c_str());
-        sensorCalibration.bl_offset[1] = rightBlack;
+
+        if (rightBlack > 8191 || rightBlack < -8192)
+        {
+            std::cerr << "Right black offset range is -8192 to 8191" << std::endl;
+            usage (*argvPP);
+            goto clean_out;
+        }
+
+        // Per the CMV2000 data sheet, bl_offset is a 14-bit 2-complement integer
+        sensorCalibration.bl_offset[1] = static_cast<uint16_t> (rightBlack) & 0x7FFF;
     }
 
 
