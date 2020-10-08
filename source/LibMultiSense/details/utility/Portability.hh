@@ -41,6 +41,8 @@
 #ifndef CRL_MULTISENSE_DETAILS_PORTABILITY_HH
 #define CRL_MULTISENSE_DETAILS_PORTABILITY_HH
 
+#define CRL_UNUSED(var) (void)(var)
+
 #if __cplusplus > 199711L
     // This compiler supports C++11.
     #define CRL_CONSTEXPR constexpr

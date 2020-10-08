@@ -54,9 +54,9 @@ public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_DISPARITY;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    static CRL_CONSTEXPR uint8_t  WIRE_BITS_PER_PIXEL = 12;
+    static CRL_CONSTEXPR uint8_t  WIRE_BITS_PER_PIXEL = MULTISENSE_WIRE_BITS_PER_PIXEL;
     static CRL_CONSTEXPR uint8_t  WIRE_BYTE_ALIGNMENT = 3;
-    static CRL_CONSTEXPR uint8_t  API_BITS_PER_PIXEL  = 16; // after custom assemble()
+    static CRL_CONSTEXPR uint8_t  API_BITS_PER_PIXEL  = MULTISENSE_API_BITS_PER_PIXEL; // after custom assemble()
     static CRL_CONSTEXPR uint32_t META_LENGTH         = 16; // packed, includes type/version
 
 #ifdef SENSORPOD_FIRMWARE
@@ -150,10 +150,9 @@ public:
 
         stream.seek(destOffset);
 
+#if MULTISENSE_WIRE_BITS_PER_PIXEL == 12 && MULTISENSE_API_BITS_PER_PIXEL == 16
         //
         // This conversion is for (WIRE == 12bits), (API == 16bits, 1/16th pixel, unsigned integer)
-
-        if (12 == WIRE_BITS_PER_PIXEL && 16 == API_BITS_PER_PIXEL) {
 
             uint16_t *dP = reinterpret_cast<uint16_t*>(stream.peek());
 
@@ -162,10 +161,9 @@ public:
                 dP[i+1] = ((sP[1] >> 4) |  (sP[2] << 4)        );
             }
 
+#elif MULTISENSE_WIRE_BITS_PER_PIXEL == 12 && MULTISENSE_API_BITS_PER_PIXEL == 32
         //
         // This conversion is for (WIRE == 12bits), (API == 32bits, floating point)
-
-        } else if (12 == WIRE_BITS_PER_PIXEL && 32 == API_BITS_PER_PIXEL) {
 
             float *dP = reinterpret_cast<float*>(stream.peek());
 
@@ -175,9 +173,10 @@ public:
                 dP[i+1] = static_cast<float>((sP[1] >> 4) |  (sP[2] << 4)        ) / 16.0f;
             }
 
-        } else
-            CRL_EXCEPTION("(wire==%dbits, api=%dbits) not supported",
-                          WIRE_BITS_PER_PIXEL, API_BITS_PER_PIXEL);
+#else
+#error MULTISENSE_WIRE_BITS_PER_PIXEL and MULTISENSE_API_BITS_PER_PIXEL not supported
+#endif
+
     }
 };
 

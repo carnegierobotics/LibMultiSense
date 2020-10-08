@@ -105,7 +105,7 @@ public:
                        const VersionType version)
     {
         message & command;
-        uint32_t elements = streams.size();
+        uint32_t elements = static_cast<uint32_t> (streams.size());
         message & elements;
         streams.resize(elements);
         for(uint32_t i=0; i<elements; i++)

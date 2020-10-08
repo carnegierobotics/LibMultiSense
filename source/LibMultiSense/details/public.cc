@@ -388,9 +388,13 @@ Status impl::getImageHistogram(int64_t           frameId,
 
         return Status_Ok;
 
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
         return Status_Exception;
+    }
+    catch (...) {
+        CRL_DEBUG ("%s\n", "unknown exception");
     }
 
     return Status_Error;
@@ -1101,8 +1105,6 @@ Status impl::setExternalCalibration(const system::ExternalCalibration& calibrati
     w.calibration[5] = calibration.yaw;
 
     return waitAck(w);
-
-    return Status_Ok;
 }
 
 //
@@ -1118,8 +1120,8 @@ Status impl::setDeviceInfo(const std::string& key,
     w.buildDate        = info.buildDate;
     w.serialNumber     = info.serialNumber;
     w.hardwareRevision = hardwareApiToWire(info.hardwareRevision);
-    w.numberOfPcbs     = std::min((uint32_t) info.pcbs.size(),
-                                  (uint32_t) wire::SysDeviceInfo::MAX_PCBS);
+    w.numberOfPcbs     = std::min((uint8_t) info.pcbs.size(),
+                                            wire::SysDeviceInfo::MAX_PCBS);
     for(uint32_t i=0; i<w.numberOfPcbs; i++) {
         w.pcbs[i].name     = info.pcbs[i].name;
         w.pcbs[i].revision = info.pcbs[i].revision;

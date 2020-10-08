@@ -50,9 +50,21 @@
 #include "details/wire/StatusResponseMessage.h"
 #include "details/wire/VersionResponseMessage.h"
 
-#ifndef WIN32
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+
+#include <windows.h>
+#include <winsock2.h>
+
+#else
 #include <netinet/ip.h>
 #include <unistd.h>
+
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET (-1)
+#endif
 #endif
 
 #include <vector>
@@ -71,6 +83,12 @@ namespace details {
 
 class impl : public Channel {
 public:
+
+#ifdef WIN32
+    typedef SOCKET socket_t;
+#else
+    typedef int32_t socket_t;
+#endif
 
     //
     // Construction
@@ -283,7 +301,7 @@ private:
     //
     // The socket identifier and local port
 
-    int32_t  m_serverSocket;
+    socket_t  m_serverSocket;
     uint16_t m_serverSocketPort;
 
     //

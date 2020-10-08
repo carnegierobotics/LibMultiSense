@@ -115,29 +115,29 @@ typedef uint32_t DataSource;
 
 static CRL_CONSTEXPR DataSource Source_Unknown                = 0;
 static CRL_CONSTEXPR DataSource Source_All                    = 0xffffffff;
-static CRL_CONSTEXPR DataSource Source_Raw_Left               = (1<<0);
-static CRL_CONSTEXPR DataSource Source_Raw_Right              = (1<<1);
-static CRL_CONSTEXPR DataSource Source_Luma_Left              = (1<<2);
-static CRL_CONSTEXPR DataSource Source_Luma_Right             = (1<<3);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1<<4);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1<<5);
-static CRL_CONSTEXPR DataSource Source_Chroma_Left            = (1<<6);
-static CRL_CONSTEXPR DataSource Source_Chroma_Right           = (1<<7);
-static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux   = (1<<8);
-static CRL_CONSTEXPR DataSource Source_Disparity              = (1<<10);
-static CRL_CONSTEXPR DataSource Source_Disparity_Left         = (1<<10); // same as Source_Disparity
-static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1<<11);
-static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1<<12);
-static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1<<16);
-static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1<<17);
-static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1<<24);
-static CRL_CONSTEXPR DataSource Source_Imu                    = (1<<25);
-static CRL_CONSTEXPR DataSource Source_Pps                    = (1<<26);
-static CRL_CONSTEXPR DataSource Source_Raw_Aux                = (1<<27);
-static CRL_CONSTEXPR DataSource Source_Luma_Aux               = (1<<28);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux     = (1<<29);
-static CRL_CONSTEXPR DataSource Source_Chroma_Aux             = (1<<30);
-static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1<<31);
+static CRL_CONSTEXPR DataSource Source_Raw_Left               = (1U<<0);
+static CRL_CONSTEXPR DataSource Source_Raw_Right              = (1U<<1);
+static CRL_CONSTEXPR DataSource Source_Luma_Left              = (1U<<2);
+static CRL_CONSTEXPR DataSource Source_Luma_Right             = (1U<<3);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1U<<4);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1U<<5);
+static CRL_CONSTEXPR DataSource Source_Chroma_Left            = (1U<<6);
+static CRL_CONSTEXPR DataSource Source_Chroma_Right           = (1U<<7);
+static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux   = (1U<<8);
+static CRL_CONSTEXPR DataSource Source_Disparity              = (1U<<10);
+static CRL_CONSTEXPR DataSource Source_Disparity_Left         = (1U<<10); // same as Source_Disparity
+static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1U<<11);
+static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1U<<12);
+static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1U<<16);
+static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1U<<24);
+static CRL_CONSTEXPR DataSource Source_Imu                    = (1U<<25);
+static CRL_CONSTEXPR DataSource Source_Pps                    = (1U<<26);
+static CRL_CONSTEXPR DataSource Source_Raw_Aux                = (1U<<27);
+static CRL_CONSTEXPR DataSource Source_Luma_Aux               = (1U<<28);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux     = (1U<<29);
+static CRL_CONSTEXPR DataSource Source_Chroma_Aux             = (1U<<30);
+static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -2265,7 +2265,7 @@ class MULTISENSE_API DeviceInfo {
 public:
 
     /** The maximum number of PCBs in a device */
-    static CRL_CONSTEXPR uint32_t MAX_PCBS                   = 8;
+    static CRL_CONSTEXPR uint8_t MAX_PCBS                   = 8;
 
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL       = 1;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7       = 2;

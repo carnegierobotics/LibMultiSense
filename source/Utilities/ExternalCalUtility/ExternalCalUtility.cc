@@ -147,8 +147,8 @@ int main(int    argc,
                 calFile.c_str());
         fflush(stdout);
 
-        int c = getchar();
-        if ('Y' != c && 'y' != c) {
+        int reply = getchar();
+        if ('Y' != reply && 'y' != reply) {
             fprintf(stdout, "Aborting\n");
             return 0;
         }
@@ -182,9 +182,9 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        system::ExternalCalibration c;
+        system::ExternalCalibration calibration;
 
-        status = channelP->getExternalCalibration(c);
+        status = channelP->getExternalCalibration(calibration);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to query external calibration: %s\n",
                     Channel::statusString(status));
@@ -199,7 +199,7 @@ int main(int    argc,
             goto clean_out;
         }
 
-        writeCal (cvFile, c);
+        writeCal (cvFile, calibration);
 
         cvFile.flush ();
 
@@ -225,16 +225,16 @@ int main(int    argc,
             goto clean_out;
         }
 
-        system::ExternalCalibration c;
+        system::ExternalCalibration calibration;
 
-        c.x = data[externalCalibrationNameP][0];
-        c.y = data[externalCalibrationNameP][1];
-        c.z = data[externalCalibrationNameP][2];
-        c.roll = data[externalCalibrationNameP][3];
-        c.pitch = data[externalCalibrationNameP][4];
-        c.yaw = data[externalCalibrationNameP][5];
+        calibration.x = data[externalCalibrationNameP][0];
+        calibration.y = data[externalCalibrationNameP][1];
+        calibration.z = data[externalCalibrationNameP][2];
+        calibration.roll = data[externalCalibrationNameP][3];
+        calibration.pitch = data[externalCalibrationNameP][4];
+        calibration.yaw = data[externalCalibrationNameP][5];
 
-        status = channelP->setExternalCalibration(c);
+        status = channelP->setExternalCalibration(calibration);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to set external calibration: %s\n",
                     Channel::statusString(status));

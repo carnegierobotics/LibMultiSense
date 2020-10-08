@@ -281,7 +281,7 @@ public:
 
     template <typename T> BufferStreamWriter& operator&(const std::vector<T>& v) {
         uint16_t version = T::VERSION;
-        uint32_t num     = v.size();
+        uint32_t num     = static_cast<uint32_t> (v.size());
         *this & version;
         *this & num;
         for(uint32_t i=0; i<num; i++)
@@ -290,12 +290,14 @@ public:
     }
 
     BufferStreamWriter& operator&(const std::string& value) {
-        uint16_t length = value.size();
+        size_t length = value.size();
 
         if (length > 512)
             CRL_EXCEPTION("unusually large string: %d bytes", length);
 
-        this->write(&length, sizeof(length));
+        uint16_t length16 = static_cast<uint16_t> (length);
+        this->write(&length16, sizeof(length16));
+
         if (length > 0)
             this->write(value.c_str(), length);
         return *this;
