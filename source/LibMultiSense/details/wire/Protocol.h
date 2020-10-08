@@ -41,6 +41,15 @@
 
 #include "../utility/Portability.hh"
 
+// Expose some configuration constants to the preprocessor (at least until C++17)
+#ifndef MULTISENSE_WIRE_BITS_PER_PIXEL
+#define MULTISENSE_WIRE_BITS_PER_PIXEL (12)
+#endif
+
+#ifndef MULTISENSE_API_BITS_PER_PIXEL
+#define MULTISENSE_API_BITS_PER_PIXEL (16)
+#endif
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -213,30 +222,30 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL        = 0x011d;
 typedef uint32_t SourceType;
 
 static CRL_CONSTEXPR SourceType SOURCE_UNKNOWN           = 0;
-static CRL_CONSTEXPR SourceType SOURCE_RAW_LEFT          = (1<<0);
-static CRL_CONSTEXPR SourceType SOURCE_RAW_RIGHT         = (1<<1);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_LEFT         = (1<<2);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RIGHT        = (1<<3);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_LEFT    = (1<<4);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_RIGHT   = (1<<5);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_LEFT       = (1<<6);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RIGHT      = (1<<7);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RECT_AUX   = (1<<8);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY         = (1<<10);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_LEFT    = (1<<10); // same as SOURCE_DISPARITY
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT   = (1<<11);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST    = (1<<12);
-static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT         = (1<<16);
-static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT          = (1<<17);
-static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR         = (1<<23);
-static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN        = (1<<24);
-static CRL_CONSTEXPR SourceType SOURCE_IMU               = (1<<25);
-static CRL_CONSTEXPR SourceType SOURCE_PPS               = (1<<26);
-static CRL_CONSTEXPR SourceType SOURCE_RAW_AUX           = (1<<27);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_AUX          = (1<<28);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_AUX     = (1<<29);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_AUX        = (1<<30);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_AUX     = (1<<31);
+static CRL_CONSTEXPR SourceType SOURCE_RAW_LEFT          = (1U<<0);
+static CRL_CONSTEXPR SourceType SOURCE_RAW_RIGHT         = (1U<<1);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_LEFT         = (1U<<2);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RIGHT        = (1U<<3);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_LEFT    = (1U<<4);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_RIGHT   = (1U<<5);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_LEFT       = (1U<<6);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RIGHT      = (1U<<7);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RECT_AUX   = (1U<<8);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY         = (1U<<10);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_LEFT    = (1U<<10); // same as SOURCE_DISPARITY
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT   = (1U<<11);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST    = (1U<<12);
+static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT         = (1U<<16);
+static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT          = (1U<<17);
+static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR         = (1U<<23);
+static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN        = (1U<<24);
+static CRL_CONSTEXPR SourceType SOURCE_IMU               = (1U<<25);
+static CRL_CONSTEXPR SourceType SOURCE_PPS               = (1U<<26);
+static CRL_CONSTEXPR SourceType SOURCE_RAW_AUX           = (1U<<27);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_AUX          = (1U<<28);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_AUX     = (1U<<29);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_AUX        = (1U<<30);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_AUX     = (1U<<31);
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
                                                             SOURCE_RAW_AUX         |

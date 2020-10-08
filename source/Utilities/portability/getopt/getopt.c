@@ -18,12 +18,9 @@ Significant updates
 
 #define ERR(s, c)                \
     if (opterr) {                \
-        char errbuf[2];          \
-        errbuf[0] = c;           \
-        errbuf[1] = '\n';        \
         fputs (argv[0], stderr); \
         fputs (s, stderr);       \
-        fputc(c, stderr);        \
+        fputc (c, stderr);       \
     }                            \
 
 int opterr = 1;

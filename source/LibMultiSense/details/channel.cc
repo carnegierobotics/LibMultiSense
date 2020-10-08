@@ -61,7 +61,7 @@ namespace details {
 // Implementation constructor
 
 impl::impl(const std::string& address) :
-    m_serverSocket(-1),
+    m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
     m_sensorMtu(MAX_MTU_SIZE),
@@ -338,15 +338,23 @@ void impl::publish(const utility::BufferStreamWriter& stream)
     // TBD: This returns the pre-incremented value
     header.sequenceIdentifier = __sync_fetch_and_add(&m_txSeqId, 1);
 #endif
-    header.messageLength      = stream.tell() - sizeof(wire::Header);
+    header.messageLength      = static_cast<uint32_t> (stream.tell() - sizeof(wire::Header));
     header.byteOffset         = 0;
 
     //
     // Send the packet along
 
+// disable MSVC warning for narrowing conversion.
+#ifdef WIN32
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
     const int32_t ret = sendto(m_serverSocket, (char*)stream.data(), stream.tell(), 0,
                                (struct sockaddr *) &m_sensorAddress,
                                sizeof(m_sensorAddress));
+#ifdef WIN32
+#pragma warning (pop)
+#endif
 
     if (static_cast<size_t>(ret) != stream.tell())
         CRL_EXCEPTION("error sending data to sensor, %d/%d bytes written: %s",

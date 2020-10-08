@@ -79,12 +79,13 @@ void usage(const char *programNameP)
     std::cerr << "\t-m <mtu>           : default=7200" << std::endl;
     std::cerr << "\t-f <log_file>      : FILE to log IMU data (stdout by default)" << std::endl;
 
-    exit(-1);
+    exit(1);
 }
 
 #ifdef WIN32
 BOOL WINAPI signalHandler(DWORD dwCtrlType)
 {
+    CRL_UNUSED (dwCtrlType);
     std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
     doneG = true;
     return TRUE;

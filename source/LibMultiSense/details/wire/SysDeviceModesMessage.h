@@ -86,7 +86,7 @@ public:
                        const VersionType version)
     {
         (void) version;
-        uint32_t length = modes.size();
+        uint32_t length = static_cast<uint32_t> (modes.size());
         message & length;
         modes.resize(length);
 

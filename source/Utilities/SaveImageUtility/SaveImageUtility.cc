@@ -68,9 +68,9 @@ volatile bool doneG = false;
 
 void usage(const char *programNameP)
 {
-	std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
+    std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
-	std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
 
     exit(-1);
 }
@@ -78,14 +78,15 @@ void usage(const char *programNameP)
 #ifdef WIN32
 BOOL WINAPI signalHandler(DWORD dwCtrlType)
 {
-	std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
+    CRL_UNUSED (dwCtrlType);
+    std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
     doneG = true;
     return TRUE;
 }
 #else
 void signalHandler(int sig)
 {
-	std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
+    std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
     doneG = true;
 }
 #endif
@@ -309,7 +310,7 @@ int main(int    argc,
         }
 
 
-        usleep(1e6);
+        usleep(1000000);
     }
 
     status = channelP->stopStreams(Source_All);

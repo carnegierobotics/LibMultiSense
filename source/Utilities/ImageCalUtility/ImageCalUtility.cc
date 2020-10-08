@@ -166,8 +166,8 @@ int main(int    argc,
                 extrinsicsFile.c_str());
         fflush(stdout);
 
-        int c = getchar();
-        if ('Y' != c && 'y' != c) {
+        int reply = getchar();
+        if ('Y' != reply && 'y' != reply) {
             fprintf(stdout, "Aborting\n");
             return 0;
         }
@@ -206,9 +206,9 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        image::Calibration c;
+        image::Calibration calibration;
 
-        status = channelP->getImageCalibration(c);
+        status = channelP->getImageCalibration(calibration);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to query image calibration: %s\n",
                     Channel::statusString(status));
@@ -233,8 +233,8 @@ int main(int    argc,
             goto clean_out;
         }
 
-        writeImageIntrinics (inFile, c, hasAuxCamera);
-        writeImageExtrinics (exFile, c, hasAuxCamera);
+        writeImageIntrinics (inFile, calibration, hasAuxCamera);
+        writeImageExtrinics (exFile, calibration, hasAuxCamera);
 
         inFile.flush ();
         exFile.flush ();
@@ -289,30 +289,30 @@ int main(int    argc,
             goto clean_out;
         }
 
-        image::Calibration c;
+        image::Calibration calibration;
 
-        memcpy (&c.left.M[0][0], &data["M1"].front (), data["M1"].size () * sizeof (float));
-        memset (&c.left.D[0], 0, sizeof (c.left.D));
-        memcpy (&c.left.D[0], &data["D1"].front (), data["D1"].size () * sizeof (float));
-        memcpy (&c.left.R[0][0], &data["R1"].front (), data["R1"].size () * sizeof (float));
-        memcpy (&c.left.P[0][0], &data["P1"].front (), data["P1"].size () * sizeof (float));
+        memcpy (&calibration.left.M[0][0], &data["M1"].front (), data["M1"].size () * sizeof (float));
+        memset (&calibration.left.D[0], 0, sizeof (calibration.left.D));
+        memcpy (&calibration.left.D[0], &data["D1"].front (), data["D1"].size () * sizeof (float));
+        memcpy (&calibration.left.R[0][0], &data["R1"].front (), data["R1"].size () * sizeof (float));
+        memcpy (&calibration.left.P[0][0], &data["P1"].front (), data["P1"].size () * sizeof (float));
 
-        memcpy (&c.right.M[0][0], &data["M2"].front (), data["M2"].size () * sizeof (float));
-        memset (&c.right.D[0], 0, sizeof (c.right.D));
-        memcpy (&c.right.D[0], &data["D2"].front (), data["D2"].size () * sizeof (float));
-        memcpy (&c.right.R[0][0], &data["R2"].front (), data["R2"].size () * sizeof (float));
-        memcpy (&c.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
+        memcpy (&calibration.right.M[0][0], &data["M2"].front (), data["M2"].size () * sizeof (float));
+        memset (&calibration.right.D[0], 0, sizeof (calibration.right.D));
+        memcpy (&calibration.right.D[0], &data["D2"].front (), data["D2"].size () * sizeof (float));
+        memcpy (&calibration.right.R[0][0], &data["R2"].front (), data["R2"].size () * sizeof (float));
+        memcpy (&calibration.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
 
         if (hasAuxCamera)
         {
-            memcpy (&c.aux.M[0][0], &data["M3"].front (), data["M3"].size () * sizeof (float));
-            memset (&c.aux.D[0], 0, sizeof (c.aux.D));
-            memcpy (&c.aux.D[0], &data["D3"].front (), data["D3"].size () * sizeof (float));
-            memcpy (&c.aux.R[0][0], &data["R3"].front (), data["R3"].size () * sizeof (float));
-            memcpy (&c.aux.P[0][0], &data["P3"].front (), data["P3"].size () * sizeof (float));
+            memcpy (&calibration.aux.M[0][0], &data["M3"].front (), data["M3"].size () * sizeof (float));
+            memset (&calibration.aux.D[0], 0, sizeof (calibration.aux.D));
+            memcpy (&calibration.aux.D[0], &data["D3"].front (), data["D3"].size () * sizeof (float));
+            memcpy (&calibration.aux.R[0][0], &data["R3"].front (), data["R3"].size () * sizeof (float));
+            memcpy (&calibration.aux.P[0][0], &data["P3"].front (), data["P3"].size () * sizeof (float));
         }
 
-        status = channelP->setImageCalibration(c);
+        status = channelP->setImageCalibration(calibration);
         if (Status_Ok != status) {
             fprintf(stderr, "failed to set image calibration: %s\n",
                     Channel::statusString(status));

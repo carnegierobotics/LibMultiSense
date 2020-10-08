@@ -16,7 +16,7 @@ LibMultiSense uses CMake for its build system.
 
 To build the standalone LibMultiSense library and demonstration applications.
 
-    > git clone git@github.com:carnegierobotics/LibMultiSense.git
+    > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > mkdir build
     > cd build && cmake -DCMAKE_INSTALL_PREFIX=../install ..

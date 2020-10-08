@@ -97,9 +97,15 @@ int main(int    argc,
 
     while(-1 != (c = getopt(argc, argvPP, "a:f:")))
         switch(c) {
-        case 'a': currentAddress = std::string(optarg);    break;
-        case 'f': fps            = atof(optarg);           break;
-        default: usage(*argvPP);                           break;
+        case 'a':
+            currentAddress = std::string(optarg);
+            break;
+        case 'f':
+            fps  = static_cast<float> (atof(optarg));
+            break;
+        default:
+            usage(*argvPP);
+            break;
         }
 
     //
@@ -107,7 +113,7 @@ int main(int    argc,
 
     Channel *channelP = Channel::Create(currentAddress);
     if (NULL == channelP) {
-		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
+        std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
         return -1;
     }
 
@@ -119,18 +125,18 @@ int main(int    argc,
 
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
-		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
-        std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
-	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
-	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
-	std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
-	std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
-	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
-	std::cout << std::dec;
+    std::cout << "API build date      :  " << v.apiBuildDate << "\n";
+    std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
+    std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
+    std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
+    std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
+    std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
+    std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
+    std::cout << std::dec;
 
     //
     // Change framerate
@@ -140,7 +146,7 @@ int main(int    argc,
 
         status = channelP->getImageConfig(cfg);
         if (Status_Ok != status) {
-			std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+            std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
             goto clean_out;
         } else {
 
@@ -148,7 +154,7 @@ int main(int    argc,
 
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
-				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
+                std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
                 goto clean_out;
             }
         }
