@@ -81,6 +81,7 @@ void usage(const char *programNameP)
 #ifdef WIN32
 BOOL WINAPI signalHandler(DWORD dwCtrlType)
 {
+    CRL_UNUSED (dwCtrlType);
 	std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
     doneG = true;
     return TRUE;
@@ -438,7 +439,7 @@ int main(int    argc,
 
     while(!doneG)
     {
-        usleep(1e6);
+        usleep(1000000);
     }
 
     status = channelP->ptr()->stopStreams(Source_All);
