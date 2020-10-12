@@ -260,7 +260,7 @@ int main(int    argc,
             (data["D1"].size () != 5 && data["D1"].size () != 8) ||
             data["M2"].size () != 3 * 3 ||
             (data["D2"].size () != 5 && data["D2"].size () != 8) ||
-            data["M3"].size () != 3 * 3 ||
+            (hasAuxCamera && data["M3"].size () != 3 * 3) ||
             (hasAuxCamera && data["D3"].size () != 5 && data["D3"].size () != 8)) {
             fprintf(stderr, "intrinsic matrices incomplete in %s\n",
                     intrinsicsFile.c_str());
