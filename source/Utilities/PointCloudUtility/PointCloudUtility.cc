@@ -75,21 +75,20 @@ void usage(const char *programNameP)
 	std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
 	std::cerr << "\t-d <min_disparity>      : CURRENT MINIMUM DISPARITY (default=5.0)" << std::endl;
 
-    exit(-1);
+    exit(1);
 }
 
 #ifdef WIN32
 BOOL WINAPI signalHandler(DWORD dwCtrlType)
 {
     CRL_UNUSED (dwCtrlType);
-	std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
     doneG = true;
     return TRUE;
 }
 #else
 void signalHandler(int sig)
 {
-	std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
+    (void) sig;
     doneG = true;
 }
 #endif
@@ -366,7 +365,7 @@ int main(int    argc,
     auto channelP = std::make_unique<ChannelWrapper>(currentAddress);
     if (nullptr == channelP) {
 		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     //
@@ -375,7 +374,7 @@ int main(int    argc,
     status = channelP->ptr()->setMtu(mtu);
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     //
@@ -385,7 +384,7 @@ int main(int    argc,
     status = channelP->ptr()->getImageCalibration(calibration);
     if (Status_Ok != status) {
 		std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     //
@@ -395,7 +394,7 @@ int main(int    argc,
     status = channelP->ptr()->getDeviceInfo(deviceInfo);
     if (Status_Ok != status) {
 		std::cerr << "Failed to query device info: " << Channel::statusString(status) << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     //
@@ -406,7 +405,7 @@ int main(int    argc,
     status = channelP->ptr()->getImageConfig(cfg);
     if (Status_Ok != status) {
         std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     } else {
         cfg.setFps(10.0);
         cfg.setResolution(deviceInfo.imagerWidth / 2, deviceInfo.imagerHeight / 2);
@@ -414,7 +413,7 @@ int main(int    argc,
         status = channelP->ptr()->setImageConfig(cfg);
         if (Status_Ok != status) {
             std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
-            return -1;
+            return EXIT_FAILURE;
         }
     }
 
@@ -434,7 +433,7 @@ int main(int    argc,
     status = channelP->ptr()->startStreams(Source_Luma_Rectified_Left | Source_Disparity_Left);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     while(!doneG)
@@ -445,8 +444,8 @@ int main(int    argc,
     status = channelP->ptr()->stopStreams(Source_All);
     if (Status_Ok != status) {
 		std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

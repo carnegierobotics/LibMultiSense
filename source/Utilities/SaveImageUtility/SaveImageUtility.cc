@@ -72,21 +72,20 @@ void usage(const char *programNameP)
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
 
-    exit(-1);
+    exit(1);
 }
 
 #ifdef WIN32
 BOOL WINAPI signalHandler(DWORD dwCtrlType)
 {
     CRL_UNUSED (dwCtrlType);
-    std::cerr << "Shutting down on signal: CTRL-C" << std::endl;
     doneG = true;
     return TRUE;
 }
 #else
 void signalHandler(int sig)
 {
-    std::cerr << "Shutting down on signal: " << strsignal(sig) << std::endl;
+    (void) sig;
     doneG = true;
 }
 #endif
