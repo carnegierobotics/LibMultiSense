@@ -69,11 +69,11 @@ volatile bool doneG = false;
 
 void usage(const char *programNameP)
 {
-	std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
+    std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
-	std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-	std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
-	std::cerr << "\t-d <min_disparity>      : CURRENT MINIMUM DISPARITY (default=5.0)" << std::endl;
+    std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
+    std::cerr << "\t-d <min_disparity>      : CURRENT MINIMUM DISPARITY (default=5.0)" << std::endl;
 
     exit(1);
 }
@@ -371,7 +371,7 @@ int main(int    argc,
 
     auto channelP = std::make_unique<ChannelWrapper>(currentAddress);
     if (nullptr == channelP) {
-		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
+        std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -380,7 +380,7 @@ int main(int    argc,
 
     status = channelP->ptr()->setMtu(mtu);
     if (Status_Ok != status) {
-		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -390,7 +390,7 @@ int main(int    argc,
     image::Calibration calibration;
     status = channelP->ptr()->getImageCalibration(calibration);
     if (Status_Ok != status) {
-		std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -400,7 +400,7 @@ int main(int    argc,
     crl::multisense::system::DeviceInfo deviceInfo;
     status = channelP->ptr()->getDeviceInfo(deviceInfo);
     if (Status_Ok != status) {
-		std::cerr << "Failed to query device info: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query device info: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -439,7 +439,7 @@ int main(int    argc,
 
     status = channelP->ptr()->startStreams(Source_Luma_Rectified_Left | Source_Disparity_Left);
     if (Status_Ok != status) {
-		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -449,7 +449,7 @@ int main(int    argc,
 
     status = channelP->ptr()->stopStreams(Source_All);
     if (Status_Ok != status) {
-		std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 
