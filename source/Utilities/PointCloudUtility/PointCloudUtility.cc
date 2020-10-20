@@ -98,7 +98,7 @@ struct WorldPoint
     double x = 0.0;
     double y = 0.0;
     double z = 0.0;
-    uint8_t luma = 0;
+    uint8_t luma = 0u;
 };
 
 //
@@ -172,16 +172,16 @@ private:
 
 struct UserData
 {
-    Channel *driver;
-    std::shared_ptr<ImageBufferWrapper> leftRectified;
-    std::shared_ptr<ImageBufferWrapper> disparity;
+    Channel *driver = nullptr;
+    std::shared_ptr<const ImageBufferWrapper> disparity = nullptr;
+    std::shared_ptr<const ImageBufferWrapper> leftRectified = nullptr;
     crl::multisense::image::Calibration calibration;
     crl::multisense::system::DeviceInfo deviceInfo;
-    double minDisparity;
+    double minDisparity = 0.0;
 };
 
-std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<ImageBufferWrapper> disparity,
-                                           const std::shared_ptr<ImageBufferWrapper> leftRectified,
+std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBufferWrapper> disparity,
+                                           const std::shared_ptr<const ImageBufferWrapper> leftRectified,
                                            const image::Calibration &calibration,
                                            const system::DeviceInfo &deviceInfo,
                                            double minDisparity)
@@ -218,6 +218,8 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<ImageBufferWrap
     const uint8_t *leftRectifiedP = reinterpret_cast<const uint8_t*>(leftRectified->data().imageDataP);
 
     std::vector<WorldPoint> points;
+    points.reserve(height * width);
+
     for (size_t h = 0 ; h < height ; ++h) {
         for (size_t w = 0 ; w < width ; ++w) {
 
@@ -282,6 +284,11 @@ void imageCallback(const image::Header& header,
                    void                *userDataP)
 {
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
+
+    if (!userData->driver) {
+        std::cerr << "Invalid MultiSense channel" << std::endl;
+        return;
+    }
 
     switch (header.source) {
         case Source_Luma_Rectified_Left:
@@ -436,8 +443,7 @@ int main(int    argc,
         return EXIT_FAILURE;
     }
 
-    while(!doneG)
-    {
+    while(!doneG) {
         usleep(1000000);
     }
 
