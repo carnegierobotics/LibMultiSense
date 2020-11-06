@@ -82,6 +82,11 @@ public:
 
     static CRL_CONSTEXPR uint8_t  MAX_PCBS = 8;
 
+    static uint8_t maxPcbs()
+    {
+        return MAX_PCBS;
+    }
+
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL       = 1;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7       = 2;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M        = 3;
