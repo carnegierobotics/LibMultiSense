@@ -1121,7 +1121,7 @@ Status impl::setDeviceInfo(const std::string& key,
     w.serialNumber     = info.serialNumber;
     w.hardwareRevision = hardwareApiToWire(info.hardwareRevision);
     w.numberOfPcbs     = std::min((uint8_t) info.pcbs.size(),
-                                            wire::SysDeviceInfo::MAX_PCBS);
+                                            wire::SysDeviceInfo::maxPcbs());
     for(uint32_t i=0; i<w.numberOfPcbs; i++) {
         w.pcbs[i].name     = info.pcbs[i].name;
         w.pcbs[i].revision = info.pcbs[i].revision;
