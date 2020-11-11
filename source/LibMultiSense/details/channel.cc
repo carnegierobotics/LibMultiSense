@@ -437,6 +437,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
     case system::DeviceInfo::HARDWARE_REV_BCAM:             return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
@@ -455,6 +456,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27: return system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
     case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                return system::DeviceInfo::HARDWARE_REV_BCAM;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
