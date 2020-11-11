@@ -199,8 +199,7 @@ int main(int    argc,
     }
 
     hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
-                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 ||
-                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
 
     //
     // Query
