@@ -98,6 +98,7 @@ public:
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7AR     = 9;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21     = 10;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                = 100;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                = 101;
 
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
