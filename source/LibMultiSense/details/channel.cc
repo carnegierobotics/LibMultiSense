@@ -439,6 +439,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
     case system::DeviceInfo::HARDWARE_REV_BCAM:             return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
+    case system::DeviceInfo::HARDWARE_REV_MONO:             return wire::SysDeviceInfo::HARDWARE_REV_MONO;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -458,6 +459,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
     case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                return system::DeviceInfo::HARDWARE_REV_BCAM;
+    case wire::SysDeviceInfo::HARDWARE_REV_MONO:                return system::DeviceInfo::HARDWARE_REV_MONO;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
