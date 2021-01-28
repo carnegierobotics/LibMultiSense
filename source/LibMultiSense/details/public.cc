@@ -701,6 +701,8 @@ Status impl::getImageConfig(image::Config& config)
              d.tx, d.ty, d.tz,
              d.roll, d.pitch, d.yaw);
 
+    a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
+
     return Status_Ok;
 }
 
@@ -746,6 +748,8 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.autoExposureRoiY         = c.autoExposureRoiY();
     cmd.autoExposureRoiWidth     = c.autoExposureRoiWidth();
     cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
+
+    cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
     return waitAck(cmd);
 }
