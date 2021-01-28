@@ -145,6 +145,16 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
  */
 static CRL_CONSTEXPR int Roi_Full_Image = 0;
 
+#if __cplusplus > 199711L
+enum class CameraProfile
+#else
+enum CameraProfile
+#endif
+{
+    /** User has direct control over all settings in the image configuration*/
+    USER_CONTROL = 0
+};
+
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
  * stream destination (UDP port), currently supported only by CRL's
@@ -747,6 +757,16 @@ public:
         m_autoExposureRoiHeight = height;
     }
 
+    /**
+     * Set the operation profile for the camera to use. Profile settings subsume other user settings.
+     *
+     * @param profile The operation profile to use on the camera
+     */
+    void setCameraProfile(const CameraProfile &profile)
+    {
+        m_profile = profile;
+    }
+
     //
     // Query
 
@@ -775,7 +795,7 @@ public:
     uint32_t disparities () const { return m_disparities; };
 
     /**
-     * Query the current image configuration's mode
+     * Query the current image configuration's mode.
      *
      * @return The current camera mode
      */
@@ -941,6 +961,13 @@ public:
      */
     uint16_t autoExposureRoiHeight   () const { return m_autoExposureRoiHeight; };
 
+    /**
+     * Query the current image configurations camera profile
+     *
+     * @return The current image configurations camera profile
+     */
+    CameraProfile cameraProfile () const { return m_profile; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -1065,6 +1092,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_autoExposureRoiX(0), m_autoExposureRoiY(0),
                m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
+               m_profile(CameraProfile::USER_CONTROL),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1091,6 +1119,7 @@ private:
     uint16_t m_autoExposureRoiY;
     uint16_t m_autoExposureRoiWidth;
     uint16_t m_autoExposureRoiHeight;
+    CameraProfile m_profile;
 
 protected:
 

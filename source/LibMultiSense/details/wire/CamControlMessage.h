@@ -50,7 +50,7 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 5;
+    static CRL_CONSTEXPR VersionType VERSION = 6;
 
     //
     // Parameters representing the current camera configuration
@@ -92,6 +92,11 @@ public:
     uint16_t autoExposureRoiY;
     uint16_t autoExposureRoiWidth;
     uint16_t autoExposureRoiHeight;
+
+    //
+    // Additions in version 6
+
+    uint32_t cameraProfile;
 
     //
     // Constructors
@@ -149,6 +154,15 @@ public:
             autoExposureRoiY = 0;
             autoExposureRoiWidth = crl::multisense::Roi_Full_Image;
             autoExposureRoiHeight = crl::multisense::Roi_Full_Image;
+        }
+
+        if (version >= 6)
+        {
+            message & cameraProfile;
+        }
+        else
+        {
+            cameraProfile = 0;
         }
     }
 };
