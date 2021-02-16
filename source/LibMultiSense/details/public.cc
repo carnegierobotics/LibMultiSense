@@ -695,7 +695,8 @@ Status impl::getImageConfig(image::Config& config)
     a.setHdr(d.hdrEnabled);
 
     a.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
-                         d.autoExposureRoiWidth, d.autoExposureRoiHeight);
+                         d.autoExposureRoiWidth, d.autoExposureRoiHeight,
+                         sourceWireToApi(d.autoExposureRoiImageSource));
 
     a.setCal(d.fx, d.fy, d.cx, d.cy,
              d.tx, d.ty, d.tz,
@@ -744,10 +745,11 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.hdrEnabled               = c.hdrEnabled();
     cmd.storeSettingsInFlash     = c.storeSettingsInFlash();
 
-    cmd.autoExposureRoiX         = c.autoExposureRoiX();
-    cmd.autoExposureRoiY         = c.autoExposureRoiY();
-    cmd.autoExposureRoiWidth     = c.autoExposureRoiWidth();
-    cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
+    cmd.autoExposureRoiX             = c.autoExposureRoiX();
+    cmd.autoExposureRoiY             = c.autoExposureRoiY();
+    cmd.autoExposureRoiWidth         = c.autoExposureRoiWidth();
+    cmd.autoExposureRoiHeight        = c.autoExposureRoiHeight();
+    cmd.autoExposureRoiImageSource   = sourceApiToWire(c.autoExposureRoiImageSource());
 
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 

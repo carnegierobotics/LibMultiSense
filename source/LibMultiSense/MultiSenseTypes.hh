@@ -749,12 +749,14 @@ public:
      * @param height The height of the ROI
      */
 
-    void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
+    void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height,
+                            const DataSource &imageSource = Source_Luma_Rectified_Left)
     {
         m_autoExposureRoiX = start_x;
         m_autoExposureRoiY = start_y;
         m_autoExposureRoiWidth = width;
         m_autoExposureRoiHeight = height;
+        m_autoExposureRoiImageSource = imageSource;
     }
 
     /**
@@ -962,6 +964,13 @@ public:
     uint16_t autoExposureRoiHeight   () const { return m_autoExposureRoiHeight; };
 
     /**
+     * Query the image source the auto exposure configuration is associated with
+     *
+     * @return Return the image source the auto exposure ROI is associated with
+     */
+    DataSource autoExposureRoiImageSource () const { return m_autoExposureRoiImageSource; };
+
+    /**
      * Query the current image configurations camera profile
      *
      * @return The current image configurations camera profile
@@ -1092,33 +1101,35 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_autoExposureRoiX(0), m_autoExposureRoiY(0),
                m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
+               m_autoExposureRoiImageSource(Source_Luma_Rectified_Left),
                m_profile(CameraProfile::USER_CONTROL),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
 
-    float    m_fps, m_gain;
-    uint32_t m_exposure;
-    bool     m_aeEnabled;
-    uint32_t m_aeMax;
-    uint32_t m_aeDecay;
-    float    m_aeThresh;
-    float    m_wbBlue;
-    float    m_wbRed;
-    bool     m_wbEnabled;
-    uint32_t m_wbDecay;
-    float    m_wbThresh;
-    uint32_t m_width, m_height;
-    uint32_t m_disparities;
-    int      m_cam_mode;
-    int      m_offset;
-    float    m_spfStrength;
-    bool     m_hdrEnabled;
-    bool     m_storeSettingsInFlash;
-    uint16_t m_autoExposureRoiX;
-    uint16_t m_autoExposureRoiY;
-    uint16_t m_autoExposureRoiWidth;
-    uint16_t m_autoExposureRoiHeight;
+    float         m_fps, m_gain;
+    uint32_t      m_exposure;
+    bool          m_aeEnabled;
+    uint32_t      m_aeMax;
+    uint32_t      m_aeDecay;
+    float         m_aeThresh;
+    float         m_wbBlue;
+    float         m_wbRed;
+    bool          m_wbEnabled;
+    uint32_t      m_wbDecay;
+    float         m_wbThresh;
+    uint32_t      m_width, m_height;
+    uint32_t      m_disparities;
+    int           m_cam_mode;
+    int           m_offset;
+    float         m_spfStrength;
+    bool          m_hdrEnabled;
+    bool          m_storeSettingsInFlash;
+    uint16_t      m_autoExposureRoiX;
+    uint16_t      m_autoExposureRoiY;
+    uint16_t      m_autoExposureRoiWidth;
+    uint16_t      m_autoExposureRoiHeight;
+    DataSource    m_autoExposureRoiImageSource;
     CameraProfile m_profile;
 
 protected:

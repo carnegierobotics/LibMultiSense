@@ -50,7 +50,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 6;
+    static CRL_CONSTEXPR VersionType VERSION = 7;
 
     //
     // Parameters representing the current camera configuration
@@ -106,6 +106,11 @@ public:
     uint32_t cameraProfile;
 
     //
+    // Additions in version 7
+
+    SourceType autoExposureRoiImageSource;
+
+    //
     // Constructors
 
     CamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
@@ -141,7 +146,8 @@ public:
         autoExposureRoiY(0),
         autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
         autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
-        cameraProfile(0)
+        cameraProfile(0),
+        autoExposureRoiImageSource(SOURCE_LUMA_RECT_LEFT)
         {};
 
     //
@@ -219,6 +225,15 @@ public:
         else
         {
             cameraProfile = 0;
+        }
+
+        if (version >= 7)
+        {
+            message & autoExposureRoiImageSource;
+        }
+        else
+        {
+            autoExposureRoiImageSource = SOURCE_LUMA_RECT_LEFT;
         }
     }
 };
