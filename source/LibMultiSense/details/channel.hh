@@ -118,7 +118,7 @@ public:
     virtual Status releaseCallbackBuffer (void *referenceP);
 
     virtual Status networkTimeSynchronization(bool enabled);
-    virtual Status ptpTimeSyncronization(bool enabled);
+    virtual Status ptpTimeSynchronization(bool enabled);
 
     virtual Status startStreams          (DataSource mask);
     virtual Status stopStreams           (DataSource mask);

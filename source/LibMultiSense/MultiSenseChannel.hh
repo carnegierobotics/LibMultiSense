@@ -358,7 +358,7 @@ public:
      * synchronization was successfully enabled or disabled
      */
 
-    virtual Status ptpTimeSyncronization(bool enabled) = 0;
+    virtual Status ptpTimeSynchronization(bool enabled) = 0;
 
     /**
      * Start streaming various DataSources from the sensor.

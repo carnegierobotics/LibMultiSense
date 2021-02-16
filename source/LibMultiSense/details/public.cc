@@ -443,7 +443,7 @@ Status impl::networkTimeSynchronization(bool enabled)
 //
 // Enable/disable PTP time synchronization
 
-Status impl::ptpTimeSyncronization(bool enabled)
+Status impl::ptpTimeSynchronization(bool enabled)
 {
     Status status;
 
