@@ -492,7 +492,6 @@ private:
 #endif
 };
 
-
 }}} // namespaces
 
 #endif // LibMultiSense_details_channel_hh

@@ -51,6 +51,7 @@ class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 7;
+    static CRL_CONSTEXPR SourceType Default_Roi_Source = SOURCE_LUMA_LEFT;
 
     //
     // Parameters representing the current camera configuration
@@ -176,7 +177,7 @@ public:
         }
         else
         {
-            autoExposureRoiImageSource = SOURCE_LUMA_RECT_LEFT;
+            autoExposureRoiImageSource = Default_Roi_Source;
         }
     }
 };

@@ -51,6 +51,7 @@ class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
     static CRL_CONSTEXPR VersionType VERSION = 7;
+    static CRL_CONSTEXPR SourceType Default_Roi_Source = SOURCE_LUMA_LEFT;
 
     //
     // Parameters representing the current camera configuration
@@ -147,7 +148,7 @@ public:
         autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
         autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
         cameraProfile(0),
-        autoExposureRoiImageSource(SOURCE_LUMA_RECT_LEFT)
+        autoExposureRoiImageSource(Default_Roi_Source)
         {};
 
     //
@@ -233,7 +234,7 @@ public:
         }
         else
         {
-            autoExposureRoiImageSource = SOURCE_LUMA_RECT_LEFT;
+            autoExposureRoiImageSource = Default_Roi_Source;
         }
     }
 };

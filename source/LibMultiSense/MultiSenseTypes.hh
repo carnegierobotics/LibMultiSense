@@ -144,6 +144,7 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
  * to set the ROI to the full image regardless of the current resolution
  */
 static CRL_CONSTEXPR int Roi_Full_Image = 0;
+static CRL_CONSTEXPR DataSource Roi_Default_Source = Source_Luma_Left;
 
 #if __cplusplus > 199711L
 enum class CameraProfile
@@ -749,8 +750,32 @@ public:
      * @param height The height of the ROI
      */
 
+    void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
+    {
+        m_autoExposureRoiX = start_x;
+        m_autoExposureRoiY = start_y;
+        m_autoExposureRoiWidth = width;
+        m_autoExposureRoiHeight = height;
+    }
+
+    /**
+     * Set the desired ROI to use when computing the auto-exposure.
+     * x axis is horizontal and y axis is vertical.
+     * (0,0) coordinate starts in the upper left corner of the image.
+     * If (x + w > image width) or (y + h > image height) the sensor will return an error
+     * Setting to default:(0,0,crl::multisense::Roi_Full_Image,crl::multisense::Roi_Full_Image)
+     * will use the entire image for the ROI regardless of the current resolution
+     * This feature is only available in sensor firmware version 4.3 and greater
+     *
+     * @param start_x The X coordinate where the ROI starts
+     * @param start_y The Y coordinate where the ROI starts
+     * @param width The width of the ROI
+     * @param height The height of the ROI
+     * @param imageSource The image source the ROI parameters are associated with
+     */
+
     void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height,
-                            const DataSource &imageSource = Source_Luma_Rectified_Left)
+                            const DataSource &imageSource)
     {
         m_autoExposureRoiX = start_x;
         m_autoExposureRoiY = start_y;
@@ -1101,7 +1126,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_autoExposureRoiX(0), m_autoExposureRoiY(0),
                m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-               m_autoExposureRoiImageSource(Source_Luma_Rectified_Left),
+               m_autoExposureRoiImageSource(Roi_Default_Source),
                m_profile(CameraProfile::USER_CONTROL),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
