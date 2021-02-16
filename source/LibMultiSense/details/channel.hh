@@ -118,6 +118,7 @@ public:
     virtual Status releaseCallbackBuffer (void *referenceP);
 
     virtual Status networkTimeSynchronization(bool enabled);
+    virtual Status ptpTimeSyncronization(bool enabled);
 
     virtual Status startStreams          (DataSource mask);
     virtual Status stopStreams           (DataSource mask);
@@ -158,6 +159,8 @@ public:
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
 
     virtual Status getImageHistogram     (int64_t frameId, image::Histogram& histogram);
+
+    virtual Status getPtpStatus          (int64_t frameId, system::PtpStatus& ptpStatus);
 
     virtual Status getDeviceModes        (std::vector<system::DeviceMode>& modes);
 
@@ -207,6 +210,47 @@ private:
                                  const uint8_t               *dataP,
                                  uint32_t                     offset,
                                  uint32_t                     length);
+
+    template <typename T>
+    void toHeaderTime(T nanoSeconds,
+                      uint32_t &seconds,
+                      uint32_t &microSeconds) const
+    {
+        const T oneBillion = static_cast<T>(1e9);
+
+        seconds      = static_cast<uint32_t>(nanoSeconds / oneBillion);
+        microSeconds = static_cast<uint32_t>((nanoSeconds % oneBillion) /
+                       static_cast<T>(1000));
+    }
+
+    template <class WireT>
+    void getImageTime(const WireT *wire,
+                uint32_t &seconds,
+                uint32_t &microSeconds)
+    {
+        if (m_ptpTimeSyncEnabled)
+        {
+
+            toHeaderTime(wire->ptpNanoSeconds, seconds, microSeconds);
+
+            return;
+        } else
+        {
+            if (false == m_networkTimeSyncEnabled) {
+
+                seconds = wire->timeSeconds;
+                microSeconds = wire->timeMicroSeconds;
+
+                return;
+
+            } else {
+                sensorToLocalTime(static_cast<double>(wire->timeSeconds) +
+                                  1e-6 * static_cast<double>(wire->timeMicroSeconds),
+                                  seconds, microSeconds);
+                return;
+            }
+        }
+    }
 
     //
     // The version of this API
@@ -407,6 +451,7 @@ private:
     bool           m_timeOffsetInit;
     double         m_timeOffset;
     bool           m_networkTimeSyncEnabled;
+    bool           m_ptpTimeSyncEnabled;
 
     //
     // Cached version info from the device

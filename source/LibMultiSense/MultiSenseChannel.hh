@@ -339,6 +339,28 @@ public:
     virtual Status networkTimeSynchronization(bool enabled) = 0;
 
     /**
+     * Enable or disable PTP synchronization to an external PTP master. This
+     * subsumes the networkTimeSynchronization
+     *
+     * Each Channel will keep a continuously updating and filtered offset between
+     * the sensor's internal clock and the local system clock.
+     *
+     * If enabled, all sensor timestamps will be reported with the synchronized PTP time
+     *
+     * If disabled, all sensor timestamps will be reported in the timebase determined
+     * by the current networkTimeSynchronization setting
+     *
+     * The PTP-based time synchronization is disabled by default
+     *
+     * @param enabled A boolean flag which enables or disables PTP time synchronization
+     *
+     * @return A crl::multisense::Status indicating if the PTP time
+     * synchronization was successfully enabled or disabled
+     */
+
+    virtual Status ptpTimeSyncronization(bool enabled) = 0;
+
+    /**
      * Start streaming various DataSources from the sensor.
      *
      * This is the primary means of stream control. All streams will come to
@@ -718,6 +740,21 @@ public:
 
     virtual Status getImageHistogram   (int64_t frameId,  // from last 20 images, left only
                                         image::Histogram& histogram)        = 0;
+
+    /**
+     * Get PTP status information for a specific image
+     *
+     * @param frameId The frameId of the corresponding left image to query a
+     * PTP status info for. Status can only be queried for images with frameIds
+     * fewer than 20 frameIds from the most recent image's frameId.
+     *
+     * @param ptpStatus The PTP status information associated with a image
+     *
+     * @return A crl::multisense::Status indicating if the PTP status query
+     * was successful
+     */
+    virtual Status getPtpStatus(int64_t frameId,
+                                system::PtpStatus &ptpStatus) = 0;
 
 
     /**

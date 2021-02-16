@@ -1,9 +1,9 @@
 /**
- * @file LibMultiSense/ImuDataMessage.h
+ * @file LibMultiSense/SysSetPtpMessage.h
  *
- * This message contains raw IMU data.
+ * This message enables PTP syncronization on the camera
  *
- * Copyright 2013
+ * Copyright 2021
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,11 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-11-07, ekratzer@carnegierobotics.com, PR1044, created file.
+ *   2021-02-15, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_ImuDataMessage
-#define LibMultiSense_ImuDataMessage
+#ifndef LibMultiSense_SysSetPtpMessage
+#define LibMultiSense_SysSetPtpMessage
 
 #include "details/utility/Portability.hh"
 
@@ -46,53 +46,21 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ ImuSample {
+class SysSetPtp {
 public:
-    static CRL_CONSTEXPR VersionType VERSION    = 2;
-    static CRL_CONSTEXPR uint16_t    TYPE_ACCEL = 1;
-    static CRL_CONSTEXPR uint16_t    TYPE_GYRO  = 2;
-    static CRL_CONSTEXPR uint16_t    TYPE_MAG   = 3;
-
-    uint16_t type;
-    int64_t  timeNanoSeconds;
-    float    x, y, z;
-    uint64_t ptpNanoSeconds;
-
-#ifndef SENSORPOD_FIRMWARE
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        message & type;
-        message & timeNanoSeconds;
-        message & x;
-        message & y;
-        message & z;
-
-        if (version >= 2)
-        {
-            message & ptpNanoSeconds;
-        }
-    }
-#endif // !SENSORPOD_FIRMWARE
-};
-
-class ImuData  {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMU;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_SET_PTP;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    uint32_t               sequence;
-    std::vector<ImuSample> samples;
+    //
+    // If non-zero, the sensor will attempt to syncronize to an external PTP master
 
-#ifndef SENSORPOD_FIRMWARE
+    uint8_t enable;
 
     //
     // Constructors
 
-    ImuData(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    ImuData() {};
+    SysSetPtp(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SysSetPtp(uint8_t e=0) : enable(e){};
 
     //
     // Serialization routine
@@ -102,11 +70,8 @@ public:
                        const VersionType version)
     {
         (void) version;
-        message & sequence;
-        message & samples;
+        message & enable;
     }
-#endif // !SENSORPOD_FIRMWARE
-
 };
 
 }}}} // namespaces
