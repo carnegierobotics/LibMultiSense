@@ -192,8 +192,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         wire::LidarData scan(stream, version);
         lidar::Header   header;
 
-	const int32_t  scanArc  = static_cast<int32_t> (utility::degreesToRadians(270.0) * 1e6); // microradians
-	const uint32_t maxRange = static_cast<uint32_t> (30.0 * 1e3); // mm
+        const int32_t  scanArc  = static_cast<int32_t> (utility::degreesToRadians(270.0) * 1e6); // microradians
+        const uint32_t maxRange = static_cast<uint32_t> (30.0 * 1e3); // mm
 
         if (false == m_networkTimeSyncEnabled) {
 
@@ -248,15 +248,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         image::Header header;
 
-        if (false == m_networkTimeSyncEnabled) {
-
-            header.timeSeconds      = metaP->timeSeconds;
-            header.timeMicroSeconds = metaP->timeMicroSeconds;
-
-        } else
-            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) +
-                              1e-6 * static_cast<double>(metaP->timeMicroSeconds),
-                              header.timeSeconds, header.timeMicroSeconds);
+        getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
         header.source           = sourceWireToApi(image.source);
         header.bitsPerPixel     = 0;
@@ -284,15 +276,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         image::Header header;
 
-        if (false == m_networkTimeSyncEnabled) {
-
-            header.timeSeconds      = metaP->timeSeconds;
-            header.timeMicroSeconds = metaP->timeMicroSeconds;
-
-        } else
-            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) +
-                              1e-6 * static_cast<double>(metaP->timeMicroSeconds),
-                              header.timeSeconds, header.timeMicroSeconds);
+        getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
         header.source           = sourceWireToApi(image.source);
         header.bitsPerPixel     = image.bitsPerPixel;
@@ -320,15 +304,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         image::Header header;
 
-        if (false == m_networkTimeSyncEnabled) {
-
-            header.timeSeconds      = metaP->timeSeconds;
-            header.timeMicroSeconds = metaP->timeMicroSeconds;
-
-        } else
-            sensorToLocalTime(static_cast<double>(metaP->timeSeconds) +
-                              1e-6 * static_cast<double>(metaP->timeMicroSeconds),
-                              header.timeSeconds, header.timeMicroSeconds);
+        getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
         header.source           = Source_Disparity;
         header.bitsPerPixel     = wire::Disparity::API_BITS_PER_PIXEL;
@@ -374,17 +350,19 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             const wire::ImuSample& w = imu.samples[i];
             imu::Sample&           a = header.samples[i];
 
-            if (false == m_networkTimeSyncEnabled) {
+            if (m_ptpTimeSyncEnabled)
+            {
+                toHeaderTime(w.ptpNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
+            }
+            else {
+                if (false == m_networkTimeSyncEnabled) {
 
-                const int64_t oneBillion = static_cast<int64_t>(1e9);
+                    toHeaderTime(w.timeNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
 
-                a.timeSeconds      = static_cast<uint32_t>(w.timeNanoSeconds / oneBillion);
-                a.timeMicroSeconds = static_cast<uint32_t>((w.timeNanoSeconds % oneBillion) /
-                                                           static_cast<int64_t>(1000));
-
-            } else
-                sensorToLocalTime(static_cast<double>(w.timeNanoSeconds) / 1e9,
-                                  a.timeSeconds, a.timeMicroSeconds);
+                } else
+                    sensorToLocalTime(static_cast<double>(w.timeNanoSeconds) / 1e9,
+                                      a.timeSeconds, a.timeMicroSeconds);
+            }
 
             switch(w.type) {
             case wire::ImuSample::TYPE_ACCEL: a.type = imu::Sample::Type_Accelerometer; break;

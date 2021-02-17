@@ -48,6 +48,7 @@
 #include "details/wire/StatusResponseMessage.h"
 
 #include "details/wire/StreamControlMessage.h"
+#include "details/wire/SysSetPtpMessage.h"
 #include "details/wire/SysGetDirectedStreamsMessage.h"
 #include "details/wire/SysDirectedStreamsMessage.h"
 
@@ -400,6 +401,36 @@ Status impl::getImageHistogram(int64_t           frameId,
     return Status_Error;
 }
 
+Status impl::getPtpStatus(int64_t frameId,
+                          system::PtpStatus &ptpStatus)
+{
+    try {
+
+        utility::ScopedLock lock(m_imageMetaCache.mutex());
+
+        const wire::ImageMeta *metaP = m_imageMetaCache.find_nolock(frameId);
+        if (NULL == metaP) {
+            CRL_DEBUG("no meta cached for frameId %ld",
+                      static_cast<long int>(frameId));
+            return Status_Failed;
+        }
+
+        ptpStatus = system::PtpStatus();
+
+        return Status_Ok;
+
+    }
+    catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    catch (...) {
+        CRL_DEBUG ("%s\n", "unknown exception");
+    }
+
+    return Status_Error;
+}
+
 //
 // Enable/disable network-based time synchronization
 
@@ -407,6 +438,24 @@ Status impl::networkTimeSynchronization(bool enabled)
 {
     m_networkTimeSyncEnabled = enabled;
     return Status_Ok;
+}
+
+//
+// Enable/disable PTP time synchronization
+
+Status impl::ptpTimeSynchronization(bool enabled)
+{
+    Status status;
+
+    wire::SysSetPtp cmd;
+    cmd.enable = enabled ? 1 : 0;
+
+    status = waitAck(cmd);
+
+    if (Status_Ok == status)
+        m_ptpTimeSyncEnabled = enabled;
+
+    return status;
 }
 
 //
@@ -536,6 +585,11 @@ Status impl::setTriggerSource(TriggerSource s)
     case Trigger_External_Inverted:
 
         wireSource = wire::CamSetTriggerSource::SOURCE_EXTERNAL_INVERTED;
+        break;
+
+    case Trigger_PTP:
+
+        wireSource = wire::CamSetTriggerSource::SOURCE_PTP;
         break;
 
     default:

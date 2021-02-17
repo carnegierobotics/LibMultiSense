@@ -215,6 +215,8 @@ static CRL_CONSTEXPR TriggerSource Trigger_Internal    = 0;
 static CRL_CONSTEXPR TriggerSource Trigger_External    = 1;
 /** External OPTO_RX trigger input with Inverted Polarity */
 static CRL_CONSTEXPR TriggerSource Trigger_External_Inverted    = 2;
+/** Syncronize cameras on integer timestamps when using PTP */
+static CRL_CONSTEXPR TriggerSource Trigger_PTP    = 3;
 
 
 
@@ -2720,6 +2722,12 @@ class MULTISENSE_API ExternalCalibration {
             roll(0.),
             pitch(0.),
             yaw(0.) {};
+};
+
+/**
+ * PTP status data associated with a specific stamped MultiSense message
+ */
+class MULTISENSE_API PtpStatus {
 };
 
 } // namespace system

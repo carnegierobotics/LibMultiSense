@@ -91,6 +91,7 @@ impl::impl(const std::string& address) :
     m_timeOffsetInit(false),
     m_timeOffset(0),
     m_networkTimeSyncEnabled(true),
+    m_ptpTimeSyncEnabled(false),
     m_sensorVersion()
 {
 #if WIN32
