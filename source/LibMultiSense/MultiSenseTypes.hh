@@ -152,7 +152,13 @@ enum CameraProfile
 #endif
 {
     /** User has direct control over all settings in the image configuration*/
-    USER_CONTROL = 0
+    USER_CONTROL = 0,
+
+    /** User would like more detail in the disparity image*/
+    DETAIL_DISPARITY,
+
+    /** User would like more contrast in images*/
+    HIGH_CONTRAST
 };
 
 /**
