@@ -145,21 +145,14 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
  */
 static CRL_CONSTEXPR int Roi_Full_Image = 0;
 
-#if __cplusplus > 199711L
-enum class CameraProfile
-#else
-enum CameraProfile
-#endif
-{
-    /** User has direct control over all settings in the image configuration*/
-    USER_CONTROL = 0,
+typedef uint32_t CameraProfile;
 
-    /** User would like more detail in the disparity image*/
-    DETAIL_DISPARITY,
-
-    /** User would like more contrast in images*/
-    HIGH_CONTRAST
-};
+/** User has direct control over all settings in the image configuration*/
+static CRL_CONSTEXPR CameraProfile User_Control = 0;
+/** User would like more detail in the disparity image*/
+static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
+/** User would like more contrast in images*/
+static CRL_CONSTEXPR CameraProfile High_Contrast = 1;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -1100,7 +1093,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_autoExposureRoiX(0), m_autoExposureRoiY(0),
                m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-               m_profile(CameraProfile::USER_CONTROL),
+               m_profile(User_Control),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
