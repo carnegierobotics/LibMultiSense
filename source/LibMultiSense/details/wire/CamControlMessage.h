@@ -41,6 +41,7 @@
 #define LibMultiSense_CamControlMessage
 
 #include "details/utility/Portability.hh"
+#include "details/wire/ExposureConfigMessage.h"
 
 namespace crl {
 namespace multisense {
@@ -50,7 +51,7 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 6;
+    static CRL_CONSTEXPR VersionType VERSION = 7;
 
     //
     // Parameters representing the current camera configuration
@@ -97,6 +98,12 @@ public:
     // Additions in version 6
 
     uint32_t cameraProfile;
+
+    //
+    // Additions in version 7
+
+    SourceType exposureSource;
+    std::vector<ExposureConfig> secondaryExposureConfigs;
 
     //
     // Constructors
@@ -163,6 +170,17 @@ public:
         else
         {
             cameraProfile = 0;
+        }
+
+        if (version >= 7)
+        {
+            message & exposureSource;
+            message & secondaryExposureConfigs;
+        }
+        else
+        {
+            exposureSource = ExposureConfig::Default_Exposure_Source;
+            secondaryExposureConfigs = std::vector<ExposureConfig>();
         }
     }
 };
