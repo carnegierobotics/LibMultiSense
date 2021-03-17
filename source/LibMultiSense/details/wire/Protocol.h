@@ -269,6 +269,11 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_RGB_LEFT);
 
 //
+// Exposure config
+
+static CRL_CONSTEXPR SourceType Default_Exposure_Source = SOURCE_LUMA_LEFT;
+
+//
 // Some helper macros
 
 #define MSG_ID(x)  ((wire::IdType)(x))

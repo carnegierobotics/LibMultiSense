@@ -38,6 +38,7 @@
 #define LibMultiSense_ExposureConfigMessage
 
 #include "details/utility/Portability.hh"
+#include "Protocol.h"
 
 namespace crl {
 namespace multisense {
@@ -48,7 +49,6 @@ class ExposureConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_EXPOSURE_CONFIG;
     static CRL_CONSTEXPR VersionType VERSION = 0;
-    static CRL_CONSTEXPR SourceType Default_Exposure_Source = SOURCE_LUMA_LEFT;
 
     uint32_t exposure;
     uint8_t  autoExposure;

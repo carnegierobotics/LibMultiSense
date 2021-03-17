@@ -42,6 +42,7 @@
 
 #include "details/utility/Portability.hh"
 #include "details/wire/ExposureConfigMessage.h"
+#include "Protocol.h"
 
 namespace crl {
 namespace multisense {
@@ -179,7 +180,7 @@ public:
         }
         else
         {
-            exposureSource = ExposureConfig::Default_Exposure_Source;
+            exposureSource = Default_Exposure_Source;
             secondaryExposureConfigs = std::vector<ExposureConfig>();
         }
     }

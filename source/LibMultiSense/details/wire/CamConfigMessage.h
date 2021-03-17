@@ -42,6 +42,7 @@
 
 #include "details/utility/Portability.hh"
 #include "details/wire/ExposureConfigMessage.h"
+#include "Protocol.h"
 
 namespace crl {
 namespace multisense {
@@ -149,7 +150,7 @@ public:
         autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
         autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
         cameraProfile(0),
-        exposureSource(ExposureConfig::Default_Exposure_Source),
+        exposureSource(Default_Exposure_Source),
         secondaryExposureConfigs()
         {};
 
@@ -237,7 +238,7 @@ public:
         }
         else
         {
-            exposureSource = ExposureConfig::Default_Exposure_Source;
+            exposureSource = Default_Exposure_Source;
             secondaryExposureConfigs = std::vector<ExposureConfig>();
         }
     }

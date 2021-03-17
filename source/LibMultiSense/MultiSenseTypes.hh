@@ -507,7 +507,7 @@ public:
      * Set the desired ROI to use when computing the auto-exposure.
      * x axis is horizontal and y axis is vertical.
      * (0,0) coordinate starts in the upper left corner of the image.
-     * If (x + w > image width) or (y + h > image height) the sensor will return an error
+     * If (x + w > image width) or (y + h > image height) the sensor will return an error.
      * Setting to default:(0,0,crl::multisense::Roi_Full_Image,crl::multisense::Roi_Full_Image)
      * will use the entire image for the ROI regardless of the current resolution
      * This feature is only available in sensor firmware version 4.3 and greater
