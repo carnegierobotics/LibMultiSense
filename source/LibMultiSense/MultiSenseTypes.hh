@@ -959,7 +959,7 @@ public:
     void setPrimaryExposure (const ExposureConfig &c ) { m_primary_exposure = c; };
 
     /**
-     * Set the secondary exposures configurations. These are independent exposure configurations with
+     * Set the secondary exposures configurations. These are independent exposure configurations which
      * are used for alternate image streams. Secondary exposure configs will be subsumed
      * by the primary exposure configuration.
      *
@@ -1185,7 +1185,7 @@ public:
     ExposureConfig primaryExposure() const { return m_primary_exposure; };
 
     /**
-     * Query the collection of secondary exposures. These are independent exposure configurations with
+     * Query the collection of secondary exposures. These are independent exposure configurations which
      * are used for alternate image streams. Secondary exposure configs will be subsumed
      * by the primary exposure configuration
      *
