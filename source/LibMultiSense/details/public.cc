@@ -757,7 +757,7 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
-    a.setExposureSource(d.exposureSource);
+    a.setExposureSource(sourceWireToApi(d.exposureSource));
 
     std::vector<image::ExposureConfig> secondaryExposures;
     for (size_t i = 0 ; i < d.secondaryExposureConfigs.size() ; ++i)
@@ -775,7 +775,7 @@ Status impl::getImageConfig(image::Config& config)
                              d.secondaryExposureConfigs[i].autoExposureRoiWidth,
                              d.secondaryExposureConfigs[i].autoExposureRoiHeight);
 
-        secondaryConfig.setExposureSource(d.secondaryExposureConfigs[i].exposureSource);
+        secondaryConfig.setExposureSource(sourceWireToApi(d.secondaryExposureConfigs[i].exposureSource));
 
         secondaryExposures.push_back(secondaryConfig);
     }
@@ -830,7 +830,7 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
-    cmd.exposureSource = c.exposureSource();
+    cmd.exposureSource = sourceApiToWire(c.exposureSource());
 
     std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
     std::vector<wire::ExposureConfig> secondaryConfigs;
@@ -849,7 +849,7 @@ Status impl::setImageConfig(const image::Config& c)
         secondaryConfig.autoExposureRoiWidth    = secondaryExposures[i].autoExposureRoiWidth();
         secondaryConfig.autoExposureRoiHeight   = secondaryExposures[i].autoExposureRoiHeight();
 
-        secondaryConfig.exposureSource = secondaryExposures[i].exposureSource();
+        secondaryConfig.exposureSource = sourceApiToWire(secondaryExposures[i].exposureSource());
 
         secondaryConfigs.push_back(secondaryConfig);
     }
