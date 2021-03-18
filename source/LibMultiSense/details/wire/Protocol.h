@@ -216,6 +216,7 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_SENSOR_CAL        = 0x011a;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_EXTERNAL_CAL      = 0x011b;
 static CRL_CONSTEXPR IdType ID_DATA_LED_SENSOR_STATUS     = 0x011c;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL        = 0x011d;
+static CRL_CONSTEXPR IdType ID_DATA_EXPOSURE_CONFIG       = 0x011e;
 
 //
 // Data sources
@@ -266,6 +267,11 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_DISPARITY_AUX   |
                                                             SOURCE_JPEG_LEFT       |
                                                             SOURCE_RGB_LEFT);
+
+//
+// Exposure config
+
+static CRL_CONSTEXPR SourceType Default_Exposure_Source = SOURCE_LUMA_LEFT;
 
 //
 // Some helper macros

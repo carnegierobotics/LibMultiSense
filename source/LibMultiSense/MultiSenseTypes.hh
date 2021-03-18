@@ -144,6 +144,7 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
  * to set the ROI to the full image regardless of the current resolution
  */
 static CRL_CONSTEXPR int Roi_Full_Image = 0;
+static CRL_CONSTEXPR DataSource Exposure_Default_Source = Source_Luma_Left;
 
 typedef uint32_t CameraProfile;
 
@@ -452,6 +453,183 @@ public:
 typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
+class MULTISENSE_API ExposureConfig {
+public:
+    ExposureConfig():
+        m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeDecay(7), m_aeThresh(0.75f),
+        m_autoExposureRoiX(0), m_autoExposureRoiY(0),
+        m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
+        m_exposureSource(Exposure_Default_Source) {};
+
+    /**
+     * Set the exposure time used to capture images. Note auto exposure
+     * must be disabled for this to take effect. Default value: 10000
+     *
+     * @param e The output exposure time in microseconds [10, 5000000]
+     */
+
+    void setExposure          (uint32_t e) { m_exposure  = e; };
+
+    /**
+     * Set auto-exposure enable flag. Default value: true
+     *
+     * @param e A boolean used to enable or disable auto-exposure
+     */
+
+    void setAutoExposure      (bool e)     { m_aeEnabled = e; };
+
+    /**
+     * Set the desired maximum auto-exposure value. Default value: 5000000
+     *
+     * @param m The maximum auto-exposure value in microseconds
+     */
+
+    void setAutoExposureMax   (uint32_t m) { m_aeMax     = m; };
+
+    /**
+     * Set the desired auto-exposure decay rate. Default value: 7
+     *
+     * @param d The auto-exposure decay rate [0, 20]
+     */
+
+    void setAutoExposureDecay (uint32_t d) { m_aeDecay   = d; };
+
+    /**
+     * Set the desired auto-exposure threshold. This is the percentage
+     * of the image that should be white. Default value: 0.75
+     *
+     * @param t The desired auto-exposure threshold [0.0, 1.0]
+     */
+
+    void setAutoExposureThresh(float t)    { m_aeThresh  = t; };
+
+    /**
+     * Set the desired ROI to use when computing the auto-exposure.
+     * x axis is horizontal and y axis is vertical.
+     * (0,0) coordinate starts in the upper left corner of the image.
+     * If (x + w > image width) or (y + h > image height) the sensor will return an error.
+     * Setting to default:(0,0,crl::multisense::Roi_Full_Image,crl::multisense::Roi_Full_Image)
+     * will use the entire image for the ROI regardless of the current resolution
+     * This feature is only available in sensor firmware version 4.3 and greater
+     *
+     * @param start_x The X coordinate where the ROI starts
+     * @param start_y The Y coordinate where the ROI starts
+     * @param width The width of the ROI
+     * @param height The height of the ROI
+     */
+
+    void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
+    {
+        m_autoExposureRoiX = start_x;
+        m_autoExposureRoiY = start_y;
+        m_autoExposureRoiWidth = width;
+        m_autoExposureRoiHeight = height;
+    }
+
+    /**
+     * Set the stream source which these exposure parameters should apply to
+     *
+     * @param s The image stream to apply these exposure parameters to
+     */
+
+    void setExposureSource(const DataSource &s)    { m_exposureSource  = s; };
+
+    //
+    // Query
+
+    /**
+     * Query the current image configuration's exposure setting
+     *
+     * @return the current image exposure setting in microseconds
+     */
+
+    uint32_t exposure          () const { return m_exposure;  };
+
+    /**
+     * Query the current image configuration's auto-exposure enable setting
+     *
+     * @return The current image configuration's auto-exposure enable flag
+     */
+
+    bool     autoExposure      () const { return m_aeEnabled; };
+
+    /**
+     * Query the current image configuration's maximum auto-exposure value
+     *
+     * @return The current image configuration's maximum auto-exposure value
+     */
+
+    uint32_t autoExposureMax   () const { return m_aeMax;     };
+
+    /**
+     * Query the current image configuration's auto-exposure decay rate
+     *
+     * @return The current configuration's auto-exposure decay rate
+     */
+
+    uint32_t autoExposureDecay () const { return m_aeDecay;   };
+
+    /**
+     * Query the current image configuration's auto-exposure threshold
+     *
+     * @return The current image configuration's auto-exposure threshold
+     */
+
+    float    autoExposureThresh() const { return m_aeThresh;  };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI X value
+     *
+     * @return The current image configuration's auto-exposure ROI X value
+     */
+    uint16_t autoExposureRoiX        () const { return m_autoExposureRoiX; };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI Y value
+     *
+     * @return The current image configuration's auto-exposure ROI Y value
+     */
+    uint16_t autoExposureRoiY        () const { return m_autoExposureRoiY; };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI width value
+     * Will return crl::multisense::Roi_Full_Image for the default setting,
+     * when the ROI covers the entire image regardless of current resolution
+     *
+     * @return The current image configuration's auto-exposure ROI width value
+     */
+    uint16_t autoExposureRoiWidth    () const { return m_autoExposureRoiWidth; };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI height value
+     * Will return crl::multisense::Roi_Full_Image for the default setting,
+     * when the ROI covers the entire image regardless of current resolution
+     *
+     * @return The current image configuration's auto-exposure ROI height value
+     */
+    uint16_t autoExposureRoiHeight   () const { return m_autoExposureRoiHeight; };
+
+    /**
+     * Query the image source which the exposure parameters correspond with
+     *
+     * @return Return the image source associated with the exposure parameters
+     */
+    DataSource exposureSource() const { return m_exposureSource; };
+
+    private:
+        uint32_t m_exposure;
+        bool     m_aeEnabled;
+        uint32_t m_aeMax;
+        uint32_t m_aeDecay;
+        float    m_aeThresh;
+
+        uint16_t m_autoExposureRoiX;
+        uint16_t m_autoExposureRoiY;
+        uint16_t m_autoExposureRoiWidth;
+        uint16_t m_autoExposureRoiHeight;
+        DataSource m_exposureSource;
+};
+
 /**
  * Class used to store a specific camera configuration. Members in
  * this class are set via get and set methods. The class is used as an input
@@ -629,7 +807,7 @@ public:
      * @param e The output exposure time in microseconds [10, 5000000]
      */
 
-    void setExposure          (uint32_t e) { m_exposure  = e; };
+    void setExposure          (uint32_t e) { m_primary_exposure.setExposure(e); };
 
     /**
      * Set auto-exposure enable flag. Default value: true
@@ -637,7 +815,7 @@ public:
      * @param e A boolean used to enable or disable auto-exposure
      */
 
-    void setAutoExposure      (bool e)     { m_aeEnabled = e; };
+    void setAutoExposure      (bool e)     { m_primary_exposure.setAutoExposure(e); };
 
     /**
      * Set the desired maximum auto-exposure value. Default value: 5000000
@@ -645,7 +823,7 @@ public:
      * @param m The maximum auto-exposure value in microseconds
      */
 
-    void setAutoExposureMax   (uint32_t m) { m_aeMax     = m; };
+    void setAutoExposureMax   (uint32_t m) { m_primary_exposure.setAutoExposureMax(m); };
 
     /**
      * Set the desired auto-exposure decay rate. Default value: 7
@@ -653,7 +831,7 @@ public:
      * @param d The auto-exposure decay rate [0, 20]
      */
 
-    void setAutoExposureDecay (uint32_t d) { m_aeDecay   = d; };
+    void setAutoExposureDecay (uint32_t d) { m_primary_exposure.setAutoExposureDecay(d); };
 
     /**
      * Set the desired auto-exposure threshold. This is the percentage
@@ -662,7 +840,7 @@ public:
      * @param t The desired auto-exposure threshold [0.0, 1.0]
      */
 
-    void setAutoExposureThresh(float t)    { m_aeThresh  = t; };
+    void setAutoExposureThresh(float t)    { m_primary_exposure.setAutoExposureThresh(t); };
 
     /**
      * Set the desired image white-balance. Default value: 1.0 for both
@@ -752,11 +930,16 @@ public:
 
     void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
     {
-        m_autoExposureRoiX = start_x;
-        m_autoExposureRoiY = start_y;
-        m_autoExposureRoiWidth = width;
-        m_autoExposureRoiHeight = height;
+        m_primary_exposure.setAutoExposureRoi(start_x, start_y, width, height);
     }
+
+    /**
+     * Set the stream source which these exposure parameters should apply to
+     *
+     * @param s The image stream to apply these exposure parameters to
+     */
+
+    void setExposureSource(const DataSource &s)    { m_primary_exposure.setExposureSource(s); };
 
     /**
      * Set the operation profile for the camera to use. Profile settings subsume other user settings.
@@ -767,6 +950,24 @@ public:
     {
         m_profile = profile;
     }
+
+    /**
+     * Set the primary exposure configuration
+     *
+     * @param c The primary exposure configuration to set
+     */
+    void setPrimaryExposure (const ExposureConfig &c ) { m_primary_exposure = c; };
+
+    /**
+     * Set the secondary exposures configurations. These are independent exposure configurations with
+     * are used for alternate image streams. Secondary exposure configs will be subsumed
+     * by the primary exposure configuration.
+     *
+     * A example use case includes specifying independent ROI based exposure control for the left and right camera
+     *
+     * @param c The collection of secondary exposure configs to set
+     */
+    void setSecondaryExposures(const std::vector<ExposureConfig> &c) { m_secondary_exposures = c; };
 
     //
     // Query
@@ -834,7 +1035,7 @@ public:
      * @return the current image exposure setting in microseconds
      */
 
-    uint32_t exposure          () const { return m_exposure;  };
+    uint32_t exposure          () const { return m_primary_exposure.exposure();  };
 
     /**
      * Query the current image configuration's auto-exposure enable setting
@@ -842,7 +1043,7 @@ public:
      * @return The current image configuration's auto-exposure enable flag
      */
 
-    bool     autoExposure      () const { return m_aeEnabled; };
+    bool     autoExposure      () const { return m_primary_exposure.autoExposure(); };
 
     /**
      * Query the current image configuration's maximum auto-exposure value
@@ -850,7 +1051,7 @@ public:
      * @return The current image configuration's maximum auto-exposure value
      */
 
-    uint32_t autoExposureMax   () const { return m_aeMax;     };
+    uint32_t autoExposureMax   () const { return m_primary_exposure.autoExposureMax();     };
 
     /**
      * Query the current image configuration's auto-exposure decay rate
@@ -858,7 +1059,7 @@ public:
      * @return The current configuration's auto-exposure decay rate
      */
 
-    uint32_t autoExposureDecay () const { return m_aeDecay;   };
+    uint32_t autoExposureDecay () const { return m_primary_exposure.autoExposureDecay();   };
 
     /**
      * Query the current image configuration's auto-exposure threshold
@@ -866,7 +1067,7 @@ public:
      * @return The current image configuration's auto-exposure threshold
      */
 
-    float    autoExposureThresh() const { return m_aeThresh;  };
+    float    autoExposureThresh() const { return m_primary_exposure.autoExposureThresh();  };
 
     /**
      * Query the current image configuration's red white-balance setting
@@ -935,14 +1136,14 @@ public:
      *
      * @return The current image configuration's auto-exposure ROI X value
      */
-    uint16_t autoExposureRoiX        () const { return m_autoExposureRoiX; };
+    uint16_t autoExposureRoiX        () const { return m_primary_exposure.autoExposureRoiX(); };
 
     /**
      * Query the current image configuration's auto-exposure ROI Y value
      *
      * @return The current image configuration's auto-exposure ROI Y value
      */
-    uint16_t autoExposureRoiY        () const { return m_autoExposureRoiY; };
+    uint16_t autoExposureRoiY        () const { return m_primary_exposure.autoExposureRoiY(); };
 
     /**
      * Query the current image configuration's auto-exposure ROI width value
@@ -951,7 +1152,7 @@ public:
      *
      * @return The current image configuration's auto-exposure ROI width value
      */
-    uint16_t autoExposureRoiWidth    () const { return m_autoExposureRoiWidth; };
+    uint16_t autoExposureRoiWidth    () const { return m_primary_exposure.autoExposureRoiWidth(); };
 
     /**
      * Query the current image configuration's auto-exposure ROI height value
@@ -960,7 +1161,14 @@ public:
      *
      * @return The current image configuration's auto-exposure ROI height value
      */
-    uint16_t autoExposureRoiHeight   () const { return m_autoExposureRoiHeight; };
+    uint16_t autoExposureRoiHeight   () const { return m_primary_exposure.autoExposureRoiHeight(); };
+
+    /**
+     * Query the image source which the exposure parameters correspond with
+     *
+     * @return Return the image source associated with the exposure parameters
+     */
+    DataSource exposureSource() const { return m_primary_exposure.exposureSource(); };
 
     /**
      * Query the current image configurations camera profile
@@ -968,6 +1176,22 @@ public:
      * @return The current image configurations camera profile
      */
     CameraProfile cameraProfile () const { return m_profile; };
+
+    /**
+     * Query the primary exposure config
+     *
+     * @return Return the primary exposure config
+     */
+    ExposureConfig primaryExposure() const { return m_primary_exposure; };
+
+    /**
+     * Query the collection of secondary exposures. These are independent exposure configurations with
+     * are used for alternate image streams. Secondary exposure configs will be subsumed
+     * by the primary exposure configuration
+     *
+     * @return Return the collection of secondary exposure configurations
+     */
+    std::vector<ExposureConfig> secondaryExposures() const { return m_secondary_exposures; };
 
     //
     // Query camera calibration (read-only)
@@ -1087,23 +1311,18 @@ public:
      * configuration members to their default values
      */
     Config() : m_fps(5.0f), m_gain(1.0f),
-               m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeDecay(7), m_aeThresh(0.75f),
+               m_primary_exposure(),
                m_wbBlue(1.0f), m_wbRed(1.0f), m_wbEnabled(true), m_wbDecay(3), m_wbThresh(0.5f),
                m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f),
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
-               m_autoExposureRoiX(0), m_autoExposureRoiY(0),
-               m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
                m_profile(User_Control),
+               m_secondary_exposures(),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
 
     float    m_fps, m_gain;
-    uint32_t m_exposure;
-    bool     m_aeEnabled;
-    uint32_t m_aeMax;
-    uint32_t m_aeDecay;
-    float    m_aeThresh;
+    ExposureConfig m_primary_exposure;
     float    m_wbBlue;
     float    m_wbRed;
     bool     m_wbEnabled;
@@ -1116,11 +1335,9 @@ private:
     float    m_spfStrength;
     bool     m_hdrEnabled;
     bool     m_storeSettingsInFlash;
-    uint16_t m_autoExposureRoiX;
-    uint16_t m_autoExposureRoiY;
-    uint16_t m_autoExposureRoiWidth;
-    uint16_t m_autoExposureRoiHeight;
     CameraProfile m_profile;
+
+    std::vector<ExposureConfig> m_secondary_exposures;
 
 protected:
 

@@ -757,6 +757,31 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
+    a.setExposureSource(d.exposureSource);
+
+    std::vector<image::ExposureConfig> secondaryExposures;
+    for (size_t i = 0 ; i < d.secondaryExposureConfigs.size() ; ++i)
+    {
+        image::ExposureConfig secondaryConfig;
+
+        secondaryConfig.setExposure(d.secondaryExposureConfigs[i].exposure);
+        secondaryConfig.setAutoExposure(d.secondaryExposureConfigs[i].autoExposure != 0);
+        secondaryConfig.setAutoExposureMax(d.secondaryExposureConfigs[i].autoExposureMax);
+        secondaryConfig.setAutoExposureDecay(d.secondaryExposureConfigs[i].autoExposureDecay);
+        secondaryConfig.setAutoExposureThresh(d.secondaryExposureConfigs[i].autoExposureThresh);
+
+        a.setAutoExposureRoi(d.secondaryExposureConfigs[i].autoExposureRoiX,
+                             d.secondaryExposureConfigs[i].autoExposureRoiY,
+                             d.secondaryExposureConfigs[i].autoExposureRoiWidth,
+                             d.secondaryExposureConfigs[i].autoExposureRoiHeight);
+
+        secondaryConfig.setExposureSource(d.secondaryExposureConfigs[i].exposureSource);
+
+        secondaryExposures.push_back(secondaryConfig);
+    }
+
+    a.setSecondaryExposures(secondaryExposures);
+
     return Status_Ok;
 }
 
@@ -804,6 +829,31 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
 
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
+
+    cmd.exposureSource = c.exposureSource();
+
+    std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
+    std::vector<wire::ExposureConfig> secondaryConfigs;
+    for (size_t i = 0 ; i < secondaryExposures.size() ; ++i)
+    {
+        wire::ExposureConfig secondaryConfig;
+
+        secondaryConfig.exposure           = secondaryExposures[i].exposure();
+        secondaryConfig.autoExposure       = secondaryExposures[i].autoExposure() ? 1 : 0;
+        secondaryConfig.autoExposureMax    = secondaryExposures[i].autoExposureMax();
+        secondaryConfig.autoExposureDecay  = secondaryExposures[i].autoExposureDecay();
+        secondaryConfig.autoExposureThresh = secondaryExposures[i].autoExposureThresh();
+
+        secondaryConfig.autoExposureRoiX        = secondaryExposures[i].autoExposureRoiX();
+        secondaryConfig.autoExposureRoiY        = secondaryExposures[i].autoExposureRoiY();
+        secondaryConfig.autoExposureRoiWidth    = secondaryExposures[i].autoExposureRoiWidth();
+        secondaryConfig.autoExposureRoiHeight   = secondaryExposures[i].autoExposureRoiHeight();
+
+        secondaryConfig.exposureSource = secondaryExposures[i].exposureSource();
+
+        secondaryConfigs.push_back(secondaryConfig);
+    }
+    cmd.secondaryExposureConfigs = secondaryConfigs;
 
     return waitAck(cmd);
 }
