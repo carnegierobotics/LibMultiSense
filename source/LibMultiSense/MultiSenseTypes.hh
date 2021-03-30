@@ -456,10 +456,10 @@ typedef void (*Callback)(const Header& header,
 class MULTISENSE_API ExposureConfig {
 public:
     ExposureConfig():
-        m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeDecay(7), m_aeThresh(0.75f),
-        m_autoExposureRoiX(0), m_autoExposureRoiY(0),
-        m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-        m_exposureSource(Exposure_Default_Source) {};
+      m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeTargetIntensity(0.95f),  m_aeDecay(7), m_aeThresh(0.75f),
+      m_autoExposureRoiX(0), m_autoExposureRoiY(0),
+      m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
+      m_exposureSource(Exposure_Default_Source) {};
 
     /**
      * Set the exposure time used to capture images. Note auto exposure
@@ -493,6 +493,14 @@ public:
      */
 
     void setAutoExposureDecay (uint32_t d) { m_aeDecay   = d; };
+
+    /**
+     * Set the desired auto-exposure target Intensity . Default value: 0.95
+     *
+     * @param d The auto-exposure target intensity [0.0, 1.0]
+     */
+
+    void setAutoExposureTargetIntensity (float d) { m_aeTargetIntensity   = d; };
 
     /**
      * Set the desired auto-exposure threshold. This is the percentage
@@ -570,6 +578,14 @@ public:
     uint32_t autoExposureDecay () const { return m_aeDecay;   };
 
     /**
+     * Query the current image configuration's auto-exposure target Intensity
+     *
+     * @return The current configuration's auto-exposure decay rate
+     */
+
+    float autoExposureTargetIntensity () const { return m_aeTargetIntensity;   };
+
+    /**
      * Query the current image configuration's auto-exposure threshold
      *
      * @return The current image configuration's auto-exposure threshold
@@ -621,6 +637,7 @@ public:
         bool     m_aeEnabled;
         uint32_t m_aeMax;
         uint32_t m_aeDecay;
+        float    m_aeTargetIntensity;
         float    m_aeThresh;
 
         uint16_t m_autoExposureRoiX;
@@ -832,6 +849,14 @@ public:
      */
 
     void setAutoExposureDecay (uint32_t d) { m_primary_exposure.setAutoExposureDecay(d); };
+
+    /**
+     * Set the desired auto-exposure target Intensity. Default value: 0.95
+     *
+     * @param d The auto-exposure target intensity [0.0, 1.0]
+     */
+
+    void setAutoExposureTargetIntensity (float d) { m_primary_exposure.setAutoExposureTargetIntensity(d); };
 
     /**
      * Set the desired auto-exposure threshold. This is the percentage
@@ -1060,6 +1085,14 @@ public:
      */
 
     uint32_t autoExposureDecay () const { return m_primary_exposure.autoExposureDecay();   };
+
+    /**
+     * Query the current image configuration's auto-exposure target intensity
+     *
+     * @return The current image configuration's auto-exposure target intensity
+     */
+
+    uint32_t autoExposureTargetIntensity () const { return m_primary_exposure.autoExposureTargetIntensity();   };
 
     /**
      * Query the current image configuration's auto-exposure threshold
