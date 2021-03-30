@@ -154,7 +154,8 @@ public:
         autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
         cameraProfile(0),
         exposureSource(Default_Exposure_Source),
-        secondaryExposureConfigs()
+        secondaryExposureConfigs(),
+        autoExposureTargetIntensity(0.94f)
         {};
 
     //
