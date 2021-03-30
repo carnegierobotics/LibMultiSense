@@ -1093,7 +1093,7 @@ public:
      * @return The current image configuration's auto-exposure target intensity
      */
 
-    uint32_t autoExposureTargetIntensity () const { return m_primary_exposure.autoExposureTargetIntensity();   };
+    float autoExposureTargetIntensity () const { return m_primary_exposure.autoExposureTargetIntensity();   };
 
     /**
      * Query the current image configuration's auto-exposure threshold
