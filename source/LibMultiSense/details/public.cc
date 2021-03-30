@@ -812,6 +812,7 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.autoExposure       = c.autoExposure() ? 1 : 0;
     cmd.autoExposureMax    = c.autoExposureMax();
     cmd.autoExposureDecay  = c.autoExposureDecay();
+    cmd.autoExposureTargetIntensity  = c.autoExposureTargetIntensity();
     cmd.autoExposureThresh = c.autoExposureThresh();
 
     cmd.whiteBalanceRed          = c.whiteBalanceRed();
@@ -842,6 +843,7 @@ Status impl::setImageConfig(const image::Config& c)
         secondaryConfig.autoExposure       = secondaryExposures[i].autoExposure() ? 1 : 0;
         secondaryConfig.autoExposureMax    = secondaryExposures[i].autoExposureMax();
         secondaryConfig.autoExposureDecay  = secondaryExposures[i].autoExposureDecay();
+        secondaryConfig.autoExposureTargetIntensity  = secondaryExposures[i].autoExposureTargetIntensity();
         secondaryConfig.autoExposureThresh = secondaryExposures[i].autoExposureThresh();
 
         secondaryConfig.autoExposureRoiX        = secondaryExposures[i].autoExposureRoiX();
