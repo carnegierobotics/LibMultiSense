@@ -101,7 +101,7 @@ public:
 
         message & exposureSource;
 
-        if (version == 1) {
+        if (version >= 1) {
           message & autoExposureTargetIntensity;
         }
 

@@ -52,7 +52,7 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 7;
+    static CRL_CONSTEXPR VersionType VERSION = 8;
 
     //
     // Parameters representing the current camera configuration
@@ -105,6 +105,10 @@ public:
 
     SourceType exposureSource;
     std::vector<ExposureConfig> secondaryExposureConfigs;
+
+    // additions in version 8
+
+    float autoExposureTargetIntensity;
 
     //
     // Constructors
@@ -183,6 +187,16 @@ public:
             exposureSource = Default_Exposure_Source;
             secondaryExposureConfigs = std::vector<ExposureConfig>();
         }
+
+        if (version >= 8)
+        {
+            message & autoExposureTargetIntensity;
+        }
+        else
+        {
+            autoExposureTargetIntensity = Default_Target_Intensity;
+        }
+
     }
 };
 
