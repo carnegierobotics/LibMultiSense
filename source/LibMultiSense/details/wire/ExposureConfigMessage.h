@@ -48,7 +48,7 @@ namespace wire {
 class ExposureConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_EXPOSURE_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 0;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     uint32_t exposure;
     uint8_t  autoExposure;
@@ -62,19 +62,21 @@ public:
     uint16_t autoExposureRoiHeight;
 
     SourceType exposureSource;
+    float    autoExposureTargetIntensity;
 
     ExposureConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     ExposureConfig():
-        exposure(0),
-        autoExposure(0),
-        autoExposureMax(0),
-        autoExposureDecay(0),
-        autoExposureThresh(0.0),
-        autoExposureRoiX(0),
-        autoExposureRoiY(0),
-        autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
-        autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
-        exposureSource(Default_Exposure_Source)
+          exposure(0),
+          autoExposure(0),
+          autoExposureMax(0),
+          autoExposureDecay(0),
+          autoExposureThresh(0.0),
+          autoExposureRoiX(0),
+          autoExposureRoiY(0),
+          autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
+          autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
+          exposureSource(Default_Exposure_Source),
+          autoExposureTargetIntensity(0.95)
         {};
 
     //
@@ -98,6 +100,11 @@ public:
         message & autoExposureRoiHeight;
 
         message & exposureSource;
+
+        if (version == 1) {
+          message & autoExposureTargetIntensity;
+        }
+
     }
 };
 

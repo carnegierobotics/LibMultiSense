@@ -456,10 +456,10 @@ typedef void (*Callback)(const Header& header,
 class MULTISENSE_API ExposureConfig {
 public:
     ExposureConfig():
-      m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeTargetIntensity(0.95f),  m_aeDecay(7), m_aeThresh(0.75f),
+      m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.75f),
       m_autoExposureRoiX(0), m_autoExposureRoiY(0),
       m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-      m_exposureSource(Exposure_Default_Source) {};
+      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(0.95f) {};
 
     /**
      * Set the exposure time used to capture images. Note auto exposure
@@ -637,7 +637,6 @@ public:
         bool     m_aeEnabled;
         uint32_t m_aeMax;
         uint32_t m_aeDecay;
-        float    m_aeTargetIntensity;
         float    m_aeThresh;
 
         uint16_t m_autoExposureRoiX;
@@ -645,6 +644,8 @@ public:
         uint16_t m_autoExposureRoiWidth;
         uint16_t m_autoExposureRoiHeight;
         DataSource m_exposureSource;
+
+        float    m_aeTargetIntensity;
 };
 
 /**
