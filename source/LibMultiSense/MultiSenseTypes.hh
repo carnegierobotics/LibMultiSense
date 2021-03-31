@@ -154,6 +154,8 @@ static CRL_CONSTEXPR CameraProfile User_Control = 0;
 static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
 /** User would like more contrast in images*/
 static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
+/** User would like more contrast in images*/
+static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party

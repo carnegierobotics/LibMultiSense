@@ -272,7 +272,7 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
 // Exposure config
 
 static CRL_CONSTEXPR SourceType Default_Exposure_Source = SOURCE_LUMA_LEFT;
-static CRL_CONSTEXPR float Default_Target_Intensity = 0.95f;
+static CRL_CONSTEXPR float Default_Target_Intensity = 0.5f;
 //
 // Some helper macros
 
