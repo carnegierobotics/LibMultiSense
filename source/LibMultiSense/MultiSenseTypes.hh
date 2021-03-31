@@ -130,6 +130,7 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1U<<11);
 static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1U<<12);
 static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface         = (1U<<22);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1U<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                    = (1U<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                    = (1U<<26);
