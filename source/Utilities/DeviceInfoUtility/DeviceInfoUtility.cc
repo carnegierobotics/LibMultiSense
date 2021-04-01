@@ -122,6 +122,23 @@ void printDeviceInfo(const system::DeviceInfo& info,
 }
 
 //
+// Dump version info to a file.
+
+void printVersionInfo(const system::VersionInfo& info,
+                      FILE*                      fP=stdout)
+{
+    fprintf(fP, "API build date: %s\n", info.apiBuildDate.c_str());
+    fprintf(fP, "API version: %#06x\n", info.apiVersion);
+    fprintf(fP, "\n");
+    fprintf(fP, "Firmware build date: %s\n", info.sensorFirmwareBuildDate.c_str());
+    fprintf(fP, "Firmware version: %#06x\n", info.sensorFirmwareVersion);
+    fprintf(fP, "Hardware version: %#lx\n", info.sensorHardwareVersion);
+    fprintf(fP, "Hardware magic: %#lx\n", info.sensorHardwareMagic);
+    fprintf(fP, "FPGA DNA: %#lx\n", info.sensorFpgaDna);
+    fprintf(fP, "\n");
+}
+
+//
 // Parse a file with device information
 
 bool parseFile(const std::string& fileName,
@@ -281,12 +298,22 @@ int main(int    argc,
 
     Status      status;
     VersionType version;
+    system::VersionInfo versionInfo;
 
     status = channelP->getSensorVersion(version);
     if (Status_Ok != status) {
         fprintf(stderr, "Failed to query sensor version: %s\n",
                 Channel::statusString(status));
         goto clean_out;
+    }
+
+    status = channelP->getVersionInfo(versionInfo);
+    if (Status_Ok != status) {
+        fprintf(stderr, "Warning: failed to query detailed version info: %s\n",
+                Channel::statusString(status));
+    } else {
+        printVersionInfo(versionInfo);
+        fflush(stdout);
     }
 
     //
