@@ -56,14 +56,18 @@
 // LibMultiSense when it is built as a DLL on Windows.
 #if !defined(MULTISENSE_API)
 #if defined (_MSC_VER)
-#if defined (MultiSense_EXPORTS)
+#if defined (MultiSense_STATIC)
+#define MULTISENSE_API __declspec(dllexport)
+#elif defined (MultiSense_EXPORTS)
 #define MULTISENSE_API __declspec(dllexport)
 #else
-#define MULTISENSE_API
+#define MULTISENSE_API __declspec(dllimport)
 #endif
+
 #else
 #define MULTISENSE_API
 #endif
+
 #endif
 
 #if defined (_MSC_VER)
