@@ -307,13 +307,24 @@ int main(int    argc,
         goto clean_out;
     }
 
-    status = channelP->getVersionInfo(versionInfo);
-    if (Status_Ok != status) {
-        fprintf(stderr, "Warning: failed to query detailed version info: %s\n",
-                Channel::statusString(status));
-    } else {
-        printVersionInfo(versionInfo);
-        fflush(stdout);
+    //
+    // Users sometimes run this program thinking that "DeviceInfo"
+    // includes information about firmware version, etc.  Here we oblige
+    // those users by providing additional version information, even
+    // though it's not strictly part of DeviceInfo.
+    //
+    // First check to see if we're in reading mode or writing mode.  Only
+    // print this extra information if we're in reading mode.
+
+    if (fileName.empty()) {
+        status = channelP->getVersionInfo(versionInfo);
+        if (Status_Ok != status) {
+            fprintf(stderr, "Warning: failed to query detailed version info: %s\n",
+                    Channel::statusString(status));
+        } else {
+            printVersionInfo(versionInfo);
+            fflush(stdout);
+        }
     }
 
     //
