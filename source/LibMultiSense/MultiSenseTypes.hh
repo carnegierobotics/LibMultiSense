@@ -59,7 +59,7 @@
 #if defined (MultiSense_EXPORTS)
 #define MULTISENSE_API __declspec(dllexport)
 #else
-#define MULTISENSE_API __declspec(dllimport)
+#define MULTISENSE_API
 #endif
 #else
 #define MULTISENSE_API
