@@ -1046,13 +1046,12 @@ Status impl::setMtu(int32_t mtu)
     // MTU setting before we actually make the change.
 
     if (m_sensorVersion.firmwareVersion <= 0x0202)
-        status = waitAck(wire::SysMtu(mtu));
+      status = waitAck(wire::SysMtu(mtu));
     else {
-
-        wire::SysTestMtuResponse resp;
-        status = waitData(wire::SysTestMtu(mtu), resp);
-        if (Status_Ok == status)
-            status = waitAck(wire::SysMtu(mtu));
+      wire::SysTestMtuResponse resp;
+      status = waitData(wire::SysTestMtu(mtu), resp);
+      if (Status_Ok == status)
+        status = waitAck(wire::SysMtu(mtu));
     }
 
     if (Status_Ok == status)
