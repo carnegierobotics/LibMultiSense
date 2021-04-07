@@ -461,7 +461,7 @@ public:
       m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.75f),
       m_autoExposureRoiX(0), m_autoExposureRoiY(0),
       m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(Default_Target_Intensity) {};
+      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(0.5f) {};
 
     /**
      * Set the exposure time used to capture images. Note auto exposure
