@@ -155,7 +155,7 @@ public:
         cameraProfile(0),
         exposureSource(Default_Exposure_Source),
         secondaryExposureConfigs(),
-        autoExposureTargetIntensity(0.94f)
+        autoExposureTargetIntensity(Default_Target_Intensity)
         {};
 
     //

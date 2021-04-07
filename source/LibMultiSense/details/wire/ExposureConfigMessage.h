@@ -76,7 +76,7 @@ public:
           autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
           autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
           exposureSource(Default_Exposure_Source),
-          autoExposureTargetIntensity(0.95)
+          autoExposureTargetIntensity(Default_Target_Intensity)
         {};
 
     //
