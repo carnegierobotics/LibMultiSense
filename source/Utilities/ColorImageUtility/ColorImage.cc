@@ -55,6 +55,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <cstdint>
+#include <array>
 
 #include <Utilities/portability/getopt/getopt.h>
 
