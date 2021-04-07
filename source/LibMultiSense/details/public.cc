@@ -770,7 +770,7 @@ Status impl::getImageConfig(image::Config& config)
         secondaryConfig.setAutoExposureDecay(d.secondaryExposureConfigs[i].autoExposureDecay);
         secondaryConfig.setAutoExposureThresh(d.secondaryExposureConfigs[i].autoExposureThresh);
 
-        a.setAutoExposureRoi(d.secondaryExposureConfigs[i].autoExposureRoiX,
+        secondaryConfig.setAutoExposureRoi(d.secondaryExposureConfigs[i].autoExposureRoiX,
                              d.secondaryExposureConfigs[i].autoExposureRoiY,
                              d.secondaryExposureConfigs[i].autoExposureRoiWidth,
                              d.secondaryExposureConfigs[i].autoExposureRoiHeight);
