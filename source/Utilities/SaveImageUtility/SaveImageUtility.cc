@@ -176,6 +176,30 @@ void imageCallback(const image::Header& header,
 		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
+void groundSurfaceCallback(const image::Header& header,
+                           void                *userDataP)
+{
+    Channel *channelP = reinterpret_cast<Channel*>(userDataP);
+
+    static int64_t lastFrameId = -1;
+
+    if (-1 == lastFrameId)
+    {
+        savePgm("test_ground_surface.pgm",
+                header.width,
+                header.height,
+                header.bitsPerPixel,
+                header.imageDataP);
+    }
+
+    lastFrameId = header.frameId;
+
+    image::Histogram histogram;
+
+	if (Status_Ok != channelP->getImageHistogram(header.frameId, histogram))
+		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
+}
+
 } // anonymous
 
 int main(int    argc,
@@ -236,6 +260,7 @@ int main(int    argc,
     //
     // Change framerate
 
+    if (0)
     {
         image::Config cfg;
 
@@ -277,14 +302,15 @@ int main(int    argc,
     //
     // Add callbacks
 
-    channelP->addIsolatedCallback(imageCallback, Source_All, channelP);
+    channelP->addIsolatedCallback(imageCallback, Source_Luma_Rectified_Left, channelP);
+    channelP->addIsolatedCallback(groundSurfaceCallback, Source_Ground_Surface, channelP);
     channelP->addIsolatedCallback(laserCallback, channelP);
     channelP->addIsolatedCallback(ppsCallback, channelP);
 
     //
     // Start streaming
 
-    status = channelP->startStreams(Source_Luma_Rectified_Left | Source_Lidar_Scan);
+    status = channelP->startStreams(Source_Luma_Rectified_Left | Source_Lidar_Scan | Source_Ground_Surface);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
