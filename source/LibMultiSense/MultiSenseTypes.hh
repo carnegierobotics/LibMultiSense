@@ -1371,7 +1371,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_profile(User_Control),
                m_secondary_exposures(),
-               m_gamma(0.0),
+               m_gamma(1.5),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
