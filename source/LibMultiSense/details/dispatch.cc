@@ -283,8 +283,13 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.width            = image.width;
         header.height           = image.height;
         header.frameId          = image.frameId;
-        header.exposure         = metaP->exposureTime;
-        header.gain             = metaP->gain;
+        if (image.version >= 2) {
+            header.exposure         = image.exposure;
+            header.gain             = image.gain;
+        } else {
+            header.exposure         = metaP->exposureTime;
+            header.gain             = metaP->gain;
+        }
         header.framesPerSecond  = metaP->framesPerSecond;
         header.imageDataP       = image.dataP;
         header.imageLength      = static_cast<uint32_t>(std::ceil(((double) image.bitsPerPixel / 8.0) * image.width * image.height));
