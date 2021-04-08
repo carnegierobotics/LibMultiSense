@@ -78,7 +78,7 @@ static CRL_CONSTEXPR VersionType VERSION = 2;
         width(0),
         height(0),
         exposure(0),
-        gain(0.0),
+        gain(0.0)
          {};
 };
 

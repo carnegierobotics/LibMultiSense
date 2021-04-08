@@ -997,6 +997,16 @@ public:
      */
     void setSecondaryExposures(const std::vector<ExposureConfig> &c) { m_secondary_exposures = c; };
 
+    /**
+     * Set the secondary exposures gamma correction factor.
+     *
+     * Gamma is a nonlinear operation used to encode and decode luminance.
+     * Typical values for gamma range between 1 and 2.2.
+     *
+     * @param g the gamma constant applied to the camera sources
+     */
+    void setGamma(const float g) { m_gamma = g; };
+
     //
     // Query
 
@@ -1229,6 +1239,14 @@ public:
      */
     std::vector<ExposureConfig> secondaryExposures() const { return m_secondary_exposures; };
 
+    /**
+     * Query the gamma correction factor. Gamma correction factor will be applied
+     * to all images.
+     *
+     * @return Return the gamma factor applied to images
+     */
+    float gamma() const { return m_gamma; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -1353,6 +1371,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_profile(User_Control),
                m_secondary_exposures(),
+               m_gamma(0.0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1372,8 +1391,8 @@ private:
     bool     m_hdrEnabled;
     bool     m_storeSettingsInFlash;
     CameraProfile m_profile;
-
     std::vector<ExposureConfig> m_secondary_exposures;
+    float m_gamma;
 
 protected:
 

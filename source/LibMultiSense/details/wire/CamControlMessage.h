@@ -106,9 +106,10 @@ public:
     SourceType exposureSource;
     std::vector<ExposureConfig> secondaryExposureConfigs;
 
-    // additions in version 8
+    //
+    // Additions in version 8
 
-    float autoExposureTargetIntensity;
+    float gamma;
 
     //
     // Constructors
@@ -190,11 +191,11 @@ public:
 
         if (version >= 8)
         {
-            message & autoExposureTargetIntensity;
+            message & gamma;
         }
         else
         {
-            autoExposureTargetIntensity = Default_Target_Intensity;
+            gamma = 0.0;
         }
 
     }

@@ -283,13 +283,14 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.width            = image.width;
         header.height           = image.height;
         header.frameId          = image.frameId;
-        if (image.version >= 2) {
+        // if (version >= 2) {
+        // TODO: How do we handle this?
             header.exposure         = image.exposure;
             header.gain             = image.gain;
-        } else {
-            header.exposure         = metaP->exposureTime;
-            header.gain             = metaP->gain;
-        }
+        // } else {
+            // header.exposure         = metaP->exposureTime;
+            // header.gain             = metaP->gain;
+        // }
         header.framesPerSecond  = metaP->framesPerSecond;
         header.imageDataP       = image.dataP;
         header.imageLength      = static_cast<uint32_t>(std::ceil(((double) image.bitsPerPixel / 8.0) * image.width * image.height));

@@ -739,7 +739,6 @@ Status impl::getImageConfig(image::Config& config)
     a.setAutoExposure(d.autoExposure != 0);
     a.setAutoExposureMax(d.autoExposureMax);
     a.setAutoExposureDecay(d.autoExposureDecay);
-    a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
     a.setAutoExposureThresh(d.autoExposureThresh);
 
     a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
@@ -784,6 +783,8 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setSecondaryExposures(secondaryExposures);
 
+    a.setGamma(d.gamma);
+
     return Status_Ok;
 }
 
@@ -814,7 +815,6 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.autoExposure       = c.autoExposure() ? 1 : 0;
     cmd.autoExposureMax    = c.autoExposureMax();
     cmd.autoExposureDecay  = c.autoExposureDecay();
-    cmd.autoExposureTargetIntensity  = c.autoExposureTargetIntensity();
     cmd.autoExposureThresh = c.autoExposureThresh();
 
     cmd.whiteBalanceRed          = c.whiteBalanceRed();
@@ -858,6 +858,7 @@ Status impl::setImageConfig(const image::Config& c)
         secondaryConfigs.push_back(secondaryConfig);
     }
     cmd.secondaryExposureConfigs = secondaryConfigs;
+    cmd.gamma = c.gamma();
 
     return waitAck(cmd);
 }
