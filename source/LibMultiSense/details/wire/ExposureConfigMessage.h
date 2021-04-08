@@ -48,7 +48,7 @@ namespace wire {
 class ExposureConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_EXPOSURE_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     uint32_t exposure;
     uint8_t  autoExposure;
