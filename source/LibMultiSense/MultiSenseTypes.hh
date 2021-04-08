@@ -145,6 +145,8 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
  */
 static CRL_CONSTEXPR int Roi_Full_Image = 0;
 static CRL_CONSTEXPR DataSource Exposure_Default_Source = Source_Luma_Left;
+static CRL_CONSTEXPR float Exposure_Default_Target_Intensity = 0.5f;
+static CRL_CONSTEXPR float Exposure_Default_Gain = 1.0f;
 
 typedef uint32_t CameraProfile;
 
@@ -461,7 +463,8 @@ public:
       m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.75f),
       m_autoExposureRoiX(0), m_autoExposureRoiY(0),
       m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(0.5f) {};
+      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(Exposure_Default_Target_Intensity),
+      m_gain(Exposure_Default_Gain) {};
 
     /**
      * Set the exposure time used to capture images. Note auto exposure
@@ -547,7 +550,7 @@ public:
     /**
      * Set the gain applied to the camera
      *
-     * @param s The gain applied to the camera
+     * @param s The gain to apply to this camera
      */
 
     void setGain(const float &g)    { m_gain  = g; };
@@ -645,7 +648,7 @@ public:
     /**
      * Query the gain applied to the camera
      *
-     * @return Return the gain applied to the camera
+     * @return Return the current image configurations gain
      */
     float gain() const { return m_gain; };
 
