@@ -62,7 +62,8 @@ public:
     uint16_t autoExposureRoiHeight;
 
     SourceType exposureSource;
-    float    autoExposureTargetIntensity;
+    float      autoExposureTargetIntensity;
+    float      gain;
 
     ExposureConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     ExposureConfig():
@@ -76,7 +77,8 @@ public:
           autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
           autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
           exposureSource(Default_Exposure_Source),
-          autoExposureTargetIntensity(Default_Target_Intensity)
+          autoExposureTargetIntensity(Default_Target_Intensity),
+          gain(Default_Gain)
         {};
 
     //
@@ -101,8 +103,9 @@ public:
 
         message & exposureSource;
 
-        if (version >= 1) {
+        if (version >= 2) {
           message & autoExposureTargetIntensity;
+          message & gain;
         }
 
     }

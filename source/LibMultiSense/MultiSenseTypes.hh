@@ -544,6 +544,14 @@ public:
 
     void setExposureSource(const DataSource &s)    { m_exposureSource  = s; };
 
+    /**
+     * Set the gain applied to the camera
+     *
+     * @param s The gain applied to the camera
+     */
+
+    void setGain(const float &g)    { m_gain  = g; };
+
     //
     // Query
 
@@ -634,6 +642,13 @@ public:
      */
     DataSource exposureSource() const { return m_exposureSource; };
 
+    /**
+     * Query the gain applied to the camera
+     *
+     * @return Return the gain applied to the camera
+     */
+    DataSource gain() const { return m_gain; };
+
     private:
         uint32_t m_exposure;
         bool     m_aeEnabled;
@@ -648,6 +663,7 @@ public:
         DataSource m_exposureSource;
 
         float    m_aeTargetIntensity;
+        float    m_gain;
 };
 
 /**

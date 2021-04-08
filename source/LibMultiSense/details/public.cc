@@ -741,6 +741,7 @@ Status impl::getImageConfig(image::Config& config)
     a.setAutoExposureDecay(d.autoExposureDecay);
     a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
     a.setAutoExposureThresh(d.autoExposureThresh);
+    a.setGain(d.gain);
 
     a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
     a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
@@ -770,6 +771,7 @@ Status impl::getImageConfig(image::Config& config)
         secondaryConfig.setAutoExposureMax(d.secondaryExposureConfigs[i].autoExposureMax);
         secondaryConfig.setAutoExposureDecay(d.secondaryExposureConfigs[i].autoExposureDecay);
         secondaryConfig.setAutoExposureTargetIntensity(d.secondaryExposureConfigs[i].autoExposureTargetIntensity);
+        secondaryConfig.setGain(d.secondaryExposureConfigs[i].gain);
         secondaryConfig.setAutoExposureThresh(d.secondaryExposureConfigs[i].autoExposureThresh);
 
         secondaryConfig.setAutoExposureRoi(d.secondaryExposureConfigs[i].autoExposureRoiX,
@@ -835,6 +837,7 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
     cmd.exposureSource = sourceApiToWire(c.exposureSource());
+    cmd.gamma = c.gamma();
 
     std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
     std::vector<wire::ExposureConfig> secondaryConfigs;
@@ -855,11 +858,11 @@ Status impl::setImageConfig(const image::Config& c)
         secondaryConfig.autoExposureRoiHeight   = secondaryExposures[i].autoExposureRoiHeight();
 
         secondaryConfig.exposureSource = sourceApiToWire(secondaryExposures[i].exposureSource());
+        secondaryConfig.gain = secondaryExposures[i].gain();
 
         secondaryConfigs.push_back(secondaryConfig);
     }
     cmd.secondaryExposureConfigs = secondaryConfigs;
-    cmd.gamma = c.gamma();
 
     return waitAck(cmd);
 }
