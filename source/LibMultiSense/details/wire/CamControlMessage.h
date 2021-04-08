@@ -109,6 +109,7 @@ public:
     //
     // Additions in version 8
 
+    float autoExposureTargetIntensity;
     float gamma;
 
     //
@@ -191,11 +192,13 @@ public:
 
         if (version >= 8)
         {
+            message & autoExposureTargetIntensity;
             message & gamma;
         }
         else
         {
-            gamma = 0.0;
+            autoExposureTargetIntensity = Default_Target_Intensity;
+            gamma = 1.0;
         }
 
     }

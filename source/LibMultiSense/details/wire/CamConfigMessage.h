@@ -116,6 +116,7 @@ public:
     //
     // Version 8 additions
 
+    float autoExposureTargetIntensity;
     float gamma;
     //
     // Constructors
@@ -156,7 +157,8 @@ public:
         cameraProfile(0),
         exposureSource(Default_Exposure_Source),
         secondaryExposureConfigs(),
-        gamma(0.0)
+        autoExposureTargetIntensity(Default_Target_Intensity),
+        gamma(Default_Gamma)
         {};
 
     //
@@ -249,11 +251,13 @@ public:
 
         if (version >= 8)
         {
+            message & autoExposureTargetIntensity;
             message & gamma;
         }
         else
         {
-            gamma = 0.0;
+            autoExposureTargetIntensity = Default_Target_Intensity;
+            gamma = Default_Gamma;
         }
 
     }

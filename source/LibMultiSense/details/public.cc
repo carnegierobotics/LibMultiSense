@@ -739,6 +739,7 @@ Status impl::getImageConfig(image::Config& config)
     a.setAutoExposure(d.autoExposure != 0);
     a.setAutoExposureMax(d.autoExposureMax);
     a.setAutoExposureDecay(d.autoExposureDecay);
+    a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
     a.setAutoExposureThresh(d.autoExposureThresh);
 
     a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
