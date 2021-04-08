@@ -647,7 +647,7 @@ public:
      *
      * @return Return the gain applied to the camera
      */
-    DataSource gain() const { return m_gain; };
+    float gain() const { return m_gain; };
 
     private:
         uint32_t m_exposure;
