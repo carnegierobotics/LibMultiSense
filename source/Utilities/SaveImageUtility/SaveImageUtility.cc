@@ -155,6 +155,9 @@ void laserCallback(const lidar::Header& header,
 void imageCallback(const image::Header& header,
                    void                *userDataP)
 {
+    std::cout << "Received luma image with timestamp\t"
+              << header.timeSeconds << " : " << header.timeMicroSeconds << std::endl;
+
     Channel *channelP = reinterpret_cast<Channel*>(userDataP);
 
     static int64_t lastFrameId = -1;
@@ -179,6 +182,9 @@ void imageCallback(const image::Header& header,
 void groundSurfaceCallback(const image::Header& header,
                            void                *userDataP)
 {
+    std::cout << "Received ground surface with timestamp\t"
+              << header.timeSeconds << " : " << header.timeMicroSeconds << std::endl;
+
     Channel *channelP = reinterpret_cast<Channel*>(userDataP);
 
     static int64_t lastFrameId = -1;
