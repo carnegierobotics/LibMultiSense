@@ -739,7 +739,9 @@ Status impl::getImageConfig(image::Config& config)
     a.setAutoExposure(d.autoExposure != 0);
     a.setAutoExposureMax(d.autoExposureMax);
     a.setAutoExposureDecay(d.autoExposureDecay);
+    a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
     a.setAutoExposureThresh(d.autoExposureThresh);
+    a.setGain(d.gain);
 
     a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
     a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
@@ -768,6 +770,8 @@ Status impl::getImageConfig(image::Config& config)
         secondaryConfig.setAutoExposure(d.secondaryExposureConfigs[i].autoExposure != 0);
         secondaryConfig.setAutoExposureMax(d.secondaryExposureConfigs[i].autoExposureMax);
         secondaryConfig.setAutoExposureDecay(d.secondaryExposureConfigs[i].autoExposureDecay);
+        secondaryConfig.setAutoExposureTargetIntensity(d.secondaryExposureConfigs[i].autoExposureTargetIntensity);
+        secondaryConfig.setGain(d.secondaryExposureConfigs[i].gain);
         secondaryConfig.setAutoExposureThresh(d.secondaryExposureConfigs[i].autoExposureThresh);
 
         secondaryConfig.setAutoExposureRoi(d.secondaryExposureConfigs[i].autoExposureRoiX,
@@ -781,6 +785,8 @@ Status impl::getImageConfig(image::Config& config)
     }
 
     a.setSecondaryExposures(secondaryExposures);
+
+    a.setGamma(d.gamma);
 
     return Status_Ok;
 }
@@ -831,6 +837,7 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
     cmd.exposureSource = sourceApiToWire(c.exposureSource());
+    cmd.gamma = c.gamma();
 
     std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
     std::vector<wire::ExposureConfig> secondaryConfigs;
@@ -842,6 +849,7 @@ Status impl::setImageConfig(const image::Config& c)
         secondaryConfig.autoExposure       = secondaryExposures[i].autoExposure() ? 1 : 0;
         secondaryConfig.autoExposureMax    = secondaryExposures[i].autoExposureMax();
         secondaryConfig.autoExposureDecay  = secondaryExposures[i].autoExposureDecay();
+        secondaryConfig.autoExposureTargetIntensity  = secondaryExposures[i].autoExposureTargetIntensity();
         secondaryConfig.autoExposureThresh = secondaryExposures[i].autoExposureThresh();
 
         secondaryConfig.autoExposureRoiX        = secondaryExposures[i].autoExposureRoiX();
@@ -850,6 +858,7 @@ Status impl::setImageConfig(const image::Config& c)
         secondaryConfig.autoExposureRoiHeight   = secondaryExposures[i].autoExposureRoiHeight();
 
         secondaryConfig.exposureSource = sourceApiToWire(secondaryExposures[i].exposureSource());
+        secondaryConfig.gain = secondaryExposures[i].gain();
 
         secondaryConfigs.push_back(secondaryConfig);
     }
@@ -1042,13 +1051,12 @@ Status impl::setMtu(int32_t mtu)
     // MTU setting before we actually make the change.
 
     if (m_sensorVersion.firmwareVersion <= 0x0202)
-        status = waitAck(wire::SysMtu(mtu));
+      status = waitAck(wire::SysMtu(mtu));
     else {
-
-        wire::SysTestMtuResponse resp;
-        status = waitData(wire::SysTestMtu(mtu), resp);
-        if (Status_Ok == status)
-            status = waitAck(wire::SysMtu(mtu));
+      wire::SysTestMtuResponse resp;
+      status = waitData(wire::SysTestMtu(mtu), resp);
+      if (Status_Ok == status)
+        status = waitAck(wire::SysMtu(mtu));
     }
 
     if (Status_Ok == status)

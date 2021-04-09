@@ -51,7 +51,7 @@ class WIRE_HEADER_ATTRIBS_ ImageHeader {
 public:
 
 static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 1;
+static CRL_CONSTEXPR VersionType VERSION = 2;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
@@ -63,6 +63,8 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     int64_t  frameId;
     uint16_t width;
     uint16_t height;
+    uint32_t exposure;
+    float gain;
 
     ImageHeader()
         :
@@ -74,7 +76,10 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
         bitsPerPixel(0),
         frameId(0),
         width(0),
-        height(0) {};
+        height(0),
+        exposure(0),
+        gain(0.0)
+         {};
 };
 
 #ifndef SENSORPOD_FIRMWARE
@@ -114,6 +119,17 @@ public:
 
             dataP = message.peek();
             message.seek(message.tell() + imageSize);
+        }
+
+        if (version >= 2)
+        {
+            message & exposure;
+            message & gain;
+        }
+        else
+        {
+            exposure = 0;
+            gain = Default_Gain;
         }
     }
 };
