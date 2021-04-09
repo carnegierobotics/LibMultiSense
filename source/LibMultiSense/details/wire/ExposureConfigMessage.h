@@ -103,10 +103,17 @@ public:
 
         message & exposureSource;
 
-        if (version >= 2) {
-          message & autoExposureTargetIntensity;
-          message & gain;
+        if (version >= 2)
+        {
+            message & autoExposureTargetIntensity;
+            message & gain;
         }
+        else
+        {
+            autoExposureTargetIntensity = Default_Target_Intensity;
+            gain = Default_Gain;
+        }
+
 
     }
 };

@@ -121,9 +121,15 @@ public:
             message.seek(message.tell() + imageSize);
         }
 
-        if (version >= 2) {
+        if (version >= 2)
+        {
             message & exposure;
             message & gain;
+        }
+        else
+        {
+            exposure = 0;
+            gain = Default_Gain;
         }
     }
 };

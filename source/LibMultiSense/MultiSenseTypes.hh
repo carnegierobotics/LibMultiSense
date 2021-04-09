@@ -156,7 +156,7 @@ static CRL_CONSTEXPR CameraProfile User_Control = 0;
 static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
 /** User would like more contrast in images*/
 static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
-/** User would like more contrast in images*/
+/** User would like see the auto exposure Regions of Interest drawn on the image*/
 static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
 
 /**

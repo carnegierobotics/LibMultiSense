@@ -198,7 +198,7 @@ public:
         else
         {
             autoExposureTargetIntensity = Default_Target_Intensity;
-            gamma = 1.0;
+            gamma = Default_Gamma;
         }
 
     }
