@@ -146,6 +146,8 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
  */
 static CRL_CONSTEXPR int Roi_Full_Image = 0;
 static CRL_CONSTEXPR DataSource Exposure_Default_Source = Source_Luma_Left;
+static CRL_CONSTEXPR float Exposure_Default_Target_Intensity = 0.5f;
+static CRL_CONSTEXPR float Exposure_Default_Gain = 1.0f;
 
 typedef uint32_t CameraProfile;
 
@@ -155,6 +157,8 @@ static CRL_CONSTEXPR CameraProfile User_Control = 0;
 static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
 /** User would like more contrast in images*/
 static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
+/** User would like see the auto exposure Regions of Interest drawn on the image*/
+static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -457,10 +461,11 @@ typedef void (*Callback)(const Header& header,
 class MULTISENSE_API ExposureConfig {
 public:
     ExposureConfig():
-        m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000), m_aeDecay(7), m_aeThresh(0.75f),
-        m_autoExposureRoiX(0), m_autoExposureRoiY(0),
-        m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-        m_exposureSource(Exposure_Default_Source) {};
+      m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.75f),
+      m_autoExposureRoiX(0), m_autoExposureRoiY(0),
+      m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
+      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(Exposure_Default_Target_Intensity),
+      m_gain(Exposure_Default_Gain) {};
 
     /**
      * Set the exposure time used to capture images. Note auto exposure
@@ -494,6 +499,14 @@ public:
      */
 
     void setAutoExposureDecay (uint32_t d) { m_aeDecay   = d; };
+
+    /**
+     * Set the desired auto-exposure target Intensity . Default value: 0.95
+     *
+     * @param d The auto-exposure target intensity [0.0, 1.0]
+     */
+
+    void setAutoExposureTargetIntensity (float d) { m_aeTargetIntensity   = d; };
 
     /**
      * Set the desired auto-exposure threshold. This is the percentage
@@ -535,6 +548,14 @@ public:
 
     void setExposureSource(const DataSource &s)    { m_exposureSource  = s; };
 
+    /**
+     * Set the gain applied to the camera
+     *
+     * @param s The gain to apply to this camera
+     */
+
+    void setGain(const float &g)    { m_gain  = g; };
+
     //
     // Query
 
@@ -569,6 +590,14 @@ public:
      */
 
     uint32_t autoExposureDecay () const { return m_aeDecay;   };
+
+    /**
+     * Query the current image configuration's auto-exposure target Intensity
+     *
+     * @return The current configuration's auto-exposure decay rate
+     */
+
+    float autoExposureTargetIntensity () const { return m_aeTargetIntensity;   };
 
     /**
      * Query the current image configuration's auto-exposure threshold
@@ -617,6 +646,13 @@ public:
      */
     DataSource exposureSource() const { return m_exposureSource; };
 
+    /**
+     * Query the gain applied to the camera
+     *
+     * @return Return the current image configurations gain
+     */
+    float gain() const { return m_gain; };
+
     private:
         uint32_t m_exposure;
         bool     m_aeEnabled;
@@ -629,6 +665,9 @@ public:
         uint16_t m_autoExposureRoiWidth;
         uint16_t m_autoExposureRoiHeight;
         DataSource m_exposureSource;
+
+        float    m_aeTargetIntensity;
+        float    m_gain;
 };
 
 /**
@@ -835,6 +874,14 @@ public:
     void setAutoExposureDecay (uint32_t d) { m_primary_exposure.setAutoExposureDecay(d); };
 
     /**
+     * Set the desired auto-exposure target Intensity. Default value: 0.95
+     *
+     * @param d The auto-exposure target intensity [0.0, 1.0]
+     */
+
+    void setAutoExposureTargetIntensity (float d) { m_primary_exposure.setAutoExposureTargetIntensity(d); };
+
+    /**
      * Set the desired auto-exposure threshold. This is the percentage
      * of the image that should be white. Default value: 0.75
      *
@@ -970,6 +1017,16 @@ public:
      */
     void setSecondaryExposures(const std::vector<ExposureConfig> &c) { m_secondary_exposures = c; };
 
+    /**
+     * Set the secondary exposures gamma correction factor.
+     *
+     * Gamma is a nonlinear operation used to encode and decode luminance.
+     * Typical values for gamma range between 1 and 2.2.
+     *
+     * @param g the gamma constant applied to the camera sources
+     */
+    void setGamma(const float g) { m_gamma = g; };
+
     //
     // Query
 
@@ -1061,6 +1118,14 @@ public:
      */
 
     uint32_t autoExposureDecay () const { return m_primary_exposure.autoExposureDecay();   };
+
+    /**
+     * Query the current image configuration's auto-exposure target intensity
+     *
+     * @return The current image configuration's auto-exposure target intensity
+     */
+
+    float autoExposureTargetIntensity () const { return m_primary_exposure.autoExposureTargetIntensity();   };
 
     /**
      * Query the current image configuration's auto-exposure threshold
@@ -1194,6 +1259,14 @@ public:
      */
     std::vector<ExposureConfig> secondaryExposures() const { return m_secondary_exposures; };
 
+    /**
+     * Query the gamma correction factor. Gamma correction factor will be applied
+     * to all images.
+     *
+     * @return Return the gamma factor applied to images
+     */
+    float gamma() const { return m_gamma; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -1318,6 +1391,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_profile(User_Control),
                m_secondary_exposures(),
+               m_gamma(1.5),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1337,8 +1411,8 @@ private:
     bool     m_hdrEnabled;
     bool     m_storeSettingsInFlash;
     CameraProfile m_profile;
-
     std::vector<ExposureConfig> m_secondary_exposures;
+    float m_gamma;
 
 protected:
 
