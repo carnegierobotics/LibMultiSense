@@ -75,7 +75,7 @@ void usage(const char *programNameP)
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
-    std::cerr << "\t-s <color_source>       : AUX (default=aux)" << std::endl;
+    std::cerr << "\t-s <color_source>       : LEFT,RIGHT,AUX (default=aux)" << std::endl;
 
     exit(1);
 }
