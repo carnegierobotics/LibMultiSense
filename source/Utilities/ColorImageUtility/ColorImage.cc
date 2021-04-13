@@ -75,7 +75,7 @@ void usage(const char *programNameP)
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
-    std::cerr << "\t-d <min_disparity>      : CURRENT MINIMUM DISPARITY (default=5.0)" << std::endl;
+    std::cerr << "\t-s <color_source>       : AUX (default=aux)" << std::endl;
 
     exit(1);
 }
@@ -94,14 +94,6 @@ void signalHandler(int sig)
     doneG = true;
 }
 #endif
-
-struct WorldPoint
-{
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
-    uint8_t luma = 0u;
-};
 
 //
 // Wrapper around a Channel pointer to make cleanup easier
@@ -175,11 +167,11 @@ private:
 struct UserData
 {
     Channel *driver = nullptr;
-    std::shared_ptr<const ImageBufferWrapper> leftChromaRect = nullptr;
-    std::shared_ptr<const ImageBufferWrapper> leftRect = nullptr;
+    std::shared_ptr<const ImageBufferWrapper> chroma = nullptr;
+    std::shared_ptr<const ImageBufferWrapper> luma = nullptr;
     crl::multisense::image::Calibration calibration;
     crl::multisense::system::DeviceInfo deviceInfo;
-    double minDisparity = 0.0;
+    std::pair<DataSource,DataSource> colorSource;
 };
 
 
@@ -270,50 +262,64 @@ void imageCallback(const image::Header& header,
                    void                *userDataP)
 {
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
+    
 
     if (!userData->driver) {
         std::cerr << "Invalid MultiSense channel" << std::endl;
         return;
     }
 
-    switch (header.source) {
-        case Source_Luma_Rectified_Aux:
+    if (header.source == userData->colorSource.first)
+    {
+        userData->chroma = std::make_shared<ImageBufferWrapper>(userData->driver, header);
+        if (userData->luma && userData->luma->data().frameId == header.frameId)
         {
-            userData->leftRect = std::make_shared<ImageBufferWrapper>(userData->driver, header);
-            if (userData->leftRect && userData->leftRect->data().frameId == header.frameId) {
-                //
-                // Our disparity and left recitified images match, we have enough info to create a pointcloud
-                break;
-            }
-
+            // matching frameID's, pass through to create image
+        }
+        else
+        {
             return;
         }
-        // TODO: variable
-        case Source_Chroma_Rectified_Aux:
+    }
+    if (header.source == userData->colorSource.second)
+    {
+        userData->luma = std::make_shared<ImageBufferWrapper>(userData->driver, header);
+        if (userData->chroma && userData->chroma->data().frameId == header.frameId)
         {
-            userData->leftChromaRect = std::make_shared<ImageBufferWrapper>(userData->driver, header);
-            if (userData->leftChromaRect && userData->leftChromaRect->data().frameId == header.frameId) {
-                //
-                // Our disparity and left recitified images match, we have enough info to create a pointcloud
-                break;
-            }
-
+            // matching frameID's, pass through to create image
+        }
+        else
+        {
             return;
         }
-        default:
-        {
-            std::cerr << "Unknown image source: " << header.source << std::endl;
-            return;
-        }
-    };
+    }
 
-    //
     // Note this implementation of writing ply files can be slow since they are written in ascii
 
-    if (userData->leftRect != nullptr && userData->leftChromaRect != nullptr)
+    if (userData->luma != nullptr && userData->chroma != nullptr)
     {
-    	saveColor(std::to_string(header.frameId) + ".ppm", userData->leftRect,
-                                                       userData->leftChromaRect);
+    	saveColor(std::to_string(header.frameId) + ".ppm", userData->luma,
+                                                       userData->chroma);
+    }
+}
+
+std::pair<DataSource, DataSource> colorSourceFromArg(std::string srcStr)
+{
+    if (srcStr == "aux")
+    {
+        return {Source_Chroma_Rectified_Aux, Source_Chroma_Rectified_Aux};
+    }
+    else if (srcStr == "left")
+    {
+        return {Source_Chroma_Left, Source_Luma_Left};
+    }
+    else if (srcStr == "right")
+    {
+        return {Source_Chroma_Right, Source_Luma_Right };
+    }
+    else
+    {
+        throw std::runtime_error("Invalid color source given");
     }
 }
 
@@ -324,7 +330,7 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     int32_t mtu = 7200;
-    double minDisparity = 5.0;
+    std::pair<DataSource, DataSource> userSource{Source_Chroma_Rectified_Aux, Source_Luma_Rectified_Aux};
 
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
@@ -339,10 +345,10 @@ int main(int    argc,
 
     while(-1 != (c = getopt(argc, argvPP, "a:m:d:")))
         switch(c) {
-        case 'a': currentAddress = std::string(optarg);    break;
-        case 'm': mtu            = atoi(optarg);           break;
-        case 'd': minDisparity   = std::stod(optarg);      break;
-        default: usage(*argvPP);                           break;
+        case 'a': currentAddress = std::string(optarg);        break;
+        case 'm': mtu            = atoi(optarg);               break;
+        case 's': userSource     = colorSourceFromArg(optarg); break;
+        default: usage(*argvPP);                               break;
         }
 
     Status status;
@@ -408,7 +414,7 @@ int main(int    argc,
     //
     // Setup user data to store camera state for pointcloud reprojection
 
-    UserData userData{channelP->ptr(), nullptr, nullptr, calibration, deviceInfo, minDisparity};
+    UserData userData{channelP->ptr(), nullptr, nullptr, calibration, deviceInfo, userSource};
 
     //
     // Add callbacks
@@ -418,7 +424,7 @@ int main(int    argc,
     //
     // Start streaming
 
-    status = channelP->ptr()->startStreams(Source_Luma_Rectified_Aux | Source_Chroma_Rectified_Aux);
+    status = channelP->ptr()->startStreams(userSource.first | userSource.second);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
