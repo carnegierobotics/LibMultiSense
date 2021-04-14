@@ -268,7 +268,9 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_DISPARITY_COST  |
                                                             SOURCE_DISPARITY_AUX   |
                                                             SOURCE_JPEG_LEFT       |
-                                                            SOURCE_RGB_LEFT);
+                                                            SOURCE_RGB_LEFT        |
+                                                            SOURCE_GROUND_SURFACE_CONTROL_POINTS |
+                                                            SOURCE_GROUND_SURFACE_CLASS_IMAGE);
 
 //
 // Exposure config
