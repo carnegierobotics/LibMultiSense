@@ -424,10 +424,11 @@ private:
     //
     // The lists of user callbacks
 
-    std::list<ImageListener*> m_imageListeners;
-    std::list<LidarListener*> m_lidarListeners;
-    std::list<PpsListener*>   m_ppsListeners;
-    std::list<ImuListener*>   m_imuListeners;
+    std::list<ImageListener*>                   m_imageListeners;
+    std::list<LidarListener*>                   m_lidarListeners;
+    std::list<PpsListener*>                     m_ppsListeners;
+    std::list<ImuListener*>                     m_imuListeners;
+    std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
 
     //
     // A message signal interface
@@ -494,7 +495,7 @@ private:
                                                lidar::Header&         header);
     void                         dispatchPps  (pps::Header& header);
     void                         dispatchImu  (imu::Header& header);
-
+    void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

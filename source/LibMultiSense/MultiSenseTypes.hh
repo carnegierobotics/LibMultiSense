@@ -41,6 +41,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 
 //
 // Add compatibility for C++ 11
@@ -2402,6 +2403,40 @@ public:
 
 } // namespace imu
 
+namespace ground_surface {
+
+/**
+ * Class containing Header information for a Ground Surface Spline callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    /** TODO(drobinson): Docs! */
+    float extrinsics_x_m;
+    float extrinsics_y_m;
+    float extrinsics_z_m;
+    float extrinsics_rx_rad;
+    float extrinsics_ry_rad;
+    float extrinsics_rz_rad;
+
+    float boundary_max_x;
+    float boundary_min_x;
+    float boundary_max_y;
+    float boundary_min_y;
+    float boundary_max_azimuth_angle;
+    float boundary_min_azimuth_angle;
+
+    std::array<float, 6> quadratic_params;
+};
+
+/**
+ * Function pointer for receiving callbacks for Ground Surface Spline data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace ground_surface
 
 namespace system {
 

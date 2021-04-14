@@ -77,6 +77,8 @@
 #include "details/wire/SysTestMtuResponseMessage.h"
 #include "details/wire/SysDirectedStreamsMessage.h"
 
+#include "details/wire/GroundSurfaceSplineDataMessage.h"
+
 #include <limits>
 
 namespace crl {
@@ -155,6 +157,21 @@ void impl::dispatchImu(imu::Header& header)
 
     for(it  = m_imuListeners.begin();
         it != m_imuListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
+//
+// Publish a Ground Surface Spline event
+
+void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<GroundSurfaceSplineListener*>::const_iterator it;
+
+    for(it  = m_groundSurfaceSplineListeners.begin();
+        it != m_groundSurfaceSplineListeners.end();
         it ++)
         (*it)->dispatch(header);
 }
@@ -380,6 +397,32 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchImu(header);
+
+        break;
+    }
+    case MSG_ID(wire::GroundSurfaceSplineDataMessage::ID):
+    {
+        wire::GroundSurfaceSplineDataMessage spline(stream, version);
+
+        ground_surface::Header header;
+
+        header.extrinsics_x_m = spline.extrinsics_x_m;
+        header.extrinsics_y_m = spline.extrinsics_y_m;
+        header.extrinsics_z_m = spline.extrinsics_z_m;
+        header.extrinsics_rx_rad = spline.extrinsics_rx_rad;
+        header.extrinsics_ry_rad = spline.extrinsics_ry_rad;
+        header.extrinsics_rz_rad = spline.extrinsics_rz_rad;
+
+        header.boundary_max_x = spline.boundary_max_x;
+        header.boundary_min_x = spline.boundary_min_x;
+        header.boundary_max_y = spline.boundary_max_y;
+        header.boundary_min_y = spline.boundary_min_y;
+        header.boundary_max_azimuth_angle = spline.boundary_max_azimuth_angle;
+        header.boundary_min_azimuth_angle = spline.boundary_min_azimuth_angle;
+
+        header.quadratic_params = spline.quadratic_params;
+
+        dispatchGroundSurfaceSpline(header);
 
         break;
     }

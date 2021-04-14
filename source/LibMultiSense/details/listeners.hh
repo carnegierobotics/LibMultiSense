@@ -227,6 +227,7 @@ typedef Listener<image::Header, image::Callback> ImageListener;
 typedef Listener<lidar::Header, lidar::Callback> LidarListener;
 typedef Listener<pps::Header,   pps::Callback>   PpsListener;
 typedef Listener<imu::Header,   imu::Callback>   ImuListener;
+typedef Listener<ground_surface::Header,   ground_surface::Callback>   GroundSurfaceSplineListener;
 
 } // namespace details
 } // namespace multisense
