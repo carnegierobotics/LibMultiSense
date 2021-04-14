@@ -309,14 +309,14 @@ int main(int    argc,
     // Add callbacks
 
     channelP->addIsolatedCallback(imageCallback, Source_Luma_Rectified_Left, channelP);
-    channelP->addIsolatedCallback(groundSurfaceCallback, Source_Ground_Surface, channelP);
+    channelP->addIsolatedCallback(groundSurfaceCallback, Source_Ground_Surface_Class_Image, channelP);
     channelP->addIsolatedCallback(laserCallback, channelP);
     channelP->addIsolatedCallback(ppsCallback, channelP);
 
     //
     // Start streaming
 
-    status = channelP->startStreams(Source_Luma_Rectified_Left | Source_Lidar_Scan | Source_Ground_Surface);
+    status = channelP->startStreams(Source_Luma_Rectified_Left | Source_Lidar_Scan | Source_Ground_Surface_Class_Image);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
