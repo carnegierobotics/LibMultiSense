@@ -52,7 +52,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 7;
+    static CRL_CONSTEXPR VersionType VERSION = 8;
 
     //
     // Parameters representing the current camera configuration
@@ -114,6 +114,11 @@ public:
     std::vector<ExposureConfig> secondaryExposureConfigs;
 
     //
+    // Version 8 additions
+
+    float autoExposureTargetIntensity;
+    float gamma;
+    //
     // Constructors
 
     CamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
@@ -151,7 +156,9 @@ public:
         autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
         cameraProfile(0),
         exposureSource(Default_Exposure_Source),
-        secondaryExposureConfigs()
+        secondaryExposureConfigs(),
+        autoExposureTargetIntensity(Default_Target_Intensity),
+        gamma(Default_Gamma)
         {};
 
     //
@@ -241,6 +248,18 @@ public:
             exposureSource = Default_Exposure_Source;
             secondaryExposureConfigs = std::vector<ExposureConfig>();
         }
+
+        if (version >= 8)
+        {
+            message & autoExposureTargetIntensity;
+            message & gamma;
+        }
+        else
+        {
+            autoExposureTargetIntensity = Default_Target_Intensity;
+            gamma = Default_Gamma;
+        }
+
     }
 };
 
