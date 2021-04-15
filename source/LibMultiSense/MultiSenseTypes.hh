@@ -2414,6 +2414,11 @@ namespace ground_surface {
 class MULTISENSE_API Header : public HeaderBase {
 public:
     /** TODO(drobinson): Docs! */
+    float xyCellOrigin_x;
+    float xyCellOrigin_y;
+    float xyCellSize_x;
+    float xyCellSize_y;
+
     float extrinsics_x_m;
     float extrinsics_y_m;
     float extrinsics_z_m;

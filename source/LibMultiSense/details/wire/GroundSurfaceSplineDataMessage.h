@@ -55,6 +55,13 @@ public:
     VersionType version;
 
     //
+    // Spline details
+    float xyCellOrigin_x;
+    float xyCellOrigin_y;
+    float xyCellSize_x;
+    float xyCellSize_y;
+
+    //
     // Extrinsics that were used during the computation of the spline
 
     float extrinsics_x_m;
@@ -86,6 +93,10 @@ public:
     GroundSurfaceSplineDataMessage() :
         id(ID),
         version(VERSION),
+        xyCellOrigin_x(0.0f),
+        xyCellOrigin_y(0.0f),
+        xyCellSize_x(0.0f),
+        xyCellSize_y(0.0f),
         extrinsics_x_m(0.0f),
         extrinsics_y_m(0.0f),
         extrinsics_z_m(0.0f),

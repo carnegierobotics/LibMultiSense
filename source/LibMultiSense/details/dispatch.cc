@@ -406,6 +406,11 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         ground_surface::Header header;
 
+        header.xyCellOrigin_x = spline.xyCellOrigin_x;
+        header.xyCellOrigin_y = spline.xyCellOrigin_y;
+        header.xyCellSize_x = spline.xyCellSize_x;
+        header.xyCellSize_y = spline.xyCellSize_y;
+
         header.extrinsics_x_m = spline.extrinsics_x_m;
         header.extrinsics_y_m = spline.extrinsics_y_m;
         header.extrinsics_z_m = spline.extrinsics_z_m;
