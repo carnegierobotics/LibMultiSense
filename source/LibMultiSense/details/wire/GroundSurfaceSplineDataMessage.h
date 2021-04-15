@@ -51,6 +51,9 @@ public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
+    IdType      id;
+    VersionType version;
+
     //
     // Extrinsics that were used during the computation of the spline
 
@@ -81,18 +84,20 @@ public:
 
     GroundSurfaceSplineDataMessage(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     GroundSurfaceSplineDataMessage() :
-        extrinsics_x_m(0),
-        extrinsics_y_m(0),
-        extrinsics_z_m(0),
-        extrinsics_rx_rad(0),
-        extrinsics_ry_rad(0),
-        extrinsics_rz_rad(0),
-        boundary_max_x(0),
-        boundary_min_x(0),
-        boundary_max_y(0),
-        boundary_min_y(0),
-        boundary_max_azimuth_angle(0),
-        boundary_min_azimuth_angle(0)
+        id(ID),
+        version(VERSION),
+        extrinsics_x_m(0.0f),
+        extrinsics_y_m(0.0f),
+        extrinsics_z_m(0.0f),
+        extrinsics_rx_rad(0.0f),
+        extrinsics_ry_rad(0.0f),
+        extrinsics_rz_rad(0.0f),
+        boundary_max_x(0.0f),
+        boundary_min_x(0.0f),
+        boundary_max_y(0.0f),
+        boundary_min_y(0.0f),
+        boundary_max_azimuth_angle(0.0f),
+        boundary_min_azimuth_angle(0.0f)
     {};
 
     //
