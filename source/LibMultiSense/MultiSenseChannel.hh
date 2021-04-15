@@ -233,6 +233,10 @@ public:
                                        void           *userDataP=NULL) = 0;
 
 
+    /* TODO(drobinson): Docs */
+    virtual Status addIsolatedCallback(ground_surface::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
     /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
@@ -280,6 +284,9 @@ public:
      */
 
     virtual Status removeIsolatedCallback(imu::Callback   callback) = 0;
+
+    /* TODO(drobinson): Docs */
+    virtual Status removeIsolatedCallback(ground_surface::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available

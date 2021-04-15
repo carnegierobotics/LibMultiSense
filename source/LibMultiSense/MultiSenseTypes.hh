@@ -131,6 +131,7 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1U<<11);
 static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1U<<12);
 static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Control_Points = (1U<<21);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1U<<24);
