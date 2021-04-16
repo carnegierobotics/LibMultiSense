@@ -120,6 +120,11 @@ public:
     {
         (void) version;
 
+        message & xyCellOrigin_x;
+        message & xyCellOrigin_y;
+        message & xyCellSize_x;
+        message & xyCellSize_y;
+
         message & extrinsics_x_m;
         message & extrinsics_y_m;
         message & extrinsics_z_m;
