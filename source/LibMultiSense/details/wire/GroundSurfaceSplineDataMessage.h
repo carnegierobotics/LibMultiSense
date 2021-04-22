@@ -55,7 +55,21 @@ public:
     VersionType version;
 
     //
+    // Frame ID that the algorithm was processed on
+
+    int64_t     frameId;
+
+    //
+    // Control points dynamic array (traded as image) members
+
+    uint32_t    controlPointsBitsPerPixel;
+    uint32_t    controlPointsWidth;
+    uint32_t    controlPointsHeight;
+    void        *controlPointsDataP;
+
+    //
     // Spline details
+
     float xyCellOrigin_x;
     float xyCellOrigin_y;
     float xyCellSize_x;
@@ -93,6 +107,11 @@ public:
     GroundSurfaceSplineDataMessage() :
         id(ID),
         version(VERSION),
+        frameId(0),
+        controlPointsBitsPerPixel(0),
+        controlPointsWidth(0),
+        controlPointsHeight(0),
+        controlPointsDataP(NULL),
         xyCellOrigin_x(0.0f),
         xyCellOrigin_y(0.0f),
         xyCellSize_x(0.0f),
@@ -119,6 +138,23 @@ public:
                        const VersionType version)
     {
         (void) version;
+
+        message & controlPointsBitsPerPixel;
+        message & controlPointsWidth;
+        message & controlPointsHeight;
+        message & frameId;
+
+        const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
+
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+
+            message.write(controlPointsDataP, imageSize);
+
+        } else {
+
+            controlPointsDataP = message.peek();
+            message.seek(message.tell() + imageSize);
+        }
 
         message & xyCellOrigin_x;
         message & xyCellOrigin_y;

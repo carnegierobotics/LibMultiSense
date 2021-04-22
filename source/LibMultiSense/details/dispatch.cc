@@ -406,6 +406,13 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         ground_surface::Header header;
 
+        header.frameId = spline.frameId;
+
+        header.controlPointsBitsPerPixel = spline.controlPointsBitsPerPixel;
+        header.controlPointsWidth = spline.controlPointsWidth;
+        header.controlPointsHeight = spline.controlPointsHeight;
+        header.controlPointsImageDataP = spline.controlPointsDataP;
+
         header.xyCellOrigin_x = spline.xyCellOrigin_x;
         header.xyCellOrigin_y = spline.xyCellOrigin_y;
         header.xyCellSize_x = spline.xyCellSize_x;

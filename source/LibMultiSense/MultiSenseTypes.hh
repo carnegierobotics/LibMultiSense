@@ -2413,6 +2413,18 @@ namespace ground_surface {
  */
 class MULTISENSE_API Header : public HeaderBase {
 public:
+    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+
+    /** Bits per pixel in the image */
+    uint32_t    controlPointsBitsPerPixel;
+    /** Width of the image */
+    uint32_t    controlPointsWidth;
+    /** Height of the image*/
+    uint32_t    controlPointsHeight;
+    /** A pointer to the image data */
+    const void *controlPointsImageDataP;
+
     /** TODO(drobinson): Docs! */
     float xyCellOrigin_x;
     float xyCellOrigin_y;
