@@ -77,7 +77,7 @@
 #include "details/wire/SysTestMtuResponseMessage.h"
 #include "details/wire/SysDirectedStreamsMessage.h"
 
-#include "details/wire/GroundSurfaceSplineDataMessage.h"
+#include "details/wire/GroundSurfaceModel.h"
 
 #include <limits>
 
@@ -400,9 +400,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         break;
     }
-    case MSG_ID(wire::GroundSurfaceSplineDataMessage::ID):
+    case MSG_ID(wire::GroundSurfaceModel::ID):
     {
-        wire::GroundSurfaceSplineDataMessage spline(stream, version);
+        wire::GroundSurfaceModel spline(stream, version);
 
         ground_surface::Header header;
 

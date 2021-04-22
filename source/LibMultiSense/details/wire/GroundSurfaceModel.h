@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/GroundSurfaceSplineDataMessage.h
+ * @file LibMultiSense/GroundSurfaceModelHeader.h
  *
  * This message contains ground surface spline data.
  *
@@ -36,8 +36,8 @@
  *   2021-04-15, drobinson@carnegierobotics.com, PR1044, created file.
  **/
 
-#ifndef LibMultiSense_GroundSurfaceSplineDataMessage
-#define LibMultiSense_GroundSurfaceSplineDataMessage
+#ifndef LibMultiSense_GroundSurfaceModelHeader
+#define LibMultiSense_GroundSurfaceModelHeader
 
 #include "details/utility/Portability.hh"
 
@@ -46,7 +46,7 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class GroundSurfaceSplineDataMessage {
+class WIRE_HEADER_ATTRIBS_ GroundSurfaceModelHeader {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE;
     static CRL_CONSTEXPR VersionType VERSION = 1;
@@ -65,7 +65,6 @@ public:
     uint32_t    controlPointsBitsPerPixel;
     uint32_t    controlPointsWidth;
     uint32_t    controlPointsHeight;
-    void        *controlPointsDataP;
 
     //
     // Spline details
@@ -103,15 +102,13 @@ public:
     //
     // Constructors
 
-    GroundSurfaceSplineDataMessage(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    GroundSurfaceSplineDataMessage() :
+    GroundSurfaceModelHeader() :
         id(ID),
         version(VERSION),
         frameId(0),
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
         controlPointsHeight(0),
-        controlPointsDataP(NULL),
         xyCellOrigin_x(0.0f),
         xyCellOrigin_y(0.0f),
         xyCellSize_x(0.0f),
@@ -129,6 +126,18 @@ public:
         boundary_max_azimuth_angle(0.0f),
         boundary_min_azimuth_angle(0.0f)
     {};
+};
+
+class GroundSurfaceModel : public GroundSurfaceModelHeader {
+public:
+
+    void *controlPointsDataP;
+
+    //
+    // Constructors
+
+    GroundSurfaceModel(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    GroundSurfaceModel() : controlPointsDataP(NULL) {};
 
     //
     // Serialization routine
@@ -139,22 +148,10 @@ public:
     {
         (void) version;
 
+        message & frameId;
         message & controlPointsBitsPerPixel;
         message & controlPointsWidth;
         message & controlPointsHeight;
-        message & frameId;
-
-        const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
-
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(controlPointsDataP, imageSize);
-
-        } else {
-
-            controlPointsDataP = message.peek();
-            message.seek(message.tell() + imageSize);
-        }
 
         message & xyCellOrigin_x;
         message & xyCellOrigin_y;
@@ -175,7 +172,17 @@ public:
         message & boundary_max_azimuth_angle;
         message & boundary_min_azimuth_angle;
 
-        message & quadratic_params;
+        const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
+
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+
+            message.write(controlPointsDataP, imageSize);
+
+        } else {
+
+            controlPointsDataP = message.peek();
+            message.seek(message.tell() + imageSize);
+        }
     }
 };
 
