@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/GroundSurfaceModelHeader.h
+ * @file LibMultiSense/GroundSurfaceModel.h
  *
  * This message contains ground surface spline data.
  *
@@ -51,8 +51,10 @@ public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
+#ifdef SENSORPOD_FIRMWARE
     IdType      id;
     VersionType version;
+#endif // SENSORPOD_FIRMWARE
 
     //
     // Frame ID that the algorithm was processed on
@@ -101,10 +103,11 @@ public:
 
     //
     // Constructors
-
     GroundSurfaceModelHeader() :
+#ifdef SENSORPOD_FIRMWARE
         id(ID),
         version(VERSION),
+#endif // SENSORPOD_FIRMWARE
         frameId(0),
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
@@ -127,6 +130,8 @@ public:
         boundary_min_azimuth_angle(0.0f)
     {};
 };
+
+#ifndef SENSORPOD_FIRMWARE
 
 class GroundSurfaceModel : public GroundSurfaceModelHeader {
 public:
@@ -185,6 +190,8 @@ public:
         }
     }
 };
+
+#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 
