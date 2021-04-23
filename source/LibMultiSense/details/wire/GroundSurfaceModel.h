@@ -177,6 +177,8 @@ public:
         message & boundary_max_azimuth_angle;
         message & boundary_min_azimuth_angle;
 
+        message & quadratic_params;
+
         const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
