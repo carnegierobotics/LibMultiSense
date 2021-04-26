@@ -407,32 +407,26 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         ground_surface::Header header;
 
         header.frameId = spline.frameId;
+        header.timestamp = spline.timestamp;
 
         header.controlPointsBitsPerPixel = spline.controlPointsBitsPerPixel;
         header.controlPointsWidth = spline.controlPointsWidth;
         header.controlPointsHeight = spline.controlPointsHeight;
         header.controlPointsImageDataP = spline.controlPointsDataP;
 
-        header.xyCellOrigin_x = spline.xyCellOrigin_x;
-        header.xyCellOrigin_y = spline.xyCellOrigin_y;
-        header.xyCellSize_x = spline.xyCellSize_x;
-        header.xyCellSize_y = spline.xyCellSize_y;
+        header.xyCellOrigin = spline.xyCellOrigin;
+        header.xyCellSize = spline.xyCellSize;
 
-        header.extrinsics_x_m = spline.extrinsics_x_m;
-        header.extrinsics_y_m = spline.extrinsics_y_m;
-        header.extrinsics_z_m = spline.extrinsics_z_m;
-        header.extrinsics_rx_rad = spline.extrinsics_rx_rad;
-        header.extrinsics_ry_rad = spline.extrinsics_ry_rad;
-        header.extrinsics_rz_rad = spline.extrinsics_rz_rad;
+        header.extrinsics = spline.extrinsics;
 
-        header.boundary_max_x = spline.boundary_max_x;
-        header.boundary_min_x = spline.boundary_min_x;
-        header.boundary_max_y = spline.boundary_max_y;
-        header.boundary_min_y = spline.boundary_min_y;
-        header.boundary_max_azimuth_angle = spline.boundary_max_azimuth_angle;
-        header.boundary_min_azimuth_angle = spline.boundary_min_azimuth_angle;
+        header.quadraticParams = spline.quadraticParams;
 
-        header.quadratic_params = spline.quadratic_params;
+        header.boundary.maxX = spline.boundary.maxX;
+        header.boundary.minX = spline.boundary.minX;
+        header.boundary.maxY = spline.boundary.maxY;
+        header.boundary.minY = spline.boundary.minY;
+        header.boundary.maxAzimuth = spline.boundary.maxAzimuth;
+        header.boundary.minAzimuth = spline.boundary.minAzimuth;
 
         dispatchGroundSurfaceSpline(header);
 

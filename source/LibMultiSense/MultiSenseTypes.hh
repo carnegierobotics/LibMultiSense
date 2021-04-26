@@ -2407,6 +2407,18 @@ public:
 namespace ground_surface {
 
 /**
+ * Struct containing boundary information for the boundaries of the spline fit.
+ */
+struct Boundary {
+    float maxX;
+    float minX;
+    float maxY;
+    float minY;
+    float maxAzimuth;
+    float minAzimuth;
+};
+
+/**
  * Class containing Header information for a Ground Surface Spline callback.
  *
  * See crl::multisense::Channel::addIsolatedCallback
@@ -2415,6 +2427,8 @@ class MULTISENSE_API Header : public HeaderBase {
 public:
     /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
     int64_t     frameId;
+    /** Trigger time of the disparity image which was used to generate the spline */
+    int64_t     timestamp;
 
     /** Bits per pixel in the image */
     uint32_t    controlPointsBitsPerPixel;
@@ -2425,27 +2439,21 @@ public:
     /** A pointer to the image data */
     const void *controlPointsImageDataP;
 
-    /** TODO(drobinson): Docs! */
-    float xyCellOrigin_x;
-    float xyCellOrigin_y;
-    float xyCellSize_x;
-    float xyCellSize_y;
+    /** X,Y cell origin of the spline fitting algorithm in meters */
+    std::array<float, 2> xyCellOrigin;
+    /** Size of the X,Y plane containing the spline fit in meters */
+    std::array<float, 2> xyCellSize;
 
-    float extrinsics_x_m;
-    float extrinsics_y_m;
-    float extrinsics_z_m;
-    float extrinsics_rx_rad;
-    float extrinsics_ry_rad;
-    float extrinsics_rz_rad;
+    /** Camera extrinsics that were used in the ground surface fitting operation
+     *  Order of parameters is x, y, z in meters then rz, ry, rz in radians */
+    std::array<float, 6> extrinsics;
 
-    float boundary_max_x;
-    float boundary_min_x;
-    float boundary_max_y;
-    float boundary_min_y;
-    float boundary_max_azimuth_angle;
-    float boundary_min_azimuth_angle;
+    /** Parameters for the polynomial data transformation prior to spline fitting
+     *      (ax^2 + by^2 + cxy + dx + ey + f) */
+    std::array<float, 6> quadraticParams;
 
-    std::array<float, 6> quadratic_params;
+    /** Boundaries for the spline fit in meters and radians */
+    Boundary boundary;
 };
 
 /**

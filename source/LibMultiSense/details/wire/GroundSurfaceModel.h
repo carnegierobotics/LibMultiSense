@@ -46,6 +46,26 @@ namespace multisense {
 namespace details {
 namespace wire {
 
+struct Boundary {
+    float maxX;
+    float minX;
+    float maxY;
+    float minY;
+    float maxAzimuth;
+    float minAzimuth;
+
+    //
+    // Constructors
+    Boundary() :
+        maxX(0.0f),
+        minX(0.0f),
+        maxY(0.0f),
+        minY(0.0f),
+        maxAzimuth(0.0f),
+        minAzimuth(0.0f)
+    {};
+};
+
 class WIRE_HEADER_ATTRIBS_ GroundSurfaceModelHeader {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE;
@@ -57,49 +77,38 @@ public:
 #endif // SENSORPOD_FIRMWARE
 
     //
-    // Frame ID that the algorithm was processed on
+    // Frame ID and timestamp of images that the algorithm was processed on
 
     int64_t     frameId;
+    int64_t     timestamp;
 
     //
-    // Control points dynamic array (traded as image) members
+    // Control points dynamic array (treated as image) members
 
     uint32_t    controlPointsBitsPerPixel;
     uint32_t    controlPointsWidth;
     uint32_t    controlPointsHeight;
 
     //
-    // Spline details
+    // Spline origin and size details
 
-    float xyCellOrigin_x;
-    float xyCellOrigin_y;
-    float xyCellSize_x;
-    float xyCellSize_y;
+    std::array<float, 2> xyCellOrigin;
+    std::array<float, 2> xyCellSize;
 
     //
-    // Extrinsics that were used during the computation of the spline
+    // Extrinsic calibration that was used during the computation of the spline
 
-    float extrinsics_x_m;
-    float extrinsics_y_m;
-    float extrinsics_z_m;
-    float extrinsics_rx_rad;
-    float extrinsics_ry_rad;
-    float extrinsics_rz_rad;
-
-    //
-    // Boundaries
-
-    float boundary_max_x;
-    float boundary_min_x;
-    float boundary_max_y;
-    float boundary_min_y;
-    float boundary_max_azimuth_angle;
-    float boundary_min_azimuth_angle;
+    std::array<float, 6> extrinsics;
 
     //
     // Ground Base Model (ax^2 + by^2 + cxy + dx + ey + f)
 
-    std::array<float, 6> quadratic_params;
+    std::array<float, 6> quadraticParams;
+
+    //
+    // Boundaries for the spline fit
+
+    Boundary boundary;
 
     //
     // Constructors
@@ -112,22 +121,9 @@ public:
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
         controlPointsHeight(0),
-        xyCellOrigin_x(0.0f),
-        xyCellOrigin_y(0.0f),
-        xyCellSize_x(0.0f),
-        xyCellSize_y(0.0f),
-        extrinsics_x_m(0.0f),
-        extrinsics_y_m(0.0f),
-        extrinsics_z_m(0.0f),
-        extrinsics_rx_rad(0.0f),
-        extrinsics_ry_rad(0.0f),
-        extrinsics_rz_rad(0.0f),
-        boundary_max_x(0.0f),
-        boundary_min_x(0.0f),
-        boundary_max_y(0.0f),
-        boundary_min_y(0.0f),
-        boundary_max_azimuth_angle(0.0f),
-        boundary_min_azimuth_angle(0.0f)
+        xyCellOrigin({0.0f, 0.0f}),
+        xyCellSize({0.0f, 0.0f}),
+        extrinsics({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f})
     {};
 };
 
@@ -154,30 +150,25 @@ public:
         (void) version;
 
         message & frameId;
+        message & timestamp;
+
         message & controlPointsBitsPerPixel;
         message & controlPointsWidth;
         message & controlPointsHeight;
 
-        message & xyCellOrigin_x;
-        message & xyCellOrigin_y;
-        message & xyCellSize_x;
-        message & xyCellSize_y;
+        message & xyCellOrigin;
+        message & xyCellSize;
 
-        message & extrinsics_x_m;
-        message & extrinsics_y_m;
-        message & extrinsics_z_m;
-        message & extrinsics_rx_rad;
-        message & extrinsics_ry_rad;
-        message & extrinsics_rz_rad;
+        message & extrinsics;
 
-        message & boundary_max_x;
-        message & boundary_min_x;
-        message & boundary_max_y;
-        message & boundary_min_y;
-        message & boundary_max_azimuth_angle;
-        message & boundary_min_azimuth_angle;
+        message & quadraticParams;
 
-        message & quadratic_params;
+        message & boundary.maxX;
+        message & boundary.minX;
+        message & boundary.maxY;
+        message & boundary.minY;
+        message & boundary.maxAzimuth;
+        message & boundary.minAzimuth;
 
         const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
 
