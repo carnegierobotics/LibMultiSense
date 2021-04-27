@@ -94,6 +94,8 @@ public:
 
     std::array<float, 2> xyCellOrigin;
     std::array<float, 2> xyCellSize;
+    std::array<float, 2> xyLimit;
+    std::array<float, 2> minMaxAzimuthAngle;
 
     //
     // Extrinsic calibration that was used during the computation of the spline
@@ -104,11 +106,6 @@ public:
     // Ground Base Model (ax^2 + by^2 + cxy + dx + ey + f)
 
     std::array<float, 6> quadraticParams;
-
-    //
-    // Boundaries for the spline fit
-
-    Boundary boundary;
 
     //
     // Constructors
@@ -123,7 +120,8 @@ public:
         controlPointsHeight(0),
         xyCellOrigin({0.0f, 0.0f}),
         xyCellSize({0.0f, 0.0f}),
-        extrinsics({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f})
+        xyLimit({0.0f, 0.0f}),
+        minMaxAzimuthAngle({0.0f, 0.0f})
     {};
 };
 
@@ -158,17 +156,12 @@ public:
 
         message & xyCellOrigin;
         message & xyCellSize;
+        message & xyLimit;
+        message & minMaxAzimuthAngle;
 
         message & extrinsics;
 
         message & quadraticParams;
-
-        message & boundary.maxX;
-        message & boundary.minX;
-        message & boundary.maxY;
-        message & boundary.minY;
-        message & boundary.maxAzimuth;
-        message & boundary.minAzimuth;
 
         const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
 

@@ -416,17 +416,12 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.xyCellOrigin = spline.xyCellOrigin;
         header.xyCellSize = spline.xyCellSize;
+        header.xyLimit = spline.xyLimit;
+        header.minMaxAzimuthAngle = spline.minMaxAzimuthAngle;
 
         header.extrinsics = spline.extrinsics;
 
         header.quadraticParams = spline.quadraticParams;
-
-        header.boundary.maxX = spline.boundary.maxX;
-        header.boundary.minX = spline.boundary.minX;
-        header.boundary.maxY = spline.boundary.maxY;
-        header.boundary.minY = spline.boundary.minY;
-        header.boundary.maxAzimuth = spline.boundary.maxAzimuth;
-        header.boundary.minAzimuth = spline.boundary.minAzimuth;
 
         dispatchGroundSurfaceSpline(header);
 

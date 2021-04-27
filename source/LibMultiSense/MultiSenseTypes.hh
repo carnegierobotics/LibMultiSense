@@ -2407,18 +2407,6 @@ public:
 namespace ground_surface {
 
 /**
- * Struct containing boundary information for the boundaries of the spline fit.
- */
-struct Boundary {
-    float maxX;
-    float minX;
-    float maxY;
-    float minY;
-    float maxAzimuth;
-    float minAzimuth;
-};
-
-/**
  * Class containing Header information for a Ground Surface Spline callback.
  *
  * See crl::multisense::Channel::addIsolatedCallback
@@ -2443,6 +2431,10 @@ public:
     std::array<float, 2> xyCellOrigin;
     /** Size of the X,Y plane containing the spline fit in meters */
     std::array<float, 2> xyCellSize;
+    /** X,Y limit to the spline fitting area in meters */
+    std::array<float, 2> xyLimit;
+    /** Min and max limit to the spline fitting angle in radians, for visualization purposes */
+    std::array<float, 2> minMaxAzimuthAngle;
 
     /** Camera extrinsics that were used in the ground surface fitting operation
      *  Order of parameters is x, y, z in meters then rz, ry, rz in radians */
@@ -2451,9 +2443,6 @@ public:
     /** Parameters for the polynomial data transformation prior to spline fitting
      *      (ax^2 + by^2 + cxy + dx + ey + f) */
     std::array<float, 6> quadraticParams;
-
-    /** Boundaries for the spline fit in meters and radians */
-    Boundary boundary;
 };
 
 /**
