@@ -46,26 +46,6 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-struct Boundary {
-    float maxX;
-    float minX;
-    float maxY;
-    float minY;
-    float maxAzimuth;
-    float minAzimuth;
-
-    //
-    // Constructors
-    Boundary() :
-        maxX(0.0f),
-        minX(0.0f),
-        maxY(0.0f),
-        minY(0.0f),
-        maxAzimuth(0.0f),
-        minAzimuth(0.0f)
-    {};
-};
-
 class WIRE_HEADER_ATTRIBS_ GroundSurfaceModelHeader {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE;
