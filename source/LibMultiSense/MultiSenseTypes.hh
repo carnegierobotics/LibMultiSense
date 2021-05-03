@@ -2419,13 +2419,13 @@ public:
     /** Trigger time of the disparity image which was used to generate the spline */
     int64_t     timestamp;
 
-    /** Bits per pixel in the image */
+    /** Bits per pixel in the dynamically-sized control points array */
     uint32_t    controlPointsBitsPerPixel;
-    /** Width of the image */
+    /** Width of the dynamically-sized control points array */
     uint32_t    controlPointsWidth;
-    /** Height of the image*/
+    /** Height of the dynamically-sized control points array */
     uint32_t    controlPointsHeight;
-    /** A pointer to the image data */
+    /** A pointer to the dynamically-sized control points array data */
     const void *controlPointsImageDataP;
 
     /** X,Z cell origin of the spline fitting algorithm in meters */
