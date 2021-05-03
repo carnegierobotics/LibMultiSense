@@ -161,6 +161,8 @@ static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
 static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
 /** User would like see the auto exposure Regions of Interest drawn on the image*/
 static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
+/** User would like to run spline-based ground surface algorithm on the camera*/
+static CRL_CONSTEXPR CameraProfile Ground_Surface = 4;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
