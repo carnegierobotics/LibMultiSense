@@ -2428,11 +2428,11 @@ public:
     /** A pointer to the image data */
     const void *controlPointsImageDataP;
 
-    /** X,Y cell origin of the spline fitting algorithm in meters */
+    /** X,Z cell origin of the spline fitting algorithm in meters */
     std::array<float, 2> xzCellOrigin;
-    /** Size of the X,Y plane containing the spline fit in meters */
+    /** Size of the X,Z plane containing the spline fit in meters */
     std::array<float, 2> xzCellSize;
-    /** X,Y limit to the spline fitting area in meters */
+    /** X,Z limit to the spline fitting area in meters */
     std::array<float, 2> xzLimit;
     /** Min and max limit to the spline fitting angle in radians, for visualization purposes */
     std::array<float, 2> minMaxAzimuthAngle;
@@ -2441,7 +2441,7 @@ public:
      *  Order of parameters is x, y, z in meters then rz, ry, rz in radians */
     std::array<float, 6> extrinsics;
 
-    /** Parameters for the polynomial data transformation prior to spline fitting
+    /** Parameters for the quadratic data transformation prior to spline fitting
      *      (ax^2 + by^2 + cxy + dx + ey + f) */
     std::array<float, 6> quadraticParams;
 };

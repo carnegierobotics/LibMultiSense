@@ -95,13 +95,16 @@ public:
         version(VERSION),
 #endif // SENSORPOD_FIRMWARE
         frameId(0),
+        timestamp(0),
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
         controlPointsHeight(0),
         xzCellOrigin({0.0f, 0.0f}),
         xzCellSize({0.0f, 0.0f}),
         xzLimit({0.0f, 0.0f}),
-        minMaxAzimuthAngle({0.0f, 0.0f})
+        minMaxAzimuthAngle({0.0f, 0.0f}),
+        extrinsics({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}),
+        quadraticParams({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f})
     {};
 };
 
