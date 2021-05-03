@@ -72,9 +72,9 @@ public:
     //
     // Spline origin and size details
 
-    std::array<float, 2> xyCellOrigin;
-    std::array<float, 2> xyCellSize;
-    std::array<float, 2> xyLimit;
+    std::array<float, 2> xzCellOrigin;
+    std::array<float, 2> xzCellSize;
+    std::array<float, 2> xzLimit;
     std::array<float, 2> minMaxAzimuthAngle;
 
     //
@@ -98,9 +98,9 @@ public:
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
         controlPointsHeight(0),
-        xyCellOrigin({0.0f, 0.0f}),
-        xyCellSize({0.0f, 0.0f}),
-        xyLimit({0.0f, 0.0f}),
+        xzCellOrigin({0.0f, 0.0f}),
+        xzCellSize({0.0f, 0.0f}),
+        xzLimit({0.0f, 0.0f}),
         minMaxAzimuthAngle({0.0f, 0.0f})
     {};
 };
@@ -134,9 +134,9 @@ public:
         message & controlPointsWidth;
         message & controlPointsHeight;
 
-        message & xyCellOrigin;
-        message & xyCellSize;
-        message & xyLimit;
+        message & xzCellOrigin;
+        message & xzCellSize;
+        message & xzLimit;
         message & minMaxAzimuthAngle;
 
         message & extrinsics;

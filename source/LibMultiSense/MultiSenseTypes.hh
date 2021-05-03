@@ -2427,11 +2427,11 @@ public:
     const void *controlPointsImageDataP;
 
     /** X,Y cell origin of the spline fitting algorithm in meters */
-    std::array<float, 2> xyCellOrigin;
+    std::array<float, 2> xzCellOrigin;
     /** Size of the X,Y plane containing the spline fit in meters */
-    std::array<float, 2> xyCellSize;
+    std::array<float, 2> xzCellSize;
     /** X,Y limit to the spline fitting area in meters */
-    std::array<float, 2> xyLimit;
+    std::array<float, 2> xzLimit;
     /** Min and max limit to the spline fitting angle in radians, for visualization purposes */
     std::array<float, 2> minMaxAzimuthAngle;
 

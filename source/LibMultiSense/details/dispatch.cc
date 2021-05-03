@@ -414,9 +414,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.controlPointsHeight = spline.controlPointsHeight;
         header.controlPointsImageDataP = spline.controlPointsDataP;
 
-        header.xyCellOrigin = spline.xyCellOrigin;
-        header.xyCellSize = spline.xyCellSize;
-        header.xyLimit = spline.xyLimit;
+        header.xzCellOrigin = spline.xzCellOrigin;
+        header.xzCellSize = spline.xzCellSize;
+        header.xzLimit = spline.xzLimit;
         header.minMaxAzimuthAngle = spline.minMaxAzimuthAngle;
 
         header.extrinsics = spline.extrinsics;
