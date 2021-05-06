@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_SysGetCameraCalibrationMessage
 #define LibMultiSense_SysGetCameraCalibrationMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

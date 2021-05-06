@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_SysLidarCalibrationMessage
 #define LibMultiSense_SysLidarCalibrationMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

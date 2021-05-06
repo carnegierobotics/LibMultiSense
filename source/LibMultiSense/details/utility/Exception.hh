@@ -46,8 +46,8 @@
 #include <exception>
 #include <string>
 
-#include "TimeStamp.hh"
-#include "Portability.hh"
+#include "MultiSense/details/utility/TimeStamp.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 #ifdef CRL_DEBUG_SYSLOG
 #include <syslog.h>

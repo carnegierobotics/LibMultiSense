@@ -40,7 +40,7 @@
 #ifndef LibMultiSense_VersionRequestMessage
 #define LibMultiSense_VersionRequestMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

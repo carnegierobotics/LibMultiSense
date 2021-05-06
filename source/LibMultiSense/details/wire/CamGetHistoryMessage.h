@@ -41,7 +41,7 @@
 #ifndef LibMultiSense_CamGetHistoryMessage
 #define LibMultiSense_CamGetHistoryMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

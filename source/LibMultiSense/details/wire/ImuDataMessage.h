@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_ImuDataMessage
 #define LibMultiSense_ImuDataMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

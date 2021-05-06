@@ -40,7 +40,7 @@
 #ifndef LibMultiSense_LedStatusMessage
 #define LibMultiSense_LedStatusMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

@@ -38,7 +38,7 @@
 #ifndef LibMultiSense_SysGetNetworkDelayMessage
 #define LibMultiSense_SysGetNetworkDelayMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

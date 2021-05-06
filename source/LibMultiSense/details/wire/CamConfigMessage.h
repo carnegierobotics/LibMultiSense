@@ -40,9 +40,9 @@
 #ifndef LibMultiSense_CamConfigMessage
 #define LibMultiSense_CamConfigMessage
 
-#include "details/utility/Portability.hh"
-#include "details/wire/ExposureConfigMessage.h"
-#include "Protocol.h"
+#include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/wire/ExposureConfigMessage.h"
+#include "MultiSense/details/wire/Protocol.h"
 
 namespace crl {
 namespace multisense {

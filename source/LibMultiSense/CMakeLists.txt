@@ -86,6 +86,9 @@ set(WIRE_HEADERS
 set(UTILITY_HEADERS
   details/utility/Portability.hh
   details/utility/BufferStream.hh
+  details/utility/Exception.hh
+  details/utility/TimeStamp.hh
+  details/utility/ReferenceCount.hh
   )
 
 set(DETAILS_HEADERS details/channel.hh

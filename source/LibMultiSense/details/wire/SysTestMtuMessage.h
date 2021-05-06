@@ -37,7 +37,7 @@
 #ifndef LibMultiSense_SysTestMtuMessage
 #define LibMultiSense_SysTestMtuMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

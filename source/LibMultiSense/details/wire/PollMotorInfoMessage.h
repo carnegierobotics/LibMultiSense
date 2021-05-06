@@ -39,7 +39,9 @@
 #ifndef LibMultiSense_PollMotorInfoMessage
 #define LibMultiSense_PollMotorInfoMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/utility/BufferStream.hh"
+#include "MultiSense/details/wire/Protocol.h"
 
 namespace crl {
 namespace multisense {

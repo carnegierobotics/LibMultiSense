@@ -39,10 +39,10 @@
 #ifndef CRL_MULTISENSE_BUFFERSTREAM_HH
 #define CRL_MULTISENSE_BUFFERSTREAM_HH
 
-#include "Exception.hh"
-#include "TimeStamp.hh"
-#include "ReferenceCount.hh"
-#include "Portability.hh"
+#include "MultiSense/details/utility/Exception.hh"
+#include "MultiSense/details/utility/TimeStamp.hh"
+#include "MultiSense/details/utility/ReferenceCount.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 #include <stdint.h>
 #include <cstddef>

@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_SysSensorCalibrationMessage
 #define LibMultiSense_SysSensorCalibrationMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

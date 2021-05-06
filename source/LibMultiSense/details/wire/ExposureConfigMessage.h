@@ -37,7 +37,8 @@
 #ifndef LibMultiSense_ExposureConfigMessage
 #define LibMultiSense_ExposureConfigMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/MultiSenseTypes.hh"
+#include "MultiSense/details/utility/Portability.hh"
 #include "Protocol.h"
 
 namespace crl {

@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_LidarPollMotorMessage
 #define LibMultiSense_LidarPollMotorMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

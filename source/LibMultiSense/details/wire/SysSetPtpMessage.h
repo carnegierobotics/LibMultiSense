@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_SysSetPtpMessage
 #define LibMultiSense_SysSetPtpMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

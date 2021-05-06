@@ -37,7 +37,7 @@
 #ifndef LibMultiSense_StreamControlMessage
 #define LibMultiSense_StreamControlMessage
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {
