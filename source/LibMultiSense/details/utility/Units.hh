@@ -39,7 +39,7 @@
 #ifndef CRL_MULTISENSE_UNITS_HH
 #define CRL_MULTISENSE_UNITS_HH
 
-#include "Constants.hh"
+#include "MultiSense/details/utility/Constants.hh"
 
 namespace crl {
 namespace multisense {

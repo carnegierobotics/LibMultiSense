@@ -86,9 +86,12 @@ set(WIRE_HEADERS
 set(UTILITY_HEADERS
   details/utility/Portability.hh
   details/utility/BufferStream.hh
+  details/utility/Constants.hh
   details/utility/Exception.hh
   details/utility/TimeStamp.hh
+  details/utility/Thread.hh
   details/utility/ReferenceCount.hh
+  details/utility/Units.hh
   )
 
 set(DETAILS_HEADERS details/channel.hh
@@ -96,6 +99,10 @@ set(DETAILS_HEADERS details/channel.hh
                     details/listeners.hh
                     details/signal.hh
                     details/storage.hh)
+
+set(LINUX_HEADERS details/utility/linux/Thread.hh)
+set(WIN32_HEADERS details/utility/win32/Thread.hh)
+set(MACOS_HEADERS details/utility/macos/Thread.hh)
 
 set(DETAILS_SRC details/channel.cc
                 details/public.cc
@@ -159,4 +166,26 @@ if(MULTISENSE_INSTALL_WIRE_PROTOCOL)
     ${UTILITY_HEADERS}
     DESTINATION
     include/MultiSense/details/utility)
+  install(FILES
+    ${DETAILS_HEADERS}
+    DESTINATION
+    include/MultiSense/details)
+  if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    install(FILES
+      ${LINUX_HEADERS}
+      DESTINATION
+      include/MultiSense/details/utility/linux)
+  endif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    install(FILES
+      ${MACOS_HEADERS}
+      DESTINATION
+      include/MultiSense/details/utility/macos)
+  endif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    install(FILES
+      ${WIN32_HEADERS}
+      DESTINATION
+      include/MultiSense/details/utility/win32)
+  endif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif(MULTISENSE_INSTALL_WIRE_PROTOCOL)

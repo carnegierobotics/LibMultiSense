@@ -36,19 +36,19 @@
 #ifndef _LibMultiSense_details_channel_hh
 #define _LibMultiSense_details_channel_hh
 
-#include "MultiSenseChannel.hh"
+#include "MultiSense/MultiSenseChannel.hh"
 
-#include "details/utility/Portability.hh"
-#include "details/utility/Thread.hh"
-#include "details/utility/BufferStream.hh"
-#include "details/utility/Units.hh"
-#include "details/listeners.hh"
-#include "details/signal.hh"
-#include "details/storage.hh"
-#include "details/wire/Protocol.h"
-#include "details/wire/ImageMetaMessage.h"
-#include "details/wire/StatusResponseMessage.h"
-#include "details/wire/VersionResponseMessage.h"
+#include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/utility/Thread.hh"
+#include "MultiSense/details/utility/BufferStream.hh"
+#include "MultiSense/details/utility/Units.hh"
+#include "MultiSense/details/listeners.hh"
+#include "MultiSense/details/signal.hh"
+#include "MultiSense/details/storage.hh"
+#include "MultiSense/details/wire/Protocol.h"
+#include "MultiSense/details/wire/ImageMetaMessage.h"
+#include "MultiSense/details/wire/StatusResponseMessage.h"
+#include "MultiSense/details/wire/VersionResponseMessage.h"
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN

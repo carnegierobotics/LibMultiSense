@@ -37,7 +37,7 @@
 #ifndef _LibMultiSense_details_query_hh
 #define _LibMultiSense_details_query_hh
 
-#include "details/channel.hh"
+#include "MultiSense/details/channel.hh"
 
 namespace crl {
 namespace multisense {

@@ -37,10 +37,10 @@
 #ifndef LibMultiSense_impl_listeners
 #define LibMultiSense_impl_listeners
 
-#include "MultiSenseTypes.hh"
+#include "MultiSense/MultiSenseTypes.hh"
 
-#include "details/utility/Thread.hh"
-#include "details/utility/BufferStream.hh"
+#include "MultiSense/details/utility/Thread.hh"
+#include "MultiSense/details/utility/BufferStream.hh"
 
 namespace crl {
 namespace multisense {

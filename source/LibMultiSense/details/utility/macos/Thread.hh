@@ -49,9 +49,9 @@
 #include <vector>
 #include <deque>
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
-#include "../Exception.hh"
+#include "MultiSense/details/utility/Exception.hh"
 
 namespace crl {
 namespace multisense {

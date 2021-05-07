@@ -37,9 +37,9 @@
 #ifndef LibMultiSense_details_signal_hh
 #define LibMultiSense_details_signal_hh
 
-#include "details/utility/Thread.hh"
-#include "details/wire/Protocol.h"
-#include "details/wire/AckMessage.h"
+#include "MultiSense/details/utility/Thread.hh"
+#include "MultiSense/details/wire/Protocol.h"
+#include "MultiSense/details/wire/AckMessage.h"
 
 #include <map>
 
