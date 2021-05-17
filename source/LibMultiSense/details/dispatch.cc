@@ -414,14 +414,19 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.controlPointsHeight = spline.controlPointsHeight;
         header.controlPointsImageDataP = spline.controlPointsDataP;
 
-        header.xzCellOrigin = spline.xzCellOrigin;
-        header.xzCellSize = spline.xzCellSize;
-        header.xzLimit = spline.xzLimit;
-        header.minMaxAzimuthAngle = spline.minMaxAzimuthAngle;
+        for (unsigned int i = 0; i < 2; i++)
+        {
+            header.xzCellOrigin[i] = spline.xzCellOrigin[i];
+            header.xzCellSize[i] = spline.xzCellSize[i];
+            header.xzLimit[i] = spline.xzLimit[i];
+            header.minMaxAzimuthAngle[i] = spline.minMaxAzimuthAngle[i];
+        }
 
-        header.extrinsics = spline.extrinsics;
-
-        header.quadraticParams = spline.quadraticParams;
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            header.extrinsics[i] = spline.extrinsics[i];
+            header.quadraticParams[i] = spline.quadraticParams[i];
+        }
 
         dispatchGroundSurfaceSpline(header);
 

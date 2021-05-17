@@ -41,7 +41,6 @@
 
 #include <string>
 #include <vector>
-#include <array>
 
 //
 // Add compatibility for C++ 11
@@ -2429,21 +2428,21 @@ public:
     const void *controlPointsImageDataP;
 
     /** X,Z cell origin of the spline fitting algorithm in meters */
-    std::array<float, 2> xzCellOrigin;
+    float xzCellOrigin[2];
     /** Size of the X,Z plane containing the spline fit in meters */
-    std::array<float, 2> xzCellSize;
+    float xzCellSize[2];
     /** X,Z limit to the spline fitting area in meters */
-    std::array<float, 2> xzLimit;
+    float xzLimit[2];
     /** Min and max limit to the spline fitting angle in radians, for visualization purposes */
-    std::array<float, 2> minMaxAzimuthAngle;
+    float minMaxAzimuthAngle[2];
 
     /** Camera extrinsics that were used in the ground surface fitting operation
      *  Order of parameters is x, y, z in meters then rz, ry, rz in radians */
-    std::array<float, 6> extrinsics;
+    float extrinsics[6];
 
     /** Parameters for the quadratic data transformation prior to spline fitting
      *      (ax^2 + by^2 + cxy + dx + ey + f) */
-    std::array<float, 6> quadraticParams;
+    float quadraticParams[6];
 };
 
 /**

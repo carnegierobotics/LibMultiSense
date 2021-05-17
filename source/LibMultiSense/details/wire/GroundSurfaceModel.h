@@ -72,20 +72,20 @@ public:
     //
     // Spline origin and size details
 
-    std::array<float, 2> xzCellOrigin;
-    std::array<float, 2> xzCellSize;
-    std::array<float, 2> xzLimit;
-    std::array<float, 2> minMaxAzimuthAngle;
+    float xzCellOrigin[2];
+    float xzCellSize[2];
+    float xzLimit[2];
+    float minMaxAzimuthAngle[2];
 
     //
     // Extrinsic calibration that was used during the computation of the spline
 
-    std::array<float, 6> extrinsics;
+    float extrinsics[6];
 
     //
     // Ground Base Model (ax^2 + by^2 + cxy + dx + ey + f)
 
-    std::array<float, 6> quadraticParams;
+    float quadraticParams[6];
 
     //
     // Constructors
@@ -98,13 +98,7 @@ public:
         timestamp(0),
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
-        controlPointsHeight(0),
-        xzCellOrigin({0.0f, 0.0f}),
-        xzCellSize({0.0f, 0.0f}),
-        xzLimit({0.0f, 0.0f}),
-        minMaxAzimuthAngle({0.0f, 0.0f}),
-        extrinsics({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}),
-        quadraticParams({0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f})
+        controlPointsHeight(0)
     {};
 };
 
@@ -137,16 +131,21 @@ public:
         message & controlPointsWidth;
         message & controlPointsHeight;
 
-        message & xzCellOrigin;
-        message & xzCellSize;
-        message & xzLimit;
-        message & minMaxAzimuthAngle;
+        for (unsigned int i = 0; i < 2; i++)
+        {
+            message & xzCellOrigin[i];
+            message & xzCellSize[i];
+            message & xzLimit[i];
+            message & minMaxAzimuthAngle[i];
+        }
 
-        message & extrinsics;
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            message & extrinsics[i];
+            message & quadraticParams[i];
+        }
 
-        message & quadraticParams;
-
-        const auto imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
+        const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
 
