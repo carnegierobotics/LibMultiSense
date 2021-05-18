@@ -132,18 +132,22 @@ public:
         message & controlPointsHeight;
 
         for (unsigned int i = 0; i < 2; i++)
-        {
             message & xzCellOrigin[i];
+
+        for (unsigned int i = 0; i < 2; i++)
             message & xzCellSize[i];
+
+        for (unsigned int i = 0; i < 2; i++)
             message & xzLimit[i];
+
+        for (unsigned int i = 0; i < 2; i++)
             message & minMaxAzimuthAngle[i];
-        }
 
         for (unsigned int i = 0; i < 6; i++)
-        {
             message & extrinsics[i];
+
+        for (unsigned int i = 0; i < 6; i++)
             message & quadraticParams[i];
-        }
 
         const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) controlPointsBitsPerPixel / 8.0) * controlPointsWidth * controlPointsHeight));
 
