@@ -109,10 +109,14 @@ public:
     virtual Status addIsolatedCallback   (imu::Callback   callback,
                                           void           *userDataP);
 
+    virtual Status addIsolatedCallback   (ground_surface::Callback callback,
+                                          void         *userDataP);
+
     virtual Status removeIsolatedCallback(image::Callback callback);
     virtual Status removeIsolatedCallback(lidar::Callback callback);
     virtual Status removeIsolatedCallback(pps::Callback   callback);
     virtual Status removeIsolatedCallback(imu::Callback   callback);
+    virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -289,6 +293,7 @@ private:
 
     static CRL_CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 50;
+    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 5;
 
     //
     // The maximum number of directed streams
@@ -424,10 +429,11 @@ private:
     //
     // The lists of user callbacks
 
-    std::list<ImageListener*> m_imageListeners;
-    std::list<LidarListener*> m_lidarListeners;
-    std::list<PpsListener*>   m_ppsListeners;
-    std::list<ImuListener*>   m_imuListeners;
+    std::list<ImageListener*>                   m_imageListeners;
+    std::list<LidarListener*>                   m_lidarListeners;
+    std::list<PpsListener*>                     m_ppsListeners;
+    std::list<ImuListener*>                     m_imuListeners;
+    std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
 
     //
     // A message signal interface
@@ -494,7 +500,7 @@ private:
                                                lidar::Header&         header);
     void                         dispatchPps  (pps::Header& header);
     void                         dispatchImu  (imu::Header& header);
-
+    void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

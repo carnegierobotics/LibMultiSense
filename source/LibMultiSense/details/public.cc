@@ -200,6 +200,27 @@ Status impl::addIsolatedCallback(imu::Callback callback,
 }
 
 //
+// Adds a new Ground Surface listener
+
+Status impl::addIsolatedCallback(ground_surface::Callback callback,
+                                 void         *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_groundSurfaceSplineListeners.push_back(new GroundSurfaceSplineListener(callback,
+                                                 0,
+                                                 userDataP,
+                                                 MAX_USER_GROUND_SURFACE_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
 // Removes an image listener
 
 Status impl::removeIsolatedCallback(image::Callback callback)
@@ -299,6 +320,34 @@ Status impl::removeIsolatedCallback(imu::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_imuListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a ground surface listener
+
+Status impl::removeIsolatedCallback(ground_surface::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<GroundSurfaceSplineListener*>::iterator it;
+        for(it  = m_groundSurfaceSplineListeners.begin();
+            it != m_groundSurfaceSplineListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_groundSurfaceSplineListeners.erase(it);
                 return Status_Ok;
             }
         }

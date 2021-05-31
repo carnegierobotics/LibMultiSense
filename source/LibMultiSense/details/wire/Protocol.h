@@ -217,6 +217,7 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_EXTERNAL_CAL      = 0x011b;
 static CRL_CONSTEXPR IdType ID_DATA_LED_SENSOR_STATUS     = 0x011c;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL        = 0x011d;
 static CRL_CONSTEXPR IdType ID_DATA_EXPOSURE_CONFIG       = 0x011e;
+static CRL_CONSTEXPR IdType ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE = 0x011f;
 
 //
 // Data sources
@@ -239,6 +240,8 @@ static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT   = (1U<<11);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST    = (1U<<12);
 static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT         = (1U<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT          = (1U<<17);
+static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA = (1U<<20);
+static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE = (1U<<22);
 static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR         = (1U<<23);
 static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN        = (1U<<24);
 static CRL_CONSTEXPR SourceType SOURCE_IMU               = (1U<<25);
@@ -266,7 +269,8 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_DISPARITY_COST  |
                                                             SOURCE_DISPARITY_AUX   |
                                                             SOURCE_JPEG_LEFT       |
-                                                            SOURCE_RGB_LEFT);
+                                                            SOURCE_RGB_LEFT        |
+                                                            SOURCE_GROUND_SURFACE_CLASS_IMAGE);
 
 //
 // Exposure config

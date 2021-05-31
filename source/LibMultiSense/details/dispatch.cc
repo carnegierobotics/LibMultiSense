@@ -77,6 +77,8 @@
 #include "details/wire/SysTestMtuResponseMessage.h"
 #include "details/wire/SysDirectedStreamsMessage.h"
 
+#include "details/wire/GroundSurfaceModel.h"
+
 #include <limits>
 
 namespace crl {
@@ -155,6 +157,21 @@ void impl::dispatchImu(imu::Header& header)
 
     for(it  = m_imuListeners.begin();
         it != m_imuListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
+//
+// Publish a Ground Surface Spline event
+
+void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<GroundSurfaceSplineListener*>::const_iterator it;
+
+    for(it  = m_groundSurfaceSplineListeners.begin();
+        it != m_groundSurfaceSplineListeners.end();
         it ++)
         (*it)->dispatch(header);
 }
@@ -380,6 +397,38 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchImu(header);
+
+        break;
+    }
+    case MSG_ID(wire::GroundSurfaceModel::ID):
+    {
+        wire::GroundSurfaceModel spline(stream, version);
+
+        ground_surface::Header header;
+
+        header.frameId = spline.frameId;
+        header.timestamp = spline.timestamp;
+
+        header.controlPointsBitsPerPixel = spline.controlPointsBitsPerPixel;
+        header.controlPointsWidth = spline.controlPointsWidth;
+        header.controlPointsHeight = spline.controlPointsHeight;
+        header.controlPointsImageDataP = spline.controlPointsDataP;
+
+        for (unsigned int i = 0; i < 2; i++)
+        {
+            header.xzCellOrigin[i] = spline.xzCellOrigin[i];
+            header.xzCellSize[i] = spline.xzCellSize[i];
+            header.xzLimit[i] = spline.xzLimit[i];
+            header.minMaxAzimuthAngle[i] = spline.minMaxAzimuthAngle[i];
+        }
+
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            header.extrinsics[i] = spline.extrinsics[i];
+            header.quadraticParams[i] = spline.quadraticParams[i];
+        }
+
+        dispatchGroundSurfaceSpline(header);
 
         break;
     }

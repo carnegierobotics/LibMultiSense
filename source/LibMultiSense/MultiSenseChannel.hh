@@ -221,8 +221,7 @@ public:
      * Each imu::Header contains multiple IMU samples to reduce the number
      * of UDP packets sent from the sensor.
      *
-     * @param callback A user defined imu::Callback to send PPS data
-     * to
+     * @param callback A user defined imu::Callback to send IMU data to
      *
      * @param userDataP A pointer to arbitrary user data.
      *
@@ -232,6 +231,32 @@ public:
     virtual Status addIsolatedCallback(imu::Callback   callback,
                                        void           *userDataP=NULL) = 0;
 
+
+    /**
+     * Add a user defined callback attached to the Ground Surface result stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * Ground Surface data is queued per-callback. For each Ground Surface
+     * callback the maximum queue depth is 5 Ground Surface messages.
+     *
+     * Adding multiple callbacks subscribing to the same Ground Surface data is
+     * allowed.
+     *
+     * Ground Surface data is stored on the heap and released after returning
+     * from the callback
+     *
+     * @param callback A user defined ground_surface::Callback to send Ground
+     * Surface data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(ground_surface::Callback callback,
+                                       void         *userDataP=NULL) = 0;
 
     /**
      * Unregister a user defined image::Callback. This stops the callback
@@ -280,6 +305,18 @@ public:
      */
 
     virtual Status removeIsolatedCallback(imu::Callback   callback) = 0;
+
+    /**
+     * Unregister a user defined ground_surface::Callback. This stops the callback
+     * from receiving ground surface data
+     *
+     * @param callback The user defined ground_surface::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(ground_surface::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available

@@ -130,6 +130,8 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1U<<11);
 static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1U<<12);
 static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1U<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                    = (1U<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                    = (1U<<26);
@@ -158,6 +160,8 @@ static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
 static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
 /** User would like see the auto exposure Regions of Interest drawn on the image*/
 static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
+/** User would like to run spline-based ground surface algorithm on the camera*/
+static CRL_CONSTEXPR CameraProfile Ground_Surface = 4;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -2400,6 +2404,54 @@ public:
 
 } // namespace imu
 
+namespace ground_surface {
+
+/**
+ * Class containing Header information for a Ground Surface Spline callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** Trigger time of the disparity image which was used to generate the spline */
+    int64_t     timestamp;
+
+    /** Bits per pixel in the dynamically-sized control points array */
+    uint32_t    controlPointsBitsPerPixel;
+    /** Width of the dynamically-sized control points array */
+    uint32_t    controlPointsWidth;
+    /** Height of the dynamically-sized control points array */
+    uint32_t    controlPointsHeight;
+    /** A pointer to the dynamically-sized control points array data */
+    const void *controlPointsImageDataP;
+
+    /** X,Z cell origin of the spline fitting algorithm in meters */
+    float xzCellOrigin[2];
+    /** Size of the X,Z plane containing the spline fit in meters */
+    float xzCellSize[2];
+    /** X,Z limit to the spline fitting area in meters */
+    float xzLimit[2];
+    /** Min and max limit to the spline fitting angle in radians, for visualization purposes */
+    float minMaxAzimuthAngle[2];
+
+    /** Camera extrinsics that were used in the ground surface fitting operation
+     *  Order of parameters is x, y, z in meters then rz, ry, rz in radians */
+    float extrinsics[6];
+
+    /** Parameters for the quadratic data transformation prior to spline fitting
+     *      (ax^2 + by^2 + cxy + dx + ey + f) */
+    float quadraticParams[6];
+};
+
+/**
+ * Function pointer for receiving callbacks for Ground Surface Spline data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace ground_surface
 
 namespace system {
 
