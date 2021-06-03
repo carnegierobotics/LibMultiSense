@@ -150,18 +150,24 @@ static CRL_CONSTEXPR DataSource Exposure_Default_Source = Source_Luma_Left;
 static CRL_CONSTEXPR float Exposure_Default_Target_Intensity = 0.5f;
 static CRL_CONSTEXPR float Exposure_Default_Gain = 1.0f;
 
+/**
+ * Camera profile typedef representing the various stereo profiles available
+ * from newer S27/S30 MultiSense variants. Camera profiles are used to augment
+ * and extend the standard set of user accessible camera controls. Multiple
+ * camera profiles can be requested at once using the bitwise OR operator.
+ */
 typedef uint32_t CameraProfile;
 
 /** User has direct control over all settings in the image configuration*/
 static CRL_CONSTEXPR CameraProfile User_Control = 0;
 /** User would like more detail in the disparity image*/
-static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
+static CRL_CONSTEXPR CameraProfile Detail_Disparity = (1U<<0);
 /** User would like more contrast in images*/
-static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
+static CRL_CONSTEXPR CameraProfile High_Contrast = (1U<<1);
 /** User would like see the auto exposure Regions of Interest drawn on the image*/
-static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
+static CRL_CONSTEXPR CameraProfile Show_ROIs = (1U<<2);
 /** User would like to run spline-based ground surface algorithm on the camera*/
-static CRL_CONSTEXPR CameraProfile Ground_Surface = 4;
+static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
