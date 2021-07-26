@@ -404,7 +404,6 @@ int main(int    argc,
         cfg.setAutoWhiteBalance(true);
         cfg.setAutoExposure(true);
         cfg.setResolution(deviceInfo.imagerWidth / 2, deviceInfo.imagerHeight / 2);
-        cfg.setResolution(deviceInfo.imagerWidth / 2, deviceInfo.imagerHeight / 2);
 
         status = channelP->ptr()->setImageConfig(cfg);
         if (Status_Ok != status) {
