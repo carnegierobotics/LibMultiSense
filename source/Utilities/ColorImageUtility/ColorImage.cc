@@ -401,6 +401,8 @@ int main(int    argc,
     }
     else {
         cfg.setFps(10.0);
+        cfg.setAutoWhiteBalance(true);
+        cfg.setAutoExposure(true);
         cfg.setResolution(deviceInfo.imagerWidth / 2, deviceInfo.imagerHeight / 2);
 
         status = channelP->ptr()->setImageConfig(cfg);
