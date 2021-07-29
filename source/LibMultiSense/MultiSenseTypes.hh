@@ -2657,6 +2657,7 @@ public:
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S30      = 8;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7AR     = 9;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21     = 10;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_MONOCAM  = 11;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                = 100;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                = 101;
 
