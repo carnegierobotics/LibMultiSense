@@ -168,7 +168,7 @@ static CRL_CONSTEXPR CameraProfile High_Contrast = (1U<<1);
 static CRL_CONSTEXPR CameraProfile Show_ROIs = (1U<<2);
 /** User would like to run spline-based ground surface algorithm on the camera*/
 static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
-/** User would like full resolution color camera while reducing the stereo pair to 1/4 resolution*/
+/** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair*/
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 
 /**
