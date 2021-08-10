@@ -863,11 +863,12 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.framesPerSecond = c.fps();
     cmd.gain            = c.gain();
 
-    cmd.exposure           = c.exposure();
-    cmd.autoExposure       = c.autoExposure() ? 1 : 0;
-    cmd.autoExposureMax    = c.autoExposureMax();
-    cmd.autoExposureDecay  = c.autoExposureDecay();
-    cmd.autoExposureThresh = c.autoExposureThresh();
+    cmd.exposure                    = c.exposure();
+    cmd.autoExposure                = c.autoExposure() ? 1 : 0;
+    cmd.autoExposureMax             = c.autoExposureMax();
+    cmd.autoExposureDecay           = c.autoExposureDecay();
+    cmd.autoExposureThresh          = c.autoExposureThresh();
+    cmd.autoExposureTargetIntensity = c.autoExposureTargetIntensity();
 
     cmd.whiteBalanceRed          = c.whiteBalanceRed();
     cmd.whiteBalanceBlue         = c.whiteBalanceBlue();
