@@ -1007,6 +1007,11 @@ public:
      */
     void setCameraProfile(const CameraProfile &profile)
     {
+        if (profile == Full_Res_Aux_Cam)
+        {
+            fprintf(stderr, "Warning: Deprecated Camera Profile: Full_Res_Aux_Cam.\n");
+            fprintf(stderr, "         Will be changed in future revisions.\n");
+        }
         m_profile = profile;
     }
 
