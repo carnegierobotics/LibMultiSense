@@ -168,7 +168,8 @@ static CRL_CONSTEXPR CameraProfile High_Contrast = (1U<<1);
 static CRL_CONSTEXPR CameraProfile Show_ROIs = (1U<<2);
 /** User would like to run spline-based ground surface algorithm on the camera*/
 static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
-/** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair*/
+/** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair.
+ *  Warning: This profile will be deprecated in future revisions of the software.*/
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 
 /**
@@ -1007,11 +1008,6 @@ public:
      */
     void setCameraProfile(const CameraProfile &profile)
     {
-        if (profile == Full_Res_Aux_Cam)
-        {
-            fprintf(stderr, "Warning: Deprecated Camera Profile: Full_Res_Aux_Cam.\n");
-            fprintf(stderr, "         Will be changed in future revisions.\n");
-        }
         m_profile = profile;
     }
 
