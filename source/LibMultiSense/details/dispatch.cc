@@ -42,10 +42,11 @@
 #include "details/wire/StatusResponseMessage.h"
 
 #include "details/wire/CamConfigMessage.h"
-#include "details/wire/ImageMessage.h"
-#include "details/wire/JpegMessage.h"
-#include "details/wire/ImageMetaMessage.h"
+#include "details/wire/CompressedImageMessage.h"
 #include "details/wire/DisparityMessage.h"
+#include "details/wire/ImageMessage.h"
+#include "details/wire/ImageMetaMessage.h"
+#include "details/wire/JpegMessage.h"
 
 #include "details/wire/CamHistoryMessage.h"
 
@@ -159,6 +160,22 @@ void impl::dispatchImu(imu::Header& header)
         it != m_imuListeners.end();
         it ++)
         (*it)->dispatch(header);
+}
+
+//
+// Publish a compressed image
+
+void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
+                                   compressed_image::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<CompressedImageListener*>::const_iterator it;
+
+    for(it  = m_compressedImageListeners.begin();
+        it != m_compressedImageListeners.end();
+        it ++)
+        (*it)->dispatch(buffer, header);
 }
 
 //
@@ -398,6 +415,34 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         dispatchImu(header);
 
+        break;
+    }
+    case MSG_ID(wire::CompressedImage::ID):
+    {
+        wire::CompressedImage image(stream, version);
+
+        const wire::ImageMeta *metaP = m_imageMetaCache.find(image.frameId);
+        if (NULL == metaP)
+            break;
+            //CRL_EXCEPTION("no meta cached for frameId %d", image.frameId);
+
+        compressed_image::Header header;
+
+        getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
+
+        header.source           = sourceWireToApi(image.source);
+        header.bitsPerPixel     = image.bitsPerPixel;
+        header.codec            = image.codec;
+        header.width            = image.width;
+        header.height           = image.height;
+        header.frameId          = image.frameId;
+        header.exposure         = image.exposure;
+        header.gain             = image.gain;
+        header.framesPerSecond  = metaP->framesPerSecond;
+        header.imageDataP       = image.dataP;
+        header.imageLength      = image.compressedDataBufferSize;
+
+        dispatchCompressedImage(buffer, header);
         break;
     }
     case MSG_ID(wire::GroundSurfaceModel::ID):

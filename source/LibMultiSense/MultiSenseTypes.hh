@@ -172,6 +172,16 @@ static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
  *  Warning: This profile will be deprecated in future revisions of the software.*/
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 
+
+/**
+ * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
+ * Compression is only supported on newer S27/S30 MultiSense variants.
+ */
+typedef uint32_t ImageCompressionCodec;
+
+/** Image data is compressed with the H.264 Codec*/
+static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
+
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
  * stream destination (UDP port), currently supported only by CRL's
@@ -2412,6 +2422,60 @@ public:
 };
 
 } // namespace imu
+
+namespace compressed_image {
+
+class MULTISENSE_API Header : public HeaderBase {
+public:
+
+    /** DataSource corresponding to imageDataP*/
+    DataSource  source;
+    /** Bits per pixel in the image */
+    uint32_t    bitsPerPixel;
+    /** Compression codec */
+    ImageCompressionCodec codec;
+    /** Width of the image */
+    uint32_t    width;
+    /** Height of the image*/
+    uint32_t    height;
+    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** The time seconds value corresponding to when  the image was captured*/
+    uint32_t    timeSeconds;
+    /** The time microseconds value corresponding to when the image was captured*/
+    uint32_t    timeMicroSeconds;
+
+    /** The image exposure time in microseconds*/
+    uint32_t    exposure;
+    /** The imager gain the image was captured with */
+    float       gain;
+    /** The number of frames per second currently streaming from the device */
+    float       framesPerSecond;
+    /** The length of the image data stored in imageDataP */
+    uint32_t    imageLength;
+    /** A pointer to the compressed image data */
+    const void *imageDataP;
+
+    /**
+     * Default Constructor
+     */
+    Header()
+        : source(Source_Unknown) {};
+
+    /**
+     * Member function used to determine if the data contained in the header
+     * is contained in a specific image mask
+     */
+    virtual bool inMask(DataSource mask) { return (mask & source) != 0;};
+};
+
+/**
+ * Function pointer for receiving callbacks for compressed image data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace compressed_image
 
 namespace ground_surface {
 

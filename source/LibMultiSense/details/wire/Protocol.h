@@ -190,34 +190,35 @@ static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PTP              = 0x0029;
 //
 // Data
 
-static CRL_CONSTEXPR IdType ID_DATA_VERSION               = 0x0102;
-static CRL_CONSTEXPR IdType ID_DATA_STATUS                = 0x0103;
-static CRL_CONSTEXPR IdType ID_DATA_CAM_CONFIG            = 0x0104;
-static CRL_CONSTEXPR IdType ID_DATA_CAM_HISTORY           = 0x0105;
-static CRL_CONSTEXPR IdType ID_DATA_LIDAR_CONFIG          = 0x0108;
-static CRL_CONSTEXPR IdType ID_DATA_LIDAR_SCAN            = 0x0109;
-static CRL_CONSTEXPR IdType ID_DATA_LED_STATUS            = 0x010a;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_FLASH_RESPONSE    = 0x010b;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_DEVICE_INFO       = 0x010c;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_CAMERA_CAL        = 0x010d;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_LIDAR_CAL         = 0x010e;
-static CRL_CONSTEXPR IdType ID_DATA_IMAGE_META            = 0x010f;
-static CRL_CONSTEXPR IdType ID_DATA_IMAGE                 = 0x0110;
-static CRL_CONSTEXPR IdType ID_DATA_DISPARITY             = 0x0111;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_DEVICE_MODES      = 0x0112;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_PPS               = 0x0113;
-static CRL_CONSTEXPR IdType ID_DATA_IMU                   = 0x0114;
-static CRL_CONSTEXPR IdType ID_DATA_IMU_INFO              = 0x0115;
-static CRL_CONSTEXPR IdType ID_DATA_IMU_CONFIG            = 0x0116;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_TEST_MTU_RESPONSE = 0x0117;
-static CRL_CONSTEXPR IdType ID_DATA_JPEG_IMAGE            = 0x0118;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_DIRECTED_STREAMS  = 0x0119;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_SENSOR_CAL        = 0x011a;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_EXTERNAL_CAL      = 0x011b;
-static CRL_CONSTEXPR IdType ID_DATA_LED_SENSOR_STATUS     = 0x011c;
-static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL        = 0x011d;
-static CRL_CONSTEXPR IdType ID_DATA_EXPOSURE_CONFIG       = 0x011e;
+static CRL_CONSTEXPR IdType ID_DATA_VERSION                            = 0x0102;
+static CRL_CONSTEXPR IdType ID_DATA_STATUS                             = 0x0103;
+static CRL_CONSTEXPR IdType ID_DATA_CAM_CONFIG                         = 0x0104;
+static CRL_CONSTEXPR IdType ID_DATA_CAM_HISTORY                        = 0x0105;
+static CRL_CONSTEXPR IdType ID_DATA_LIDAR_CONFIG                       = 0x0108;
+static CRL_CONSTEXPR IdType ID_DATA_LIDAR_SCAN                         = 0x0109;
+static CRL_CONSTEXPR IdType ID_DATA_LED_STATUS                         = 0x010a;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_FLASH_RESPONSE                 = 0x010b;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_DEVICE_INFO                    = 0x010c;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_CAMERA_CAL                     = 0x010d;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_LIDAR_CAL                      = 0x010e;
+static CRL_CONSTEXPR IdType ID_DATA_IMAGE_META                         = 0x010f;
+static CRL_CONSTEXPR IdType ID_DATA_IMAGE                              = 0x0110;
+static CRL_CONSTEXPR IdType ID_DATA_DISPARITY                          = 0x0111;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_DEVICE_MODES                   = 0x0112;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_PPS                            = 0x0113;
+static CRL_CONSTEXPR IdType ID_DATA_IMU                                = 0x0114;
+static CRL_CONSTEXPR IdType ID_DATA_IMU_INFO                           = 0x0115;
+static CRL_CONSTEXPR IdType ID_DATA_IMU_CONFIG                         = 0x0116;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_TEST_MTU_RESPONSE              = 0x0117;
+static CRL_CONSTEXPR IdType ID_DATA_JPEG_IMAGE                         = 0x0118;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_DIRECTED_STREAMS               = 0x0119;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_SENSOR_CAL                     = 0x011a;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_EXTERNAL_CAL                   = 0x011b;
+static CRL_CONSTEXPR IdType ID_DATA_LED_SENSOR_STATUS                  = 0x011c;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL                     = 0x011d;
+static CRL_CONSTEXPR IdType ID_DATA_EXPOSURE_CONFIG                    = 0x011e;
 static CRL_CONSTEXPR IdType ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE = 0x011f;
+static CRL_CONSTEXPR IdType ID_DATA_COMPRESSED_IMAGE                   = 0x0120;
 
 //
 // Data sources

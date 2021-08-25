@@ -200,6 +200,27 @@ Status impl::addIsolatedCallback(imu::Callback callback,
 }
 
 //
+// Adds a new Compressed Image listener
+
+Status impl::addIsolatedCallback(compressed_image::Callback callback,
+                                 void         *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_compressedImageListeners.push_back(new CompressedImageListener(callback,
+                                                                         0,
+                                                                         userDataP,
+                                                                         MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
 // Adds a new Ground Surface listener
 
 Status impl::addIsolatedCallback(ground_surface::Callback callback,
@@ -320,6 +341,34 @@ Status impl::removeIsolatedCallback(imu::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_imuListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a compressed image listener
+
+Status impl::removeIsolatedCallback(compressed_image::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<CompressedImageListener*>::iterator it;
+        for(it  = m_compressedImageListeners.begin();
+            it != m_compressedImageListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_compressedImageListeners.erase(it);
                 return Status_Ok;
             }
         }

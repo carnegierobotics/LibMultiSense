@@ -233,6 +233,27 @@ public:
 
 
     /**
+     * Add a user defined callback attached to compressed image streams.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * Adding multiple callbacks subscribing to the same compressed image data is allowed.
+     *
+     * Compressed image data is queued per-callback. For each compressed image callback the maximum
+     * queue depth is 6 images.
+     *
+     * @param callback A user defined compressed_image::Callback to send compressed image data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(compressed_image::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
+    /**
      * Add a user defined callback attached to the Ground Surface result stream.
      *
      * Each callback will create a unique internal thread
@@ -262,7 +283,7 @@ public:
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
      *
-     * @param callback The user defined imu::Callback to unregister
+     * @param callback The user defined image::Callback to unregister
      *
      * @return A crl::multisense::Status indicating if the callback deregistration
      * succeeded or failed
@@ -274,7 +295,7 @@ public:
      * Unregister a user defined lidar::Callback. This stops the callback
      * from receiving lidar data
      *
-     * @param callback The user defined image::Callback to unregister
+     * @param callback The user defined lidar::Callback to unregister
      *
      * @return A crl::multisense::Status indicating if the callback deregistration
      * succeeded or failed
@@ -286,7 +307,7 @@ public:
      * Unregister a user defined pps::Callback. This stops the callback
      * from receiving pps data
      *
-     * @param callback The user defined lidar::Callback to unregister
+     * @param callback The user defined pps::Callback to unregister
      *
      * @return A crl::multisense::Status indicating if the callback deregistration
      * succeeded or failed
@@ -298,13 +319,25 @@ public:
      * Unregister a user defined imu::Callback. This stops the callback
      * from receiving imu data
      *
-     * @param callback The user defined pps::Callback to unregister
+     * @param callback The user defined imu::Callback to unregister
      *
      * @return A crl::multisense::Status indicating if the callback deregistration
      * succeeded or failed
      */
 
     virtual Status removeIsolatedCallback(imu::Callback   callback) = 0;
+
+    /**
+     * Unregister a user defined compressed_image::Callback. This stops the callback
+     * from receiving imu data
+     *
+     * @param callback The user defined compressed_image::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(compressed_image::Callback   callback) = 0;
 
     /**
      * Unregister a user defined ground_surface::Callback. This stops the callback
