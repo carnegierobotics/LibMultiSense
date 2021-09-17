@@ -203,13 +203,14 @@ Status impl::addIsolatedCallback(imu::Callback callback,
 // Adds a new Compressed Image listener
 
 Status impl::addIsolatedCallback(compressed_image::Callback callback,
+                                 DataSource     imageSourceMask,
                                  void         *userDataP)
 {
     try {
 
         utility::ScopedLock lock(m_dispatchLock);
         m_compressedImageListeners.push_back(new CompressedImageListener(callback,
-                                                                         0,
+                                                                         imageSourceMask,
                                                                          userDataP,
                                                                          MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE));
 

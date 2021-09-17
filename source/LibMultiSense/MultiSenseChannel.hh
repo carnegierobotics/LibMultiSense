@@ -251,7 +251,8 @@ public:
      * succeeded or failed
      */
     virtual Status addIsolatedCallback(compressed_image::Callback callback,
-                                       void         *userDataP=NULL) = 0;
+                                       DataSource      imageSourceMask,
+                                       void           *userDataP=NULL) = 0;
 
     /**
      * Add a user defined callback attached to the Ground Surface result stream.

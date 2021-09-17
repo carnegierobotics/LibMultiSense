@@ -84,6 +84,7 @@ impl::impl(const std::string& address) :
     m_lidarListeners(),
     m_ppsListeners(),
     m_imuListeners(),
+    m_compressedImageListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -211,6 +212,11 @@ void impl::cleanup()
         itm != m_imuListeners.end();
         itm ++)
         delete *itm;
+    std::list<CompressedImageListener*>::const_iterator itc;
+    for(itc  = m_compressedImageListeners.begin();
+        itc != m_compressedImageListeners.end();
+        itc ++)
+        delete *itc;
 
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();

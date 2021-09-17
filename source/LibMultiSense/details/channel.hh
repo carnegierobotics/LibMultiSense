@@ -110,7 +110,8 @@ public:
                                           void           *userDataP);
 
     virtual Status addIsolatedCallback   (compressed_image::Callback callback,
-                                          void         *userDataP);
+                                          DataSource      imageSourceMask,
+                                          void           *userDataP);
 
     virtual Status addIsolatedCallback   (ground_surface::Callback callback,
                                           void         *userDataP);
