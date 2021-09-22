@@ -398,6 +398,12 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
     if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
     if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
+    if (mask & Source_Compressed_Left)        wire_mask |= wire::SOURCE_COMPRESSED_LEFT;
+    if (mask & Source_Compressed_Rectified_Left)        wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_LEFT;
+    if (mask & Source_Compressed_Right)                 wire_mask |= wire::SOURCE_COMPRESSED_RIGHT;
+    if (mask & Source_Compressed_Rectified_Right)       wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT;
+    if (mask & Source_Compressed_Aux)                   wire_mask |= wire::SOURCE_COMPRESSED_AUX;
+    if (mask & Source_Compressed_Rectified_Aux)         wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_AUX;
     if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
     if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
 
@@ -432,6 +438,12 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
     if (mask & wire::SOURCE_GROUND_SURFACE_SPLINE_DATA)     api_mask |= Source_Ground_Surface_Spline_Data;
     if (mask & wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE)     api_mask |= Source_Ground_Surface_Class_Image;
+    if (mask & wire::SOURCE_COMPRESSED_LEFT)                api_mask |= Source_Compressed_Left;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_LEFT)      api_mask |= Source_Compressed_Rectified_Left;
+    if (mask & wire::SOURCE_COMPRESSED_RIGHT)               api_mask |= Source_Compressed_Right;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT)     api_mask |= Source_Compressed_Rectified_Right;
+    if (mask & wire::SOURCE_COMPRESSED_AUX)                 api_mask |= Source_Compressed_Aux;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_AUX)       api_mask |= Source_Compressed_Rectified_Aux;
 
     return api_mask;
 }
