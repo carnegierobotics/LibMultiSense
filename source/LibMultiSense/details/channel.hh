@@ -109,6 +109,10 @@ public:
     virtual Status addIsolatedCallback   (imu::Callback   callback,
                                           void           *userDataP);
 
+    virtual Status addIsolatedCallback   (compressed_image::Callback callback,
+                                          DataSource      imageSourceMask,
+                                          void           *userDataP);
+
     virtual Status addIsolatedCallback   (ground_surface::Callback callback,
                                           void         *userDataP);
 
@@ -116,6 +120,7 @@ public:
     virtual Status removeIsolatedCallback(lidar::Callback callback);
     virtual Status removeIsolatedCallback(pps::Callback   callback);
     virtual Status removeIsolatedCallback(imu::Callback   callback);
+    virtual Status removeIsolatedCallback(compressed_image::Callback   callback);
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
@@ -286,6 +291,7 @@ private:
 
     static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 5;
     static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 20;
+    static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 5;
 
     //
     // PPS and IMU callbacks do not reserve an RX buffer, so queue
@@ -433,6 +439,7 @@ private:
     std::list<LidarListener*>                   m_lidarListeners;
     std::list<PpsListener*>                     m_ppsListeners;
     std::list<ImuListener*>                     m_imuListeners;
+    std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
 
     //
@@ -500,6 +507,8 @@ private:
                                                lidar::Header&         header);
     void                         dispatchPps  (pps::Header& header);
     void                         dispatchImu  (imu::Header& header);
+    void                         dispatchCompressedImage(utility::BufferStream& buffer,
+                                                         compressed_image::Header& header);
     void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);

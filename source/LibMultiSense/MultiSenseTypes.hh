@@ -113,33 +113,39 @@ static CRL_CONSTEXPR Status Status_Exception   = -6;
  */
 typedef uint32_t DataSource;
 
-static CRL_CONSTEXPR DataSource Source_Unknown                = 0;
-static CRL_CONSTEXPR DataSource Source_All                    = 0xffffffff;
-static CRL_CONSTEXPR DataSource Source_Raw_Left               = (1U<<0);
-static CRL_CONSTEXPR DataSource Source_Raw_Right              = (1U<<1);
-static CRL_CONSTEXPR DataSource Source_Luma_Left              = (1U<<2);
-static CRL_CONSTEXPR DataSource Source_Luma_Right             = (1U<<3);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1U<<4);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1U<<5);
-static CRL_CONSTEXPR DataSource Source_Chroma_Left            = (1U<<6);
-static CRL_CONSTEXPR DataSource Source_Chroma_Right           = (1U<<7);
-static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux   = (1U<<8);
-static CRL_CONSTEXPR DataSource Source_Disparity              = (1U<<10);
-static CRL_CONSTEXPR DataSource Source_Disparity_Left         = (1U<<10); // same as Source_Disparity
-static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1U<<11);
-static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1U<<12);
-static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1U<<16);
-static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Unknown                       = 0;
+static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffff;
+static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1U<<0);
+static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1U<<1);
+static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1U<<2);
+static CRL_CONSTEXPR DataSource Source_Luma_Right                    = (1U<<3);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left           = (1U<<4);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right          = (1U<<5);
+static CRL_CONSTEXPR DataSource Source_Chroma_Left                   = (1U<<6);
+static CRL_CONSTEXPR DataSource Source_Chroma_Right                  = (1U<<7);
+static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux          = (1U<<8);
+static CRL_CONSTEXPR DataSource Source_Disparity                     = (1U<<10);
+static CRL_CONSTEXPR DataSource Source_Disparity_Left                = (1U<<10); // same as Source_Disparity
+static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1U<<11);
+static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1U<<12);
+static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
+static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
-static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1U<<24);
-static CRL_CONSTEXPR DataSource Source_Imu                    = (1U<<25);
-static CRL_CONSTEXPR DataSource Source_Pps                    = (1U<<26);
-static CRL_CONSTEXPR DataSource Source_Raw_Aux                = (1U<<27);
-static CRL_CONSTEXPR DataSource Source_Luma_Aux               = (1U<<28);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux     = (1U<<29);
-static CRL_CONSTEXPR DataSource Source_Chroma_Aux             = (1U<<30);
-static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
+static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1U<<24);
+static CRL_CONSTEXPR DataSource Source_Imu                           = (1U<<25);
+static CRL_CONSTEXPR DataSource Source_Pps                           = (1U<<26);
+static CRL_CONSTEXPR DataSource Source_Raw_Aux                       = (1U<<27);
+static CRL_CONSTEXPR DataSource Source_Luma_Aux                      = (1U<<28);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux            = (1U<<29);
+static CRL_CONSTEXPR DataSource Source_Chroma_Aux                    = (1U<<30);
+static CRL_CONSTEXPR DataSource Source_Disparity_Aux                 = (1U<<31);
+static CRL_CONSTEXPR DataSource Source_Compressed_Left               = (1U<<9);
+static CRL_CONSTEXPR DataSource Source_Compressed_Right              = (1U<<13);
+static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1U<<14);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -171,6 +177,16 @@ static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
 /** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair.
  *  Warning: This profile will be deprecated in future revisions of the software.*/
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
+
+
+/**
+ * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
+ * Compression is only supported on newer S27/S30 MultiSense variants.
+ */
+typedef uint32_t ImageCompressionCodec;
+
+/** Image data is compressed with the H.264 Codec*/
+static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -2412,6 +2428,60 @@ public:
 };
 
 } // namespace imu
+
+namespace compressed_image {
+
+class MULTISENSE_API Header : public HeaderBase {
+public:
+
+    /** DataSource corresponding to imageDataP*/
+    DataSource  source;
+    /** Bits per pixel in the image */
+    uint32_t    bitsPerPixel;
+    /** Compression codec */
+    ImageCompressionCodec codec;
+    /** Width of the image */
+    uint32_t    width;
+    /** Height of the image*/
+    uint32_t    height;
+    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** The time seconds value corresponding to when  the image was captured*/
+    uint32_t    timeSeconds;
+    /** The time microseconds value corresponding to when the image was captured*/
+    uint32_t    timeMicroSeconds;
+
+    /** The image exposure time in microseconds*/
+    uint32_t    exposure;
+    /** The imager gain the image was captured with */
+    float       gain;
+    /** The number of frames per second currently streaming from the device */
+    float       framesPerSecond;
+    /** The length of the image data stored in imageDataP */
+    uint32_t    imageLength;
+    /** A pointer to the compressed image data */
+    const void *imageDataP;
+
+    /**
+     * Default Constructor
+     */
+    Header()
+        : source(Source_Unknown) {};
+
+    /**
+     * Member function used to determine if the data contained in the header
+     * is contained in a specific image mask
+     */
+    virtual bool inMask(DataSource mask) { return (mask & source) != 0;};
+};
+
+/**
+ * Function pointer for receiving callbacks for compressed image data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace compressed_image
 
 namespace ground_surface {
 

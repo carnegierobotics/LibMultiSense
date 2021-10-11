@@ -48,6 +48,7 @@
 #include <MultiSense/details/wire/CamHistoryMessage.h>
 #include <MultiSense/details/wire/CamSetResolutionMessage.h>
 #include <MultiSense/details/wire/CamSetTriggerSourceMessage.h>
+#include <MultiSense/details/wire/CompressedImageMessage.h>
 #include <MultiSense/details/wire/DisparityMessage.h>
 #include <MultiSense/details/wire/ExposureConfigMessage.h>
 #include <MultiSense/details/wire/ImageMessage.h>
@@ -112,6 +113,7 @@ namespace wire {
     CRL_CONSTEXPR IdType CamHistory::ID;
     CRL_CONSTEXPR IdType CamSetResolution::ID;
     CRL_CONSTEXPR IdType CamSetTriggerSource::ID;
+    CRL_CONSTEXPR IdType CompressedImageHeader::ID;
     CRL_CONSTEXPR IdType DisparityHeader::ID;
     CRL_CONSTEXPR IdType ExposureConfig::ID;
     CRL_CONSTEXPR IdType ImageHeader::ID;
@@ -171,6 +173,7 @@ namespace wire {
     CRL_CONSTEXPR VersionType CamHistory::VERSION;
     CRL_CONSTEXPR VersionType CamSetResolution::VERSION;
     CRL_CONSTEXPR VersionType CamSetTriggerSource::VERSION;
+    CRL_CONSTEXPR VersionType CompressedImageHeader::VERSION;
     CRL_CONSTEXPR VersionType DisparityHeader::VERSION;
     CRL_CONSTEXPR VersionType ExposureConfig::VERSION;
     CRL_CONSTEXPR VersionType ImageHeader::VERSION;
