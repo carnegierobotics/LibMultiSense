@@ -276,7 +276,7 @@ private:
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE  = (10 * (1024));
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT = 100;
 
-    static double DEFAULT_ACK_TIMEOUT ()         { return 0.2; }
+    static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
     static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 20;
     static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 10;
