@@ -42,10 +42,11 @@
 #include "details/wire/StatusResponseMessage.h"
 
 #include "details/wire/CamConfigMessage.h"
-#include "details/wire/ImageMessage.h"
-#include "details/wire/JpegMessage.h"
-#include "details/wire/ImageMetaMessage.h"
+#include "details/wire/CompressedImageMessage.h"
 #include "details/wire/DisparityMessage.h"
+#include "details/wire/ImageMessage.h"
+#include "details/wire/ImageMetaMessage.h"
+#include "details/wire/JpegMessage.h"
 
 #include "details/wire/CamHistoryMessage.h"
 
@@ -76,6 +77,8 @@
 
 #include "details/wire/SysTestMtuResponseMessage.h"
 #include "details/wire/SysDirectedStreamsMessage.h"
+
+#include "details/wire/GroundSurfaceModel.h"
 
 #include <limits>
 
@@ -155,6 +158,37 @@ void impl::dispatchImu(imu::Header& header)
 
     for(it  = m_imuListeners.begin();
         it != m_imuListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
+//
+// Publish a compressed image
+
+void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
+                                   compressed_image::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<CompressedImageListener*>::const_iterator it;
+
+    for(it  = m_compressedImageListeners.begin();
+        it != m_compressedImageListeners.end();
+        it ++)
+        (*it)->dispatch(buffer, header);
+}
+
+//
+// Publish a Ground Surface Spline event
+
+void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<GroundSurfaceSplineListener*>::const_iterator it;
+
+    for(it  = m_groundSurfaceSplineListeners.begin();
+        it != m_groundSurfaceSplineListeners.end();
         it ++)
         (*it)->dispatch(header);
 }
@@ -380,6 +414,66 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchImu(header);
+
+        break;
+    }
+    case MSG_ID(wire::CompressedImage::ID):
+    {
+        wire::CompressedImage image(stream, version);
+
+        const wire::ImageMeta *metaP = m_imageMetaCache.find(image.frameId);
+        if (NULL == metaP)
+            break;
+            //CRL_EXCEPTION("no meta cached for frameId %d", image.frameId);
+
+        compressed_image::Header header;
+
+        getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
+
+        header.source           = sourceWireToApi(image.source);
+        header.bitsPerPixel     = image.bitsPerPixel;
+        header.codec            = image.codec;
+        header.width            = image.width;
+        header.height           = image.height;
+        header.frameId          = image.frameId;
+        header.exposure         = image.exposure;
+        header.gain             = image.gain;
+        header.framesPerSecond  = metaP->framesPerSecond;
+        header.imageDataP       = image.dataP;
+        header.imageLength      = image.compressedDataBufferSize;
+
+        dispatchCompressedImage(buffer, header);
+        break;
+    }
+    case MSG_ID(wire::GroundSurfaceModel::ID):
+    {
+        wire::GroundSurfaceModel spline(stream, version);
+
+        ground_surface::Header header;
+
+        header.frameId = spline.frameId;
+        header.timestamp = spline.timestamp;
+
+        header.controlPointsBitsPerPixel = spline.controlPointsBitsPerPixel;
+        header.controlPointsWidth = spline.controlPointsWidth;
+        header.controlPointsHeight = spline.controlPointsHeight;
+        header.controlPointsImageDataP = spline.controlPointsDataP;
+
+        for (unsigned int i = 0; i < 2; i++)
+        {
+            header.xzCellOrigin[i] = spline.xzCellOrigin[i];
+            header.xzCellSize[i] = spline.xzCellSize[i];
+            header.xzLimit[i] = spline.xzLimit[i];
+            header.minMaxAzimuthAngle[i] = spline.minMaxAzimuthAngle[i];
+        }
+
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            header.extrinsics[i] = spline.extrinsics[i];
+            header.quadraticParams[i] = spline.quadraticParams[i];
+        }
+
+        dispatchGroundSurfaceSpline(header);
 
         break;
     }

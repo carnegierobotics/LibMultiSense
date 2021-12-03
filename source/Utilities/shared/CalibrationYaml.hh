@@ -43,32 +43,32 @@
 template<typename T>
 std::ostream& writeMatrix (std::ostream& stream, std::string const& name, uint32_t rows, uint32_t columns, T const* data)
 {
-    stream << name << ": !!opencv-matrix\n";
-    stream << "   rows: " << rows << "\n";
-    stream << "   cols: " << columns << "\n";
-    stream << "   dt: d\n";
-    stream << "   data: [ ";
+  char buf[1024];
+
+  stream << name << ": !!opencv-matrix\n";
+  stream << "   rows: " << rows << "\n";
+  stream << "   cols: " << columns << "\n";
+  stream << "   dt: d\n";
+  stream << "   data: [ ";
 
 	stream.precision (17);
 	stream << std::scientific;
-	for (uint32_t i = 0; i < rows; i++)
-    {
-        if (i != 0)
-        {
-            stream << ",\n";
-            stream << "       ";
-        }
-        for (uint32_t j = 0; j < columns; j++)
-        {
-            if (j != 0)
-            {
-                stream << ", ";
-            }
-            stream << data[i * columns + j];
-        }
+	for (uint32_t i = 0; i < rows; i++)    {
+    if (i != 0) {
+      stream << ",\n";
+      stream << "           ";
     }
-    stream << " ]\n";
-    return stream;
+    for (uint32_t j = 0; j < columns; j++)  {
+      if (j != 0)    {
+        stream << ", ";
+      }
+      sprintf(buf,"%22.17f", data[i * columns + j]);
+
+      stream << buf;
+    }
+  }
+  stream << " ]\n";
+  return stream;
 }
 
 class Expect

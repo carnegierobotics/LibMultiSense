@@ -56,14 +56,18 @@
 // LibMultiSense when it is built as a DLL on Windows.
 #if !defined(MULTISENSE_API)
 #if defined (_MSC_VER)
-#if defined (MultiSense_EXPORTS)
+#if defined (MultiSense_STATIC)
+#define MULTISENSE_API __declspec(dllexport)
+#elif defined (MultiSense_EXPORTS)
 #define MULTISENSE_API __declspec(dllexport)
 #else
 #define MULTISENSE_API __declspec(dllimport)
 #endif
+
 #else
 #define MULTISENSE_API
 #endif
+
 #endif
 
 #if defined (_MSC_VER)
@@ -113,31 +117,39 @@ static CRL_CONSTEXPR Status Status_Exception   = -6;
  */
 typedef uint32_t DataSource;
 
-static CRL_CONSTEXPR DataSource Source_Unknown                = 0;
-static CRL_CONSTEXPR DataSource Source_All                    = 0xffffffff;
-static CRL_CONSTEXPR DataSource Source_Raw_Left               = (1U<<0);
-static CRL_CONSTEXPR DataSource Source_Raw_Right              = (1U<<1);
-static CRL_CONSTEXPR DataSource Source_Luma_Left              = (1U<<2);
-static CRL_CONSTEXPR DataSource Source_Luma_Right             = (1U<<3);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left    = (1U<<4);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right   = (1U<<5);
-static CRL_CONSTEXPR DataSource Source_Chroma_Left            = (1U<<6);
-static CRL_CONSTEXPR DataSource Source_Chroma_Right           = (1U<<7);
-static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux   = (1U<<8);
-static CRL_CONSTEXPR DataSource Source_Disparity              = (1U<<10);
-static CRL_CONSTEXPR DataSource Source_Disparity_Left         = (1U<<10); // same as Source_Disparity
-static CRL_CONSTEXPR DataSource Source_Disparity_Right        = (1U<<11);
-static CRL_CONSTEXPR DataSource Source_Disparity_Cost         = (1U<<12);
-static CRL_CONSTEXPR DataSource Source_Jpeg_Left              = (1U<<16);
-static CRL_CONSTEXPR DataSource Source_Rgb_Left               = (1U<<17);
-static CRL_CONSTEXPR DataSource Source_Lidar_Scan             = (1U<<24);
-static CRL_CONSTEXPR DataSource Source_Imu                    = (1U<<25);
-static CRL_CONSTEXPR DataSource Source_Pps                    = (1U<<26);
-static CRL_CONSTEXPR DataSource Source_Raw_Aux                = (1U<<27);
-static CRL_CONSTEXPR DataSource Source_Luma_Aux               = (1U<<28);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux     = (1U<<29);
-static CRL_CONSTEXPR DataSource Source_Chroma_Aux             = (1U<<30);
-static CRL_CONSTEXPR DataSource Source_Disparity_Aux          = (1U<<31);
+static CRL_CONSTEXPR DataSource Source_Unknown                       = 0;
+static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffff;
+static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1U<<0);
+static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1U<<1);
+static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1U<<2);
+static CRL_CONSTEXPR DataSource Source_Luma_Right                    = (1U<<3);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left           = (1U<<4);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right          = (1U<<5);
+static CRL_CONSTEXPR DataSource Source_Chroma_Left                   = (1U<<6);
+static CRL_CONSTEXPR DataSource Source_Chroma_Right                  = (1U<<7);
+static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux          = (1U<<8);
+static CRL_CONSTEXPR DataSource Source_Disparity                     = (1U<<10);
+static CRL_CONSTEXPR DataSource Source_Disparity_Left                = (1U<<10); // same as Source_Disparity
+static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1U<<11);
+static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1U<<12);
+static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
+static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
+static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1U<<24);
+static CRL_CONSTEXPR DataSource Source_Imu                           = (1U<<25);
+static CRL_CONSTEXPR DataSource Source_Pps                           = (1U<<26);
+static CRL_CONSTEXPR DataSource Source_Raw_Aux                       = (1U<<27);
+static CRL_CONSTEXPR DataSource Source_Luma_Aux                      = (1U<<28);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux            = (1U<<29);
+static CRL_CONSTEXPR DataSource Source_Chroma_Aux                    = (1U<<30);
+static CRL_CONSTEXPR DataSource Source_Disparity_Aux                 = (1U<<31);
+static CRL_CONSTEXPR DataSource Source_Compressed_Left               = (1U<<9);
+static CRL_CONSTEXPR DataSource Source_Compressed_Right              = (1U<<13);
+static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1U<<14);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -148,16 +160,37 @@ static CRL_CONSTEXPR DataSource Exposure_Default_Source = Source_Luma_Left;
 static CRL_CONSTEXPR float Exposure_Default_Target_Intensity = 0.5f;
 static CRL_CONSTEXPR float Exposure_Default_Gain = 1.0f;
 
+/**
+ * Camera profile typedef representing the various stereo profiles available
+ * from newer S27/S30 MultiSense variants. Camera profiles are used to augment
+ * and extend the standard set of user accessible camera controls. Multiple
+ * camera profiles can be requested at once using the bitwise OR operator.
+ */
 typedef uint32_t CameraProfile;
 
 /** User has direct control over all settings in the image configuration*/
 static CRL_CONSTEXPR CameraProfile User_Control = 0;
 /** User would like more detail in the disparity image*/
-static CRL_CONSTEXPR CameraProfile Detail_Disparity = 1;
+static CRL_CONSTEXPR CameraProfile Detail_Disparity = (1U<<0);
 /** User would like more contrast in images*/
-static CRL_CONSTEXPR CameraProfile High_Contrast = 2;
+static CRL_CONSTEXPR CameraProfile High_Contrast = (1U<<1);
 /** User would like see the auto exposure Regions of Interest drawn on the image*/
-static CRL_CONSTEXPR CameraProfile Show_ROIs = 3;
+static CRL_CONSTEXPR CameraProfile Show_ROIs = (1U<<2);
+/** User would like to run spline-based ground surface algorithm on the camera*/
+static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
+/** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair.
+ *  Warning: This profile will be deprecated in future revisions of the software.*/
+static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
+
+
+/**
+ * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
+ * Compression is only supported on newer S27/S30 MultiSense variants.
+ */
+typedef uint32_t ImageCompressionCodec;
+
+/** Image data is compressed with the H.264 Codec*/
+static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
 
 /**
  * Class used to request that MultiSense data be sent to a 3rd-party
@@ -2400,6 +2433,108 @@ public:
 
 } // namespace imu
 
+namespace compressed_image {
+
+class MULTISENSE_API Header : public HeaderBase {
+public:
+
+    /** DataSource corresponding to imageDataP*/
+    DataSource  source;
+    /** Bits per pixel in the image */
+    uint32_t    bitsPerPixel;
+    /** Compression codec */
+    ImageCompressionCodec codec;
+    /** Width of the image */
+    uint32_t    width;
+    /** Height of the image*/
+    uint32_t    height;
+    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** The time seconds value corresponding to when  the image was captured*/
+    uint32_t    timeSeconds;
+    /** The time microseconds value corresponding to when the image was captured*/
+    uint32_t    timeMicroSeconds;
+
+    /** The image exposure time in microseconds*/
+    uint32_t    exposure;
+    /** The imager gain the image was captured with */
+    float       gain;
+    /** The number of frames per second currently streaming from the device */
+    float       framesPerSecond;
+    /** The length of the image data stored in imageDataP */
+    uint32_t    imageLength;
+    /** A pointer to the compressed image data */
+    const void *imageDataP;
+
+    /**
+     * Default Constructor
+     */
+    Header()
+        : source(Source_Unknown) {};
+
+    /**
+     * Member function used to determine if the data contained in the header
+     * is contained in a specific image mask
+     */
+    virtual bool inMask(DataSource mask) { return (mask & source) != 0;};
+};
+
+/**
+ * Function pointer for receiving callbacks for compressed image data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace compressed_image
+
+namespace ground_surface {
+
+/**
+ * Class containing Header information for a Ground Surface Spline callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** Trigger time of the disparity image which was used to generate the spline */
+    int64_t     timestamp;
+
+    /** Bits per pixel in the dynamically-sized control points array */
+    uint32_t    controlPointsBitsPerPixel;
+    /** Width of the dynamically-sized control points array */
+    uint32_t    controlPointsWidth;
+    /** Height of the dynamically-sized control points array */
+    uint32_t    controlPointsHeight;
+    /** A pointer to the dynamically-sized control points array data */
+    const void *controlPointsImageDataP;
+
+    /** X,Z cell origin of the spline fitting algorithm in meters */
+    float xzCellOrigin[2];
+    /** Size of the X,Z plane containing the spline fit in meters */
+    float xzCellSize[2];
+    /** X,Z limit to the spline fitting area in meters */
+    float xzLimit[2];
+    /** Min and max limit to the spline fitting angle in radians, for visualization purposes */
+    float minMaxAzimuthAngle[2];
+
+    /** Camera extrinsics that were used in the ground surface fitting operation
+     *  Order of parameters is x, y, z in meters then rz, ry, rz in radians */
+    float extrinsics[6];
+
+    /** Parameters for the quadratic data transformation prior to spline fitting
+     *      (ax^2 + by^2 + cxy + dx + ey + f) */
+    float quadraticParams[6];
+};
+
+/**
+ * Function pointer for receiving callbacks for Ground Surface Spline data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace ground_surface
 
 namespace system {
 
@@ -2599,6 +2734,7 @@ public:
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S30      = 8;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7AR     = 9;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21     = 10;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_MONOCAM  = 11;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                = 100;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                = 101;
 
