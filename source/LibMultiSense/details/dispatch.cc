@@ -629,8 +629,10 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
 
     if (wireId != m_lastRxSeqId) {
 
-        const uint16_t ID_MAX    = std::numeric_limits<uint16_t>::max();
-        const uint16_t ID_CENTER = ID_MAX / 2;
+        const uint16_t ID_MAX  = std::numeric_limits<uint16_t>::max();
+        const uint16_t ID_MASK = 0xF000;
+        const uint16_t ID_HIGH = 0xF000;
+        const uint16_t ID_LOW  = 0x0000;
 
         //
         // Seed
@@ -641,8 +643,8 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
         //
         // Detect forward 16-bit wrap
 
-        else if (wireId        < ID_CENTER   &&
-                 m_lastRxSeqId > ID_CENTER) {
+        else if (((wireId & ID_MASK) == ID_LOW) &&
+                ((m_lastRxSeqId & ID_MASK) == ID_HIGH)) {
 
             m_unWrappedRxSeqId += 1 + (ID_MAX - m_lastRxSeqId) + wireId;
 
