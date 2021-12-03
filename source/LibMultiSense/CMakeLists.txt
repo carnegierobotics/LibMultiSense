@@ -121,9 +121,9 @@ endif()
 # Add in all of the source files in this directory.
 #
 
-add_library(MultiSense SHARED ${MULTISENSE_HEADERS}
-                              ${DETAILS_HEADERS}
-                              ${DETAILS_SRC})
+add_library(MultiSense ${MULTISENSE_HEADERS}
+                       ${DETAILS_HEADERS}
+                       ${DETAILS_SRC})
 #
 # Versioning...someday lets automate this somehow
 #

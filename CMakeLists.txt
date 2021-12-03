@@ -28,6 +28,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
+option (BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
 
 #
 # We want to build "Release" by default
