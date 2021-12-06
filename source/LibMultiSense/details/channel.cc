@@ -84,6 +84,7 @@ impl::impl(const std::string& address) :
     m_lidarListeners(),
     m_ppsListeners(),
     m_imuListeners(),
+    m_compressedImageListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -211,6 +212,11 @@ void impl::cleanup()
         itm != m_imuListeners.end();
         itm ++)
         delete *itm;
+    std::list<CompressedImageListener*>::const_iterator itc;
+    for(itc  = m_compressedImageListeners.begin();
+        itc != m_compressedImageListeners.end();
+        itc ++)
+        delete *itc;
 
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();
@@ -392,6 +398,14 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
     if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
     if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
+    if (mask & Source_Compressed_Left)        wire_mask |= wire::SOURCE_COMPRESSED_LEFT;
+    if (mask & Source_Compressed_Rectified_Left)        wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_LEFT;
+    if (mask & Source_Compressed_Right)                 wire_mask |= wire::SOURCE_COMPRESSED_RIGHT;
+    if (mask & Source_Compressed_Rectified_Right)       wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT;
+    if (mask & Source_Compressed_Aux)                   wire_mask |= wire::SOURCE_COMPRESSED_AUX;
+    if (mask & Source_Compressed_Rectified_Aux)         wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_AUX;
+    if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
+    if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
 
     return wire_mask;
 }
@@ -422,6 +436,14 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_LIDAR_SCAN)        api_mask |= Source_Lidar_Scan;
     if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu;
     if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
+    if (mask & wire::SOURCE_GROUND_SURFACE_SPLINE_DATA)     api_mask |= Source_Ground_Surface_Spline_Data;
+    if (mask & wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE)     api_mask |= Source_Ground_Surface_Class_Image;
+    if (mask & wire::SOURCE_COMPRESSED_LEFT)                api_mask |= Source_Compressed_Left;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_LEFT)      api_mask |= Source_Compressed_Rectified_Left;
+    if (mask & wire::SOURCE_COMPRESSED_RIGHT)               api_mask |= Source_Compressed_Right;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT)     api_mask |= Source_Compressed_Rectified_Right;
+    if (mask & wire::SOURCE_COMPRESSED_AUX)                 api_mask |= Source_Compressed_Aux;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_AUX)       api_mask |= Source_Compressed_Rectified_Aux;
 
     return api_mask;
 }
@@ -429,18 +451,19 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
 uint32_t impl::hardwareApiToWire(uint32_t a)
 {
     switch(a) {
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
-    case system::DeviceInfo::HARDWARE_REV_BCAM:             return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
-    case system::DeviceInfo::HARDWARE_REV_MONO:             return wire::SysDeviceInfo::HARDWARE_REV_MONO;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:          return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7:          return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:           return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
+    case system::DeviceInfo::HARDWARE_REV_BCAM:                   return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
+    case system::DeviceInfo::HARDWARE_REV_MONO:                   return wire::SysDeviceInfo::HARDWARE_REV_MONO;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -458,7 +481,8 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27: return system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:  return system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
     case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                return system::DeviceInfo::HARDWARE_REV_BCAM;
     case wire::SysDeviceInfo::HARDWARE_REV_MONO:                return system::DeviceInfo::HARDWARE_REV_MONO;
     default:

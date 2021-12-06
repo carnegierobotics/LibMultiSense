@@ -200,6 +200,49 @@ Status impl::addIsolatedCallback(imu::Callback callback,
 }
 
 //
+// Adds a new Compressed Image listener
+
+Status impl::addIsolatedCallback(compressed_image::Callback callback,
+                                 DataSource     imageSourceMask,
+                                 void         *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_compressedImageListeners.push_back(new CompressedImageListener(callback,
+                                                                         imageSourceMask,
+                                                                         userDataP,
+                                                                         MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
+// Adds a new Ground Surface listener
+
+Status impl::addIsolatedCallback(ground_surface::Callback callback,
+                                 void         *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_groundSurfaceSplineListeners.push_back(new GroundSurfaceSplineListener(callback,
+                                                 0,
+                                                 userDataP,
+                                                 MAX_USER_GROUND_SURFACE_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
 // Removes an image listener
 
 Status impl::removeIsolatedCallback(image::Callback callback)
@@ -299,6 +342,62 @@ Status impl::removeIsolatedCallback(imu::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_imuListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a compressed image listener
+
+Status impl::removeIsolatedCallback(compressed_image::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<CompressedImageListener*>::iterator it;
+        for(it  = m_compressedImageListeners.begin();
+            it != m_compressedImageListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_compressedImageListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a ground surface listener
+
+Status impl::removeIsolatedCallback(ground_surface::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<GroundSurfaceSplineListener*>::iterator it;
+        for(it  = m_groundSurfaceSplineListeners.begin();
+            it != m_groundSurfaceSplineListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_groundSurfaceSplineListeners.erase(it);
                 return Status_Ok;
             }
         }
@@ -814,11 +913,12 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.framesPerSecond = c.fps();
     cmd.gain            = c.gain();
 
-    cmd.exposure           = c.exposure();
-    cmd.autoExposure       = c.autoExposure() ? 1 : 0;
-    cmd.autoExposureMax    = c.autoExposureMax();
-    cmd.autoExposureDecay  = c.autoExposureDecay();
-    cmd.autoExposureThresh = c.autoExposureThresh();
+    cmd.exposure                    = c.exposure();
+    cmd.autoExposure                = c.autoExposure() ? 1 : 0;
+    cmd.autoExposureMax             = c.autoExposureMax();
+    cmd.autoExposureDecay           = c.autoExposureDecay();
+    cmd.autoExposureThresh          = c.autoExposureThresh();
+    cmd.autoExposureTargetIntensity = c.autoExposureTargetIntensity();
 
     cmd.whiteBalanceRed          = c.whiteBalanceRed();
     cmd.whiteBalanceBlue         = c.whiteBalanceBlue();

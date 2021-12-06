@@ -109,10 +109,19 @@ public:
     virtual Status addIsolatedCallback   (imu::Callback   callback,
                                           void           *userDataP);
 
+    virtual Status addIsolatedCallback   (compressed_image::Callback callback,
+                                          DataSource      imageSourceMask,
+                                          void           *userDataP);
+
+    virtual Status addIsolatedCallback   (ground_surface::Callback callback,
+                                          void         *userDataP);
+
     virtual Status removeIsolatedCallback(image::Callback callback);
     virtual Status removeIsolatedCallback(lidar::Callback callback);
     virtual Status removeIsolatedCallback(pps::Callback   callback);
     virtual Status removeIsolatedCallback(imu::Callback   callback);
+    virtual Status removeIsolatedCallback(compressed_image::Callback   callback);
+    virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -267,7 +276,7 @@ private:
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE  = (10 * (1024));
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT = 100;
 
-    static double DEFAULT_ACK_TIMEOUT ()         { return 0.2; }
+    static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
     static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 20;
     static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 10;
@@ -282,6 +291,7 @@ private:
 
     static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 5;
     static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 20;
+    static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 5;
 
     //
     // PPS and IMU callbacks do not reserve an RX buffer, so queue
@@ -289,6 +299,7 @@ private:
 
     static CRL_CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 50;
+    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 5;
 
     //
     // The maximum number of directed streams
@@ -424,10 +435,12 @@ private:
     //
     // The lists of user callbacks
 
-    std::list<ImageListener*> m_imageListeners;
-    std::list<LidarListener*> m_lidarListeners;
-    std::list<PpsListener*>   m_ppsListeners;
-    std::list<ImuListener*>   m_imuListeners;
+    std::list<ImageListener*>                   m_imageListeners;
+    std::list<LidarListener*>                   m_lidarListeners;
+    std::list<PpsListener*>                     m_ppsListeners;
+    std::list<ImuListener*>                     m_imuListeners;
+    std::list<CompressedImageListener*>         m_compressedImageListeners;
+    std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
 
     //
     // A message signal interface
@@ -494,7 +507,9 @@ private:
                                                lidar::Header&         header);
     void                         dispatchPps  (pps::Header& header);
     void                         dispatchImu  (imu::Header& header);
-
+    void                         dispatchCompressedImage(utility::BufferStream& buffer,
+                                                         compressed_image::Header& header);
+    void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);
