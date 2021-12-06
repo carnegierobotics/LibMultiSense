@@ -93,15 +93,12 @@ void signalHandler(int sig)
 
 system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes)
 {
-
     //
     // Get the full resolution image
 
     system::DeviceMode best_mode(0, 0, 0, -1);
-    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode)
-    {
-        if (mode->width > best_mode.width && mode->height > best_mode.height && mode->disparities > best_mode.disparities)
-        {
+    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode) {
+        if (mode->width >= best_mode.width && mode->height >= best_mode.height && mode->disparities > best_mode.disparities) {
             best_mode = *mode;
         }
     }
@@ -111,10 +108,8 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
 
     system::DeviceMode target_mode(best_mode.width / 2, best_mode.height / 2, 0, best_mode.disparities);
 
-    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode)
-    {
-        if (mode->width == target_mode.width && mode->height == target_mode.height && mode->disparities > target_mode.disparities)
-        {
+    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode) {
+        if (mode->width == target_mode.width && mode->height == target_mode.height && mode->disparities >= target_mode.disparities) {
             target_mode = *mode;
         }
     }
@@ -122,8 +117,7 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
     //
     // The camera does not support our targeted 1/4 res setting
 
-    if (target_mode.supportedDataSources == 0)
-    {
+    if (target_mode.supportedDataSources == 0) {
         return best_mode;
     }
 
