@@ -210,6 +210,35 @@ void imageCallback(const image::Header& header,
 		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
+class ChannelWrapper
+{
+    public:
+
+        ChannelWrapper(const std::string &ipAddress):
+            channelPtr_(Channel::Create(ipAddress))
+        {
+        }
+
+        ~ChannelWrapper()
+        {
+            if (channelPtr_) {
+                Channel::Destroy(channelPtr_);
+            }
+        }
+
+        Channel* ptr() noexcept
+        {
+            return channelPtr_;
+        }
+
+    private:
+
+        ChannelWrapper(const ChannelWrapper&) = delete;
+        ChannelWrapper operator=(const ChannelWrapper&) = delete;
+
+        Channel* channelPtr_ = nullptr;
+};
+
 } // anonymous
 
 int main(int    argc,
@@ -239,10 +268,10 @@ int main(int    argc,
     //
     // Initialize communications.
 
-    Channel *channelP = Channel::Create(currentAddress);
-    if (NULL == channelP) {
+    auto channelP = std::make_unique<ChannelWrapper>(currentAddress);
+    if (NULL == channelP->ptr()) {
 		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
-        return -1;
+        return EXIT_FAILURE;
     }
 
     //
@@ -251,11 +280,11 @@ int main(int    argc,
     Status status;
     system::VersionInfo v;
     VersionType version;
-    status = channelP->getSensorVersion(version);
-    status = channelP->getVersionInfo(v);
+    status = channelP->ptr()->getSensorVersion(version);
+    status = channelP->ptr()->getVersionInfo(v);
     if (Status_Ok != status) {
 		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
-        goto clean_out;
+        return EXIT_FAILURE;
     }
 
 	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
@@ -268,10 +297,10 @@ int main(int    argc,
 	std::cout << std::dec;
 
     std::vector<system::DeviceMode> deviceModes;
-    status = channelP->getDeviceModes(deviceModes);
+    status = channelP->ptr()->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
-        goto clean_out;
+        return EXIT_FAILURE;
     }
 
     const system::DeviceMode operatingMode = getOperatingMode(deviceModes);
@@ -282,10 +311,10 @@ int main(int    argc,
     {
         image::Config cfg;
 
-        status = channelP->getImageConfig(cfg);
+        status = channelP->ptr()->getImageConfig(cfg);
         if (Status_Ok != status) {
 			std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
-            goto clean_out;
+            return EXIT_FAILURE;
         } else {
 
             std::cout << "Setting resolution to: " << operatingMode.width << "x" <<
@@ -296,10 +325,10 @@ int main(int    argc,
             cfg.setDisparities(operatingMode.disparities);
             cfg.setFps(30.0);
 
-            status = channelP->setImageConfig(cfg);
+            status = channelP->ptr()->setImageConfig(cfg);
             if (Status_Ok != status) {
 				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
-                goto clean_out;
+                return EXIT_FAILURE;
             }
         }
     }
@@ -307,42 +336,42 @@ int main(int    argc,
     //
     // Change MTU
 
-    status = channelP->setMtu(mtu);
+    status = channelP->ptr()->setMtu(mtu);
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
-        goto clean_out;
+        return EXIT_FAILURE;
     }
 
     //
     // Change trigger source
 
-    status = channelP->setTriggerSource(Trigger_Internal);
+    status = channelP->ptr()->setTriggerSource(Trigger_Internal);
     if (Status_Ok != status) {
 		std::cerr << "Failed to set trigger source: " << Channel::statusString(status) << std::endl;
-        goto clean_out;
+        return EXIT_FAILURE;
     }
 
     //
     // Add callbacks
 
-    channelP->addIsolatedCallback(imageCallback, Source_All, channelP);
-    channelP->addIsolatedCallback(laserCallback, channelP);
-    channelP->addIsolatedCallback(ppsCallback, channelP);
+    channelP->ptr()->addIsolatedCallback(imageCallback, Source_All, channelP->ptr());
+    channelP->ptr()->addIsolatedCallback(laserCallback, channelP->ptr());
+    channelP->ptr()->addIsolatedCallback(ppsCallback, channelP->ptr());
 
     //
     // Start streaming
 
-    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
+    status = channelP->ptr()->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
                                     (operatingMode.supportedDataSources & Source_Lidar_Scan));
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
-        goto clean_out;
+        return EXIT_FAILURE;
     }
 
     while(!doneG)
     {
         system::StatusMessage statusMessage;
-        status = channelP->getDeviceStatus(statusMessage);
+        status = channelP->ptr()->getDeviceStatus(statusMessage);
 
         if (Status_Ok == status) {
             std::cout << "Uptime: " << statusMessage.uptime << ", " <<
@@ -357,17 +386,13 @@ int main(int    argc,
             "Imager Power: " << statusMessage.imagerPower << std::endl;
         }
 
-
         usleep(1000000);
     }
 
-    status = channelP->stopStreams(Source_All);
+    status = channelP->ptr()->stopStreams(Source_All);
     if (Status_Ok != status) {
 		std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
     }
 
-clean_out:
-
-    Channel::Destroy(channelP);
-    return 0;
+    return EXIT_SUCCESS;
 }
