@@ -251,6 +251,8 @@ int main(int    argc,
     Status status;
     system::VersionInfo v;
     VersionType version;
+    std::vector<system::DeviceMode> deviceModes;
+    system::DeviceMode operatingMode;
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
@@ -267,14 +269,13 @@ int main(int    argc,
 	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
 	std::cout << std::dec;
 
-    std::vector<system::DeviceMode> deviceModes;
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-    const system::DeviceMode operatingMode = getOperatingMode(deviceModes);
+    operatingMode = getOperatingMode(deviceModes);
 
     //
     // Change framerate
