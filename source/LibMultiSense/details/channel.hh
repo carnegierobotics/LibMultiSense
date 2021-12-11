@@ -38,7 +38,6 @@
 
 #include "MultiSense/MultiSenseChannel.hh"
 
-#include "MultiSense/details/utility/Debug.hh"
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/utility/Thread.hh"
 #include "MultiSense/details/utility/BufferStream.hh"

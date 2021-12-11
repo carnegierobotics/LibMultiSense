@@ -128,8 +128,9 @@ public:
     };
 
     ~Thread() {
-        if (!(m_flags & FLAGS_DETACH))
-            pthread_join(m_id, NULL);
+        if (!(m_flags & FLAGS_DETACH) &&
+            0 !=pthread_join(m_id, NULL))
+            CRL_DEBUG("pthread_join() failed: %s\n", strerror(errno));
     };
 
 private:

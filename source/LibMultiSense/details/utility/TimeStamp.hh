@@ -54,14 +54,10 @@
 #endif
 #include <stdint.h>
 
-#include "MultiSense/details/utility/Thread.hh"
-
 namespace crl {
 namespace multisense {
 namespace details {
 namespace utility {
-
-class Mutex;
 
 //
 // This is a simple class that helps manage time for the rest of the system,
@@ -78,18 +74,9 @@ private:
 
     struct timeval time;
 
-    //
-    // The time synchronization offset. This offset is recalculated each time
-    // we receive a PPS timestamp set. It is applied to all times returned by
-    // calling getCurrentTime().
-    //
-
-    static struct timeval timeSynchronizationOffset;
 #if defined (WIN32)
     static ULARGE_INTEGER offsetSecondsSince1970;
 #endif
-
-    static Mutex timeSynchronizationMutex;
 
 public:
 
@@ -98,10 +85,6 @@ public:
     //
 
     static TimeStamp getCurrentTime();
-
-    static void setTimeAtPps(TimeStamp& local, TimeStamp& remote);
-    static void setTimeAtPps(struct timeval& local, struct timeval& remote);
-    static timeval getTimeSynchronizationOffset();
 
     //
     // Public constructor. Initializes from a timestamp.

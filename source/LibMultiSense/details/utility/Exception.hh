@@ -47,6 +47,7 @@
 #include <string>
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/utility/TimeStamp.hh"
 
 #ifdef WIN32
 #define CRL_FILENAME                            \
@@ -59,6 +60,27 @@
      ? strrchr(__FILE__,'/')+1                  \
      : __FILE__)
 #endif
+
+#ifdef CRL_DEBUG_SYSLOG
+#include <syslog.h>
+#define CRL_DEBUG_REDIRECTION syslog(LOG_USER|LOG_INFO,
+#else
+#define CRL_DEBUG_REDIRECTION fprintf(stderr,
+#endif // CRL_DEBUG_SYSLOG
+
+#define CRL_DEBUG(fmt, ...)                                             \
+    do {                                                                \
+        double now = crl::multisense::details::utility::TimeStamp::getCurrentTime().getNanoSeconds() * 1e-9; \
+        CRL_DEBUG_REDIRECTION "[%.3f] %s(%d): %s: " fmt,now,CRL_FILENAME,__LINE__, \
+                CRL_PRETTY_FUNCTION,##__VA_ARGS__);                     \
+    } while(0)
+
+#define CRL_DEBUG_RAW(fmt)                                             \
+    do {                                                                \
+        double now = crl::multisense::details::utility::TimeStamp::getCurrentTime().getNanoSeconds() * 1e-9; \
+        CRL_DEBUG_REDIRECTION "[%.3f] %s(%d): %s: " fmt,now,CRL_FILENAME,__LINE__, \
+                CRL_PRETTY_FUNCTION);                     \
+    } while(0)
 
 #define CRL_EXCEPTION(fmt, ...)                                         \
     do {                                                                \

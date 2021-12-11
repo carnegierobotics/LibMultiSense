@@ -113,8 +113,9 @@ public:
     };
 
     ~Thread() {
-        if (!(m_flags & FLAGS_DETACH))
-            0 != WaitForSingleObject(m_threadHandle, INFINITE);
+        if (!(m_flags & FLAGS_DETACH) &&
+            0 != WaitForSingleObject(m_threadHandle, INFINITE))
+            CRL_DEBUG("WaitForSingleObject() failed: %d\n", GetLastError());
     };
 
 private:

@@ -52,10 +52,6 @@ namespace details {
 namespace utility {
 
 
-// Initialize static routines.
-
-struct timeval TimeStamp::timeSynchronizationOffset = {0, 0};
-
 #if defined (WIN32)
 
 //
@@ -79,8 +75,6 @@ static ULARGE_INTEGER initOffsetSecondsSince1970 ()
 
 ULARGE_INTEGER TimeStamp::offsetSecondsSince1970 = initOffsetSecondsSince1970 ();
 #endif
-
-Mutex TimeStamp::timeSynchronizationMutex = Mutex();
 
 /*
  * Constructor. Empty. We rely on the getter methods to do
@@ -129,49 +123,6 @@ void TimeStamp::set(const struct timeval& value)
     this->time.tv_usec = value.tv_usec;
 }
 
-/*
- * Sets the time, for time synchronization. This will report the local clock when
- * the PPS event occurred, and the remote clock when the PPS event occurred.
- *
- * When you use the routine 'getCurrentTime()', it will then return a timestamp
- * that is time-synchronized with the remote system.
- */
-void TimeStamp::setTimeAtPps(TimeStamp& local, TimeStamp& remote)
-{
-    setTimeAtPps(local.time, remote.time);
-}
-
-/*
- * Sets the time, for time synchronization. This will report the local clock when
- * the PPS event occurred, and the remote clock when the PPS event occurred.
- *
- * When you use the routine 'getCurrentTime()', it will then return a timestamp
- * that is time-synchronized with the remote system.
- */
-void TimeStamp::setTimeAtPps(struct timeval& local, struct timeval& remote)
-{
-    struct timeval tmp_time{0, 0};
-    timersub(&remote, &local, &tmp_time);
-
-    //
-    // Store the offset between the two as a static variable.
-    //
-    {
-        utility::ScopedLock lock(timeSynchronizationMutex);
-        timeSynchronizationOffset = tmp_time;
-    }
-}
-
-/*
- * Returns the offset from the remote clock to the local clock. Add this to the
- * time returned by a standard time call to have a synchronized time. Notice that
- * this is already applied to anything using TimeStamps normally.
- */
-struct timeval TimeStamp::getTimeSynchronizationOffset()
-{
-    return timeSynchronizationOffset;
-}
-
 #ifndef SENSORPOD_FIRMWARE
 
 /*
@@ -210,13 +161,7 @@ TimeStamp TimeStamp::getCurrentTime()
     gettimeofday(&timeStamp.time, 0);
 #endif
 
-    TimeStamp currentTime;
-    {
-        utility::ScopedLock lock(timeSynchronizationMutex);
-        timeradd(&timeStamp.time, &timeSynchronizationOffset, &currentTime.time);
-    }
-
-    return currentTime;
+    return timeStamp;
 }
 
 #endif // SENSORPOD_FIRMWARE
@@ -258,17 +203,13 @@ TimeStamp TimeStamp::operator-(TimeStamp const& other)
 
 TimeStamp& TimeStamp::operator+=(TimeStamp const& other)
 {
-    struct timeval tmp_time{0, 0};
-    timeradd(&this->time, &other.time, &tmp_time);
-    this->time = tmp_time;
+    *this = *this + other;
     return *this;
 }
 
 TimeStamp& TimeStamp::operator-=(TimeStamp const& other)
 {
-    struct timeval tmp_time{0, 0};
-    timersub(&this->time, &other.time, &tmp_time);
-    this->time = tmp_time;
+    *this = *this - other;
     return *this;
 }
 

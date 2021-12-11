@@ -87,7 +87,6 @@ set(UTILITY_HEADERS
   details/utility/Portability.hh
   details/utility/BufferStream.hh
   details/utility/Constants.hh
-  details/utility/Debug.hh
   details/utility/Exception.hh
   details/utility/TimeStamp.hh
   details/utility/Thread.hh
