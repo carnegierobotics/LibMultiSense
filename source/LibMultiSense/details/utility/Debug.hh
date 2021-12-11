@@ -1,14 +1,10 @@
 /**
- * @file LibMultiSense/details/utility/Exception.hh
+ * @file LibMultiSense/details/utility/Debug.hh
  *
- * This header file is adapted from Eric Kratzer's (and Dan
- * Tascione's?) StandardException.h file, which was developed under
- * project RD1013.
- *
- * Copyright 2012
+ * Copyright 2021
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegierobotics.com
+ * https://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -35,63 +31,34 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2012-05-07, dlr@carnegierobotics.com, IRAD, Created file.
+ *   2021-12-10, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef CRL_MULTISENSE_EXCEPTION_HH
-#define CRL_MULTISENSE_EXCEPTION_HH
+#ifndef CRL_MULTISENSE_DEBUG_HH
+#define CRL_MULTISENSE_DEBUG_HH
 
-#include <stdio.h>
-#include <string.h>
-#include <exception>
-#include <string>
-
+#include "MultiSense/details/utility/TimeStamp.hh"
 #include "MultiSense/details/utility/Portability.hh"
 
-#ifdef WIN32
-#define CRL_FILENAME                            \
-	(strrchr(__FILE__,'\\')                     \
-	 ? strrchr(__FILE__,'\\')+1                 \
-	 : __FILE__)
+#ifdef CRL_DEBUG_SYSLOG
+#include <syslog.h>
+#define CRL_DEBUG_REDIRECTION syslog(LOG_USER|LOG_INFO,
 #else
-#define CRL_FILENAME                            \
-    (strrchr(__FILE__,'/')                      \
-     ? strrchr(__FILE__,'/')+1                  \
-     : __FILE__)
-#endif
+#define CRL_DEBUG_REDIRECTION fprintf(stderr,
+#endif // CRL_DEBUG_SYSLOG
 
-#define CRL_EXCEPTION(fmt, ...)                                         \
+#define CRL_DEBUG(fmt, ...)                                             \
     do {                                                                \
-        throw crl::multisense::details::utility::Exception("%s(%d): %s: " fmt,CRL_FILENAME,__LINE__, \
-                                                           CRL_PRETTY_FUNCTION,##__VA_ARGS__); \
+        double now = crl::multisense::details::utility::TimeStamp::getCurrentTime().getNanoSeconds() * 1e-9; \
+        CRL_DEBUG_REDIRECTION "[%.3f] %s(%d): %s: " fmt,now,CRL_FILENAME,__LINE__, \
+                CRL_PRETTY_FUNCTION,##__VA_ARGS__);                     \
     } while(0)
 
-#define CRL_EXCEPTION_RAW(fmt)                                         \
+#define CRL_DEBUG_RAW(fmt)                                             \
     do {                                                                \
-        throw crl::multisense::details::utility::Exception("%s(%d): %s: " fmt,CRL_FILENAME,__LINE__, \
-                                                           CRL_PRETTY_FUNCTION); \
+        double now = crl::multisense::details::utility::TimeStamp::getCurrentTime().getNanoSeconds() * 1e-9; \
+        CRL_DEBUG_REDIRECTION "[%.3f] %s(%d): %s: " fmt,now,CRL_FILENAME,__LINE__, \
+                CRL_PRETTY_FUNCTION);                     \
     } while(0)
 
-namespace crl {
-namespace multisense {
-namespace details {
-namespace utility {
-
-class Exception : public std::exception
-{
-private:
-
-    std::string reason;
-
-public:
-
-    Exception(const char *failureReason, ...);
-    Exception(const std::string& failureReason);
-    ~Exception() throw();
-
-    virtual const char* what() const throw();
-};
-
-}}}} // namespaces
-
-#endif /* #ifndef CRL_MULTISENSE_EXCEPTION_HH */
+#endif /* #ifndef CRL_MULTISENSE_DEBUG_HH */

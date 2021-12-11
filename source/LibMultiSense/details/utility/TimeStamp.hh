@@ -54,10 +54,14 @@
 #endif
 #include <stdint.h>
 
+#include "MultiSense/details/utility/Thread.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
 namespace utility {
+
+class Mutex;
 
 //
 // This is a simple class that helps manage time for the rest of the system,
@@ -80,10 +84,12 @@ private:
     // calling getCurrentTime().
     //
 
-    static double timeSynchronizationOffset;
+    static struct timeval timeSynchronizationOffset;
 #if defined (WIN32)
     static ULARGE_INTEGER offsetSecondsSince1970;
 #endif
+
+    static Mutex timeSynchronizationMutex;
 
 public:
 
@@ -95,21 +101,21 @@ public:
 
     static void setTimeAtPps(TimeStamp& local, TimeStamp& remote);
     static void setTimeAtPps(struct timeval& local, struct timeval& remote);
-    static double getTimeSynchronizationOffset();
+    static timeval getTimeSynchronizationOffset();
 
     //
     // Public constructor. Initializes from a timestamp.
     //
 
     TimeStamp();
-    TimeStamp(struct timeval& value);
-    TimeStamp(double value);
-
+    TimeStamp(uint32_t seconds, uint32_t microSeconds);
+    TimeStamp(uint64_t nanoseconds);
+    TimeStamp(const struct timeval& value);
     //
     // For setting the timestamp.
     //
 
-    void set(struct timeval& value);
+    void set(const struct timeval& value);
 
     //
     // For getting precise values from the timestamp.
@@ -119,32 +125,21 @@ public:
     uint32_t getMicroSeconds() const;
 
     //
+    // Get the time in nanoseconds
+    //
+
+    uint64_t getNanoSeconds() const;
+
+    //
     // Operator overloads, for working with time.
     //
 
-    operator double() const;
-    TimeStamp& operator=(double timeStamp);
+    TimeStamp operator+(TimeStamp const& other);
+    TimeStamp operator-(TimeStamp const& other);
     TimeStamp& operator+=(TimeStamp const& other);
     TimeStamp& operator-=(TimeStamp const& other);
-    
-    //
-    // Make sure internal state is consistent.  Use this if you set
-    // the TimeStamp using a timeval struct that had an unchecked
-    // microseconds value, such as a negative number.
-    //
-
-    void normalize();
 };
 
-
-//
-// Arithmetic operators are mostly handled by implicit conversion to
-// and from double.
-//
-
-// TimeStamp operator +(TimeStamp const& arg0, TimeStamp const& arg1);
-// TimeStamp operator -(TimeStamp const& arg0, TimeStamp const& arg1);
-  
 }}}} // namespaces
 
 #endif /* #ifndef CRL_MULTISENSE_TIMESTAMP_HH */

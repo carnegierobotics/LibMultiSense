@@ -90,7 +90,7 @@ impl::impl(const std::string& address) :
     m_streamsEnabled(0),
     m_timeLock(),
     m_timeOffsetInit(false),
-    m_timeOffset(0),
+    m_timeOffsetNanoSeconds(0),
     m_networkTimeSyncEnabled(true),
     m_ptpTimeSyncEnabled(false),
     m_sensorVersion()
@@ -524,40 +524,40 @@ uint32_t impl::imagerWireToApi(uint32_t w)
 //
 // Apply a time offset correction
 
-void impl::applySensorTimeOffset(const double& offset)
+void impl::applySensorTimeOffset(const int64_t& offsetNanoSeconds)
 {
     utility::ScopedLock lock(m_timeLock);
 
     if (false == m_timeOffsetInit) {
-        m_timeOffset     = offset; // seed
+        m_timeOffsetNanoSeconds     = offsetNanoSeconds; // seed
         m_timeOffsetInit = true;
         return;
     }
 
-    const double samples = static_cast<double>(TIME_SYNC_OFFSET_DECAY);
+    const int64_t samples = static_cast<int64_t>(TIME_SYNC_OFFSET_DECAY);
 
-    m_timeOffset = utility::decayedAverage(m_timeOffset, samples, offset);
+    m_timeOffsetNanoSeconds = utility::decayedAverage(m_timeOffsetNanoSeconds, samples, offsetNanoSeconds);
 }
 
 //
 // Return the corrected time
 
-double impl::sensorToLocalTime(const double& sensorTime)
+utility::TimeStamp impl::sensorToLocalTime(const utility::TimeStamp& sensorTime)
 {
     utility::ScopedLock lock(m_timeLock);
-    return m_timeOffset + sensorTime;
+    return utility::TimeStamp(m_timeOffsetNanoSeconds + sensorTime.getNanoSeconds());
 }
 
 //
 // Correct the time, populate seconds/microseconds
 
-void impl::sensorToLocalTime(const double& sensorTime,
+void impl::sensorToLocalTime(const utility::TimeStamp& sensorTime,
                              uint32_t&     seconds,
                              uint32_t&     microseconds)
 {
-    double corrected = sensorToLocalTime(sensorTime);
-    seconds          = static_cast<uint32_t>(corrected);
-    microseconds     = static_cast<uint32_t>(1e6 * (corrected - static_cast<double>(seconds)));
+    const utility::TimeStamp corrected = sensorToLocalTime(sensorTime);
+    seconds          = corrected.getSeconds();
+    microseconds     = corrected.getMicroSeconds();
 }
 
 //
@@ -586,7 +586,7 @@ void *impl::statusThread(void *userDataP)
             //
             // Send the status request, recording the (approx) local time
 
-            const double ping = utility::TimeStamp::getCurrentTime();
+            const utility::TimeStamp ping = utility::TimeStamp::getCurrentTime();
             selfP->publish(wire::StatusRequest());
 
             //
@@ -598,7 +598,7 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Record (approx) time of response
 
-                const double pong = utility::TimeStamp::getCurrentTime();
+                const utility::TimeStamp pong = utility::TimeStamp::getCurrentTime();
 
                 //
                 // Extract the response payload
@@ -610,12 +610,13 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Estimate 'msg.uptime' capture using half of the round trip period
 
-                const double latency = (pong - ping) / 2.0;
+                const uint64_t latency = (pong.getNanoSeconds() - ping.getNanoSeconds()) / 2.0;
 
                 //
                 // Compute and apply the estimated time offset
 
-                const double offset = (ping + latency) - static_cast<double>(msg.uptime);
+                const int64_t offset = static_cast<int64_t>(ping.getNanoSeconds() + latency) - static_cast<int64_t>(msg.uptime.getNanoSeconds());
+
                 selfP->applySensorTimeOffset(offset);
 
                 //

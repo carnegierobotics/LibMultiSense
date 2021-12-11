@@ -54,7 +54,7 @@ namespace utility {
 
 // Initialize static routines.
 
-double TimeStamp::timeSynchronizationOffset = 0.0;
+struct timeval TimeStamp::timeSynchronizationOffset = {0, 0};
 
 #if defined (WIN32)
 
@@ -78,8 +78,9 @@ static ULARGE_INTEGER initOffsetSecondsSince1970 ()
 }
 
 ULARGE_INTEGER TimeStamp::offsetSecondsSince1970 = initOffsetSecondsSince1970 ();
-
 #endif
+
+Mutex TimeStamp::timeSynchronizationMutex = Mutex();
 
 /*
  * Constructor. Empty. We rely on the getter methods to do
@@ -92,26 +93,37 @@ TimeStamp::TimeStamp()
 }
 
 /*
+ * Constructor. Initializes with the specified
+ */
+TimeStamp::TimeStamp(uint32_t seconds, uint32_t microSeconds)
+{
+    this->time.tv_sec = seconds;
+    this->time.tv_usec = microSeconds;
+}
+
+/*
+ * Constructor. Initializes with the specified
+ */
+TimeStamp::TimeStamp(uint64_t nanoseconds)
+{
+    this->time.tv_sec = nanoseconds / 1000000000;
+
+    uint64_t usec = (nanoseconds - (this->time.tv_sec)) / 1000;
+    this->time.tv_usec = static_cast<uint32_t>(usec);
+}
+
+/*
  * Constructor. Initializes with the specified timestamp value.
  */
-TimeStamp::TimeStamp(struct timeval& value)
+TimeStamp::TimeStamp(const struct timeval& value)
 {
     this->set(value);
 }
 
 /*
- * Cosntructor. Initializes with the specified timestamp value.
- */
-TimeStamp::TimeStamp(double value)
-{
-    this->time.tv_sec = (int) value;
-    this->time.tv_usec = (int) ((value - this->time.tv_sec) * 1000000);
-}
-
-/*
  * Sets this timestamp equal to the timestamp specified.
  */
-void TimeStamp::set(struct timeval& value)
+void TimeStamp::set(const struct timeval& value)
 {
     this->time.tv_sec = value.tv_sec;
     this->time.tv_usec = value.tv_usec;
@@ -138,20 +150,16 @@ void TimeStamp::setTimeAtPps(TimeStamp& local, TimeStamp& remote)
  */
 void TimeStamp::setTimeAtPps(struct timeval& local, struct timeval& remote)
 {
-    //
-    // To make things atomic, we are somewhat in trouble. To make things lock-free,
-    // we are going to do all of the math as doubles. Convert the above timestamps
-    // to doubles.
-    //
-
-    double localTimeAtPps = local.tv_sec + (local.tv_usec / 1000000.0);
-    double remoteTimeAtPps = remote.tv_sec + (remote.tv_usec / 1000000.0);
+    struct timeval tmp_time{0, 0};
+    timersub(&remote, &local, &tmp_time);
 
     //
     // Store the offset between the two as a static variable.
     //
-
-    timeSynchronizationOffset = remoteTimeAtPps - localTimeAtPps;
+    {
+        utility::ScopedLock lock(timeSynchronizationMutex);
+        timeSynchronizationOffset = tmp_time;
+    }
 }
 
 /*
@@ -159,7 +167,7 @@ void TimeStamp::setTimeAtPps(struct timeval& local, struct timeval& remote)
  * time returned by a standard time call to have a synchronized time. Notice that
  * this is already applied to anything using TimeStamps normally.
  */
-double TimeStamp::getTimeSynchronizationOffset()
+struct timeval TimeStamp::getTimeSynchronizationOffset()
 {
     return timeSynchronizationOffset;
 }
@@ -202,27 +210,13 @@ TimeStamp TimeStamp::getCurrentTime()
     gettimeofday(&timeStamp.time, 0);
 #endif
 
-    //
-    // Transform it into a double... Notice that this (quite handily)
-    // removes all precision up to the 100-nanosecond mark, making carrying
-    // times around as timevals fairly pointless. We do this to apply the
-    // time synchronization offset, lockless-ly.
-    //
-    // It's probably that this is pointless, and we should add a lock
-    // in the future.
-    //
+    TimeStamp currentTime;
+    {
+        utility::ScopedLock lock(timeSynchronizationMutex);
+        timeradd(&timeStamp.time, &timeSynchronizationOffset, &currentTime.time);
+    }
 
-    double currentTime = (double) timeStamp;
-
-    currentTime += timeSynchronizationOffset;
-
-    timeStamp = currentTime;
-
-    //
-    // Return the final timestamp.
-    //
-
-    return timeStamp;
+    return currentTime;
 }
 
 #endif // SENSORPOD_FIRMWARE
@@ -243,81 +237,39 @@ uint32_t TimeStamp::getMicroSeconds() const
     return this->time.tv_usec;
 }
 
-/*
- * Returns the stored time as if it was a double. This will be seconds since 1970.
- * The time will be accurate to the (roughly) 100-nanosecond mark.
- */
-TimeStamp::operator double() const
+uint64_t TimeStamp::getNanoSeconds() const
 {
-    return this->time.tv_sec + (this->time.tv_usec / 1000000.0);
+    return this->time.tv_sec * 1000000000 + this->time.tv_usec * 1000;
 }
 
-/*
- * Sets the stored time from the seconds value given.
- */
-TimeStamp& TimeStamp::operator=(double timeStamp)
+TimeStamp TimeStamp::operator+(TimeStamp const& other)
 {
-    this->time.tv_sec = ((unsigned long) timeStamp);
-    this->time.tv_usec = ((unsigned long) ((timeStamp - this->time.tv_sec) * 1000000));
-
-    // This call avoids having negative microseconds if the input
-    // argument is less than zero and non-integral.
-    this->normalize();
-    
-    return *this;
+    struct timeval tmp_time{0, 0};
+    timeradd(&this->time, &other.time, &tmp_time);
+    return tmp_time;
 }
 
+TimeStamp TimeStamp::operator-(TimeStamp const& other)
+{
+    struct timeval tmp_time{0, 0};
+    timersub(&this->time, &other.time, &tmp_time);
+    return tmp_time;
+}
 
 TimeStamp& TimeStamp::operator+=(TimeStamp const& other)
 {
-    this->time.tv_sec += other.time.tv_sec;
-    this->time.tv_usec += other.time.tv_usec;
-    this->normalize();
+    struct timeval tmp_time{0, 0};
+    timeradd(&this->time, &other.time, &tmp_time);
+    this->time = tmp_time;
     return *this;
 }
-  
 
 TimeStamp& TimeStamp::operator-=(TimeStamp const& other)
 {
-    this->time.tv_sec -= other.time.tv_sec;
-    this->time.tv_usec -= other.time.tv_usec;
-    this->normalize();
+    struct timeval tmp_time{0, 0};
+    timersub(&this->time, &other.time, &tmp_time);
+    this->time = tmp_time;
     return *this;
 }
 
-  
-void TimeStamp::normalize()
-{
-    while(this->time.tv_usec < 0) {
-        this->time.tv_usec += 1000000;
-        this->time.tv_sec -= 1;
-    }
-
-    while(this->time.tv_usec >= 1000000) {
-        this->time.tv_usec -= 1000000;
-        this->time.tv_sec += 1;
-    }
-}
-
-
-//
-// Arithmetic operators are mostly handled by implicit conversion to
-// and from double.
-//
-
-// TimeStamp operator +(TimeStamp const& arg0, TimeStamp const& arg1)
-// {
-//   TimeStamp result = arg0;
-//   result += arg1;
-//   return result;
-// }
-
-  
-// TimeStamp operator -(TimeStamp const& arg0, TimeStamp const& arg1)
-// {
-//   TimeStamp result = arg0;
-//   result -= arg1;
-//   return result;
-// }
-  
 }}}} // namespaces

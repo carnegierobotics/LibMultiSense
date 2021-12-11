@@ -38,6 +38,7 @@
 
 #include "MultiSense/MultiSenseChannel.hh"
 
+#include "MultiSense/details/utility/Debug.hh"
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/utility/Thread.hh"
 #include "MultiSense/details/utility/BufferStream.hh"
@@ -253,8 +254,7 @@ private:
                 return;
 
             } else {
-                sensorToLocalTime(static_cast<double>(wire->timeSeconds) +
-                                  1e-6 * static_cast<double>(wire->timeMicroSeconds),
+                sensorToLocalTime(utility::TimeStamp{wire->timeSeconds, wire->timeMicroSeconds},
                                   seconds, microSeconds);
                 return;
             }
@@ -460,11 +460,11 @@ private:
     //
     // The current sensor time offset
 
-    utility::Mutex m_timeLock;
-    bool           m_timeOffsetInit;
-    double         m_timeOffset;
-    bool           m_networkTimeSyncEnabled;
-    bool           m_ptpTimeSyncEnabled;
+    utility::Mutex     m_timeLock;
+    bool               m_timeOffsetInit;
+    int64_t            m_timeOffsetNanoSeconds;
+    bool               m_networkTimeSyncEnabled;
+    bool               m_ptpTimeSyncEnabled;
 
     //
     // Cached version info from the device
@@ -524,9 +524,9 @@ private:
                                                             uint32_t           operation,
                                                             uint32_t           region);
 
-    void                         applySensorTimeOffset(const double& offset);
-    double                       sensorToLocalTime    (const double& sensorTime);
-    void                         sensorToLocalTime    (const double& sensorTime,
+    void                         applySensorTimeOffset(const int64_t& offsetNanoSeconds);
+    utility::TimeStamp           sensorToLocalTime    (const utility::TimeStamp& sensorTime);
+    void                         sensorToLocalTime    (const utility::TimeStamp& sensorTime,
                                                        uint32_t&     seconds,
                                                        uint32_t&     microseconds);
 

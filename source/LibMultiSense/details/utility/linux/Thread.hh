@@ -78,11 +78,11 @@ public:
 
     Thread(void    *(*functionP)(void *),
            void    *contextP=NULL,
-           uint32_t flags=0,    
+           uint32_t flags=0,
            int32_t  scheduler=-1,
            int32_t  priority=0) : m_flags(flags) {
 
-        pthread_attr_t tattr;        
+        pthread_attr_t tattr;
         pthread_attr_init(&tattr);
 
         //
@@ -102,24 +102,24 @@ public:
 
             sattr.sched_priority = priority;
             if (0 != pthread_attr_setschedparam(&tattr, &sattr))
-                CRL_EXCEPTION("pthread_attr_setschedparam(pri=%d) failed: %s", 
+                CRL_EXCEPTION("pthread_attr_setschedparam(pri=%d) failed: %s",
                                    priority, strerror(errno));
             //
-            // We must set EXPLICIT_SCHED so the parent's scheduler is not 
+            // We must set EXPLICIT_SCHED so the parent's scheduler is not
             // automatically inherited
 
             if (0 != pthread_attr_setinheritsched(&tattr, PTHREAD_EXPLICIT_SCHED))
-                CRL_EXCEPTION("pthread_attr_setinheritsched(explicit) failed: %s", 
+                CRL_EXCEPTION("pthread_attr_setinheritsched(explicit) failed: %s",
                                    strerror(errno));
         }
 
         //
         // Create detached, if asked to do so
 
-        if (FLAGS_DETACH & m_flags && 
+        if (FLAGS_DETACH & m_flags &&
             0 != pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED))
             CRL_EXCEPTION("pthread_attr_setdetachstate() failed: %s", strerror(errno));
-        
+
         //
         // Finally, create the thread
 
@@ -128,11 +128,10 @@ public:
     };
 
     ~Thread() {
-        if (!(m_flags & FLAGS_DETACH) &&
-            0 != pthread_join(m_id, NULL))
-            CRL_DEBUG("pthread_join() failed: %s\n", strerror(errno));
-    };          
-    
+        if (!(m_flags & FLAGS_DETACH))
+            pthread_join(m_id, NULL);
+    };
+
 private:
 
     uint32_t  m_flags;
@@ -145,7 +144,7 @@ private:
 class Mutex {
 public:
     friend class ScopedLock;
-    
+
     Mutex() : m_mutex() {
         if (0 != pthread_mutex_init(&m_mutex, NULL))
             CRL_EXCEPTION("pthread_mutex_init() failed: %s",
@@ -159,7 +158,7 @@ public:
 private:
     pthread_mutex_t m_mutex;
 };
-    
+
 //
 // A simple scoped lock class
 
@@ -178,7 +177,7 @@ public:
     ScopedLock(pthread_mutex_t& lock) {
         this->lock(&lock);
     };
-        
+
     ~ScopedLock() {
         pthread_mutex_unlock(m_lockP);
     };
@@ -189,7 +188,7 @@ private:
         m_lockP = lockP;
         pthread_mutex_lock(m_lockP);
     };
-        
+
     pthread_mutex_t *m_lockP;
 };
 
@@ -205,7 +204,7 @@ public:
     // we may wake up, but be unable to snatch
     // the bait.. hence the while loop.
 
-    bool wait() {        
+    bool wait() {
         do {
             if (0 == wait_())
                 return true;
@@ -223,7 +222,7 @@ public:
         struct timespec ts;
         ts.tv_sec  = timeout;
         ts.tv_nsec = (timeout - ts.tv_sec) * 1e9;
-        
+
         do {
             int32_t ret = wait_(&ts);
 
@@ -238,7 +237,7 @@ public:
     //
     // Post to the semaphore (increment.) Here we
     // signal the futex to wake up any waiters.
-    
+
     bool post() {
 
         //
@@ -246,7 +245,7 @@ public:
 
         if (m_maximum > 0 && m_avail >= static_cast<int>(m_maximum))
             return false;
-        
+
         const int32_t nval = __sync_add_and_fetch(&m_avail, 1);
         if (m_waiters > 0)
             syscall(__NR_futex, &m_avail, FUTEX_WAKE, nval, NULL, 0, 0);
@@ -258,7 +257,7 @@ public:
     // Decrement the semaphore to zero in one-shot.. may
     // fail with thread contention, returns true if
     // successful
-    
+
     bool clear() {
         int32_t val = m_avail;
         if (val > 0)
@@ -275,9 +274,9 @@ public:
         m_maximum(max),
         m_avail(0),
         m_waiters(0) {};
-    
+
     ~Semaphore() {};
-    
+
 private:
 
     //
@@ -285,10 +284,10 @@ private:
     // to sleep on the futex if not.
 
     inline int32_t wait_(const struct timespec *tsP=NULL) {
-        
+
         //
         // Can we decrement the requested amount? If so, return success
-        
+
         const int32_t val = m_avail;
         if (val >= 1 && __sync_bool_compare_and_swap(&m_avail, val, val - 1))
             return 0;
@@ -310,9 +309,9 @@ private:
         else
             return EAGAIN;
     };
-    
+
     typedef int32_t aligned_int32_t __attribute__((aligned (4))); // unnecessary ?
-    
+
     const std::size_t m_maximum;
     aligned_int32_t   m_avail;
     aligned_int32_t   m_waiters;
@@ -352,9 +351,9 @@ public:
         }
         return true;
     }
-    
+
     //
-    // Use a semaphore with max value of 1. The WaitVar will 
+    // Use a semaphore with max value of 1. The WaitVar will
     // either be in a signaled state, or not.
 
     WaitVar() : m_val(),
@@ -382,7 +381,7 @@ public:
             //
             // Limit deque size, if requested
 
-            if (m_maximum > 0 && 
+            if (m_maximum > 0 &&
                 m_maximum == m_queue.size()) {
 
                 //
@@ -395,7 +394,7 @@ public:
 
             m_queue.push_back(data);
         }
-        if (postSem) 
+        if (postSem)
             m_sem.post();
     };
 
@@ -418,7 +417,7 @@ public:
         }
     }
 
-    uint32_t waiters() { 
+    uint32_t waiters() {
         return m_sem.waiters();
     };
 
@@ -426,14 +425,14 @@ public:
         ScopedLock lock(m_lock);
         return m_queue.size();
     }
-        
+
     void clear() {
         ScopedLock lock(m_lock);
         m_queue.clear();
         while(false == m_sem.clear());
-    }       
+    }
 
-    WaitQueue(std::size_t max=0) : 
+    WaitQueue(std::size_t max=0) :
         m_maximum(max) {};
 
 private:
