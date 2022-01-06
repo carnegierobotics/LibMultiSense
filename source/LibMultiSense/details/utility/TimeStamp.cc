@@ -89,7 +89,7 @@ TimeStamp::TimeStamp()
 /*
  * Constructor. Initializes with the specified
  */
-TimeStamp::TimeStamp(uint32_t seconds, uint32_t microSeconds)
+TimeStamp::TimeStamp(int32_t seconds, int32_t microSeconds)
 {
     this->time.tv_sec = seconds;
     this->time.tv_usec = microSeconds;
@@ -98,12 +98,12 @@ TimeStamp::TimeStamp(uint32_t seconds, uint32_t microSeconds)
 /*
  * Constructor. Initializes with the specified
  */
-TimeStamp::TimeStamp(uint64_t nanoseconds)
+TimeStamp::TimeStamp(int64_t nanoseconds)
 {
     this->time.tv_sec = nanoseconds / 1000000000;
 
-    uint64_t usec = (nanoseconds - (this->time.tv_sec)) / 1000;
-    this->time.tv_usec = static_cast<uint32_t>(usec);
+    int64_t usec = (nanoseconds - (this->time.tv_sec)) / 1000;
+    this->time.tv_usec = static_cast<int32_t>(usec);
 }
 
 /*
@@ -169,7 +169,7 @@ TimeStamp TimeStamp::getCurrentTime()
 /*
  * Returns the seconds portion of the timestamp.
  */
-uint32_t TimeStamp::getSeconds() const
+int32_t TimeStamp::getSeconds() const
 {
     return this->time.tv_sec;
 }
@@ -177,24 +177,24 @@ uint32_t TimeStamp::getSeconds() const
 /*
  * Returns the microseconds portion of the timestamp.
  */
-uint32_t TimeStamp::getMicroSeconds() const
+int32_t TimeStamp::getMicroSeconds() const
 {
     return this->time.tv_usec;
 }
 
-uint64_t TimeStamp::getNanoSeconds() const
+int64_t TimeStamp::getNanoSeconds() const
 {
     return this->time.tv_sec * 1000000000 + this->time.tv_usec * 1000;
 }
 
-TimeStamp TimeStamp::operator+(TimeStamp const& other)
+TimeStamp TimeStamp::operator+(TimeStamp const& other) const
 {
     struct timeval tmp_time{0, 0};
     timeradd(&this->time, &other.time, &tmp_time);
     return tmp_time;
 }
 
-TimeStamp TimeStamp::operator-(TimeStamp const& other)
+TimeStamp TimeStamp::operator-(TimeStamp const& other) const
 {
     struct timeval tmp_time{0, 0};
     timersub(&this->time, &other.time, &tmp_time);

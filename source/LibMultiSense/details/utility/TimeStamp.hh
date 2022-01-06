@@ -91,8 +91,8 @@ public:
     //
 
     TimeStamp();
-    TimeStamp(uint32_t seconds, uint32_t microSeconds);
-    TimeStamp(uint64_t nanoseconds);
+    TimeStamp(int32_t seconds, int32_t microSeconds);
+    TimeStamp(int64_t nanoseconds);
     TimeStamp(const struct timeval& value);
     //
     // For setting the timestamp.
@@ -104,21 +104,21 @@ public:
     // For getting precise values from the timestamp.
     //
 
-    uint32_t getSeconds() const;
-    uint32_t getMicroSeconds() const;
+    int32_t getSeconds() const;
+    int32_t getMicroSeconds() const;
 
     //
     // Get the time in nanoseconds
     //
 
-    uint64_t getNanoSeconds() const;
+    int64_t getNanoSeconds() const;
 
     //
     // Operator overloads, for working with time.
     //
 
-    TimeStamp operator+(TimeStamp const& other);
-    TimeStamp operator-(TimeStamp const& other);
+    TimeStamp operator+(TimeStamp const& other) const;
+    TimeStamp operator-(TimeStamp const& other) const;
     TimeStamp& operator+=(TimeStamp const& other);
     TimeStamp& operator-=(TimeStamp const& other);
 };

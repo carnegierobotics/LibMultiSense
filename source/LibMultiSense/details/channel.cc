@@ -90,7 +90,7 @@ impl::impl(const std::string& address) :
     m_streamsEnabled(0),
     m_timeLock(),
     m_timeOffsetInit(false),
-    m_timeOffsetNanoSeconds(0),
+    m_timeOffset(0),
     m_networkTimeSyncEnabled(true),
     m_ptpTimeSyncEnabled(false),
     m_sensorVersion()
@@ -524,19 +524,33 @@ uint32_t impl::imagerWireToApi(uint32_t w)
 //
 // Apply a time offset correction
 
-void impl::applySensorTimeOffset(const int64_t& offsetNanoSeconds)
+void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 {
     utility::ScopedLock lock(m_timeLock);
 
     if (false == m_timeOffsetInit) {
-        m_timeOffsetNanoSeconds     = offsetNanoSeconds; // seed
+        m_timeOffset = offset; // seed
         m_timeOffsetInit = true;
         return;
     }
 
+    //
+    // The decayed average computation is susceptible to overflow for large timestamps. Decompose the average into
+    // the seconds and microseconds components to prevent overflow
+
     const int64_t samples = static_cast<int64_t>(TIME_SYNC_OFFSET_DECAY);
 
-    m_timeOffsetNanoSeconds = utility::decayedAverage(m_timeOffsetNanoSeconds, samples, offsetNanoSeconds);
+    const int64_t offsetSeconds = utility::decayedAverage(static_cast<int64_t>(m_timeOffset.getSeconds()),
+                                                          samples,
+                                                          static_cast<int64_t>(offset.getSeconds()));
+
+
+    const int64_t offsetMicroSeconds = utility::decayedAverage(static_cast<int64_t>(m_timeOffset.getMicroSeconds()),
+                                                               samples,
+                                                               static_cast<int64_t>(offset.getMicroSeconds()));
+
+
+    m_timeOffset = utility::TimeStamp(static_cast<int32_t>(offsetSeconds), static_cast<int32_t>(offsetMicroSeconds));
 }
 
 //
@@ -545,7 +559,7 @@ void impl::applySensorTimeOffset(const int64_t& offsetNanoSeconds)
 utility::TimeStamp impl::sensorToLocalTime(const utility::TimeStamp& sensorTime)
 {
     utility::ScopedLock lock(m_timeLock);
-    return utility::TimeStamp(m_timeOffsetNanoSeconds + sensorTime.getNanoSeconds());
+    return m_timeOffset + sensorTime;
 }
 
 //
@@ -561,7 +575,7 @@ void impl::sensorToLocalTime(const utility::TimeStamp& sensorTime,
 }
 
 //
-// An internal thread for status/time-synchroniziation
+// An internal thread for status/time-synchronization
 
 #ifdef WIN32
 DWORD impl::statusThread(void *userDataP)
@@ -610,12 +624,12 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Estimate 'msg.uptime' capture using half of the round trip period
 
-                const uint64_t latency = (pong.getNanoSeconds() - ping.getNanoSeconds()) / 2.0;
+                const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2.0);
 
                 //
                 // Compute and apply the estimated time offset
 
-                const int64_t offset = static_cast<int64_t>(ping.getNanoSeconds() + latency) - static_cast<int64_t>(msg.uptime.getNanoSeconds());
+                const utility::TimeStamp offset = ping + latency - msg.uptime;
 
                 selfP->applySensorTimeOffset(offset);
 

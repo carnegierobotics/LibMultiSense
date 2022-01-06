@@ -237,23 +237,21 @@ private:
                 uint32_t &seconds,
                 uint32_t &microSeconds)
     {
-        if (m_ptpTimeSyncEnabled)
-        {
+        if (m_ptpTimeSyncEnabled) {
 
             toHeaderTime(wire->ptpNanoSeconds, seconds, microSeconds);
 
             return;
-        } else
-        {
+        } else {
             if (false == m_networkTimeSyncEnabled) {
 
                 seconds = wire->timeSeconds;
                 microSeconds = wire->timeMicroSeconds;
 
                 return;
-
             } else {
-                sensorToLocalTime(utility::TimeStamp{wire->timeSeconds, wire->timeMicroSeconds},
+                sensorToLocalTime(utility::TimeStamp(static_cast<int32_t>(wire->timeSeconds),
+                                                     static_cast<int32_t>(wire->timeMicroSeconds)),
                                   seconds, microSeconds);
                 return;
             }
@@ -461,7 +459,7 @@ private:
 
     utility::Mutex     m_timeLock;
     bool               m_timeOffsetInit;
-    int64_t            m_timeOffsetNanoSeconds;
+    utility::TimeStamp m_timeOffset;
     bool               m_networkTimeSyncEnabled;
     bool               m_ptpTimeSyncEnabled;
 
@@ -523,7 +521,7 @@ private:
                                                             uint32_t           operation,
                                                             uint32_t           region);
 
-    void                         applySensorTimeOffset(const int64_t& offsetNanoSeconds);
+    void                         applySensorTimeOffset(const utility::TimeStamp& offset);
     utility::TimeStamp           sensorToLocalTime    (const utility::TimeStamp& sensorTime);
     void                         sensorToLocalTime    (const utility::TimeStamp& sensorTime,
                                                        uint32_t&     seconds,
