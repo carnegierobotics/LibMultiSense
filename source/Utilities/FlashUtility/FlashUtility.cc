@@ -48,7 +48,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 #include <fstream>
 

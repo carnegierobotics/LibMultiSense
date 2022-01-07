@@ -34,18 +34,18 @@
  *   2013-04-25, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
-#include "details/query.hh"
+#include "MultiSense/details/channel.hh"
+#include "MultiSense/details/query.hh"
 
-#include "details/wire/DisparityMessage.h"
-#include "details/wire/SysMtuMessage.h"
-#include "details/wire/SysGetMtuMessage.h"
-#include "details/wire/StatusRequestMessage.h"
-#include "details/wire/StatusResponseMessage.h"
-#include "details/wire/VersionRequestMessage.h"
-#include "details/wire/SysDeviceInfoMessage.h"
+#include "MultiSense/details/wire/DisparityMessage.h"
+#include "MultiSense/details/wire/SysMtuMessage.h"
+#include "MultiSense/details/wire/SysGetMtuMessage.h"
+#include "MultiSense/details/wire/StatusRequestMessage.h"
+#include "MultiSense/details/wire/StatusResponseMessage.h"
+#include "MultiSense/details/wire/VersionRequestMessage.h"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.h"
 
-#include "details/utility/Functional.hh"
+#include "MultiSense/details/utility/Functional.hh"
 
 #ifndef WIN32
 #include <netdb.h>

@@ -53,8 +53,8 @@
 #include <iostream>
 #include <iomanip>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 

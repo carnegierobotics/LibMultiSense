@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_GroundSurfaceModelHeader
 #define LibMultiSense_GroundSurfaceModelHeader
 
-#include "details/utility/Portability.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

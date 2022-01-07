@@ -55,8 +55,8 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 #include <Utilities/shared/CalibrationYaml.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
-#include <LibMultiSense/MultiSenseTypes.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseTypes.hh>
 
 using namespace crl::multisense;
 

@@ -38,7 +38,7 @@
  *   2012-05-07, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "Exception.hh"
+#include "MultiSense/details/utility/Exception.hh"
 
 #include <stdio.h>
 #include <stdarg.h>

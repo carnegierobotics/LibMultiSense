@@ -50,7 +50,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 

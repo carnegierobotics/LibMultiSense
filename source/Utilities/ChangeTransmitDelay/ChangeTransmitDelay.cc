@@ -58,12 +58,12 @@
 #include <errno.h>
 #include <string.h>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
-#include <LibMultiSense/details/utility/BufferStream.hh>
-#include <LibMultiSense/details/wire/Protocol.h>
-#include <LibMultiSense/details/wire/SysNetworkMessage.h>
+#include <MultiSense/details/utility/BufferStream.hh>
+#include <MultiSense/details/wire/Protocol.h>
+#include <MultiSense/details/wire/SysNetworkMessage.h>
 
 #include <Utilities/portability/getopt/getopt.h>
 

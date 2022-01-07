@@ -20,89 +20,89 @@ include_directories ( .
                       ${BASE_DIRECTORY}/external/include
                     )
 
-set(MULTISENSE_HEADERS MultiSenseChannel.hh
-                       MultiSenseTypes.hh)
+set(MULTISENSE_HEADERS include/MultiSense/MultiSenseChannel.hh
+                       include/MultiSense/MultiSenseTypes.hh)
 
 set(WIRE_HEADERS
-  details/wire/PollMotorInfoMessage.h
-  details/wire/CamControlMessage.h
-  details/wire/VersionResponseMessage.h
-  details/wire/SysGetSensorCalibrationMessage.h
-  details/wire/LedStatusMessage.h
-  details/wire/SysMtuMessage.h
-  details/wire/SysLidarCalibrationMessage.h
-  details/wire/ExposureConfigMessage.h
-  details/wire/CamHistoryMessage.h
-  details/wire/LidarSetMotorMessage.h
-  details/wire/CamGetHistoryMessage.h
-  details/wire/ImageMessage.h
-  details/wire/SysFlashResponseMessage.h
-  details/wire/LidarPollMotorMessage.h
-  details/wire/SysGetDirectedStreamsMessage.h
-  details/wire/CamConfigMessage.h
-  details/wire/SysSetPtpMessage.h
-  details/wire/SysFlashOpMessage.h
-  details/wire/Protocol.h
-  details/wire/StreamControlMessage.h
-  details/wire/CamSetResolutionMessage.h
-  details/wire/ImageMetaMessage.h
-  details/wire/LedSensorStatusMessage.h
-  details/wire/SysGetMtuMessage.h
-  details/wire/SysDirectedStreamsMessage.h
-  details/wire/ImuInfoMessage.h
-  details/wire/SysGetDeviceInfoMessage.h
-  details/wire/SysExternalCalibrationMessage.h
-  details/wire/SysDeviceModesMessage.h
-  details/wire/SysGetLidarCalibrationMessage.h
-  details/wire/JpegMessage.h
-  details/wire/SysGetExternalCalibrationMessage.h
-  details/wire/SysTransmitDelayMessage.h
-  details/wire/LidarDataMessage.h
-  details/wire/SysGetNetworkMessage.h
-  details/wire/SysTestMtuMessage.h
-  details/wire/LedGetSensorStatusMessage.h
-  details/wire/LedSetMessage.h
-  details/wire/ImuGetConfigMessage.h
-  details/wire/CamSetTriggerSourceMessage.h
-  details/wire/SysCameraCalibrationMessage.h
-  details/wire/StatusResponseMessage.h
-  details/wire/SysGetCameraCalibrationMessage.h
-  details/wire/SysDeviceInfoMessage.h
-  details/wire/DisparityMessage.h
-  details/wire/VersionRequestMessage.h
-  details/wire/ImuDataMessage.h
-  details/wire/SysGetDeviceModesMessage.h
-  details/wire/ImuConfigMessage.h
-  details/wire/SysSensorCalibrationMessage.h
-  details/wire/LedGetStatusMessage.h
-  details/wire/SysTestMtuResponseMessage.h
-  details/wire/CamGetConfigMessage.h
-  details/wire/SysGetTransmitDelayMessage.h
-  details/wire/SysNetworkMessage.h
-  details/wire/StatusRequestMessage.h
-  details/wire/ImuGetInfoMessage.h
-  details/wire/AckMessage.h
+  include/MultiSense/details/wire/PollMotorInfoMessage.h
+  include/MultiSense/details/wire/CamControlMessage.h
+  include/MultiSense/details/wire/VersionResponseMessage.h
+  include/MultiSense/details/wire/SysGetSensorCalibrationMessage.h
+  include/MultiSense/details/wire/LedStatusMessage.h
+  include/MultiSense/details/wire/SysMtuMessage.h
+  include/MultiSense/details/wire/SysLidarCalibrationMessage.h
+  include/MultiSense/details/wire/ExposureConfigMessage.h
+  include/MultiSense/details/wire/CamHistoryMessage.h
+  include/MultiSense/details/wire/LidarSetMotorMessage.h
+  include/MultiSense/details/wire/CamGetHistoryMessage.h
+  include/MultiSense/details/wire/ImageMessage.h
+  include/MultiSense/details/wire/SysFlashResponseMessage.h
+  include/MultiSense/details/wire/LidarPollMotorMessage.h
+  include/MultiSense/details/wire/SysGetDirectedStreamsMessage.h
+  include/MultiSense/details/wire/CamConfigMessage.h
+  include/MultiSense/details/wire/SysSetPtpMessage.h
+  include/MultiSense/details/wire/SysFlashOpMessage.h
+  include/MultiSense/details/wire/Protocol.h
+  include/MultiSense/details/wire/StreamControlMessage.h
+  include/MultiSense/details/wire/CamSetResolutionMessage.h
+  include/MultiSense/details/wire/ImageMetaMessage.h
+  include/MultiSense/details/wire/LedSensorStatusMessage.h
+  include/MultiSense/details/wire/SysGetMtuMessage.h
+  include/MultiSense/details/wire/SysDirectedStreamsMessage.h
+  include/MultiSense/details/wire/ImuInfoMessage.h
+  include/MultiSense/details/wire/SysGetDeviceInfoMessage.h
+  include/MultiSense/details/wire/SysExternalCalibrationMessage.h
+  include/MultiSense/details/wire/SysDeviceModesMessage.h
+  include/MultiSense/details/wire/SysGetLidarCalibrationMessage.h
+  include/MultiSense/details/wire/JpegMessage.h
+  include/MultiSense/details/wire/SysGetExternalCalibrationMessage.h
+  include/MultiSense/details/wire/SysTransmitDelayMessage.h
+  include/MultiSense/details/wire/LidarDataMessage.h
+  include/MultiSense/details/wire/SysGetNetworkMessage.h
+  include/MultiSense/details/wire/SysTestMtuMessage.h
+  include/MultiSense/details/wire/LedGetSensorStatusMessage.h
+  include/MultiSense/details/wire/LedSetMessage.h
+  include/MultiSense/details/wire/ImuGetConfigMessage.h
+  include/MultiSense/details/wire/CamSetTriggerSourceMessage.h
+  include/MultiSense/details/wire/SysCameraCalibrationMessage.h
+  include/MultiSense/details/wire/StatusResponseMessage.h
+  include/MultiSense/details/wire/SysGetCameraCalibrationMessage.h
+  include/MultiSense/details/wire/SysDeviceInfoMessage.h
+  include/MultiSense/details/wire/DisparityMessage.h
+  include/MultiSense/details/wire/VersionRequestMessage.h
+  include/MultiSense/details/wire/ImuDataMessage.h
+  include/MultiSense/details/wire/SysGetDeviceModesMessage.h
+  include/MultiSense/details/wire/ImuConfigMessage.h
+  include/MultiSense/details/wire/SysSensorCalibrationMessage.h
+  include/MultiSense/details/wire/LedGetStatusMessage.h
+  include/MultiSense/details/wire/SysTestMtuResponseMessage.h
+  include/MultiSense/details/wire/CamGetConfigMessage.h
+  include/MultiSense/details/wire/SysGetTransmitDelayMessage.h
+  include/MultiSense/details/wire/SysNetworkMessage.h
+  include/MultiSense/details/wire/StatusRequestMessage.h
+  include/MultiSense/details/wire/ImuGetInfoMessage.h
+  include/MultiSense/details/wire/AckMessage.h
 )
 set(UTILITY_HEADERS
-  details/utility/Portability.hh
-  details/utility/BufferStream.hh
-  details/utility/Constants.hh
-  details/utility/Exception.hh
-  details/utility/TimeStamp.hh
-  details/utility/Thread.hh
-  details/utility/ReferenceCount.hh
-  details/utility/Units.hh
+  include/MultiSense/details/utility/Portability.hh
+  include/MultiSense/details/utility/BufferStream.hh
+  include/MultiSense/details/utility/Constants.hh
+  include/MultiSense/details/utility/Exception.hh
+  include/MultiSense/details/utility/TimeStamp.hh
+  include/MultiSense/details/utility/Thread.hh
+  include/MultiSense/details/utility/ReferenceCount.hh
+  include/MultiSense/details/utility/Units.hh
   )
 
-set(DETAILS_HEADERS details/channel.hh
-                    details/query.hh
-                    details/listeners.hh
-                    details/signal.hh
-                    details/storage.hh)
+set(DETAILS_HEADERS include/MultiSense/details/channel.hh
+                    include/MultiSense/details/query.hh
+                    include/MultiSense/details/listeners.hh
+                    include/MultiSense/details/signal.hh
+                    include/MultiSense/details/storage.hh)
 
-set(LINUX_HEADERS details/utility/linux/Thread.hh)
-set(WIN32_HEADERS details/utility/win32/Thread.hh)
-set(MACOS_HEADERS details/utility/macos/Thread.hh)
+set(LINUX_HEADERS include/MultiSense/details/utility/linux/Thread.hh)
+set(WIN32_HEADERS include/MultiSense/details/utility/win32/Thread.hh)
+set(MACOS_HEADERS include/MultiSense/details/utility/macos/Thread.hh)
 
 set(DETAILS_SRC details/channel.cc
                 details/public.cc
@@ -130,7 +130,7 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
 
 set_target_properties(MultiSense PROPERTIES VERSION "3.9")
 
-target_include_directories(MultiSense INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include>)
+target_include_directories(MultiSense PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
 
 set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}")
 

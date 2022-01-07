@@ -34,12 +34,12 @@
  *   2013-05-15, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
-#include "details/query.hh"
+#include "MultiSense/details/channel.hh"
+#include "MultiSense/details/query.hh"
 
-#include "details/wire/AckMessage.h"
-#include "details/wire/SysFlashOpMessage.h"
-#include "details/wire/SysFlashResponseMessage.h"
+#include "MultiSense/details/wire/AckMessage.h"
+#include "MultiSense/details/wire/SysFlashOpMessage.h"
+#include "MultiSense/details/wire/SysFlashResponseMessage.h"
 
 namespace crl {
 namespace multisense {

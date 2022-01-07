@@ -52,7 +52,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 

@@ -36,7 +36,7 @@
  *   2012-08-14, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "Constants.hh"
+#include "MultiSense/details/utility/Constants.hh"
 
 namespace crl {
 namespace multisense {
