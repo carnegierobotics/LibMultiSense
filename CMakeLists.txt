@@ -13,7 +13,10 @@ project(LibMultiSense
     LANGUAGES C CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(-W4 -WX)
+    string (REGEX REPLACE "/W3" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    string (REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    add_compile_options(/WX)
+
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
 else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
