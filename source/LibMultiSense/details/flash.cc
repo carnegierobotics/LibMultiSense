@@ -37,9 +37,9 @@
 #include "MultiSense/details/channel.hh"
 #include "MultiSense/details/query.hh"
 
-#include "MultiSense/details/wire/AckMessage.h"
-#include "MultiSense/details/wire/SysFlashOpMessage.h"
-#include "MultiSense/details/wire/SysFlashResponseMessage.h"
+#include "MultiSense/details/wire/AckMessage.hh"
+#include "MultiSense/details/wire/SysFlashOpMessage.hh"
+#include "MultiSense/details/wire/SysFlashResponseMessage.hh"
 
 namespace crl {
 namespace multisense {

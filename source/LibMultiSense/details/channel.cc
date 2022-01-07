@@ -37,13 +37,13 @@
 #include "MultiSense/details/channel.hh"
 #include "MultiSense/details/query.hh"
 
-#include "MultiSense/details/wire/DisparityMessage.h"
-#include "MultiSense/details/wire/SysMtuMessage.h"
-#include "MultiSense/details/wire/SysGetMtuMessage.h"
-#include "MultiSense/details/wire/StatusRequestMessage.h"
-#include "MultiSense/details/wire/StatusResponseMessage.h"
-#include "MultiSense/details/wire/VersionRequestMessage.h"
-#include "MultiSense/details/wire/SysDeviceInfoMessage.h"
+#include "MultiSense/details/wire/DisparityMessage.hh"
+#include "MultiSense/details/wire/SysMtuMessage.hh"
+#include "MultiSense/details/wire/SysGetMtuMessage.hh"
+#include "MultiSense/details/wire/StatusRequestMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/VersionRequestMessage.hh"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
 
 #include "MultiSense/details/utility/Functional.hh"
 

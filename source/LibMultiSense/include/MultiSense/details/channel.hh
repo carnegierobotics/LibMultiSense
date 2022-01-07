@@ -45,10 +45,10 @@
 #include "MultiSense/details/listeners.hh"
 #include "MultiSense/details/signal.hh"
 #include "MultiSense/details/storage.hh"
-#include "MultiSense/details/wire/Protocol.h"
-#include "MultiSense/details/wire/ImageMetaMessage.h"
-#include "MultiSense/details/wire/StatusResponseMessage.h"
-#include "MultiSense/details/wire/VersionResponseMessage.h"
+#include "MultiSense/details/wire/Protocol.hh"
+#include "MultiSense/details/wire/ImageMetaMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/VersionResponseMessage.hh"
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN

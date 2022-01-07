@@ -60,8 +60,8 @@
 #include <MultiSense/MultiSenseChannel.hh>
 
 #include <MultiSense/details/utility/BufferStream.hh>
-#include <MultiSense/details/wire/Protocol.h>
-#include <MultiSense/details/wire/SysNetworkMessage.h>
+#include <MultiSense/details/wire/Protocol.hh>
+#include <MultiSense/details/wire/SysNetworkMessage.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 
