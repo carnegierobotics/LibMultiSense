@@ -97,7 +97,7 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
     // Get the full resolution image
 
     system::DeviceMode best_mode(0, 0, 0, -1);
-    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode) {
+    for (std::vector<system::DeviceMode>::const_iterator mode = modes.begin() ; mode != modes.end() ; ++mode) {
         if (mode->width >= best_mode.width && mode->height >= best_mode.height && mode->disparities > best_mode.disparities) {
             best_mode = *mode;
         }
@@ -108,7 +108,7 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
 
     system::DeviceMode target_mode(best_mode.width / 2, best_mode.height / 2, 0, best_mode.disparities);
 
-    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode) {
+    for (std::vector<system::DeviceMode>::const_iterator mode = modes.begin() ; mode != modes.end() ; ++mode) {
         if (mode->width == target_mode.width && mode->height == target_mode.height && mode->disparities >= target_mode.disparities) {
             target_mode = *mode;
         }
