@@ -4,7 +4,7 @@
  * Macros and symbols to help portability between different compiler
  * versions.
  *
- * Copyright 2014
+ * Copyright 2014-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

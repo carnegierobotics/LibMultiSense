@@ -1,7 +1,7 @@
 /**
  * @file PointCloudUtility/PointCloudUtility.cc
  *
- * Copyright 2020
+ * Copyright 2020-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

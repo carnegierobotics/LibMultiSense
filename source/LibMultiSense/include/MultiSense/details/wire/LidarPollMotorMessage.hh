@@ -3,7 +3,7 @@
  *
  * This message requests the current motor encoder position of the SLB
  *
- * Copyright 2018
+ * Copyright 2018-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

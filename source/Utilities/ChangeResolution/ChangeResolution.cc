@@ -1,7 +1,7 @@
 /**
  * @file ChangeResolution/ChangeResolution.cc
  *
- * Copyright 2017
+ * Copyright 2017-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

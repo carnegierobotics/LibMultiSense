@@ -4,7 +4,7 @@
  * This message contains status information about requested or ongoing flash
  * operations.
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

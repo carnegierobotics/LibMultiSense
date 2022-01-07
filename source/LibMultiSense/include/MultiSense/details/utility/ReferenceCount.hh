@@ -5,7 +5,7 @@
  * derived from Eric Kratzer's ReferenceCount class, which was
  * developed under project RD1034.
  *
- * Copyright 2011
+ * Copyright 2011-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

@@ -1,7 +1,7 @@
 /**
  * @file LidarCalUtility/ExternalCalibrationUtility.cc
  *
- * Copyright 2016
+ * Copyright 2016-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

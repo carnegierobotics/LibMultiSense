@@ -4,7 +4,7 @@
  * This message contains information on the number and layout of non-volatile
  * memory devices in the system.
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

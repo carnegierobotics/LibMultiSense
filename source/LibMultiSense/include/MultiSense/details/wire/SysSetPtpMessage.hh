@@ -3,7 +3,7 @@
  *
  * This message enables PTP syncronization on the camera
  *
- * Copyright 2021
+ * Copyright 2021-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

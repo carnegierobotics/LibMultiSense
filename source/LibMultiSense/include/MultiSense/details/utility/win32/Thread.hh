@@ -5,7 +5,7 @@
  * Tascione's?) Utility.h file, which was developed under project
  * RD1013.
  *
- * Copyright 2014
+ * Copyright 2014-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
