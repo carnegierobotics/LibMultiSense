@@ -123,6 +123,15 @@ void TimeStamp::set(const struct timeval& value)
     this->time.tv_usec = value.tv_usec;
 }
 
+/*
+ * Sets this timestamp to a specific time
+ */
+void TimeStamp::set(int32_t seconds, int32_t microSeconds)
+{
+    this->time.tv_sec = seconds;
+    this->time.tv_usec = microSeconds;
+}
+
 #ifndef SENSORPOD_FIRMWARE
 
 /*
@@ -189,14 +198,18 @@ int64_t TimeStamp::getNanoSeconds() const
 
 TimeStamp TimeStamp::operator+(TimeStamp const& other) const
 {
-    struct timeval tmp_time{0, 0};
+    struct timeval tmp_time;
+    tmp_time.tv_sec = 0;
+    tmp_time.tv_usec = 0;
     timeradd(&this->time, &other.time, &tmp_time);
     return tmp_time;
 }
 
 TimeStamp TimeStamp::operator-(TimeStamp const& other) const
 {
-    struct timeval tmp_time{0, 0};
+    struct timeval tmp_time;
+    tmp_time.tv_sec = 0;
+    tmp_time.tv_usec = 0;
     timersub(&this->time, &other.time, &tmp_time);
     return tmp_time;
 }

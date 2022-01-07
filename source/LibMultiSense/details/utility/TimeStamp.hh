@@ -99,6 +99,7 @@ public:
     //
 
     void set(const struct timeval& value);
+    void set(int32_t seconds, int32_t microSeconds);
 
     //
     // For getting precise values from the timestamp.

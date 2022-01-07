@@ -246,7 +246,7 @@ public:
         this->read(&seconds, sizeof(seconds));
         this->read(&microseconds, sizeof(microseconds));
 
-        value.set(timeval{seconds, microseconds});
+        value.set(seconds, microseconds);
 
         return *this;
     }
