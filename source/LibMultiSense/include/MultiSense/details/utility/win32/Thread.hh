@@ -77,7 +77,7 @@ public:
 
     Thread(LPTHREAD_START_ROUTINE functionP,
            void    *contextP=NULL,
-           uint32_t flags=0,    
+           uint32_t flags=0,
            int32_t  scheduler=-1,
            int32_t  priority=0) : m_flags(flags) {
 
@@ -116,8 +116,8 @@ public:
         if (!(m_flags & FLAGS_DETACH) &&
             0 != WaitForSingleObject(m_threadHandle, INFINITE))
             CRL_DEBUG("WaitForSingleObject() failed: %d\n", GetLastError());
-    };          
-    
+    };
+
 private:
 
     uint32_t  m_flags;
@@ -131,7 +131,7 @@ private:
 class Mutex {
 public:
     friend class ScopedLock;
-    
+
     Mutex() {
         InitializeCriticalSection(&m_mutex);
     }
@@ -143,7 +143,7 @@ public:
 private:
     CRITICAL_SECTION m_mutex;
 };
-    
+
 //
 // A simple scoped lock class
 
@@ -162,7 +162,7 @@ public:
     ScopedLock(CRITICAL_SECTION& lock) {
         this->lock(&lock);
     };
-        
+
     ~ScopedLock() {
         LeaveCriticalSection(m_lockP);
     };
@@ -173,7 +173,7 @@ private:
         m_lockP = lockP;
         EnterCriticalSection(m_lockP);
     };
-        
+
     CRITICAL_SECTION *m_lockP;
 };
 
@@ -189,7 +189,7 @@ public:
     // we may wake up, but be unable to snatch
     // the bait.. hence the while loop.
 
-    bool wait() {        
+    bool wait() {
         do {
             if (0 == wait_(INFINITE))
                 return true;
@@ -218,7 +218,7 @@ public:
     //
     // Post to the semaphore (increment.) Here we
     // signal the futex to wake up any waiters.
-    
+
     bool post() {
 
         return ReleaseSemaphore(m_handle, 1, NULL) != FALSE;
@@ -229,7 +229,7 @@ public:
     // Decrement the semaphore to zero in one-shot.. may
     // fail with thread contention, returns true if
     // successful
-    
+
     bool clear() {
         while(WaitForSingleObject (m_handle, 0) == WAIT_OBJECT_0)
         {
@@ -248,13 +248,13 @@ public:
         if (m_handle == NULL)
             CRL_EXCEPTION ("CreateSemaphore() failed: %d\n", GetLastError());
     }
-    
+
     ~Semaphore()
     {
         if (m_handle != NULL)
             CloseHandle (m_handle);
     }
-    
+
 private:
 
     //
@@ -273,7 +273,7 @@ private:
         else
             return EAGAIN;
     };
-    
+
     HANDLE m_handle;
     LONG   m_waiters;
 };
@@ -312,9 +312,9 @@ public:
         }
         return true;
     }
-    
+
     //
-    // Use a semaphore with max value of 1. The WaitVar will 
+    // Use a semaphore with max value of 1. The WaitVar will
     // either be in a signaled state, or not.
 
     WaitVar() : m_val(),
@@ -342,7 +342,7 @@ public:
             //
             // Limit deque size, if requested
 
-            if (m_maximum > 0 && 
+            if (m_maximum > 0 &&
                 m_maximum == m_queue.size()) {
 
                 //
@@ -355,7 +355,7 @@ public:
 
             m_queue.push_back(data);
         }
-        if (postSem) 
+        if (postSem)
             m_sem.post();
     };
 
@@ -378,7 +378,7 @@ public:
         }
     }
 
-    uint32_t waiters() { 
+    uint32_t waiters() {
         return m_sem.waiters();
     };
 
@@ -386,14 +386,14 @@ public:
         ScopedLock lock(m_lock);
         return m_queue.size();
     }
-        
+
     void clear() {
         ScopedLock lock(m_lock);
         m_queue.clear();
         while(false == m_sem.clear());
-    }       
+    }
 
-    WaitQueue(std::size_t max=0) : 
+    WaitQueue(std::size_t max=0) :
         m_maximum(max) {};
 
 private:

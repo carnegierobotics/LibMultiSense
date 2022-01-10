@@ -80,7 +80,7 @@ void impl::eraseFlashRegion(uint32_t region)
 
     int prevProgress = -1;
 
-    while((utility::TimeStamp::getCurrentTime() - start) < ERASE_TIMEOUT) {
+    while((utility::TimeStamp::getCurrentTime() - start).getSeconds() < ERASE_TIMEOUT) {
 
         //
         // Request current progress
