@@ -54,6 +54,36 @@ namespace utility {
 
 #if defined (WIN32)
 
+// Windows probably doesn't provider timeradd or timersub macros, so provide
+// a definition here
+#ifndef timeradd
+#define timeradd(a, b, result)                     \
+do                                                 \
+{                                                  \
+  (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;    \
+  (result)->tv_usec = (a)->tv_usec + (b)->tv_usec; \
+  if ((result)->tv_usec >= 1000000)                \
+  {                                                \
+    (result)->tv_sec++;                            \
+    (result)->tv_usec -= 1000000;                  \
+  }                                                \
+} while (0)
+#endif
+
+#ifndef timersub
+#define timersub(a, b, result)                     \
+do                                                 \
+{                                                  \
+  (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;    \
+  (result)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
+  if ((result)->tv_usec < 0)                       \
+  {                                                \
+    (result)->tv_sec--;                            \
+    (result)->tv_usec += 1000000;                  \
+  }                                                \
+} while (0)
+#endif
+
 //
 // The FILETIME structure in Windows measures time in 100-nanosecond intervals
 // since 1601-Jan-01. The timeval structure measures time in second intervals
