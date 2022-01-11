@@ -3,7 +3,7 @@
  *
  * Definitions of variables representing physical constants.
  *
- * Copyright 2012
+ * Copyright 2012-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -36,7 +36,7 @@
  *   2012-08-14, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "Constants.hh"
+#include "MultiSense/details/utility/Constants.hh"
 
 namespace crl {
 namespace multisense {

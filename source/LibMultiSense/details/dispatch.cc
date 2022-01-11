@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/dispatch.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,51 +34,51 @@
  *   2013-05-15, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
+#include "MultiSense/details/channel.hh"
 
-#include "details/wire/AckMessage.h"
+#include "MultiSense/details/wire/AckMessage.hh"
 
-#include "details/wire/VersionResponseMessage.h"
-#include "details/wire/StatusResponseMessage.h"
+#include "MultiSense/details/wire/VersionResponseMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
 
-#include "details/wire/CamConfigMessage.h"
-#include "details/wire/CompressedImageMessage.h"
-#include "details/wire/DisparityMessage.h"
-#include "details/wire/ImageMessage.h"
-#include "details/wire/ImageMetaMessage.h"
-#include "details/wire/JpegMessage.h"
+#include "MultiSense/details/wire/CamConfigMessage.hh"
+#include "MultiSense/details/wire/CompressedImageMessage.hh"
+#include "MultiSense/details/wire/DisparityMessage.hh"
+#include "MultiSense/details/wire/ImageMessage.hh"
+#include "MultiSense/details/wire/ImageMetaMessage.hh"
+#include "MultiSense/details/wire/JpegMessage.hh"
 
-#include "details/wire/CamHistoryMessage.h"
+#include "MultiSense/details/wire/CamHistoryMessage.hh"
 
-#include "details/wire/LidarDataMessage.h"
+#include "MultiSense/details/wire/LidarDataMessage.hh"
 
-#include "details/wire/LedStatusMessage.h"
+#include "MultiSense/details/wire/LedStatusMessage.hh"
 
-#include "details/wire/LedSensorStatusMessage.h"
+#include "MultiSense/details/wire/LedSensorStatusMessage.hh"
 
-#include "details/wire/PollMotorInfoMessage.h"
+#include "MultiSense/details/wire/PollMotorInfoMessage.hh"
 
-#include "details/wire/SysMtuMessage.h"
-#include "details/wire/SysNetworkMessage.h"
-#include "details/wire/SysFlashResponseMessage.h"
-#include "details/wire/SysDeviceInfoMessage.h"
-#include "details/wire/SysCameraCalibrationMessage.h"
-#include "details/wire/SysSensorCalibrationMessage.h"
-#include "details/wire/SysTransmitDelayMessage.h"
-#include "details/wire/SysLidarCalibrationMessage.h"
-#include "details/wire/SysDeviceModesMessage.h"
-#include "details/wire/SysExternalCalibrationMessage.h"
+#include "MultiSense/details/wire/SysMtuMessage.hh"
+#include "MultiSense/details/wire/SysNetworkMessage.hh"
+#include "MultiSense/details/wire/SysFlashResponseMessage.hh"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
+#include "MultiSense/details/wire/SysCameraCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysSensorCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysTransmitDelayMessage.hh"
+#include "MultiSense/details/wire/SysLidarCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysDeviceModesMessage.hh"
+#include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 
-#include "details/wire/SysPpsMessage.h"
+#include "MultiSense/details/wire/SysPpsMessage.hh"
 
-#include "details/wire/ImuDataMessage.h"
-#include "details/wire/ImuConfigMessage.h"
-#include "details/wire/ImuInfoMessage.h"
+#include "MultiSense/details/wire/ImuDataMessage.hh"
+#include "MultiSense/details/wire/ImuConfigMessage.hh"
+#include "MultiSense/details/wire/ImuInfoMessage.hh"
 
-#include "details/wire/SysTestMtuResponseMessage.h"
-#include "details/wire/SysDirectedStreamsMessage.h"
+#include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
+#include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
 
-#include "details/wire/GroundSurfaceModel.h"
+#include "MultiSense/details/wire/GroundSurfaceModel.hh"
 
 #include <limits>
 

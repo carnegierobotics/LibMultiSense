@@ -1,7 +1,7 @@
 /**
  * @file SensorCalUtility/SensorCalUtility.cc
  *
- * Copyright 2015
+ * Copyright 2015-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -58,7 +58,7 @@
 #include <sys/stat.h>
 
 #include <Utilities/portability/getopt/getopt.h>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 

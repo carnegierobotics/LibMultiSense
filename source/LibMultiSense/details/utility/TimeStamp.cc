@@ -6,7 +6,7 @@
  * Kratzer's TimeStamp class, which was developed under project
  * RD1034.
  *
- * Copyright 2011
+ * Copyright 2011-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -39,7 +39,7 @@
  *   2012-08-14, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "TimeStamp.hh"
+#include "MultiSense/details/utility/TimeStamp.hh"
 
 #ifndef WIN32
 #include <sys/time.h>
