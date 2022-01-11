@@ -130,7 +130,7 @@ TimeStamp::TimeStamp(int32_t seconds, int32_t microSeconds)
  */
 TimeStamp::TimeStamp(int64_t nanoseconds)
 {
-    this->time.tv_sec = static_cast<long>(nanoseconds / 1000000000);
+    this->time.tv_sec = (long)(nanoseconds / 1000000000);
 
     int64_t usec = (nanoseconds - (static_cast<int64_t>(this->time.tv_sec) * 1000000000)) / 1000;
     this->time.tv_usec = static_cast<int32_t>(usec);
