@@ -43,11 +43,9 @@
 
 #define CRL_UNUSED(var) (void)(var)
 
-#if __cplusplus > 199711L
-    // This compiler supports C++11.
+#if defined(CRL_HAVE_CONSTEXPR)
     #define CRL_CONSTEXPR constexpr
 #else
-    // This compiler does not support C++11.
     #define CRL_CONSTEXPR const
 #endif
 
