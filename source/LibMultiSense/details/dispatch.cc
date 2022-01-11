@@ -627,10 +627,10 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
 
     if (wireId != m_lastRxSeqId) {
 
-        const uint16_t ID_MAX  = std::numeric_limits<uint16_t>::max();
-        const uint16_t ID_MASK = 0xF000;
-        const uint16_t ID_HIGH = 0xF000;
-        const uint16_t ID_LOW  = 0x0000;
+        CRL_CONSTEXPR uint16_t ID_MAX  = std::numeric_limits<uint16_t>::max();
+        CRL_CONSTEXPR uint16_t ID_MASK = 0xF000;
+        CRL_CONSTEXPR uint16_t ID_HIGH = 0xF000;
+        CRL_CONSTEXPR uint16_t ID_LOW  = 0x0000;
 
         //
         // Seed
