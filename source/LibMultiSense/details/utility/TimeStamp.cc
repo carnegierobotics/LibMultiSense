@@ -104,6 +104,7 @@ static ULARGE_INTEGER initOffsetSecondsSince1970 ()
 }
 
 ULARGE_INTEGER TimeStamp::offsetSecondsSince1970 = initOffsetSecondsSince1970 ();
+
 #endif
 
 /*
