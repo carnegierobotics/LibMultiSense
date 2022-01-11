@@ -624,7 +624,7 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Estimate 'msg.uptime' capture using half of the round trip period
 
-                const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2.0);
+                const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2);
 
                 //
                 // Compute and apply the estimated time offset

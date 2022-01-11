@@ -238,12 +238,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         } else {
 
-            sensorToLocalTime(static_cast<double>(scan.timeStartSeconds) +
-                              1e-6 * static_cast<double>(scan.timeStartMicroSeconds),
+            sensorToLocalTime(utility::TimeStamp(scan.timeStartSeconds, scan.timeStartMicroSeconds),
                               header.timeStartSeconds, header.timeStartMicroSeconds);
 
-            sensorToLocalTime(static_cast<double>(scan.timeEndSeconds) +
-                              1e-6 * static_cast<double>(scan.timeEndMicroSeconds),
+            sensorToLocalTime(utility::TimeStamp(scan.timeEndSeconds, scan.timeEndMicroSeconds),
                               header.timeEndSeconds, header.timeEndMicroSeconds);
         }
 
@@ -368,7 +366,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.sensorTime = pps.ppsNanoSeconds;
 
-        sensorToLocalTime(static_cast<double>(pps.ppsNanoSeconds) / 1e9,
+        sensorToLocalTime(utility::TimeStamp(pps.ppsNanoSeconds),
                           header.timeSeconds, header.timeMicroSeconds);
 
         dispatchPps(header);
@@ -399,7 +397,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
                     toHeaderTime(w.timeNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
 
                 } else
-                    sensorToLocalTime(static_cast<double>(w.timeNanoSeconds) / 1e9,
+                    sensorToLocalTime(utility::TimeStamp(w.timeNanoSeconds),
                                       a.timeSeconds, a.timeMicroSeconds);
             }
 
