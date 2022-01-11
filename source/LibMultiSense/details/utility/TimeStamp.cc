@@ -130,9 +130,9 @@ TimeStamp::TimeStamp(int32_t seconds, int32_t microSeconds)
  */
 TimeStamp::TimeStamp(int64_t nanoseconds)
 {
-    this->time.tv_sec = nanoseconds / 1000000000;
+    this->time.tv_sec = static_cast<long>(nanoseconds / 1000000000);
 
-    int64_t usec = (nanoseconds - (this->time.tv_sec)) / 1000;
+    int64_t usec = (nanoseconds - (static_cast<int64_t>(this->time.tv_sec) * 1000000000)) / 1000;
     this->time.tv_usec = static_cast<int32_t>(usec);
 }
 
@@ -194,7 +194,7 @@ TimeStamp TimeStamp::getCurrentTime()
     currentTimeAsLargeInteger.QuadPart -= offsetSecondsSince1970.QuadPart;
 
     timeStamp.time.tv_sec = static_cast<long> (currentTimeAsLargeInteger.QuadPart / 10000000);
-    timeStamp.time.tv_usec = static_cast<long> ((currentTimeAsLargeInteger.QuadPart - timeStamp.time.tv_sec * 10000000) / 10);
+    timeStamp.time.tv_usec = static_cast<long> ((currentTimeAsLargeInteger.QuadPart - static_cast<int64_t>(timeStamp.time.tv_sec) * 10000000) / 10);
 
 #else
     gettimeofday(&timeStamp.time, 0);
@@ -223,7 +223,7 @@ int32_t TimeStamp::getMicroSeconds() const
 
 int64_t TimeStamp::getNanoSeconds() const
 {
-    return this->time.tv_sec * 1000000000 + this->time.tv_usec * 1000;
+    return static_cast<int64_t>(this->time.tv_sec) * 1000000000 + static_cast<int64_t>(this->time.tv_usec) * 1000;
 }
 
 TimeStamp TimeStamp::operator+(TimeStamp const& other) const
