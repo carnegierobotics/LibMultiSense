@@ -644,13 +644,13 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
         else if (((wireId & ID_MASK) == ID_LOW) &&
                 ((m_lastRxSeqId & ID_MASK) == ID_HIGH)) {
 
-            m_unWrappedRxSeqId += 1 + (ID_MAX - m_lastRxSeqId) + wireId;
+            m_unWrappedRxSeqId += 1 + (static_cast<int64_t>(ID_MAX) - m_lastRxSeqId) + wireId;
 
         //
         // Normal case
 
         } else
-            m_unWrappedRxSeqId += wireId - m_lastRxSeqId;
+            m_unWrappedRxSeqId += static_cast<int64_t>(wireId) - m_lastRxSeqId;
 
         //
         // Remember change
