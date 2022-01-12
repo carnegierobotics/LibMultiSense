@@ -237,24 +237,21 @@ private:
                 uint32_t &seconds,
                 uint32_t &microSeconds)
     {
-        if (m_ptpTimeSyncEnabled)
-        {
+        if (m_ptpTimeSyncEnabled) {
 
             toHeaderTime(wire->ptpNanoSeconds, seconds, microSeconds);
 
             return;
-        } else
-        {
+        } else {
             if (false == m_networkTimeSyncEnabled) {
 
                 seconds = wire->timeSeconds;
                 microSeconds = wire->timeMicroSeconds;
 
                 return;
-
             } else {
-                sensorToLocalTime(static_cast<double>(wire->timeSeconds) +
-                                  1e-6 * static_cast<double>(wire->timeMicroSeconds),
+                sensorToLocalTime(utility::TimeStamp(static_cast<int32_t>(wire->timeSeconds),
+                                                     static_cast<int32_t>(wire->timeMicroSeconds)),
                                   seconds, microSeconds);
                 return;
             }
@@ -460,11 +457,11 @@ private:
     //
     // The current sensor time offset
 
-    utility::Mutex m_timeLock;
-    bool           m_timeOffsetInit;
-    double         m_timeOffset;
-    bool           m_networkTimeSyncEnabled;
-    bool           m_ptpTimeSyncEnabled;
+    utility::Mutex     m_timeLock;
+    bool               m_timeOffsetInit;
+    utility::TimeStamp m_timeOffset;
+    bool               m_networkTimeSyncEnabled;
+    bool               m_ptpTimeSyncEnabled;
 
     //
     // Cached version info from the device
@@ -524,9 +521,9 @@ private:
                                                             uint32_t           operation,
                                                             uint32_t           region);
 
-    void                         applySensorTimeOffset(const double& offset);
-    double                       sensorToLocalTime    (const double& sensorTime);
-    void                         sensorToLocalTime    (const double& sensorTime,
+    void                         applySensorTimeOffset(const utility::TimeStamp& offset);
+    utility::TimeStamp           sensorToLocalTime    (const utility::TimeStamp& sensorTime);
+    void                         sensorToLocalTime    (const utility::TimeStamp& sensorTime,
                                                        uint32_t&     seconds,
                                                        uint32_t&     microseconds);
 

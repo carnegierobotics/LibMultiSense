@@ -238,12 +238,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         } else {
 
-            sensorToLocalTime(static_cast<double>(scan.timeStartSeconds) +
-                              1e-6 * static_cast<double>(scan.timeStartMicroSeconds),
+            sensorToLocalTime(utility::TimeStamp(scan.timeStartSeconds, scan.timeStartMicroSeconds),
                               header.timeStartSeconds, header.timeStartMicroSeconds);
 
-            sensorToLocalTime(static_cast<double>(scan.timeEndSeconds) +
-                              1e-6 * static_cast<double>(scan.timeEndMicroSeconds),
+            sensorToLocalTime(utility::TimeStamp(scan.timeEndSeconds, scan.timeEndMicroSeconds),
                               header.timeEndSeconds, header.timeEndMicroSeconds);
         }
 
@@ -368,7 +366,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.sensorTime = pps.ppsNanoSeconds;
 
-        sensorToLocalTime(static_cast<double>(pps.ppsNanoSeconds) / 1e9,
+        sensorToLocalTime(utility::TimeStamp(pps.ppsNanoSeconds),
                           header.timeSeconds, header.timeMicroSeconds);
 
         dispatchPps(header);
@@ -399,7 +397,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
                     toHeaderTime(w.timeNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
 
                 } else
-                    sensorToLocalTime(static_cast<double>(w.timeNanoSeconds) / 1e9,
+                    sensorToLocalTime(utility::TimeStamp(w.timeNanoSeconds),
                                       a.timeSeconds, a.timeMicroSeconds);
             }
 
@@ -629,10 +627,10 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
 
     if (wireId != m_lastRxSeqId) {
 
-        const uint16_t ID_MAX  = std::numeric_limits<uint16_t>::max();
-        const uint16_t ID_MASK = 0xF000;
-        const uint16_t ID_HIGH = 0xF000;
-        const uint16_t ID_LOW  = 0x0000;
+        CRL_CONSTEXPR uint16_t ID_MAX  = std::numeric_limits<uint16_t>::max();
+        CRL_CONSTEXPR uint16_t ID_MASK = 0xF000;
+        CRL_CONSTEXPR uint16_t ID_HIGH = 0xF000;
+        CRL_CONSTEXPR uint16_t ID_LOW  = 0x0000;
 
         //
         // Seed
@@ -646,13 +644,13 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
         else if (((wireId & ID_MASK) == ID_LOW) &&
                 ((m_lastRxSeqId & ID_MASK) == ID_HIGH)) {
 
-            m_unWrappedRxSeqId += 1 + (ID_MAX - m_lastRxSeqId) + wireId;
+            m_unWrappedRxSeqId += 1 + (static_cast<int64_t>(ID_MAX) - m_lastRxSeqId) + wireId;
 
         //
         // Normal case
 
         } else
-            m_unWrappedRxSeqId += wireId - m_lastRxSeqId;
+            m_unWrappedRxSeqId += static_cast<int64_t>(wireId) - m_lastRxSeqId;
 
         //
         // Remember change
