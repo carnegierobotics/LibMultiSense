@@ -1,7 +1,7 @@
 /**
  * @file ChangeIpUtility/ChangeIpUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -56,12 +56,12 @@
 #include <errno.h>
 #include <string.h>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
-#include <LibMultiSense/details/utility/BufferStream.hh>
-#include <LibMultiSense/details/wire/Protocol.h>
-#include <LibMultiSense/details/wire/SysNetworkMessage.h>
+#include <MultiSense/details/utility/BufferStream.hh>
+#include <MultiSense/details/wire/Protocol.hh>
+#include <MultiSense/details/wire/SysNetworkMessage.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 

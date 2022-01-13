@@ -12,8 +12,13 @@ cmake_minimum_required(VERSION 3.1)
 project(LibMultiSense
     LANGUAGES C CXX)
 
+include (CheckCXXSourceCompiles)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(-W4 -WX)
+    string (REGEX REPLACE "/W3" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    string (REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    add_compile_options(/WX)
+
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
 else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
@@ -37,6 +42,17 @@ option (BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Selecting default build type: Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
+endif ()
+
+#
+# Check if the compiler supports constexpr
+#
+check_cxx_source_compiles (
+    "int main() { constexpr int x = 0; }"
+    HAVE_CONSTEXPR
+)
+if (HAVE_CONSTEXPR)
+    add_definitions(-DCRL_HAVE_CONSTEXPR)
 endif ()
 
 #

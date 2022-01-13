@@ -1,7 +1,7 @@
 /**
  * @file VersionInfoUtility/VersionInfoUtility.cc
  *
- * Copyright 2013-2021
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -50,7 +50,12 @@
 #include <errno.h>
 #include <string.h>
 
-#include <LibMultiSense/MultiSenseChannel.hh>
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+#include <inttypes.h>
+
+#include <MultiSense/MultiSenseChannel.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 
@@ -78,9 +83,9 @@ void printVersionInfo(const system::VersionInfo& info,
     fprintf(fP, "\n");
     fprintf(fP, "Firmware build date: %s\n", info.sensorFirmwareBuildDate.c_str());
     fprintf(fP, "Firmware version: %#06x\n", info.sensorFirmwareVersion);
-    fprintf(fP, "Hardware version: %#lx\n", info.sensorHardwareVersion);
-    fprintf(fP, "Hardware magic: %#lx\n", info.sensorHardwareMagic);
-    fprintf(fP, "FPGA DNA: %#lx\n", info.sensorFpgaDna);
+    fprintf(fP, "Hardware version: %#" PRIx64 "\n", info.sensorHardwareVersion);
+    fprintf(fP, "Hardware magic: %#" PRIx64 "\n", info.sensorHardwareMagic);
+    fprintf(fP, "FPGA DNA: %#" PRIx64 "\n", info.sensorFpgaDna);
     fprintf(fP, "\n");
 }
 

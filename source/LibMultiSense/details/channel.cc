@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/channel.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,18 +34,18 @@
  *   2013-04-25, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
-#include "details/query.hh"
+#include "MultiSense/details/channel.hh"
+#include "MultiSense/details/query.hh"
 
-#include "details/wire/DisparityMessage.h"
-#include "details/wire/SysMtuMessage.h"
-#include "details/wire/SysGetMtuMessage.h"
-#include "details/wire/StatusRequestMessage.h"
-#include "details/wire/StatusResponseMessage.h"
-#include "details/wire/VersionRequestMessage.h"
-#include "details/wire/SysDeviceInfoMessage.h"
+#include "MultiSense/details/wire/DisparityMessage.hh"
+#include "MultiSense/details/wire/SysMtuMessage.hh"
+#include "MultiSense/details/wire/SysGetMtuMessage.hh"
+#include "MultiSense/details/wire/StatusRequestMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/VersionRequestMessage.hh"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
 
-#include "details/utility/Functional.hh"
+#include "MultiSense/details/utility/Functional.hh"
 
 #ifndef WIN32
 #include <netdb.h>
@@ -69,10 +69,10 @@ impl::impl(const std::string& address) :
     m_txSeqId(0),
     m_lastRxSeqId(-1),
     m_unWrappedRxSeqId(0),
-    m_udpTrackerCache(UDP_TRACKER_CACHE_DEPTH),
+    m_udpTrackerCache(UDP_TRACKER_CACHE_DEPTH, 0),
     m_rxLargeBufferPool(),
     m_rxSmallBufferPool(),
-    m_imageMetaCache(IMAGE_META_CACHE_DEPTH),
+    m_imageMetaCache(IMAGE_META_CACHE_DEPTH, 0),
     m_udpAssemblerMap(),
     m_dispatchLock(),
     m_streamLock(),
@@ -524,25 +524,39 @@ uint32_t impl::imagerWireToApi(uint32_t w)
 //
 // Apply a time offset correction
 
-void impl::applySensorTimeOffset(const double& offset)
+void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 {
     utility::ScopedLock lock(m_timeLock);
 
     if (false == m_timeOffsetInit) {
-        m_timeOffset     = offset; // seed
+        m_timeOffset = offset; // seed
         m_timeOffsetInit = true;
         return;
     }
 
-    const double samples = static_cast<double>(TIME_SYNC_OFFSET_DECAY);
+    //
+    // The decayed average computation is susceptible to overflow for large timestamps. Decompose the average into
+    // the seconds and microseconds components to prevent overflow
 
-    m_timeOffset = utility::decayedAverage(m_timeOffset, samples, offset);
+    const int64_t samples = static_cast<int64_t>(TIME_SYNC_OFFSET_DECAY);
+
+    const int64_t offsetSeconds = utility::decayedAverage(static_cast<int64_t>(m_timeOffset.getSeconds()),
+                                                          samples,
+                                                          static_cast<int64_t>(offset.getSeconds()));
+
+
+    const int64_t offsetMicroSeconds = utility::decayedAverage(static_cast<int64_t>(m_timeOffset.getMicroSeconds()),
+                                                               samples,
+                                                               static_cast<int64_t>(offset.getMicroSeconds()));
+
+
+    m_timeOffset = utility::TimeStamp(static_cast<int32_t>(offsetSeconds), static_cast<int32_t>(offsetMicroSeconds));
 }
 
 //
 // Return the corrected time
 
-double impl::sensorToLocalTime(const double& sensorTime)
+utility::TimeStamp impl::sensorToLocalTime(const utility::TimeStamp& sensorTime)
 {
     utility::ScopedLock lock(m_timeLock);
     return m_timeOffset + sensorTime;
@@ -551,17 +565,17 @@ double impl::sensorToLocalTime(const double& sensorTime)
 //
 // Correct the time, populate seconds/microseconds
 
-void impl::sensorToLocalTime(const double& sensorTime,
+void impl::sensorToLocalTime(const utility::TimeStamp& sensorTime,
                              uint32_t&     seconds,
                              uint32_t&     microseconds)
 {
-    double corrected = sensorToLocalTime(sensorTime);
-    seconds          = static_cast<uint32_t>(corrected);
-    microseconds     = static_cast<uint32_t>(1e6 * (corrected - static_cast<double>(seconds)));
+    const utility::TimeStamp corrected = sensorToLocalTime(sensorTime);
+    seconds          = corrected.getSeconds();
+    microseconds     = corrected.getMicroSeconds();
 }
 
 //
-// An internal thread for status/time-synchroniziation
+// An internal thread for status/time-synchronization
 
 #ifdef WIN32
 DWORD impl::statusThread(void *userDataP)
@@ -586,7 +600,7 @@ void *impl::statusThread(void *userDataP)
             //
             // Send the status request, recording the (approx) local time
 
-            const double ping = utility::TimeStamp::getCurrentTime();
+            const utility::TimeStamp ping = utility::TimeStamp::getCurrentTime();
             selfP->publish(wire::StatusRequest());
 
             //
@@ -598,7 +612,7 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Record (approx) time of response
 
-                const double pong = utility::TimeStamp::getCurrentTime();
+                const utility::TimeStamp pong = utility::TimeStamp::getCurrentTime();
 
                 //
                 // Extract the response payload
@@ -610,12 +624,13 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Estimate 'msg.uptime' capture using half of the round trip period
 
-                const double latency = (pong - ping) / 2.0;
+                const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2);
 
                 //
                 // Compute and apply the estimated time offset
 
-                const double offset = (ping + latency) - static_cast<double>(msg.uptime);
+                const utility::TimeStamp offset = ping + latency - msg.uptime;
+
                 selfP->applySensorTimeOffset(offset);
 
                 //

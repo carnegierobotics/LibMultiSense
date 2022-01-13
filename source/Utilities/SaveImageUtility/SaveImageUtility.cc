@@ -1,7 +1,7 @@
 /**
  * @file SaveImageUtility/SaveImageUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -58,8 +58,8 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 
@@ -97,9 +97,11 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
     // Get the full resolution image
 
     system::DeviceMode best_mode(0, 0, 0, -1);
-    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode) {
-        if (mode->width >= best_mode.width && mode->height >= best_mode.height && mode->disparities > best_mode.disparities) {
-            best_mode = *mode;
+    for (size_t i = 0 ; i < modes.size() ; ++i)
+    {
+        const system::DeviceMode &mode = modes[i];
+        if (mode.width >= best_mode.width && mode.height >= best_mode.height && mode.disparities >= best_mode.disparities) {
+            best_mode = mode;
         }
     }
 
@@ -108,9 +110,11 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
 
     system::DeviceMode target_mode(best_mode.width / 2, best_mode.height / 2, 0, best_mode.disparities);
 
-    for (std::vector<system::DeviceMode>::const_iterator mode = modes.cbegin() ; mode != modes.cend() ; ++mode) {
-        if (mode->width == target_mode.width && mode->height == target_mode.height && mode->disparities >= target_mode.disparities) {
-            target_mode = *mode;
+    for (size_t i = 0 ; i < modes.size() ; ++i)
+    {
+        const system::DeviceMode &mode = modes[i];
+        if (mode.width == target_mode.width && mode.height == target_mode.height && mode.disparities >= target_mode.disparities) {
+            target_mode = mode;
         }
     }
 
@@ -251,6 +255,8 @@ int main(int    argc,
     Status status;
     system::VersionInfo v;
     VersionType version;
+    std::vector<system::DeviceMode> deviceModes;
+    system::DeviceMode operatingMode;
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
@@ -267,14 +273,13 @@ int main(int    argc,
 	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
 	std::cout << std::dec;
 
-    std::vector<system::DeviceMode> deviceModes;
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-    const system::DeviceMode operatingMode = getOperatingMode(deviceModes);
+    operatingMode = getOperatingMode(deviceModes);
 
     //
     // Change framerate
