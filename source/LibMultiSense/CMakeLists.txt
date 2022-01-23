@@ -128,7 +128,7 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
 # Versioning...someday lets automate this somehow
 #
 
-set_target_properties(MultiSense PROPERTIES VERSION "3.9")
+set_target_properties(MultiSense PROPERTIES VERSION "4.0.0")
 
 target_include_directories(MultiSense PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
 
