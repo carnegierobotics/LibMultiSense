@@ -50,7 +50,7 @@ namespace wire {
 class LedStatus {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_LED_STATUS;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Bit mask indicating which LEDs are implemented
@@ -66,6 +66,18 @@ public:
     // If non-zero, LEDs are only on while sensors are exposing
 
     uint8_t flash;
+
+    //
+    // The delay of the LED from turning on to visible light seen in microseconds.
+    // Should be measured and specific to the LED in question.
+
+    uint32_t led_delay_us;
+
+    //
+    // For LED synchronized to shutter the number of pulses is how many pulses
+    // per exposure of an image.
+
+    uint32_t number_of_pulses;
 
     //
     // Constructors
@@ -85,6 +97,17 @@ public:
         for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++)
             message & intensity[i];
         message & flash;
+
+        if (version >= 2)
+        {
+          message & led_delay_us;
+          message & number_of_pulses;
+        }
+        else
+        {
+          led_delay_us = 0;
+          number_of_pulses = 1;
+        }
     }
 };
 
