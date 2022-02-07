@@ -728,6 +728,10 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setFlash(data.flash != 0);
 
+    c.setNumberOfPulses(data.number_of_pulses);
+
+    c.setLedStartupTime(data.led_delay_us);
+
     return Status_Ok;
 }
 
@@ -744,6 +748,10 @@ Status impl::setLightingConfig(const lighting::Config& c)
             msg.intensity[i] = static_cast<uint8_t> (255.0f * (utility::boundValue(duty, 0.0f, 100.0f) / 100.0f));
         }
     }
+
+    msg.led_delay_us = c.getStartupTime();
+
+    msg.number_of_pulses = c.getNumberOfPulses();
 
     return waitAck(msg);
 }
