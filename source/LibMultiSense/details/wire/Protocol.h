@@ -219,6 +219,7 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_MOTOR_POLL                     = 0x011d;
 static CRL_CONSTEXPR IdType ID_DATA_EXPOSURE_CONFIG                    = 0x011e;
 static CRL_CONSTEXPR IdType ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE = 0x011f;
 static CRL_CONSTEXPR IdType ID_DATA_COMPRESSED_IMAGE                   = 0x0120;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_GROUND_SURFACE_PARAM           = 0x0121;
 
 //
 // Data sources

@@ -53,6 +53,7 @@ set(WIRE_HEADERS
   details/wire/SysGetDeviceInfoMessage.h
   details/wire/SysExternalCalibrationMessage.h
   details/wire/SysDeviceModesMessage.h
+  details/wire/SysGroundSurfaceParamsMessage.h
   details/wire/SysGetLidarCalibrationMessage.h
   details/wire/JpegMessage.h
   details/wire/SysGetExternalCalibrationMessage.h

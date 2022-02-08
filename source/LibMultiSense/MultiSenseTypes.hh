@@ -3146,6 +3146,47 @@ class MULTISENSE_API ExternalCalibration {
             yaw(0.) {};
 };
 
+class MULTISENSE_API GroundSurfaceParams {
+    public:
+
+        int ground_surface_number_of_levels_x;
+        int ground_surface_number_of_levels_z;
+        std::string ground_surface_base_model;
+        float ground_surface_pointcloud_grid_size;
+        int ground_surface_min_points_per_grid;
+        int ground_surface_pointcloud_decimation;
+        float ground_surface_pointcloud_max_range_m;
+        float ground_surface_pointcloud_min_range_m;
+        float ground_surface_pointcloud_max_width_m;
+        float ground_surface_pointcloud_min_width_m;
+        float ground_surface_pointcloud_max_height_m;
+        float ground_surface_pointcloud_min_height_m;
+        float ground_surface_obstacle_height_thresh_m;
+        float ground_surface_obstacle_percentage_thresh;
+        float ground_surface_spline_draw_resolution;
+        int ground_surface_max_fitting_iterations;
+        float ground_surface_adjacent_cell_search_size_m;
+
+        GroundSurfaceParams():
+            ground_surface_number_of_levels_x(0),
+            ground_surface_number_of_levels_z(0),
+            ground_surface_base_model("Zero"),
+            ground_surface_pointcloud_grid_size(0.),
+            ground_surface_min_points_per_grid(0),
+            ground_surface_pointcloud_decimation(0),
+            ground_surface_pointcloud_max_range_m(0.),
+            ground_surface_pointcloud_min_range_m(0.),
+            ground_surface_pointcloud_max_width_m(0.),
+            ground_surface_pointcloud_min_width_m(0.),
+            ground_surface_pointcloud_max_height_m(0.),
+            ground_surface_pointcloud_min_height_m(0.),
+            ground_surface_obstacle_height_thresh_m(0.),
+            ground_surface_obstacle_percentage_thresh(0.),
+            ground_surface_spline_draw_resolution(0.),
+            ground_surface_max_fitting_iterations(0),
+            ground_surface_adjacent_cell_search_size_m(0.) {};
+};
+
 /**
  * PTP status data associated with a specific stamped MultiSense message
  */

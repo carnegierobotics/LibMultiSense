@@ -972,6 +972,9 @@ public:
      */
     virtual Status setExternalCalibration (const system::ExternalCalibration& calibration) = 0;
 
+    virtual Status getGroundSurfaceParams (system::GroundSurfaceParams& params) = 0;
+    virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params) = 0;
+
     /**
      * Flash a new FPGA bitstream file to the sensor.
      *
