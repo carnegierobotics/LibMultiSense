@@ -1324,31 +1324,9 @@ Status impl::setExternalCalibration(const system::ExternalCalibration& calibrati
     return waitAck(w);
 }
 
-Status impl::getGroundSurfaceParams (system::GroundSurfaceParams& params)
+Status impl::getGroundSurfaceParams (system::GroundSurfaceParams&)
 {
-    wire::SysGroundSurfaceParams d;
-
-    Status status = waitData(wire::SysGetExternalCalibration(), d);
-    if (Status_Ok != status)
-        return status;
-
-    params.ground_surface_number_of_levels_x = d.ground_surface_number_of_levels_x;
-    params.ground_surface_number_of_levels_z = d.ground_surface_number_of_levels_z;
-    params.ground_surface_base_model = d.ground_surface_base_model;
-    params.ground_surface_pointcloud_grid_size = d.ground_surface_pointcloud_grid_size;
-    params.ground_surface_min_points_per_grid = d.ground_surface_min_points_per_grid;
-    params.ground_surface_pointcloud_decimation = d.ground_surface_pointcloud_decimation;
-    params.ground_surface_pointcloud_max_range_m = d.ground_surface_pointcloud_max_range_m;
-    params.ground_surface_pointcloud_min_range_m = d.ground_surface_pointcloud_min_range_m;
-    params.ground_surface_pointcloud_max_width_m = d.ground_surface_pointcloud_max_width_m;
-    params.ground_surface_pointcloud_min_width_m = d.ground_surface_pointcloud_min_width_m;
-    params.ground_surface_pointcloud_max_height_m = d.ground_surface_pointcloud_max_height_m;
-    params.ground_surface_pointcloud_min_height_m = d.ground_surface_pointcloud_min_height_m;
-    params.ground_surface_obstacle_height_thresh_m = d.ground_surface_obstacle_height_thresh_m;
-    params.ground_surface_obstacle_percentage_thresh = d.ground_surface_obstacle_percentage_thresh;
-    params.ground_surface_spline_draw_resolution = d.ground_surface_spline_draw_resolution;
-    params.ground_surface_max_fitting_iterations = d.ground_surface_max_fitting_iterations;
-    params.ground_surface_adjacent_cell_search_size_m = d.ground_surface_adjacent_cell_search_size_m;
+    // TODO(drobinson): Implement
 
     return Status_Ok;
 }

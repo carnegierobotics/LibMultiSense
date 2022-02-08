@@ -3151,7 +3151,7 @@ class MULTISENSE_API GroundSurfaceParams {
 
         int ground_surface_number_of_levels_x;
         int ground_surface_number_of_levels_z;
-        std::string ground_surface_base_model;
+        int ground_surface_base_model;
         float ground_surface_pointcloud_grid_size;
         int ground_surface_min_points_per_grid;
         int ground_surface_pointcloud_decimation;
@@ -3170,7 +3170,7 @@ class MULTISENSE_API GroundSurfaceParams {
         GroundSurfaceParams():
             ground_surface_number_of_levels_x(0),
             ground_surface_number_of_levels_z(0),
-            ground_surface_base_model("Zero"),
+            ground_surface_base_model(0),
             ground_surface_pointcloud_grid_size(0.),
             ground_surface_min_points_per_grid(0),
             ground_surface_pointcloud_decimation(0),
