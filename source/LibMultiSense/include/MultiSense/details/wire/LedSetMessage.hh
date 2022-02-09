@@ -50,7 +50,7 @@ namespace wire {
 class LedSet {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_LED_SET;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Bit mask selecting which LEDs to update
@@ -68,10 +68,22 @@ public:
     uint8_t flash;
 
     //
+    // The delay of the LED from turning on to visible light seen in microseconds.
+    // Should be measured and specific to the LED in question.
+
+    uint32_t led_delay_us;
+
+    //
+    // For LED synchronized to shutter the number of pulses is how many pulses
+    // per exposure of an image.
+
+    uint32_t number_of_pulses;
+
+    //
     // Constructors
 
     LedSet(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    LedSet() : mask(0), flash(0) {};
+    LedSet() : mask(0), flash(0), led_delay_us(0), number_of_pulses(1) {};
 
     //
     // Serialization routine
@@ -85,6 +97,17 @@ public:
         for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++)
             archive & intensity[i];
         archive & flash;
+
+        if (version >= 2)
+        {
+          archive & led_delay_us;
+          archive & number_of_pulses;
+        }
+        else
+        {
+          led_delay_us = 0;
+          number_of_pulses = 1;
+        }
     }
 };
 
