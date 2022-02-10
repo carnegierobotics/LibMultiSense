@@ -3163,7 +3163,6 @@ class MULTISENSE_API GroundSurfaceParams {
         float ground_surface_pointcloud_min_height_m;
         float ground_surface_obstacle_height_thresh_m;
         float ground_surface_obstacle_percentage_thresh;
-        float ground_surface_spline_draw_resolution;
         int ground_surface_max_fitting_iterations;
         float ground_surface_adjacent_cell_search_size_m;
 
@@ -3182,7 +3181,6 @@ class MULTISENSE_API GroundSurfaceParams {
             ground_surface_pointcloud_min_height_m(0.),
             ground_surface_obstacle_height_thresh_m(0.),
             ground_surface_obstacle_percentage_thresh(0.),
-            ground_surface_spline_draw_resolution(0.),
             ground_surface_max_fitting_iterations(0),
             ground_surface_adjacent_cell_search_size_m(0.) {};
 };

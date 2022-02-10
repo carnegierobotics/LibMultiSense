@@ -1349,7 +1349,6 @@ Status impl::setGroundSurfaceParams (const system::GroundSurfaceParams& params)
     w.ground_surface_pointcloud_min_height_m = params.ground_surface_pointcloud_min_height_m;
     w.ground_surface_obstacle_height_thresh_m = params.ground_surface_obstacle_height_thresh_m;
     w.ground_surface_obstacle_percentage_thresh = params.ground_surface_obstacle_percentage_thresh;
-    w.ground_surface_spline_draw_resolution = params.ground_surface_spline_draw_resolution;
     w.ground_surface_max_fitting_iterations = params.ground_surface_max_fitting_iterations;
     w.ground_surface_adjacent_cell_search_size_m = params.ground_surface_adjacent_cell_search_size_m;
 
