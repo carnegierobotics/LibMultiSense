@@ -2052,15 +2052,60 @@ public:
     };
 
     /**
+    * Get the number of pulses of the light within a single exposure
+    *
+    * @return The current number of pulses
+    */
+    uint32_t getNumberOfPulses( ) const {
+      return m_numberPulses;
+    }
+
+    /**
+    * Set the number of pulses of the light within a single exposure
+    *
+    * @return True on success, False on failure
+    */
+    bool setNumberOfPulses( uint32_t numPulses) {
+
+      m_numberPulses = numPulses;
+      return true;
+    }
+
+    /**
+    * Get the startup time offset of the led in microseconds
+    *
+    * @return The current led startup time
+    */
+    uint32_t getStartupTime( ) const {
+      return m_lightStartupOffset_us;
+    }
+
+    /**
+    * Set the transient startup time of the led, for better synchronization.
+    *
+    * @param the led transient time.
+    *
+    * @return True on success, False on failure
+    */
+    bool setLedStartupTime( uint32_t ledTransientResponse_us) {
+
+      m_lightStartupOffset_us = ledTransientResponse_us;
+      return true;
+    }
+
+    /**
      * Default constructor. Flashing is disabled and all lights are off
      */
 
-    Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f) {};
+    Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f),
+               m_numberPulses(1), m_lightStartupOffset_us(0) {};
 
 private:
 
     bool               m_flashEnabled;
     std::vector<float> m_dutyCycle;
+    uint32_t           m_numberPulses;
+    uint32_t           m_lightStartupOffset_us;
 };
 
 /**
