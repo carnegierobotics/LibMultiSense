@@ -535,22 +535,19 @@ void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
     }
 
     //
-    // The decayed average computation is susceptible to overflow for large timestamps. Decompose the average into
-    // the seconds and microseconds components to prevent overflow
+    // Use doubles to compute offsets to prevent overflow
 
-    const int64_t samples = static_cast<int64_t>(TIME_SYNC_OFFSET_DECAY);
+    const double samples = static_cast<double>(TIME_SYNC_OFFSET_DECAY);
 
-    const int64_t offsetSeconds = utility::decayedAverage(static_cast<int64_t>(m_timeOffset.getSeconds()),
-                                                          samples,
-                                                          static_cast<int64_t>(offset.getSeconds()));
+    const double currentOffset = m_timeOffset.getSeconds() + m_timeOffset.getMicroSeconds() * 1e-6;
+    const double measuredOffset = offset.getSeconds() + offset.getMicroSeconds() * 1e-6;
 
+    const double newOffset = utility::decayedAverage(currentOffset, samples, measuredOffset);
 
-    const int64_t offsetMicroSeconds = utility::decayedAverage(static_cast<int64_t>(m_timeOffset.getMicroSeconds()),
-                                                               samples,
-                                                               static_cast<int64_t>(offset.getMicroSeconds()));
+    const int32_t newOffsetSeconds = static_cast<int32_t>(newOffset);
+    const int32_t newOffsetMicroSeconds = static_cast<int32_t>((newOffset - newOffsetSeconds) * 1e6);
 
-
-    m_timeOffset = utility::TimeStamp(static_cast<int32_t>(offsetSeconds), static_cast<int32_t>(offsetMicroSeconds));
+    m_timeOffset = utility::TimeStamp(newOffsetSeconds, newOffsetMicroSeconds);
 }
 
 //
