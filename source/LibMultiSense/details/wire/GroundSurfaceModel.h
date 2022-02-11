@@ -57,10 +57,11 @@ public:
 #endif // SENSORPOD_FIRMWARE
 
     //
-    // Frame ID and timestamp of images that the algorithm was processed on
+    // Frame ID timestamp and success flag of images that the algorithm was processed on
 
     int64_t     frameId;
     int64_t     timestamp;
+    uint8_t     success;
 
     //
     // Control points dynamic array (treated as image) members
@@ -96,6 +97,7 @@ public:
 #endif // SENSORPOD_FIRMWARE
         frameId(0),
         timestamp(0),
+        success(0),
         controlPointsBitsPerPixel(0),
         controlPointsWidth(0),
         controlPointsHeight(0)
@@ -126,6 +128,7 @@ public:
 
         message & frameId;
         message & timestamp;
+        message & success;
 
         message & controlPointsBitsPerPixel;
         message & controlPointsWidth;

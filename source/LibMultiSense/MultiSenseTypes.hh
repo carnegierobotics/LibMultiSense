@@ -2496,6 +2496,8 @@ public:
     int64_t     frameId;
     /** Trigger time of the disparity image which was used to generate the spline */
     int64_t     timestamp;
+    /** Success flag for B-Spline fitting process — no control points will be available if this is false **/
+    uint8_t     success;
 
     /** Bits per pixel in the dynamically-sized control points array */
     uint32_t    controlPointsBitsPerPixel;

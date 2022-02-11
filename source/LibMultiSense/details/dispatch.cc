@@ -453,6 +453,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.frameId = spline.frameId;
         header.timestamp = spline.timestamp;
+        header.success = spline.success;
 
         header.controlPointsBitsPerPixel = spline.controlPointsBitsPerPixel;
         header.controlPointsWidth = spline.controlPointsWidth;
