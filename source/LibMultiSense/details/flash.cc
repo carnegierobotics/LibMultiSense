@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/flash.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,12 +34,12 @@
  *   2013-05-15, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
-#include "details/query.hh"
+#include "MultiSense/details/channel.hh"
+#include "MultiSense/details/query.hh"
 
-#include "details/wire/AckMessage.h"
-#include "details/wire/SysFlashOpMessage.h"
-#include "details/wire/SysFlashResponseMessage.h"
+#include "MultiSense/details/wire/AckMessage.hh"
+#include "MultiSense/details/wire/SysFlashOpMessage.hh"
+#include "MultiSense/details/wire/SysFlashResponseMessage.hh"
 
 namespace crl {
 namespace multisense {
@@ -80,7 +80,7 @@ void impl::eraseFlashRegion(uint32_t region)
 
     int prevProgress = -1;
 
-    while((utility::TimeStamp::getCurrentTime() - start) < ERASE_TIMEOUT) {
+    while((utility::TimeStamp::getCurrentTime() - start).getSeconds() < ERASE_TIMEOUT) {
 
         //
         // Request current progress

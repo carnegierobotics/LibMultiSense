@@ -1,7 +1,7 @@
 /**
  * @file DirectedStreamsUtility/DirectedStreamsUtility.cc
  *
- * Copyright 2015
+ * Copyright 2015-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -58,8 +58,8 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 

@@ -1,7 +1,7 @@
 /**
  * @file ImageCalUtility/ImageCalUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -55,8 +55,8 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 #include <Utilities/shared/CalibrationYaml.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
-#include <LibMultiSense/MultiSenseTypes.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseTypes.hh>
 
 using namespace crl::multisense;
 
@@ -199,7 +199,8 @@ int main(int    argc,
     }
 
     hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
-                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
+                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 ||
+                   info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
 
     //
     // Query

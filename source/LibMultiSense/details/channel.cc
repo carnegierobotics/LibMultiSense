@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/channel.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,18 +34,18 @@
  *   2013-04-25, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
-#include "details/query.hh"
+#include "MultiSense/details/channel.hh"
+#include "MultiSense/details/query.hh"
 
-#include "details/wire/DisparityMessage.h"
-#include "details/wire/SysMtuMessage.h"
-#include "details/wire/SysGetMtuMessage.h"
-#include "details/wire/StatusRequestMessage.h"
-#include "details/wire/StatusResponseMessage.h"
-#include "details/wire/VersionRequestMessage.h"
-#include "details/wire/SysDeviceInfoMessage.h"
+#include "MultiSense/details/wire/DisparityMessage.hh"
+#include "MultiSense/details/wire/SysMtuMessage.hh"
+#include "MultiSense/details/wire/SysGetMtuMessage.hh"
+#include "MultiSense/details/wire/StatusRequestMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/VersionRequestMessage.hh"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
 
-#include "details/utility/Functional.hh"
+#include "MultiSense/details/utility/Functional.hh"
 
 #ifndef WIN32
 #include <netdb.h>
@@ -84,6 +84,7 @@ impl::impl(const std::string& address) :
     m_lidarListeners(),
     m_ppsListeners(),
     m_imuListeners(),
+    m_compressedImageListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -211,6 +212,11 @@ void impl::cleanup()
         itm != m_imuListeners.end();
         itm ++)
         delete *itm;
+    std::list<CompressedImageListener*>::const_iterator itc;
+    for(itc  = m_compressedImageListeners.begin();
+        itc != m_compressedImageListeners.end();
+        itc ++)
+        delete *itc;
 
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();
@@ -392,6 +398,14 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
     if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
     if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
+    if (mask & Source_Compressed_Left)        wire_mask |= wire::SOURCE_COMPRESSED_LEFT;
+    if (mask & Source_Compressed_Rectified_Left)        wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_LEFT;
+    if (mask & Source_Compressed_Right)                 wire_mask |= wire::SOURCE_COMPRESSED_RIGHT;
+    if (mask & Source_Compressed_Rectified_Right)       wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT;
+    if (mask & Source_Compressed_Aux)                   wire_mask |= wire::SOURCE_COMPRESSED_AUX;
+    if (mask & Source_Compressed_Rectified_Aux)         wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_AUX;
+    if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
+    if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
 
     return wire_mask;
 }
@@ -422,6 +436,14 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_LIDAR_SCAN)        api_mask |= Source_Lidar_Scan;
     if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu;
     if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
+    if (mask & wire::SOURCE_GROUND_SURFACE_SPLINE_DATA)     api_mask |= Source_Ground_Surface_Spline_Data;
+    if (mask & wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE)     api_mask |= Source_Ground_Surface_Class_Image;
+    if (mask & wire::SOURCE_COMPRESSED_LEFT)                api_mask |= Source_Compressed_Left;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_LEFT)      api_mask |= Source_Compressed_Rectified_Left;
+    if (mask & wire::SOURCE_COMPRESSED_RIGHT)               api_mask |= Source_Compressed_Right;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT)     api_mask |= Source_Compressed_Rectified_Right;
+    if (mask & wire::SOURCE_COMPRESSED_AUX)                 api_mask |= Source_Compressed_Aux;
+    if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_AUX)       api_mask |= Source_Compressed_Rectified_Aux;
 
     return api_mask;
 }
@@ -429,18 +451,19 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
 uint32_t impl::hardwareApiToWire(uint32_t a)
 {
     switch(a) {
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
-    case system::DeviceInfo::HARDWARE_REV_BCAM:             return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
-    case system::DeviceInfo::HARDWARE_REV_MONO:             return wire::SysDeviceInfo::HARDWARE_REV_MONO;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:          return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7:          return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:           return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
+    case system::DeviceInfo::HARDWARE_REV_BCAM:                   return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
+    case system::DeviceInfo::HARDWARE_REV_MONO:                   return wire::SysDeviceInfo::HARDWARE_REV_MONO;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -458,7 +481,8 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27: return system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:  return system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
     case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                return system::DeviceInfo::HARDWARE_REV_BCAM;
     case wire::SysDeviceInfo::HARDWARE_REV_MONO:                return system::DeviceInfo::HARDWARE_REV_MONO;
     default:
@@ -500,25 +524,36 @@ uint32_t impl::imagerWireToApi(uint32_t w)
 //
 // Apply a time offset correction
 
-void impl::applySensorTimeOffset(const double& offset)
+void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 {
     utility::ScopedLock lock(m_timeLock);
 
     if (false == m_timeOffsetInit) {
-        m_timeOffset     = offset; // seed
+        m_timeOffset = offset; // seed
         m_timeOffsetInit = true;
         return;
     }
 
+    //
+    // Use doubles to compute offsets to prevent overflow
+
     const double samples = static_cast<double>(TIME_SYNC_OFFSET_DECAY);
 
-    m_timeOffset = utility::decayedAverage(m_timeOffset, samples, offset);
+    const double currentOffset = m_timeOffset.getSeconds() + m_timeOffset.getMicroSeconds() * 1e-6;
+    const double measuredOffset = offset.getSeconds() + offset.getMicroSeconds() * 1e-6;
+
+    const double newOffset = utility::decayedAverage(currentOffset, samples, measuredOffset);
+
+    const int32_t newOffsetSeconds = static_cast<int32_t>(newOffset);
+    const int32_t newOffsetMicroSeconds = static_cast<int32_t>((newOffset - newOffsetSeconds) * 1e6);
+
+    m_timeOffset = utility::TimeStamp(newOffsetSeconds, newOffsetMicroSeconds);
 }
 
 //
 // Return the corrected time
 
-double impl::sensorToLocalTime(const double& sensorTime)
+utility::TimeStamp impl::sensorToLocalTime(const utility::TimeStamp& sensorTime)
 {
     utility::ScopedLock lock(m_timeLock);
     return m_timeOffset + sensorTime;
@@ -527,17 +562,17 @@ double impl::sensorToLocalTime(const double& sensorTime)
 //
 // Correct the time, populate seconds/microseconds
 
-void impl::sensorToLocalTime(const double& sensorTime,
+void impl::sensorToLocalTime(const utility::TimeStamp& sensorTime,
                              uint32_t&     seconds,
                              uint32_t&     microseconds)
 {
-    double corrected = sensorToLocalTime(sensorTime);
-    seconds          = static_cast<uint32_t>(corrected);
-    microseconds     = static_cast<uint32_t>(1e6 * (corrected - static_cast<double>(seconds)));
+    const utility::TimeStamp corrected = sensorToLocalTime(sensorTime);
+    seconds          = corrected.getSeconds();
+    microseconds     = corrected.getMicroSeconds();
 }
 
 //
-// An internal thread for status/time-synchroniziation
+// An internal thread for status/time-synchronization
 
 #ifdef WIN32
 DWORD impl::statusThread(void *userDataP)
@@ -562,7 +597,7 @@ void *impl::statusThread(void *userDataP)
             //
             // Send the status request, recording the (approx) local time
 
-            const double ping = utility::TimeStamp::getCurrentTime();
+            const utility::TimeStamp ping = utility::TimeStamp::getCurrentTime();
             selfP->publish(wire::StatusRequest());
 
             //
@@ -574,7 +609,7 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Record (approx) time of response
 
-                const double pong = utility::TimeStamp::getCurrentTime();
+                const utility::TimeStamp pong = utility::TimeStamp::getCurrentTime();
 
                 //
                 // Extract the response payload
@@ -586,12 +621,13 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Estimate 'msg.uptime' capture using half of the round trip period
 
-                const double latency = (pong - ping) / 2.0;
+                const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2);
 
                 //
                 // Compute and apply the estimated time offset
 
-                const double offset = (ping + latency) - static_cast<double>(msg.uptime);
+                const utility::TimeStamp offset = ping + latency - msg.uptime;
+
                 selfP->applySensorTimeOffset(offset);
 
                 //

@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/dispatch.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,48 +34,51 @@
  *   2013-05-15, ekratzer@carnegierobotics.com, PR1044, Created file.
  **/
 
-#include "details/channel.hh"
+#include "MultiSense/details/channel.hh"
 
-#include "details/wire/AckMessage.h"
+#include "MultiSense/details/wire/AckMessage.hh"
 
-#include "details/wire/VersionResponseMessage.h"
-#include "details/wire/StatusResponseMessage.h"
+#include "MultiSense/details/wire/VersionResponseMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
 
-#include "details/wire/CamConfigMessage.h"
-#include "details/wire/ImageMessage.h"
-#include "details/wire/JpegMessage.h"
-#include "details/wire/ImageMetaMessage.h"
-#include "details/wire/DisparityMessage.h"
+#include "MultiSense/details/wire/CamConfigMessage.hh"
+#include "MultiSense/details/wire/CompressedImageMessage.hh"
+#include "MultiSense/details/wire/DisparityMessage.hh"
+#include "MultiSense/details/wire/ImageMessage.hh"
+#include "MultiSense/details/wire/ImageMetaMessage.hh"
+#include "MultiSense/details/wire/JpegMessage.hh"
 
-#include "details/wire/CamHistoryMessage.h"
+#include "MultiSense/details/wire/CamHistoryMessage.hh"
 
-#include "details/wire/LidarDataMessage.h"
+#include "MultiSense/details/wire/LidarDataMessage.hh"
 
-#include "details/wire/LedStatusMessage.h"
+#include "MultiSense/details/wire/LedStatusMessage.hh"
 
-#include "details/wire/LedSensorStatusMessage.h"
+#include "MultiSense/details/wire/LedSensorStatusMessage.hh"
 
-#include "details/wire/PollMotorInfoMessage.h"
+#include "MultiSense/details/wire/PollMotorInfoMessage.hh"
 
-#include "details/wire/SysMtuMessage.h"
-#include "details/wire/SysNetworkMessage.h"
-#include "details/wire/SysFlashResponseMessage.h"
-#include "details/wire/SysDeviceInfoMessage.h"
-#include "details/wire/SysCameraCalibrationMessage.h"
-#include "details/wire/SysSensorCalibrationMessage.h"
-#include "details/wire/SysTransmitDelayMessage.h"
-#include "details/wire/SysLidarCalibrationMessage.h"
-#include "details/wire/SysDeviceModesMessage.h"
-#include "details/wire/SysExternalCalibrationMessage.h"
+#include "MultiSense/details/wire/SysMtuMessage.hh"
+#include "MultiSense/details/wire/SysNetworkMessage.hh"
+#include "MultiSense/details/wire/SysFlashResponseMessage.hh"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
+#include "MultiSense/details/wire/SysCameraCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysSensorCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysTransmitDelayMessage.hh"
+#include "MultiSense/details/wire/SysLidarCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysDeviceModesMessage.hh"
+#include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 
-#include "details/wire/SysPpsMessage.h"
+#include "MultiSense/details/wire/SysPpsMessage.hh"
 
-#include "details/wire/ImuDataMessage.h"
-#include "details/wire/ImuConfigMessage.h"
-#include "details/wire/ImuInfoMessage.h"
+#include "MultiSense/details/wire/ImuDataMessage.hh"
+#include "MultiSense/details/wire/ImuConfigMessage.hh"
+#include "MultiSense/details/wire/ImuInfoMessage.hh"
 
-#include "details/wire/SysTestMtuResponseMessage.h"
-#include "details/wire/SysDirectedStreamsMessage.h"
+#include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
+#include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
+
+#include "MultiSense/details/wire/GroundSurfaceModel.hh"
 
 #include <limits>
 
@@ -160,6 +163,37 @@ void impl::dispatchImu(imu::Header& header)
 }
 
 //
+// Publish a compressed image
+
+void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
+                                   compressed_image::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<CompressedImageListener*>::const_iterator it;
+
+    for(it  = m_compressedImageListeners.begin();
+        it != m_compressedImageListeners.end();
+        it ++)
+        (*it)->dispatch(buffer, header);
+}
+
+//
+// Publish a Ground Surface Spline event
+
+void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<GroundSurfaceSplineListener*>::const_iterator it;
+
+    for(it  = m_groundSurfaceSplineListeners.begin();
+        it != m_groundSurfaceSplineListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
+//
 // Dispatch incoming messages
 
 void impl::dispatch(utility::BufferStreamWriter& buffer)
@@ -204,12 +238,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         } else {
 
-            sensorToLocalTime(static_cast<double>(scan.timeStartSeconds) +
-                              1e-6 * static_cast<double>(scan.timeStartMicroSeconds),
+            sensorToLocalTime(utility::TimeStamp(scan.timeStartSeconds, scan.timeStartMicroSeconds),
                               header.timeStartSeconds, header.timeStartMicroSeconds);
 
-            sensorToLocalTime(static_cast<double>(scan.timeEndSeconds) +
-                              1e-6 * static_cast<double>(scan.timeEndMicroSeconds),
+            sensorToLocalTime(utility::TimeStamp(scan.timeEndSeconds, scan.timeEndMicroSeconds),
                               header.timeEndSeconds, header.timeEndMicroSeconds);
         }
 
@@ -334,7 +366,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.sensorTime = pps.ppsNanoSeconds;
 
-        sensorToLocalTime(static_cast<double>(pps.ppsNanoSeconds) / 1e9,
+        sensorToLocalTime(utility::TimeStamp(pps.ppsNanoSeconds),
                           header.timeSeconds, header.timeMicroSeconds);
 
         dispatchPps(header);
@@ -365,7 +397,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
                     toHeaderTime(w.timeNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
 
                 } else
-                    sensorToLocalTime(static_cast<double>(w.timeNanoSeconds) / 1e9,
+                    sensorToLocalTime(utility::TimeStamp(w.timeNanoSeconds),
                                       a.timeSeconds, a.timeMicroSeconds);
             }
 
@@ -380,6 +412,66 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchImu(header);
+
+        break;
+    }
+    case MSG_ID(wire::CompressedImage::ID):
+    {
+        wire::CompressedImage image(stream, version);
+
+        const wire::ImageMeta *metaP = m_imageMetaCache.find(image.frameId);
+        if (NULL == metaP)
+            break;
+            //CRL_EXCEPTION("no meta cached for frameId %d", image.frameId);
+
+        compressed_image::Header header;
+
+        getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
+
+        header.source           = sourceWireToApi(image.source);
+        header.bitsPerPixel     = image.bitsPerPixel;
+        header.codec            = image.codec;
+        header.width            = image.width;
+        header.height           = image.height;
+        header.frameId          = image.frameId;
+        header.exposure         = image.exposure;
+        header.gain             = image.gain;
+        header.framesPerSecond  = metaP->framesPerSecond;
+        header.imageDataP       = image.dataP;
+        header.imageLength      = image.compressedDataBufferSize;
+
+        dispatchCompressedImage(buffer, header);
+        break;
+    }
+    case MSG_ID(wire::GroundSurfaceModel::ID):
+    {
+        wire::GroundSurfaceModel spline(stream, version);
+
+        ground_surface::Header header;
+
+        header.frameId = spline.frameId;
+        header.timestamp = spline.timestamp;
+
+        header.controlPointsBitsPerPixel = spline.controlPointsBitsPerPixel;
+        header.controlPointsWidth = spline.controlPointsWidth;
+        header.controlPointsHeight = spline.controlPointsHeight;
+        header.controlPointsImageDataP = spline.controlPointsDataP;
+
+        for (unsigned int i = 0; i < 2; i++)
+        {
+            header.xzCellOrigin[i] = spline.xzCellOrigin[i];
+            header.xzCellSize[i] = spline.xzCellSize[i];
+            header.xzLimit[i] = spline.xzLimit[i];
+            header.minMaxAzimuthAngle[i] = spline.minMaxAzimuthAngle[i];
+        }
+
+        for (unsigned int i = 0; i < 6; i++)
+        {
+            header.extrinsics[i] = spline.extrinsics[i];
+            header.quadraticParams[i] = spline.quadraticParams[i];
+        }
+
+        dispatchGroundSurfaceSpline(header);
 
         break;
     }
@@ -535,8 +627,10 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
 
     if (wireId != m_lastRxSeqId) {
 
-        const uint16_t ID_MAX    = std::numeric_limits<uint16_t>::max();
-        const uint16_t ID_CENTER = ID_MAX / 2;
+        CRL_CONSTEXPR uint16_t ID_MAX  = std::numeric_limits<uint16_t>::max();
+        CRL_CONSTEXPR uint16_t ID_MASK = 0xF000;
+        CRL_CONSTEXPR uint16_t ID_HIGH = 0xF000;
+        CRL_CONSTEXPR uint16_t ID_LOW  = 0x0000;
 
         //
         // Seed
@@ -547,16 +641,16 @@ const int64_t& impl::unwrapSequenceId(uint16_t wireId)
         //
         // Detect forward 16-bit wrap
 
-        else if (wireId        < ID_CENTER   &&
-                 m_lastRxSeqId > ID_CENTER) {
+        else if (((wireId & ID_MASK) == ID_LOW) &&
+                ((m_lastRxSeqId & ID_MASK) == ID_HIGH)) {
 
-            m_unWrappedRxSeqId += 1 + (ID_MAX - m_lastRxSeqId) + wireId;
+            m_unWrappedRxSeqId += 1 + (static_cast<int64_t>(ID_MAX) - m_lastRxSeqId) + wireId;
 
         //
         // Normal case
 
         } else
-            m_unWrappedRxSeqId += wireId - m_lastRxSeqId;
+            m_unWrappedRxSeqId += static_cast<int64_t>(wireId) - m_lastRxSeqId;
 
         //
         // Remember change

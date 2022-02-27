@@ -1,7 +1,7 @@
 /**
  * @file SaveImageUtility/SaveImageUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -46,19 +46,20 @@
 #include <arpa/inet.h> // htons
 #endif
 
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <limits>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <string>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
 
 #include <Utilities/portability/getopt/getopt.h>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 
@@ -89,6 +90,43 @@ void signalHandler(int sig)
     doneG = true;
 }
 #endif
+
+system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes)
+{
+    //
+    // Get the full resolution image
+
+    system::DeviceMode best_mode(0, 0, 0, -1);
+    for (size_t i = 0 ; i < modes.size() ; ++i)
+    {
+        const system::DeviceMode &mode = modes[i];
+        if (mode.width >= best_mode.width && mode.height >= best_mode.height && mode.disparities >= best_mode.disparities) {
+            best_mode = mode;
+        }
+    }
+
+    //
+    // Target 1/4 of the full res setting. Check to see if there is a setting with a larger number of disparities
+
+    system::DeviceMode target_mode(best_mode.width / 2, best_mode.height / 2, 0, best_mode.disparities);
+
+    for (size_t i = 0 ; i < modes.size() ; ++i)
+    {
+        const system::DeviceMode &mode = modes[i];
+        if (mode.width == target_mode.width && mode.height == target_mode.height && mode.disparities >= target_mode.disparities) {
+            target_mode = mode;
+        }
+    }
+
+    //
+    // The camera does not support our targeted 1/4 res setting
+
+    if (target_mode.supportedDataSources == 0) {
+        return best_mode;
+    }
+
+    return target_mode;
+}
 
 bool savePgm(const std::string& fileName,
              uint32_t           width,
@@ -217,6 +255,8 @@ int main(int    argc,
     Status status;
     system::VersionInfo v;
     VersionType version;
+    std::vector<system::DeviceMode> deviceModes;
+    system::DeviceMode operatingMode;
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
     if (Status_Ok != status) {
@@ -233,6 +273,14 @@ int main(int    argc,
 	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
 	std::cout << std::dec;
 
+    status = channelP->getDeviceModes(deviceModes);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    operatingMode = getOperatingMode(deviceModes);
+
     //
     // Change framerate
 
@@ -245,7 +293,12 @@ int main(int    argc,
             goto clean_out;
         } else {
 
-            cfg.setResolution(1024, 544);
+            std::cout << "Setting resolution to: " << operatingMode.width << "x" <<
+                                                      operatingMode.height << "x" <<
+                                                      operatingMode.disparities << std::endl;
+
+            cfg.setResolution(operatingMode.width, operatingMode.height);
+            cfg.setDisparities(operatingMode.disparities);
             cfg.setFps(30.0);
 
             status = channelP->setImageConfig(cfg);
@@ -284,7 +337,8 @@ int main(int    argc,
     //
     // Start streaming
 
-    status = channelP->startStreams(Source_Luma_Rectified_Left | Source_Lidar_Scan);
+    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
+                                    (operatingMode.supportedDataSources & Source_Lidar_Scan));
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
