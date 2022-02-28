@@ -127,8 +127,8 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
 #
 # Versioning...someday lets automate this somehow
 #
-
-set_target_properties(MultiSense PROPERTIES VERSION "4.0.0")
+set(version "4.1.0")
+set_target_properties(MultiSense PROPERTIES VERSION "${version}")
 
 target_include_directories(MultiSense PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
 
@@ -146,17 +146,19 @@ else()
     target_link_libraries(MultiSense pthread rt)
 endif()
 
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiSenseConfig.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
+  INSTALL_DESTINATION lib/cmake/MultiSense)
+
 # create install targets
 install(TARGETS MultiSense
-  EXPORT MultiSenseConfig
+  EXPORT MultiSenseTargets
   LIBRARY DESTINATION lib
   PUBLIC_HEADER DESTINATION include/MultiSense
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin
 )
-
-install(EXPORT MultiSenseConfig
-    DESTINATION lib/cmake/MultiSense)
 
 if(MULTISENSE_INSTALL_WIRE_PROTOCOL)
   install(FILES
@@ -190,3 +192,20 @@ if(MULTISENSE_INSTALL_WIRE_PROTOCOL)
       include/MultiSense/details/utility/win32)
   endif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 endif(MULTISENSE_INSTALL_WIRE_PROTOCOL)
+
+install(EXPORT MultiSenseTargets
+  DESTINATION lib/cmake/MultiSense)
+
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake"
+  VERSION "${version}"
+  COMPATIBILITY AnyNewerVersion
+  )
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake
+  DESTINATION lib/cmake/MultiSense)
+
+
+install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)
