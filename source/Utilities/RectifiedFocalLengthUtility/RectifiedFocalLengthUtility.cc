@@ -98,9 +98,10 @@ int main(int    argc,
         }
 
     //
-    // Verify options
+    // Verify options. New focal lengths should be positive and large enough for the onboard
+    // stereo pipeline
 
-    if (rectifiedFocalLength < 0.0) {
+    if (rectifiedFocalLength < 200.0) {
         fprintf(stderr, "Invalid rectified focal length\n");
         usage(*argvPP);
     }
