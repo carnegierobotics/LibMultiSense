@@ -2006,7 +2006,7 @@ public:
      */
 
     bool setDutyCycle(float percent) {
-        if (percent < 0.0 || percent > MAX_DUTY_CYCLE)
+        if (percent < 0.0f || percent > MAX_DUTY_CYCLE)
             return false;
 
         std::fill(m_dutyCycle.begin(),
@@ -2029,7 +2029,7 @@ public:
     bool setDutyCycle(uint32_t i,
                       float    percent) {
         if (i >= MAX_LIGHTS ||
-            percent < 0.0 || percent > MAX_DUTY_CYCLE)
+            percent < 0.0f || percent > MAX_DUTY_CYCLE)
             return false;
 
         m_dutyCycle[i] = percent;
