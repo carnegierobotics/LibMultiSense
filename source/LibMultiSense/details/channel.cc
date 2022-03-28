@@ -60,7 +60,7 @@ namespace details {
 //
 // Implementation constructor
 
-impl::impl(const std::string& address) :
+impl::impl(const std::string& address, uint32_t cameraId) :
     m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
@@ -119,7 +119,7 @@ impl::impl(const std::string& address) :
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
-    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT);
+    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + cameraId);
     m_sensorAddress.sin_addr   = addr;
 
     //
@@ -660,7 +660,20 @@ Channel* Channel::Create(const std::string& address)
 {
     try {
 
-        return new details::impl(address);
+        return new details::impl(address, 0);
+
+    } catch (const std::exception& e) {
+
+        CRL_DEBUG("exception: %s\n", e.what());
+        return NULL;
+    }
+}
+
+Channel* Channel::Create(const std::string& address, uint32_t cameraId)
+{
+    try {
+
+        return new details::impl(address, cameraId);
 
     } catch (const std::exception& e) {
 
