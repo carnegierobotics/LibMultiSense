@@ -301,7 +301,7 @@ void imageCallback(const image::Header& header,
     }
 }
 
-std::pair<DataSource, DataSource> colorSourceFromArg(std::string srcStr)
+std::pair<DataSource, DataSource> colorSourceFromArg(const std::string &srcStr)
 {
     if (srcStr == "aux")
     {
@@ -420,7 +420,7 @@ int main(int    argc,
     //
     // Add callbacks
 
-    channelP->ptr()->addIsolatedCallback(imageCallback, Source_Luma_Rectified_Aux | Source_Chroma_Rectified_Aux, &userData);
+    channelP->ptr()->addIsolatedCallback(imageCallback, userSource.first | userSource.second, &userData);
 
     //
     // Start streaming
