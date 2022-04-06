@@ -189,6 +189,29 @@ typedef uint32_t ImageCompressionCodec;
 static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
 
 /**
+ * Remote head channel defines which channel is used to communicate to a
+ * specific component in the Remote Head system.
+ * The possible components are:
+ * Remote_Head_VPB The Remote Head Vision Processor Board.
+ * Remote_Head_0   The Remote Head Camera located in position 0
+ * Remote_Head_1   The Remote Head Camera located in position 1
+ * Remote_Head_2   The Remote Head Camera located in position 2
+ * Remote_Head_3   The Remote Head Camera located in position 3
+ */
+typedef uint32_t RemoteHeadChannel;
+/** The Remote Head Vision Processor Board */
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = 0;
+/** The Remote Head Camera at position 0*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 1;
+/** The Remote Head Camera at position 1*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 2;
+/** The Remote Head Camera at position 2*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 3;
+/** The Remote Head Camera at position 3*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 4;
+
+
+/**
  * Class used to request that MultiSense data be sent to a 3rd-party
  * stream destination (UDP port), currently supported only by CRL's
  * Monocular IP Camera.  This functionality is not supported by any of
@@ -2764,20 +2787,23 @@ public:
     /** The maximum number of PCBs in a device */
     static CRL_CONSTEXPR uint8_t MAX_PCBS                   = 8;
 
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL       = 1;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7       = 2;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S        = HARDWARE_REV_MULTISENSE_S7; // alias for backward source compatibility
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M        = 3;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S      = 4;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21      = 5;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21     = 6;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_C6S2_S27 = 7;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S30      = 8;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7AR     = 9;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21     = 10;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_MONOCAM  = 11;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                = 100;
-    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                = 101;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_SL                  = 1;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7                  = 2;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S                   = HARDWARE_REV_MULTISENSE_S7; // alias for backward source compatibility
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_M                   = 3;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7S                 = 4;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S21                 = 5;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST21                = 6;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_C6S2_S27            = 7;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S30                 = 8;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_S7AR                = 9;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21                = 10;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_MONOCAM             = 11;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_REMOTE_HEAD_VPB     = 12;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_REMOTE_HEAD_STEREO  = 13;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM = 14;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                           = 100;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                           = 101;
 
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;

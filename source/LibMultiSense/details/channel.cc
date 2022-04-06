@@ -669,7 +669,7 @@ Channel* Channel::Create(const std::string& address)
     }
 }
 
-Channel* Channel::Create(const std::string& address, uint32_t cameraId)
+Channel* Channel::Create(const std::string& address, const RemoteHeadChannel cameraId)
 {
     try {
 
