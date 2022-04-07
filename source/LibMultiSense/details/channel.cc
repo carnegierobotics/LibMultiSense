@@ -451,19 +451,22 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
 uint32_t impl::hardwareApiToWire(uint32_t a)
 {
     switch(a) {
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:          return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7:          return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:           return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:    return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:        return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
-    case system::DeviceInfo::HARDWARE_REV_BCAM:                   return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
-    case system::DeviceInfo::HARDWARE_REV_MONO:                   return wire::SysDeviceInfo::HARDWARE_REV_MONO;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL:                  return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7:                  return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_M:                   return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S:                 return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21:                 return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:            return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30:                 return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:             return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_VPB:     return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_VPB;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_STEREO:  return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_STEREO;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM: return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM;
+    case system::DeviceInfo::HARDWARE_REV_BCAM:                           return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
+    case system::DeviceInfo::HARDWARE_REV_MONO:                           return wire::SysDeviceInfo::HARDWARE_REV_MONO;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -472,19 +475,22 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
 uint32_t impl::hardwareWireToApi(uint32_t w)
 {
     switch(w) {
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL:       return system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7:       return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M:        return system::DeviceInfo::HARDWARE_REV_MULTISENSE_M;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27: return system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30:      return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:  return system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
-    case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                return system::DeviceInfo::HARDWARE_REV_BCAM;
-    case wire::SysDeviceInfo::HARDWARE_REV_MONO:                return system::DeviceInfo::HARDWARE_REV_MONO;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_SL:                  return system::DeviceInfo::HARDWARE_REV_MULTISENSE_SL;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7:                  return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_M:                   return system::DeviceInfo::HARDWARE_REV_MULTISENSE_M;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7S:                 return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7S;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S21:                 return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST21:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27:            return system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S30:                 return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_S7AR:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_S7AR;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM:             return system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_VPB:     return system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_VPB;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_STEREO:  return system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_STEREO;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM: return system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM;
+    case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                           return system::DeviceInfo::HARDWARE_REV_BCAM;
+    case wire::SysDeviceInfo::HARDWARE_REV_MONO:                           return system::DeviceInfo::HARDWARE_REV_MONO;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
