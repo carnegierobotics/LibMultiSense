@@ -70,6 +70,7 @@ void usage(const char *programNameP)
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-s                   : set the calibration (default is query)\n");
+    fprintf(stderr, "\t-r                   : apply calibration to remote head\n");
     fprintf(stderr, "\t-y                   : disable confirmation prompts\n");
 
     exit(-1);
@@ -79,6 +80,34 @@ bool fileExists(const std::string& name)
 {
     struct stat sbuf;
     return (0 == stat(name.c_str(), &sbuf));
+}
+
+static int getRemoteHeadIdFromString(const std::string &head_str, RemoteHeadChannel & rh)
+{
+  int err = 0;
+
+  if (head_str == "Remote_Head_VPB")
+    rh = Remote_Head_VPB;
+  else if (head_str == "Remote_Head_0")
+    rh = Remote_Head_0;
+  else if (head_str == "Remote_Head_1")
+    rh = Remote_Head_1;
+  else if (head_str == "Remote_Head_2")
+    rh = Remote_Head_2;
+  else if (head_str == "Remote_Head_3")
+    rh = Remote_Head_3;
+  else {
+    std::cerr << "Error: Unrecognized remote head" << '\n';
+    std::cerr << "Please use one of the following:" << '\n';
+    std::cerr << "\tRemote_Head_VPB" << '\n';
+    std::cerr << "\tRemote_Head_0" << '\n';
+    std::cerr << "\tRemote_Head_1" << '\n';
+    std::cerr << "\tRemote_Head_2" << '\n';
+    std::cerr << "\tRemote_Head_3" << '\n';
+    err = -1;
+  }
+
+  return err;
 }
 
 std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
@@ -121,6 +150,8 @@ int main(int    argc,
     std::string ipAddress = "10.66.171.21";
     std::string intrinsicsFile;
     std::string extrinsicsFile;
+    std::string remoteHeadChannelId;
+    bool        cameraRemoteHead=false;
     bool        setCal=false;
     bool        prompt=true;
 
@@ -129,11 +160,16 @@ int main(int    argc,
 
     int c;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:e:i:sy")))
+    while(-1 != (c = getopt(argc, argvPP, "a:e:i:r:sy")))
         switch(c) {
         case 'a': ipAddress      = std::string(optarg);    break;
         case 'i': intrinsicsFile = std::string(optarg);    break;
         case 'e': extrinsicsFile = std::string(optarg);    break;
+        case 'r': {
+            remoteHeadChannelId = std::string(optarg);
+            cameraRemoteHead = true;
+          }
+          break;
         case 's': setCal         = true;                   break;
         case 'y': prompt         = false;                  break;
         default: usage(*argvPP);                           break;
@@ -175,12 +211,22 @@ int main(int    argc,
 
     //
     // Initialize communications.
+    Channel *channelP = NULL;
+    if (cameraRemoteHead) {
+      RemoteHeadChannel rch;
+      if (getRemoteHeadIdFromString(remoteHeadChannelId, rch) < 0)
+      {
+        return -1;
+      }
+      channelP = Channel::Create(ipAddress, rch);
+    }
+    else
+      channelP = Channel::Create(ipAddress);
 
-    Channel *channelP = Channel::Create(ipAddress);
     if (NULL == channelP) {
-	fprintf(stderr, "Failed to establish communications with \"%s\"\n",
-		ipAddress.c_str());
-	return -1;
+    	fprintf(stderr, "Failed to establish communications with \"%s\"\n",
+    		ipAddress.c_str());
+    	return -1;
     }
 
     //
