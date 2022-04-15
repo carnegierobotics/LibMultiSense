@@ -12,6 +12,7 @@ cmake_minimum_required(VERSION 3.1)
 project(LibMultiSense
     LANGUAGES C CXX
     VERSION 4.1.0)
+set(CPACK_PACKAGE_VERSION "4.1.0")
 
 include (CheckCXXSourceCompiles)
 
