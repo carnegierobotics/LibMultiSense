@@ -83,6 +83,10 @@ int main(int    argc,
     std::string ipAddress = "10.66.171.21";
     double rectifiedFocalLength = -1.0;
     bool set = false;
+    bool hasAuxCamera = false;
+    double currentFocalLength = 0.0;
+    double tx = 0.0;
+    double auxTx = 0.0;
 
     //
     // Parse args
@@ -122,7 +126,6 @@ int main(int    argc,
     Status status;
 
     system::DeviceInfo info;
-    bool hasAuxCamera = false;
     status = channelP->getDeviceInfo(info);
     if (Status_Ok != status)
     {
@@ -144,13 +147,13 @@ int main(int    argc,
         goto clean_out;
     }
 
-    const double currentFocalLength = calibration.left.P[0][0];
+    currentFocalLength = calibration.left.P[0][0];
     fprintf(stdout, "updating focal length from %f to %f\n",
             currentFocalLength, rectifiedFocalLength);
 
     if (set) {
 
-        const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
+        tx = calibration.right.P[0][3] / calibration.right.P[0][0];
 
         calibration.left.P[0][0]  = rectifiedFocalLength;
         calibration.left.P[1][1]  = rectifiedFocalLength;
@@ -160,7 +163,7 @@ int main(int    argc,
 
         if (hasAuxCamera) {
 
-            const double auxTx = calibration.aux.P[0][3] / calibration.aux.P[0][0];
+            auxTx = calibration.aux.P[0][3] / calibration.aux.P[0][0];
 
             calibration.aux.P[0][0] = rectifiedFocalLength;
             calibration.aux.P[1][1] = rectifiedFocalLength;
