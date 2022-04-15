@@ -10,7 +10,8 @@
 cmake_minimum_required(VERSION 3.1)
 
 project(LibMultiSense
-    LANGUAGES C CXX)
+    LANGUAGES C CXX
+    VERSION 4.1.0)
 
 include (CheckCXXSourceCompiles)
 
@@ -77,3 +78,11 @@ set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #
 
 add_subdirectory(source)
+
+#
+# Add cpack
+#
+
+if(CMAKE_ENABLE_CPACK)
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
+endif()
