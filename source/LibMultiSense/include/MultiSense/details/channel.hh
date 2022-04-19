@@ -93,7 +93,7 @@ public:
     //
     // Construction
 
-    impl(const std::string& address, uint32_t cameraId);
+    impl(const std::string& address, const RemoteHeadChannel &cameraId);
     ~impl();
 
     //

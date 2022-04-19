@@ -60,7 +60,7 @@ namespace details {
 //
 // Implementation constructor
 
-impl::impl(const std::string& address, uint32_t cameraId) :
+impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
@@ -675,7 +675,7 @@ Channel* Channel::Create(const std::string& address)
     }
 }
 
-Channel* Channel::Create(const std::string& address, const RemoteHeadChannel cameraId)
+Channel* Channel::Create(const std::string& address, const RemoteHeadChannel &cameraId)
 {
     try {
 

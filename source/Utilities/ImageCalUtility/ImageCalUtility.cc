@@ -70,7 +70,7 @@ void usage(const char *programNameP)
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-s                   : set the calibration (default is query)\n");
-    fprintf(stderr, "\t-r                   : apply calibration to remote head\n");
+    fprintf(stderr, "\t-r                   : remote head channel (options: VPB, 0, 1, 2, 3)\n");
     fprintf(stderr, "\t-y                   : disable confirmation prompts\n");
 
     exit(-1);
@@ -86,25 +86,25 @@ static int getRemoteHeadIdFromString(const std::string &head_str, RemoteHeadChan
 {
   int err = 0;
 
-  if (head_str == "Remote_Head_VPB")
-    rh = Remote_Head_VPB;
-  else if (head_str == "Remote_Head_0")
-    rh = Remote_Head_0;
-  else if (head_str == "Remote_Head_1")
-    rh = Remote_Head_1;
-  else if (head_str == "Remote_Head_2")
-    rh = Remote_Head_2;
-  else if (head_str == "Remote_Head_3")
-    rh = Remote_Head_3;
+  if (head_str == "VPB")
+      rh = Remote_Head_VPB;
+  else if (head_str == "0")
+      rh = Remote_Head_0;
+  else if (head_str == "1")
+      rh = Remote_Head_1;
+  else if (head_str == "2")
+      rh = Remote_Head_2;
+  else if (head_str == "3")
+      rh = Remote_Head_3;
   else {
-    std::cerr << "Error: Unrecognized remote head" << '\n';
-    std::cerr << "Please use one of the following:" << '\n';
-    std::cerr << "\tRemote_Head_VPB" << '\n';
-    std::cerr << "\tRemote_Head_0" << '\n';
-    std::cerr << "\tRemote_Head_1" << '\n';
-    std::cerr << "\tRemote_Head_2" << '\n';
-    std::cerr << "\tRemote_Head_3" << '\n';
-    err = -1;
+       std::cerr << "Error: Unrecognized remote head" << '\n';
+       std::cerr << "Please use one of the following:" << '\n';
+       std::cerr << "\tVPB" << '\n';
+       std::cerr << "\t0" << '\n';
+       std::cerr << "\t1" << '\n';
+       std::cerr << "\t2" << '\n';
+       std::cerr << "\t3" << '\n';
+       err = -1;
   }
 
   return err;
@@ -166,10 +166,10 @@ int main(int    argc,
         case 'i': intrinsicsFile = std::string(optarg);    break;
         case 'e': extrinsicsFile = std::string(optarg);    break;
         case 'r': {
-            remoteHeadChannelId = std::string(optarg);
-            cameraRemoteHead = true;
-          }
-          break;
+              remoteHeadChannelId = std::string(optarg);
+              cameraRemoteHead = true;
+              break;
+        }
         case 's': setCal         = true;                   break;
         case 'y': prompt         = false;                  break;
         default: usage(*argvPP);                           break;
@@ -213,15 +213,15 @@ int main(int    argc,
     // Initialize communications.
     Channel *channelP = NULL;
     if (cameraRemoteHead) {
-      RemoteHeadChannel rch;
-      if (getRemoteHeadIdFromString(remoteHeadChannelId, rch) < 0)
-      {
-        return -1;
-      }
-      channelP = Channel::Create(ipAddress, rch);
+        RemoteHeadChannel rch;
+        if (getRemoteHeadIdFromString(remoteHeadChannelId, rch) < 0) {
+            return -1;
+        }
+        channelP = Channel::Create(ipAddress, rch);
     }
-    else
-      channelP = Channel::Create(ipAddress);
+    else {
+        channelP = Channel::Create(ipAddress);
+    }
 
     if (NULL == channelP) {
     	fprintf(stderr, "Failed to establish communications with \"%s\"\n",

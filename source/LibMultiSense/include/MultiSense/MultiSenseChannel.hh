@@ -96,7 +96,7 @@ public:
      * return A pointer to a new Channel instance
      */
 
-    static Channel* Create(const std::string& sensorAddress, uint32_t cameraId);
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel &cameraId);
 
     /**
      * Destroy a channel instance that was created using the static
