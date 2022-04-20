@@ -1,7 +1,7 @@
 /**
  * @file ImageCalUtility/ImageCalUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -55,8 +55,8 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 #include <Utilities/shared/CalibrationYaml.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
-#include <LibMultiSense/MultiSenseTypes.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseTypes.hh>
 
 using namespace crl::multisense;
 
@@ -304,8 +304,7 @@ int main(int    argc,
         memcpy (&calibration.right.R[0][0], &data["R2"].front (), data["R2"].size () * sizeof (float));
         memcpy (&calibration.right.P[0][0], &data["P2"].front (), data["P2"].size () * sizeof (float));
 
-        if (hasAuxCamera)
-        {
+        if (hasAuxCamera) {
             memcpy (&calibration.aux.M[0][0], &data["M3"].front (), data["M3"].size () * sizeof (float));
             memset (&calibration.aux.D[0], 0, sizeof (calibration.aux.D));
             memcpy (&calibration.aux.D[0], &data["D3"].front (), data["D3"].size () * sizeof (float));

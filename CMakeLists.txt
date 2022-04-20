@@ -10,10 +10,17 @@
 cmake_minimum_required(VERSION 3.1)
 
 project(LibMultiSense
-    LANGUAGES C CXX)
+    LANGUAGES C CXX
+    VERSION 4.1.0)
+set(CPACK_PACKAGE_VERSION "4.1.0")
+
+include (CheckCXXSourceCompiles)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(-W4 -WX)
+    string (REGEX REPLACE "/W3" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    string (REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    add_compile_options(/WX)
+
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -D_WINSOCK_DEPRECATED_NO_WARNINGS)
 else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
@@ -28,6 +35,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
+option (BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
 
 #
 # We want to build "Release" by default
@@ -36,6 +44,17 @@ option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defau
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Selecting default build type: Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
+endif ()
+
+#
+# Check if the compiler supports constexpr
+#
+check_cxx_source_compiles (
+    "int main() { constexpr int x = 0; }"
+    HAVE_CONSTEXPR
+)
+if (HAVE_CONSTEXPR)
+    add_definitions(-DCRL_HAVE_CONSTEXPR)
 endif ()
 
 #
@@ -60,3 +79,11 @@ set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #
 
 add_subdirectory(source)
+
+#
+# Add cpack
+#
+
+if(CMAKE_ENABLE_CPACK)
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
+endif()

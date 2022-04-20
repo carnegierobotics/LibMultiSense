@@ -1,7 +1,7 @@
 /**
  * @file ImuConfigUtility/ImuConfigUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -52,7 +52,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 

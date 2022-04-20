@@ -1,7 +1,7 @@
 /**
  * @file PointCloudUtility/PointCloudUtility.cc
  *
- * Copyright 2020
+ * Copyright 2020-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -58,8 +58,8 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 
-#include <LibMultiSense/details/utility/Portability.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 
@@ -95,9 +95,9 @@ void signalHandler(int sig)
 
 struct WorldPoint
 {
-    double x = 0.0;
-    double y = 0.0;
-    double z = 0.0;
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
     uint8_t luma = 0u;
 };
 
@@ -211,7 +211,7 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBuff
     const double fy = calibration.left.P[1][1] * yScale;
     const double cx = calibration.left.P[0][2] * xScale;
     const double cy = calibration.left.P[1][2] * yScale;
-    const double tx = calibration.right.P[0][3] / calibration.left.P[0][0];
+    const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
     const double cxRight = calibration.right.P[0][2] * xScale;
 
     const uint16_t *disparityP = reinterpret_cast<const uint16_t*>(disparity->data().imageDataP);
@@ -247,9 +247,12 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBuff
             const double xB = ((fy * tx) * w) + (-fy * cx * tx);
             const double yB = ((fx * tx) * h) + (-fx * cy * tx);
             const double zB = (fx * fy * tx);
-            const double B = (-fy * d) + (fy * (cx - cxRight));
+            const double invB = 1. / (-fy * d) + (fy * (cx - cxRight));
 
-            points.emplace_back(WorldPoint{xB/B, yB/B, zB/B, leftRectifiedP[index]});
+            points.emplace_back(WorldPoint{static_cast<float>(xB * invB),
+                                           static_cast<float>(yB * invB),
+                                           static_cast<float>(zB * invB),
+                                           leftRectifiedP[index]});
         }
     }
 
@@ -329,6 +332,7 @@ void imageCallback(const image::Header& header,
     //
     // Note this implementation of writing ply files can be slow since they are written in ascii
 
+    std::cout << "Saving pointcloud for image header " << header.frameId << std::endl;
     savePly(std::to_string(header.frameId) + ".ply", reprojectDisparity(userData->disparity,
                                                                         userData->leftRectified,
                                                                         userData->calibration,

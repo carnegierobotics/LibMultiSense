@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/constants.cc
  *
- * Copyright 2021
+ * Copyright 2021-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -36,69 +36,69 @@
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/details/utility/BufferStream.hh>
-#include <MultiSense/details/wire/Protocol.h>
+#include <MultiSense/details/wire/Protocol.hh>
 #include <MultiSense/MultiSenseTypes.hh>
 
 
-#include <MultiSense/details/wire/AckMessage.h>
-#include <MultiSense/details/wire/CamConfigMessage.h>
-#include <MultiSense/details/wire/CamControlMessage.h>
-#include <MultiSense/details/wire/CamGetConfigMessage.h>
-#include <MultiSense/details/wire/CamGetHistoryMessage.h>
-#include <MultiSense/details/wire/CamHistoryMessage.h>
-#include <MultiSense/details/wire/CamSetResolutionMessage.h>
-#include <MultiSense/details/wire/CamSetTriggerSourceMessage.h>
-#include <MultiSense/details/wire/CompressedImageMessage.h>
-#include <MultiSense/details/wire/DisparityMessage.h>
-#include <MultiSense/details/wire/ExposureConfigMessage.h>
-#include <MultiSense/details/wire/ImageMessage.h>
-#include <MultiSense/details/wire/ImageMetaMessage.h>
-#include <MultiSense/details/wire/ImuConfigMessage.h>
-#include <MultiSense/details/wire/ImuDataMessage.h>
-#include <MultiSense/details/wire/ImuGetConfigMessage.h>
-#include <MultiSense/details/wire/ImuGetInfoMessage.h>
-#include <MultiSense/details/wire/ImuInfoMessage.h>
-#include <MultiSense/details/wire/JpegMessage.h>
-#include <MultiSense/details/wire/LedGetSensorStatusMessage.h>
-#include <MultiSense/details/wire/LedGetStatusMessage.h>
-#include <MultiSense/details/wire/LedSensorStatusMessage.h>
-#include <MultiSense/details/wire/LedSetMessage.h>
-#include <MultiSense/details/wire/LedStatusMessage.h>
-#include <MultiSense/details/wire/LidarDataMessage.h>
-#include <MultiSense/details/wire/LidarPollMotorMessage.h>
-#include <MultiSense/details/wire/LidarSetMotorMessage.h>
-#include <MultiSense/details/wire/PollMotorInfoMessage.h>
-#include <MultiSense/details/wire/StatusRequestMessage.h>
-#include <MultiSense/details/wire/StatusResponseMessage.h>
-#include <MultiSense/details/wire/StreamControlMessage.h>
-#include <MultiSense/details/wire/SysCameraCalibrationMessage.h>
-#include <MultiSense/details/wire/SysDeviceInfoMessage.h>
-#include <MultiSense/details/wire/SysDeviceModesMessage.h>
-#include <MultiSense/details/wire/SysDirectedStreamsMessage.h>
-#include <MultiSense/details/wire/SysExternalCalibrationMessage.h>
-#include <MultiSense/details/wire/SysFlashOpMessage.h>
-#include <MultiSense/details/wire/SysFlashResponseMessage.h>
-#include <MultiSense/details/wire/SysGetCameraCalibrationMessage.h>
-#include <MultiSense/details/wire/SysGetDeviceInfoMessage.h>
-#include <MultiSense/details/wire/SysGetDeviceModesMessage.h>
-#include <MultiSense/details/wire/SysGetDirectedStreamsMessage.h>
-#include <MultiSense/details/wire/SysGetExternalCalibrationMessage.h>
-#include <MultiSense/details/wire/SysGetLidarCalibrationMessage.h>
-#include <MultiSense/details/wire/SysGetMtuMessage.h>
-#include <MultiSense/details/wire/SysGetNetworkMessage.h>
-#include <MultiSense/details/wire/SysGetSensorCalibrationMessage.h>
-#include <MultiSense/details/wire/SysGetTransmitDelayMessage.h>
-#include <MultiSense/details/wire/SysLidarCalibrationMessage.h>
-#include <MultiSense/details/wire/SysMtuMessage.h>
-#include <MultiSense/details/wire/SysNetworkMessage.h>
-#include <MultiSense/details/wire/SysPpsMessage.h>
-#include <MultiSense/details/wire/SysSensorCalibrationMessage.h>
-#include <MultiSense/details/wire/SysSetPtpMessage.h>
-#include <MultiSense/details/wire/SysTestMtuMessage.h>
-#include <MultiSense/details/wire/SysTestMtuResponseMessage.h>
-#include <MultiSense/details/wire/SysTransmitDelayMessage.h>
-#include <MultiSense/details/wire/VersionRequestMessage.h>
-#include <MultiSense/details/wire/VersionResponseMessage.h>
+#include <MultiSense/details/wire/AckMessage.hh>
+#include <MultiSense/details/wire/CamConfigMessage.hh>
+#include <MultiSense/details/wire/CamControlMessage.hh>
+#include <MultiSense/details/wire/CamGetConfigMessage.hh>
+#include <MultiSense/details/wire/CamGetHistoryMessage.hh>
+#include <MultiSense/details/wire/CamHistoryMessage.hh>
+#include <MultiSense/details/wire/CamSetResolutionMessage.hh>
+#include <MultiSense/details/wire/CamSetTriggerSourceMessage.hh>
+#include <MultiSense/details/wire/CompressedImageMessage.hh>
+#include <MultiSense/details/wire/DisparityMessage.hh>
+#include <MultiSense/details/wire/ExposureConfigMessage.hh>
+#include <MultiSense/details/wire/ImageMessage.hh>
+#include <MultiSense/details/wire/ImageMetaMessage.hh>
+#include <MultiSense/details/wire/ImuConfigMessage.hh>
+#include <MultiSense/details/wire/ImuDataMessage.hh>
+#include <MultiSense/details/wire/ImuGetConfigMessage.hh>
+#include <MultiSense/details/wire/ImuGetInfoMessage.hh>
+#include <MultiSense/details/wire/ImuInfoMessage.hh>
+#include <MultiSense/details/wire/JpegMessage.hh>
+#include <MultiSense/details/wire/LedGetSensorStatusMessage.hh>
+#include <MultiSense/details/wire/LedGetStatusMessage.hh>
+#include <MultiSense/details/wire/LedSensorStatusMessage.hh>
+#include <MultiSense/details/wire/LedSetMessage.hh>
+#include <MultiSense/details/wire/LedStatusMessage.hh>
+#include <MultiSense/details/wire/LidarDataMessage.hh>
+#include <MultiSense/details/wire/LidarPollMotorMessage.hh>
+#include <MultiSense/details/wire/LidarSetMotorMessage.hh>
+#include <MultiSense/details/wire/PollMotorInfoMessage.hh>
+#include <MultiSense/details/wire/StatusRequestMessage.hh>
+#include <MultiSense/details/wire/StatusResponseMessage.hh>
+#include <MultiSense/details/wire/StreamControlMessage.hh>
+#include <MultiSense/details/wire/SysCameraCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysDeviceInfoMessage.hh>
+#include <MultiSense/details/wire/SysDeviceModesMessage.hh>
+#include <MultiSense/details/wire/SysDirectedStreamsMessage.hh>
+#include <MultiSense/details/wire/SysExternalCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysFlashOpMessage.hh>
+#include <MultiSense/details/wire/SysFlashResponseMessage.hh>
+#include <MultiSense/details/wire/SysGetCameraCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysGetDeviceInfoMessage.hh>
+#include <MultiSense/details/wire/SysGetDeviceModesMessage.hh>
+#include <MultiSense/details/wire/SysGetDirectedStreamsMessage.hh>
+#include <MultiSense/details/wire/SysGetExternalCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysGetLidarCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysGetMtuMessage.hh>
+#include <MultiSense/details/wire/SysGetNetworkMessage.hh>
+#include <MultiSense/details/wire/SysGetSensorCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysGetTransmitDelayMessage.hh>
+#include <MultiSense/details/wire/SysLidarCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysMtuMessage.hh>
+#include <MultiSense/details/wire/SysNetworkMessage.hh>
+#include <MultiSense/details/wire/SysPpsMessage.hh>
+#include <MultiSense/details/wire/SysSensorCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysSetPtpMessage.hh>
+#include <MultiSense/details/wire/SysTestMtuMessage.hh>
+#include <MultiSense/details/wire/SysTestMtuResponseMessage.hh>
+#include <MultiSense/details/wire/SysTransmitDelayMessage.hh>
+#include <MultiSense/details/wire/VersionRequestMessage.hh>
+#include <MultiSense/details/wire/VersionResponseMessage.hh>
 
 namespace crl {
 namespace multisense {

@@ -1,7 +1,7 @@
 /**
  * @file LidarCalUtility/LidarCalUtility.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -55,7 +55,7 @@
 
 #include <Utilities/portability/getopt/getopt.h>
 #include <Utilities/shared/CalibrationYaml.hh>
-#include <LibMultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 

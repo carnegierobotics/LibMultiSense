@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/details/public.cc
  *
- * Copyright 2013
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -37,67 +37,67 @@
 #include <stdlib.h>
 #include <algorithm>
 
-#include "details/utility/Functional.hh"
+#include "MultiSense/details/utility/Functional.hh"
 
-#include "details/channel.hh"
-#include "details/query.hh"
+#include "MultiSense/details/channel.hh"
+#include "MultiSense/details/query.hh"
 
-#include "details/wire/VersionRequestMessage.h"
-#include "details/wire/VersionResponseMessage.h"
-#include "details/wire/StatusRequestMessage.h"
-#include "details/wire/StatusResponseMessage.h"
+#include "MultiSense/details/wire/VersionRequestMessage.hh"
+#include "MultiSense/details/wire/VersionResponseMessage.hh"
+#include "MultiSense/details/wire/StatusRequestMessage.hh"
+#include "MultiSense/details/wire/StatusResponseMessage.hh"
 
-#include "details/wire/StreamControlMessage.h"
-#include "details/wire/SysSetPtpMessage.h"
-#include "details/wire/SysGetDirectedStreamsMessage.h"
-#include "details/wire/SysDirectedStreamsMessage.h"
+#include "MultiSense/details/wire/StreamControlMessage.hh"
+#include "MultiSense/details/wire/SysSetPtpMessage.hh"
+#include "MultiSense/details/wire/SysGetDirectedStreamsMessage.hh"
+#include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
 
-#include "details/wire/CamControlMessage.h"
-#include "details/wire/CamSetResolutionMessage.h"
-#include "details/wire/CamGetConfigMessage.h"
-#include "details/wire/CamConfigMessage.h"
-#include "details/wire/CamSetTriggerSourceMessage.h"
+#include "MultiSense/details/wire/CamControlMessage.hh"
+#include "MultiSense/details/wire/CamSetResolutionMessage.hh"
+#include "MultiSense/details/wire/CamGetConfigMessage.hh"
+#include "MultiSense/details/wire/CamConfigMessage.hh"
+#include "MultiSense/details/wire/CamSetTriggerSourceMessage.hh"
 
-#include "details/wire/LidarSetMotorMessage.h"
+#include "MultiSense/details/wire/LidarSetMotorMessage.hh"
 
-#include "details/wire/LedGetStatusMessage.h"
-#include "details/wire/LedSetMessage.h"
-#include "details/wire/LedStatusMessage.h"
+#include "MultiSense/details/wire/LedGetStatusMessage.hh"
+#include "MultiSense/details/wire/LedSetMessage.hh"
+#include "MultiSense/details/wire/LedStatusMessage.hh"
 
-#include "details/wire/LedGetSensorStatusMessage.h"
-#include "details/wire/LedSensorStatusMessage.h"
+#include "MultiSense/details/wire/LedGetSensorStatusMessage.hh"
+#include "MultiSense/details/wire/LedSensorStatusMessage.hh"
 
-#include "details/wire/LidarPollMotorMessage.h"
-#include "details/wire/PollMotorInfoMessage.h"
+#include "MultiSense/details/wire/LidarPollMotorMessage.hh"
+#include "MultiSense/details/wire/PollMotorInfoMessage.hh"
 
-#include "details/wire/SysMtuMessage.h"
-#include "details/wire/SysGetMtuMessage.h"
-#include "details/wire/SysFlashOpMessage.h"
-#include "details/wire/SysGetNetworkMessage.h"
-#include "details/wire/SysNetworkMessage.h"
-#include "details/wire/SysGetDeviceInfoMessage.h"
-#include "details/wire/SysDeviceInfoMessage.h"
-#include "details/wire/SysGetCameraCalibrationMessage.h"
-#include "details/wire/SysCameraCalibrationMessage.h"
-#include "details/wire/SysGetSensorCalibrationMessage.h"
-#include "details/wire/SysGetTransmitDelayMessage.h"
-#include "details/wire/SysSensorCalibrationMessage.h"
-#include "details/wire/SysTransmitDelayMessage.h"
-#include "details/wire/SysGetLidarCalibrationMessage.h"
-#include "details/wire/SysLidarCalibrationMessage.h"
-#include "details/wire/SysGetDeviceModesMessage.h"
-#include "details/wire/SysDeviceModesMessage.h"
-#include "details/wire/SysGetExternalCalibrationMessage.h"
-#include "details/wire/SysExternalCalibrationMessage.h"
-#include "details/wire/SysGroundSurfaceParamsMessage.h"
+#include "MultiSense/details/wire/SysMtuMessage.hh"
+#include "MultiSense/details/wire/SysGetMtuMessage.hh"
+#include "MultiSense/details/wire/SysFlashOpMessage.hh"
+#include "MultiSense/details/wire/SysGetNetworkMessage.hh"
+#include "MultiSense/details/wire/SysNetworkMessage.hh"
+#include "MultiSense/details/wire/SysGetDeviceInfoMessage.hh"
+#include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
+#include "MultiSense/details/wire/SysGetCameraCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysCameraCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysGetSensorCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysGetTransmitDelayMessage.hh"
+#include "MultiSense/details/wire/SysSensorCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysTransmitDelayMessage.hh"
+#include "MultiSense/details/wire/SysGetLidarCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysLidarCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysGetDeviceModesMessage.hh"
+#include "MultiSense/details/wire/SysDeviceModesMessage.hh"
+#include "MultiSense/details/wire/SysGetExternalCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
 
-#include "details/wire/ImuGetInfoMessage.h"
-#include "details/wire/ImuGetConfigMessage.h"
-#include "details/wire/ImuInfoMessage.h"
-#include "details/wire/ImuConfigMessage.h"
+#include "MultiSense/details/wire/ImuGetInfoMessage.hh"
+#include "MultiSense/details/wire/ImuGetConfigMessage.hh"
+#include "MultiSense/details/wire/ImuInfoMessage.hh"
+#include "MultiSense/details/wire/ImuConfigMessage.hh"
 
-#include "details/wire/SysTestMtuMessage.h"
-#include "details/wire/SysTestMtuResponseMessage.h"
+#include "MultiSense/details/wire/SysTestMtuMessage.hh"
+#include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
 
 namespace crl {
 namespace multisense {
@@ -729,6 +729,10 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setFlash(data.flash != 0);
 
+    c.setNumberOfPulses(data.number_of_pulses);
+
+    c.setLedStartupTime(data.led_delay_us);
+
     return Status_Ok;
 }
 
@@ -745,6 +749,10 @@ Status impl::setLightingConfig(const lighting::Config& c)
             msg.intensity[i] = static_cast<uint8_t> (255.0f * (utility::boundValue(duty, 0.0f, 100.0f) / 100.0f));
         }
     }
+
+    msg.led_delay_us = c.getStartupTime();
+
+    msg.number_of_pulses = c.getNumberOfPulses();
 
     return waitAck(msg);
 }
@@ -1261,7 +1269,7 @@ Status impl::getDeviceInfo(system::DeviceInfo& info)
 
 Status impl::getDeviceStatus(system::StatusMessage& status)
 {
-    status.uptime = m_statusResponseMessage.uptime;
+    status.uptime = static_cast<double>(m_statusResponseMessage.uptime.getNanoSeconds()) * 1e-9;
 
     status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==
         wire::StatusResponse::STATUS_GENERAL_OK;
