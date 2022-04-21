@@ -3214,22 +3214,22 @@ class MULTISENSE_API GroundSurfaceParams {
         float ground_surface_adjacent_cell_search_size_m;
 
         GroundSurfaceParams():
-            ground_surface_number_of_levels_x(0),
-            ground_surface_number_of_levels_z(0),
-            ground_surface_base_model(0),
-            ground_surface_pointcloud_grid_size(0.),
-            ground_surface_min_points_per_grid(0),
-            ground_surface_pointcloud_decimation(0),
-            ground_surface_pointcloud_max_range_m(0.),
-            ground_surface_pointcloud_min_range_m(0.),
-            ground_surface_pointcloud_max_width_m(0.),
-            ground_surface_pointcloud_min_width_m(0.),
-            ground_surface_pointcloud_max_height_m(0.),
-            ground_surface_pointcloud_min_height_m(0.),
-            ground_surface_obstacle_height_thresh_m(0.),
-            ground_surface_obstacle_percentage_thresh(0.),
-            ground_surface_max_fitting_iterations(0),
-            ground_surface_adjacent_cell_search_size_m(0.) {};
+            ground_surface_number_of_levels_x(4),
+            ground_surface_number_of_levels_z(4),
+            ground_surface_base_model(1),
+            ground_surface_pointcloud_grid_size(0.5),
+            ground_surface_min_points_per_grid(10),
+            ground_surface_pointcloud_decimation(1),
+            ground_surface_pointcloud_max_range_m(30.0),
+            ground_surface_pointcloud_min_range_m(0.5),
+            ground_surface_pointcloud_max_width_m(25.0),
+            ground_surface_pointcloud_min_width_m(-25.0),
+            ground_surface_pointcloud_max_height_m(10.0),
+            ground_surface_pointcloud_min_height_m(-10.0),
+            ground_surface_obstacle_height_thresh_m(2.0),
+            ground_surface_obstacle_percentage_thresh(0.5),
+            ground_surface_max_fitting_iterations(10),
+            ground_surface_adjacent_cell_search_size_m(1.5) {};
 };
 
 /**
