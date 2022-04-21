@@ -972,7 +972,14 @@ public:
      */
     virtual Status setExternalCalibration (const system::ExternalCalibration& calibration) = 0;
 
-    virtual Status getGroundSurfaceParams (system::GroundSurfaceParams& params) = 0;
+    /**
+     * Set the ground surface parameters associated with the MultiSense device
+     *
+     * @param params The ground surface parameters to send to the on-camera ground surface
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params) = 0;
 
     /**

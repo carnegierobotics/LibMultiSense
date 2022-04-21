@@ -190,7 +190,6 @@ public:
     virtual Status getExternalCalibration (system::ExternalCalibration& calibration);
     virtual Status setExternalCalibration (const system::ExternalCalibration& calibration);
 
-    virtual Status getGroundSurfaceParams (system::GroundSurfaceParams& params);
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params);
 
     virtual Status flashBitstream        (const std::string& file);

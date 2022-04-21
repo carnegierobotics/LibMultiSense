@@ -1332,13 +1332,6 @@ Status impl::setExternalCalibration(const system::ExternalCalibration& calibrati
     return waitAck(w);
 }
 
-Status impl::getGroundSurfaceParams (system::GroundSurfaceParams&)
-{
-    // TODO(drobinson): Implement
-
-    return Status_Ok;
-}
-
 Status impl::setGroundSurfaceParams (const system::GroundSurfaceParams& params)
 {
     wire::SysGroundSurfaceParams w;
