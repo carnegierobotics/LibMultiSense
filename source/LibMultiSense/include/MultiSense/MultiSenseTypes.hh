@@ -3193,26 +3193,84 @@ class MULTISENSE_API ExternalCalibration {
             yaw(0.) {};
 };
 
+
+
 class MULTISENSE_API GroundSurfaceParams {
     public:
 
+        /** This argument specifies how many levels of spline interpolation are to be performed in the x dimension
+         * (i.e. along the left to right horizontal dimension in front of the camera' FOV). The ultimate size of
+         * the grid of spline control points is approximately 2^number_of_levels by 2^number_of_levels. Keep in mind
+         * that each interpolated point draws from a 4x4 support region in the grid of spline control points. */
         int ground_surface_number_of_levels_x;
+
+        /** This argument specifies how many levels of spline interpolation are to be performed in the z dimension
+         * (i.e. along the optical axis, or depth towards/away from the camera). The ultimate size of the grid of
+         * spline control points is approximately 2^number_of_levels by 2^number_of_levels. Keep in mind that each
+         * interpolated point draws from a 4x4 support region in the grid of spline control points. */
         int ground_surface_number_of_levels_z;
+
+        /** The model to apply to the raw pointcloud data before modeling with a B-Spline. The Mean model is a good
+         * default as simplyassumes the world is a plane about the mean height of the pointcloud (after being
+         * transformed by extrinsics). If the mounting height of the camera is set appropriately in the extrinsic
+         * transform, and the world is generally flat, then Zero is a good choice. TheQuadratic model is useful when
+         * the extent of the pointcloud is trending upwards or downwards (i.e. while using forwards-facing camera
+         * mounted on a vehicle driving through a valley). */
         int ground_surface_base_model;
+
+        /** This is the size of grid dimension that the poiontcloud is binned into along the X/Z plane. A larger
+         * grid size means a means a coarser binned pointcloud and faster processing times, while a smaller grid
+         * size means a finer binned pointcloud. */
         float ground_surface_pointcloud_grid_size;
+
+        /** This is the minimum number of pointcloud points which ust be within a binned grid cell in oder for that
+         * cell to be used in the spline computation. This threshold helps to reduce the effect of spurious 3D points
+         * on spline modeling. */
         int ground_surface_min_points_per_grid;
+
+        /** The decimation factor for the disparity image when generating the pointcloud */
         int ground_surface_pointcloud_decimation;
+
+        /** The max pointcloud range (along the z dimension / optical axis) after applying extrinsic transform,
+         * a useful parameter to remove noisy points far from the camera */
         float ground_surface_pointcloud_max_range_m;
+
+        /** The min pointcloud range (along the z dimension / optical axis) after applying extrinsic transform,
+         * a useful parameter to remove noisy points close to the camera */
         float ground_surface_pointcloud_min_range_m;
+
+        /** The max pointcloud width (along the x dimension) after applying extrinsic transform */
         float ground_surface_pointcloud_max_width_m;
+
+        /** The min pointcloud width (along the x dimension) after applying extrinsic transform */
         float ground_surface_pointcloud_min_width_m;
+
+        /** The max pointcloud height (along the y dimension) after applying extrinsic transform, a useful
+         * parameter to remove noisy points in the sky */
         float ground_surface_pointcloud_max_height_m;
+
+        /** The min pointcloud height (along the y dimension) after applying extrinsic transform, a useful
+         * parameter to remove noisy points in the ground */
         float ground_surface_pointcloud_min_height_m;
+
+        /** This is the height threshold, in meters, that a cluster of points must be above the initial ground
+         * surface model fit in order to be classified as an obstacle. */
         float ground_surface_obstacle_height_thresh_m;
+
+        /** The percentage of points in a cell cluster that must be above the height threshold in order to classify
+         * the cell as an obstacle. For example, obstacle_percentage_thresh=0.5 requires at least half of the points
+         * in the binned cell to be above the height threshold. */
         float ground_surface_obstacle_percentage_thresh;
+
+        /** The maximum number of iterations to undertake in the spline fit and obstacle detection loop. This loop
+         * will exit early if no new obstacle cells are found from one interation to the next. */
         int ground_surface_max_fitting_iterations;
+
+        /** The size of the neighborhood to search around an obstacle cell for the lowest/minimum cell centroid
+         * height during the iterative spline fit and obstacle detection loop. */
         float ground_surface_adjacent_cell_search_size_m;
 
+        /** Default constructor */
         GroundSurfaceParams():
             ground_surface_number_of_levels_x(4),
             ground_surface_number_of_levels_z(4),
