@@ -89,6 +89,7 @@
 #include "MultiSense/details/wire/SysDeviceModesMessage.hh"
 #include "MultiSense/details/wire/SysGetExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
+#include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
 
 #include "MultiSense/details/wire/ImuGetInfoMessage.hh"
 #include "MultiSense/details/wire/ImuGetConfigMessage.hh"
@@ -1327,6 +1328,30 @@ Status impl::setExternalCalibration(const system::ExternalCalibration& calibrati
     w.calibration[3] = calibration.roll;
     w.calibration[4] = calibration.pitch;
     w.calibration[5] = calibration.yaw;
+
+    return waitAck(w);
+}
+
+Status impl::setGroundSurfaceParams (const system::GroundSurfaceParams& params)
+{
+    wire::SysGroundSurfaceParams w;
+
+    w.ground_surface_number_of_levels_x = params.ground_surface_number_of_levels_x;
+    w.ground_surface_number_of_levels_z = params.ground_surface_number_of_levels_z;
+    w.ground_surface_base_model = params.ground_surface_base_model;
+    w.ground_surface_pointcloud_grid_size = params.ground_surface_pointcloud_grid_size;
+    w.ground_surface_min_points_per_grid = params.ground_surface_min_points_per_grid;
+    w.ground_surface_pointcloud_decimation = params.ground_surface_pointcloud_decimation;
+    w.ground_surface_pointcloud_max_range_m = params.ground_surface_pointcloud_max_range_m;
+    w.ground_surface_pointcloud_min_range_m = params.ground_surface_pointcloud_min_range_m;
+    w.ground_surface_pointcloud_max_width_m = params.ground_surface_pointcloud_max_width_m;
+    w.ground_surface_pointcloud_min_width_m = params.ground_surface_pointcloud_min_width_m;
+    w.ground_surface_pointcloud_max_height_m = params.ground_surface_pointcloud_max_height_m;
+    w.ground_surface_pointcloud_min_height_m = params.ground_surface_pointcloud_min_height_m;
+    w.ground_surface_obstacle_height_thresh_m = params.ground_surface_obstacle_height_thresh_m;
+    w.ground_surface_obstacle_percentage_thresh = params.ground_surface_obstacle_percentage_thresh;
+    w.ground_surface_max_fitting_iterations = params.ground_surface_max_fitting_iterations;
+    w.ground_surface_adjacent_cell_search_size_m = params.ground_surface_adjacent_cell_search_size_m;
 
     return waitAck(w);
 }
