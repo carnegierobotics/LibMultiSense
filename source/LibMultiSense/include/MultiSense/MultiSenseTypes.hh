@@ -512,7 +512,7 @@ typedef void (*Callback)(const Header& header,
 class MULTISENSE_API ExposureConfig {
 public:
     ExposureConfig():
-      m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.75f),
+      m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.9f),
       m_autoExposureRoiX(0), m_autoExposureRoiY(0),
       m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
       m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(Exposure_Default_Target_Intensity),
@@ -1442,7 +1442,7 @@ public:
                m_hdrEnabled(false), m_storeSettingsInFlash(false),
                m_profile(User_Control),
                m_secondary_exposures(),
-               m_gamma(1.5),
+               m_gamma(2.0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
