@@ -79,6 +79,7 @@
 #include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
+#include "MultiSense/details/wire/ApriltagDetections.hh"
 
 #include <limits>
 
@@ -473,6 +474,56 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchGroundSurfaceSpline(header);
+
+        break;
+    }
+    case MSG_ID(wire::ApriltagDetections::ID):
+    {
+        wire::ApriltagDetections apriltag(stream, version);
+
+        apriltag::Header header;
+
+        header.frameId = apriltag.frameId;
+        header.timestamp = apriltag.timestamp;
+        header.success = apriltag.success;
+
+        std::cout << "incoming apriltag detection result" << std::endl;
+
+        // Loop over to convert structs
+        for (const auto &incoming : apriltag.detections)
+        {
+            apriltag::Header::ApriltagDetection outgoing;
+
+            outgoing.family = incoming.family;
+            outgoing.id = incoming.id;
+            outgoing.hamming = incoming.hamming;
+            outgoing.decision_margin = incoming.decision_margin;
+
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = 0; j < 3; j++)
+                {
+                    outgoing.image_H_tag[i][j] = incoming.image_H_tag[i][j];
+                }
+            }
+
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                outgoing.center[i] = incoming.center[i];
+            }
+
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                for (unsigned int j = 0; j < 2; j++)
+                {
+                    outgoing.corners[i][j] = incoming.corners[i][j];
+                }
+            }
+
+            header.detections.push_back(outgoing);
+        }
+
+        // dispatchAprilTagDetections(header);
 
         break;
     }

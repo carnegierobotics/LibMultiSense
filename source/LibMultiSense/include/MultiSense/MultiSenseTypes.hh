@@ -2602,6 +2602,40 @@ typedef void (*Callback)(const Header& header,
 
 } // namespace ground_surface
 
+namespace apriltag {
+
+/**
+ * Class containing Header information for a apriltag callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    struct ApriltagDetection {
+        uint64_t family;
+        uint32_t id;
+        uint8_t hamming;
+        float decision_margin;
+        double image_H_tag[3][3];
+        double center[2];
+        double corners[4][2];
+    };
+
+    int64_t     frameId;
+    int64_t     timestamp;
+    uint8_t     success;
+    std::vector<ApriltagDetection> detections;
+};
+
+/**
+ * Function pointer for receiving callbacks for apriltag data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace apriltag
+
+
 namespace system {
 
 /**

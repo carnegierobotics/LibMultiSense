@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/ApriltagDetections.hh
  *
- * This message contains ground surface spline data.
+ * This message contains apriltag detection data.
  *
  * Copyright 2021-2022
  * Carnegie Robotics, LLC
@@ -102,6 +102,8 @@ public:
 
     //
     // Constructors
+
+    ApriltagDetections(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
 
     ApriltagDetections() :
 #ifdef SENSORPOD_FIRMWARE
