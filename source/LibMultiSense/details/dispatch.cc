@@ -195,6 +195,22 @@ void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
 }
 
 //
+// Publish an AprilTag detection event
+
+void impl::dispatchAprilTagDetections(apriltag::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<AprilTagDetectionListener*>::const_iterator it;
+
+    for(it  = m_aprilTagDetectionListeners.begin();
+        it != m_aprilTagDetectionListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
+
+//
 // Dispatch incoming messages
 
 void impl::dispatch(utility::BufferStreamWriter& buffer)
@@ -474,7 +490,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchGroundSurfaceSpline(header);
-
         break;
     }
     case MSG_ID(wire::ApriltagDetections::ID):
@@ -523,8 +538,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             header.detections.push_back(outgoing);
         }
 
-        // dispatchAprilTagDetections(header);
-
+        dispatchAprilTagDetections(header);
         break;
     }
     case MSG_ID(wire::Ack::ID):

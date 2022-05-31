@@ -297,6 +297,32 @@ public:
                                        void         *userDataP=NULL) = 0;
 
     /**
+     * Add a user defined callback attached to the AprilTag result stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * AprilTag data is queued per-callback. For each AprilTag
+     * callback the maximum queue depth is 5 AprilTag messages.
+     *
+     * Adding multiple callbacks subscribing to the same AprilTag data is
+     * allowed.
+     *
+     * AprilTag data is stored on the heap and released after returning
+     * from the callback
+     *
+     * @param callback A user defined apriltag::Callback to send Ground
+     * Surface data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(apriltag::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
+    /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
      *
@@ -367,6 +393,18 @@ public:
      */
 
     virtual Status removeIsolatedCallback(ground_surface::Callback callback) = 0;
+
+    /**
+     * Unregister a user defined apriltag::Callback. This stops the callback
+     * from receiving ground surface data
+     *
+     * @param callback The user defined apriltag::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(apriltag::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available

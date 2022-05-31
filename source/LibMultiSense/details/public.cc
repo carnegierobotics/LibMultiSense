@@ -226,7 +226,7 @@ Status impl::addIsolatedCallback(compressed_image::Callback callback,
 // Adds a new Ground Surface listener
 
 Status impl::addIsolatedCallback(ground_surface::Callback callback,
-                                 void         *userDataP)
+                                 void *userDataP)
 {
     try {
 
@@ -235,6 +235,27 @@ Status impl::addIsolatedCallback(ground_surface::Callback callback,
                                                  0,
                                                  userDataP,
                                                  MAX_USER_GROUND_SURFACE_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
+// Adds a new april tag listener
+
+Status impl::addIsolatedCallback(apriltag::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_aprilTagDetectionListeners.push_back(new AprilTagDetectionListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_APRILTAG_QUEUE_SIZE));
 
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
@@ -399,6 +420,34 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_groundSurfaceSplineListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a ground surface listener
+
+Status impl::removeIsolatedCallback(apriltag::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<AprilTagDetectionListener*>::iterator it;
+        for(it  = m_aprilTagDetectionListeners.begin();
+            it != m_aprilTagDetectionListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_aprilTagDetectionListeners.erase(it);
                 return Status_Ok;
             }
         }
