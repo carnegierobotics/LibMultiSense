@@ -58,6 +58,7 @@ public:
     double center[2];
     double corners[4][2];
 
+#ifndef SENSORPOD_FIRMWARE
     //
     // Serialization routine
 
@@ -76,6 +77,7 @@ public:
         SER_ARRAY_1(center, 2);
         SER_ARRAY_2(corners, 4, 2);
     }
+#endif // !SENSORPOD_FIRMWARE
 };
 
 class ApriltagDetections {
@@ -100,21 +102,14 @@ public:
 
     std::vector<ApriltagDetection> detections;
 
+#ifndef SENSORPOD_FIRMWARE
+
     //
     // Constructors
 
     ApriltagDetections(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
 
-    ApriltagDetections() :
-#ifdef SENSORPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
-        frameId(0),
-        timestamp(0),
-        success(0),
-        detections()
-    {};
+    ApriltagDetections() {};
 
     //
     // Serialization routine
@@ -130,6 +125,8 @@ public:
         message & success;
         message & detections;
     }
+#endif // !SENSORPOD_FIRMWARE
+
 };
 
 }}}} // namespaces
