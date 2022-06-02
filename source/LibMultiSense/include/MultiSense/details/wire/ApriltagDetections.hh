@@ -46,7 +46,7 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class ApriltagDetection {
+class WIRE_HEADER_ATTRIBS_ ApriltagDetection {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
