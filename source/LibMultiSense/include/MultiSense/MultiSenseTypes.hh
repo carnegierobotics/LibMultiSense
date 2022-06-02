@@ -177,6 +177,8 @@ static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
 /** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair.
  *  Warning: This profile will be deprecated in future revisions of the software.*/
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
+/** User would like to run apriltag detector on the camera*/
+static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
 
 
 /**
