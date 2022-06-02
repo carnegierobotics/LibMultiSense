@@ -132,6 +132,7 @@ static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
+static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1U<<23);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1U<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                           = (1U<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                           = (1U<<26);

@@ -502,8 +502,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.timestamp = apriltag.timestamp;
         header.success = apriltag.success;
 
-        std::cout << "incoming apriltag detection result" << std::endl;
-
         // Loop over to convert structs
         for (const auto &incoming : apriltag.detections)
         {
