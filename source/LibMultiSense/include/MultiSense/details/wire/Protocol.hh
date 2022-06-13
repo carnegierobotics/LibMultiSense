@@ -282,6 +282,7 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_JPEG_LEFT       |
                                                             SOURCE_RGB_LEFT        |
                                                             SOURCE_GROUND_SURFACE_CLASS_IMAGE|
+                                                            SOURCE_APRILTAG_DETECTIONS       |
                                                             SOURCE_COMPRESSED_LEFT           |
                                                             SOURCE_COMPRESSED_RIGHT          |
                                                             SOURCE_COMPRESSED_AUX            |

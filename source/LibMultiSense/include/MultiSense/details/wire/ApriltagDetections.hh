@@ -46,7 +46,38 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ ApriltagDetection {
+class WIRE_HEADER_ATTRIBS_ ApriltagDetectionsHeader {
+public:
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_APRILTAG_DETECTIONS_MESSAGE;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+#ifdef SENSORPOD_FIRMWARE
+    IdType      id;
+    VersionType version;
+#endif // SENSORPOD_FIRMWARE
+
+    //
+    // Frame ID, timestamp and success flag of images that the algorithm was processed on
+
+    int64_t     frameId;
+    int64_t     timestamp;
+    uint8_t     success;
+
+    //
+    // Constructors
+
+    ApriltagDetectionsHeader() :
+#ifdef SENSORPOD_FIRMWARE
+        id(ID),
+        version(VERSION),
+#endif // SENSORPOD_FIRMWARE
+        frameId(0),
+        timestamp(0),
+        success(0)
+    {};
+};
+
+class ApriltagDetection {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
@@ -80,22 +111,8 @@ public:
 #endif // !SENSORPOD_FIRMWARE
 };
 
-class ApriltagDetections {
+class ApriltagDetections : ApriltagDetectionsHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_APRILTAG_DETECTIONS_MESSAGE;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-
-#ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
-#endif // SENSORPOD_FIRMWARE
-
-    //
-    // Frame ID, timestamp and success flag of images that the algorithm was processed on
-
-    int64_t     frameId;
-    int64_t     timestamp;
-    uint8_t     success;
 
     //
     // Apriltag detections
@@ -109,7 +126,7 @@ public:
 
     ApriltagDetections(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
 
-    ApriltagDetections() {};
+    ApriltagDetections() : detections(std::vector<ApriltagDetection>{}) {};
 
     //
     // Serialization routine
@@ -126,7 +143,6 @@ public:
         message & detections;
     }
 #endif // !SENSORPOD_FIRMWARE
-
 };
 
 }}}} // namespaces
