@@ -94,7 +94,16 @@ void signalHandler(int sig)
 void apriltagCallback(const apriltag::Header& header, void* userDataP)
 {
     (void) userDataP;
-    std::cout << "Got detection at frame: " << header.frameId << std::endl;
+    std::cout << "apriltagCallback: Got detection at frame: " << header.frameId << std::endl;
+
+    for (auto &d : header.detections)
+    {
+        std::cout << "ID: " << d.id << std::endl;
+
+        for (unsigned int i = 0; i < 4; i++)
+            std::cout << d.corners[i][0] << " " << d.corners[i][1] << std::endl;
+    }
+
 }
 
 #if 0

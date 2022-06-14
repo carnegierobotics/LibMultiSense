@@ -62,6 +62,7 @@ public:
     int64_t     frameId;
     int64_t     timestamp;
     uint8_t     success;
+    uint32_t    num_detections;
 
     //
     // Constructors
@@ -73,7 +74,8 @@ public:
 #endif // SENSORPOD_FIRMWARE
         frameId(0),
         timestamp(0),
-        success(0)
+        success(0),
+        num_detections(0)
     {};
 };
 
@@ -111,13 +113,13 @@ public:
 #endif // !SENSORPOD_FIRMWARE
 };
 
-class ApriltagDetections : ApriltagDetectionsHeader {
+class ApriltagDetections : public ApriltagDetectionsHeader {
 public:
 
     //
     // Apriltag detections
 
-    std::vector<ApriltagDetection> detections;
+    void *raw_detections_data;
 
 #ifndef SENSORPOD_FIRMWARE
 
@@ -126,7 +128,7 @@ public:
 
     ApriltagDetections(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
 
-    ApriltagDetections() : detections(std::vector<ApriltagDetection>{}) {};
+    ApriltagDetections() : raw_detections_data(nullptr) {};
 
     //
     // Serialization routine
@@ -140,7 +142,20 @@ public:
         message & frameId;
         message & timestamp;
         message & success;
-        message & detections;
+        message & num_detections;
+
+        const uint32_t wire_bytes = static_cast<uint32_t>(num_detections * sizeof(ApriltagDetection));
+
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+
+            message.write(raw_detections_data, wire_bytes);
+
+        } else {
+
+            raw_detections_data = message.peek();
+            message.seek(message.tell() + wire_bytes);
+        }
+
     }
 #endif // !SENSORPOD_FIRMWARE
 };
