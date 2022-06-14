@@ -501,9 +501,16 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.frameId = apriltag.frameId;
         header.timestamp = apriltag.timestamp;
         header.success = apriltag.success;
+        header.numDetections = apriltag.num_detections;
+
+        // Convert payload in shared memory into apriltag vector
+        std::vector<wire::ApriltagDetection> converted_detections;
+        converted_detections.resize(header.numDetections);
+        const uint64_t payload_size = sizeof(wire::ApriltagDetection) * header.numDetections;
+        memcpy(converted_detections.data(), apriltag.raw_detections_data, payload_size);
 
         // Loop over to convert structs
-        for (const auto &incoming : apriltag.detections)
+        for (const auto &incoming : converted_detections)
         {
             apriltag::Header::ApriltagDetection outgoing;
 

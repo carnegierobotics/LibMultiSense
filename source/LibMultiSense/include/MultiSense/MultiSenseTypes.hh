@@ -2627,6 +2627,7 @@ public:
     int64_t     frameId;
     int64_t     timestamp;
     uint8_t     success;
+    uint32_t    numDetections;
     std::vector<ApriltagDetection> detections;
 };
 
