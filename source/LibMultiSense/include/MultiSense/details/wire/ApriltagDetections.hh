@@ -62,7 +62,7 @@ public:
     int64_t     frameId;
     int64_t     timestamp;
     uint8_t     success;
-    uint32_t    num_detections;
+    uint32_t    numDetections;
 
     //
     // Constructors
@@ -75,7 +75,7 @@ public:
         frameId(0),
         timestamp(0),
         success(0),
-        num_detections(0)
+        numDetections(0)
     {};
 };
 
@@ -86,8 +86,8 @@ public:
     uint64_t family;
     uint32_t id;
     uint8_t hamming;
-    float decision_margin;
-    double image_H_tag[3][3];
+    float decisionMargin;
+    double tagToImageHomography[3][3];
     double center[2];
     double corners[4][2];
 
@@ -104,9 +104,9 @@ public:
         message & family;
         message & id;
         message & hamming;
-        message & decision_margin;
+        message & decisionMargin;
 
-        SER_ARRAY_2(image_H_tag, 3, 3);
+        SER_ARRAY_2(tagToImageHomography, 3, 3);
         SER_ARRAY_1(center, 2);
         SER_ARRAY_2(corners, 4, 2);
     }
@@ -119,7 +119,7 @@ public:
     //
     // Apriltag detections
 
-    void *raw_detections_data;
+    std::vector<ApriltagDetection> detections;
 
 #ifndef SENSORPOD_FIRMWARE
 
@@ -128,7 +128,7 @@ public:
 
     ApriltagDetections(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
 
-    ApriltagDetections() : raw_detections_data(nullptr) {};
+    ApriltagDetections() : detections(std::vector<ApriltagDetection>{}) {};
 
     //
     // Serialization routine
@@ -142,18 +142,21 @@ public:
         message & frameId;
         message & timestamp;
         message & success;
-        message & num_detections;
+        message & numDetections;
 
-        const uint32_t wire_bytes = static_cast<uint32_t>(num_detections * sizeof(ApriltagDetection));
+        const uint32_t wireBytes = static_cast<uint32_t>(numDetections * sizeof(ApriltagDetection));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
 
-            message.write(raw_detections_data, wire_bytes);
+            message.write(reinterpret_cast<void*>(detections.data()), wireBytes);
 
         } else {
 
-            raw_detections_data = message.peek();
-            message.seek(message.tell() + wire_bytes);
+            void *rawDetectionsData = message.peek();
+            message.seek(message.tell() + wireBytes);
+
+            detections.resize(numDetections);
+            memcpy(detections.data(), rawDetectionsData, wireBytes);
         }
 
     }

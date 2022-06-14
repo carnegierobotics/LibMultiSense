@@ -2618,8 +2618,8 @@ public:
         uint64_t family;
         uint32_t id;
         uint8_t hamming;
-        float decision_margin;
-        double image_H_tag[3][3];
+        float decisionMargin;
+        double tagToImageHomography[3][3];
         double center[2];
         double corners[4][2];
     };

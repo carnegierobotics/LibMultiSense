@@ -52,6 +52,7 @@
 #include <errno.h>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
@@ -94,16 +95,15 @@ void signalHandler(int sig)
 void apriltagCallback(const apriltag::Header& header, void* userDataP)
 {
     (void) userDataP;
-    std::cout << "apriltagCallback: Got detection at frame: " << header.frameId << std::endl;
+    std::cout << "apriltagCallback: Got result at frame: " << header.frameId << std::endl;
 
     for (auto &d : header.detections)
     {
-        std::cout << "ID: " << d.id << std::endl;
+        std::cout << "Detected AprilTag with ID: " << d.id << std::endl;
 
         for (unsigned int i = 0; i < 4; i++)
             std::cout << d.corners[i][0] << " " << d.corners[i][1] << std::endl;
     }
-
 }
 
 #if 0
@@ -189,13 +189,23 @@ int main(int    argc,
     }
 
     //
-    // Make sure firmware supports AprilTag
+    // Make sure firmware supports AprilTag detections
 
-    // if (v.sensorFirmwareVersion <= 0x0202) {
-    //     std::cerr << "IMU support requires sensor firmware version v2.3 or greater, sensor is " <<
-    //             "running v" << (v.sensorFirmwareVersion >> 8) << "." << (v.sensorFirmwareVersion & 0xff) << std::endl;
-    //     goto clean_out;
-    // }
+    std::vector<system::DeviceMode> deviceModes;
+    status = channelP->getDeviceModes(deviceModes);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to query device modes: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    const bool apriltag_supported =
+        std::any_of(deviceModes.begin(), deviceModes.end(), [](const auto &mode) {
+            return mode.supportedDataSources & Source_AprilTag_Detections; });
+
+    if (!apriltag_supported) {
+        std::cerr << "AprilTag detector not supported with this firmware" << std::endl;
+        goto clean_out;
+    }
 
     //
     // Turn off all streams by default

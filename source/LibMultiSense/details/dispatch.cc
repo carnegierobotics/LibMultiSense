@@ -501,29 +501,23 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.frameId = apriltag.frameId;
         header.timestamp = apriltag.timestamp;
         header.success = apriltag.success;
-        header.numDetections = apriltag.num_detections;
+        header.numDetections = apriltag.numDetections;
 
-        // Convert payload in shared memory into apriltag vector
-        std::vector<wire::ApriltagDetection> converted_detections;
-        converted_detections.resize(header.numDetections);
-        const uint64_t payload_size = sizeof(wire::ApriltagDetection) * header.numDetections;
-        memcpy(converted_detections.data(), apriltag.raw_detections_data, payload_size);
-
-        // Loop over to convert structs
-        for (const auto &incoming : converted_detections)
+        // Loop over detections and convert from wire to header type
+        for (const auto &incoming : apriltag.detections)
         {
             apriltag::Header::ApriltagDetection outgoing;
 
             outgoing.family = incoming.family;
             outgoing.id = incoming.id;
             outgoing.hamming = incoming.hamming;
-            outgoing.decision_margin = incoming.decision_margin;
+            outgoing.decisionMargin = incoming.decisionMargin;
 
             for (unsigned int i = 0; i < 3; i++)
             {
                 for (unsigned int j = 0; j < 3; j++)
                 {
-                    outgoing.image_H_tag[i][j] = incoming.image_H_tag[i][j];
+                    outgoing.tagToImageHomography[i][j] = incoming.tagToImageHomography[i][j];
                 }
             }
 
