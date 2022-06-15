@@ -95,52 +95,34 @@ void signalHandler(int sig)
 void apriltagCallback(const apriltag::Header& header, void* userDataP)
 {
     (void) userDataP;
-    std::cout << "apriltagCallback: Got result at frame: " << header.frameId << std::endl;
+
+    std::cout << "----------------------------" << std::endl;
+    std::cout << "frameId: " << header.frameId << std::endl;
+    std::cout << "timestamp: " << header.timestamp << std::endl;
+    std::cout << "success: " << header.success << std::endl;
+    std::cout << "numDetections: " << header.numDetections << std::endl;
 
     for (auto &d : header.detections)
     {
-        std::cout << "Detected AprilTag with ID: " << d.id << std::endl;
+        std::cout << "tag ID: " << d.id << ", family ID: " << d.family << std::endl;
+        std::cout << "\thamming: " << (int)d.hamming << std::endl;
+        std::cout << "\tdecisionMargin: " << d.decisionMargin << std::endl;
 
+        std::cout << "\tcenter: " << std::endl;
+        for (unsigned int i = 0; i < 3; i++)
+            std::cout << "\t\t" << d.tagToImageHomography[i][0] << " "
+                      << d.tagToImageHomography[i][1] << " "
+                      << d.tagToImageHomography[i][2] << std::endl;
+
+        std::cout << "\tcenter: " << std::endl;
+        for (unsigned int i = 0; i < 2; i++)
+            std::cout << "\t\t" << d.center[i] << std::endl;
+
+        std::cout << "\tcorners: " << std::endl;
         for (unsigned int i = 0; i < 4; i++)
-            std::cout << d.corners[i][0] << " " << d.corners[i][1] << std::endl;
+            std::cout << "\t\t" << d.corners[i][0] << " " << d.corners[i][1] << std::endl;
     }
 }
-
-#if 0
-void imuCallback(const imu::Header& header,
-                 void              *userDataP)
-{
-    (void) userDataP;
-    std::vector<imu::Sample>::const_iterator it = header.samples.begin();
-
-    for(; it!=header.samples.end(); ++it) {
-
-        const imu::Sample& s = *it;
-
-        switch(s.type) {
-        case imu::Sample::Type_Accelerometer: accel_samples ++; break;
-        case imu::Sample::Type_Gyroscope:     gyro_samples ++;  break;
-        case imu::Sample::Type_Magnetometer:  mag_samples ++;   break;
-        }
-
-        if (logFileP)
-            fprintf(logFileP, "%d %.6f %.6f %.6f %.6f\n",
-                    s.type,
-                    s.timeSeconds + 1e-6 * s.timeMicroSeconds,
-                    s.x, s.y, s.z);
-    }
-
-    if (-1 == sequence)
-        sequence = header.sequence;
-    else if ((sequence + 1) != header.sequence) {
-        const int32_t d = static_cast<int32_t> (header.sequence - (sequence + 1));
-        dropped += d;
-    }
-
-    sequence = header.sequence;
-    messages ++;
-}
-#endif
 
 } // anonymous
 
