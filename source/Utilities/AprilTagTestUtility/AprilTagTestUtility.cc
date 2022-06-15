@@ -99,7 +99,7 @@ void apriltagCallback(const apriltag::Header& header, void* userDataP)
     std::cout << "----------------------------" << std::endl;
     std::cout << "frameId: " << header.frameId << std::endl;
     std::cout << "timestamp: " << header.timestamp << std::endl;
-    std::cout << "success: " << header.success << std::endl;
+    std::cout << "success: " << (header.success ? "true" : "false") << std::endl;
     std::cout << "numDetections: " << header.numDetections << std::endl;
 
     for (auto &d : header.detections)
