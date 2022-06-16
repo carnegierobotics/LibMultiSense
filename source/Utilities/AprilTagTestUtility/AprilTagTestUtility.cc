@@ -108,7 +108,7 @@ void apriltagCallback(const apriltag::Header& header, void* userDataP)
         std::cout << "\thamming: " << (int)d.hamming << std::endl;
         std::cout << "\tdecisionMargin: " << d.decisionMargin << std::endl;
 
-        std::cout << "\tcenter: " << std::endl;
+        std::cout << "\ttagToImageHomography: " << std::endl;
         for (unsigned int i = 0; i < 3; i++)
             std::cout << "\t\t" << d.tagToImageHomography[i][0] << " "
                       << d.tagToImageHomography[i][1] << " "
