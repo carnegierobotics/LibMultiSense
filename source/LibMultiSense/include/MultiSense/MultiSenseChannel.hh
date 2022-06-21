@@ -1037,9 +1037,19 @@ public:
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params) = 0;
 
     /**
+     * Set the apriltag parameters associated with the MultiSense device
+     *
+     * @param params The apriltag parameters to send to the on-camera apriltag
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status setApriltagParams (const system::ApriltagParams& params) = 0;
+
+    /**
      * Flash a new FPGA bitstream file to the sensor.
      *
-     * WARNING: This member should not be used directly. Inproper usage can
+     * WARNING: This member should not be used directly. Improper usage can
      * result in the sensor being inoperable. Use the MultiSenseUpdater
      * script to update the sensor's firmware/bitstream
      *
@@ -1054,7 +1064,7 @@ public:
     /**
      * Flash a new firmware file to the sensor.
      *
-     * WARNING: This member should not be used directly. Inproper usage can
+     * WARNING: This member should not be used directly. Improper usage can
      * result in the sensor being inoperable. Use the MultiSenseUpdater
      * script to update the sensor's firmware/bitstream
      *

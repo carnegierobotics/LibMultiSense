@@ -195,6 +195,7 @@ public:
     virtual Status setExternalCalibration (const system::ExternalCalibration& calibration);
 
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params);
+    virtual Status setApriltagParams      (const system::ApriltagParams& params);
 
     virtual Status flashBitstream        (const std::string& file);
     virtual Status flashFirmware         (const std::string& file);

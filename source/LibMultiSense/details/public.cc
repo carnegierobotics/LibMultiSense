@@ -90,6 +90,7 @@
 #include "MultiSense/details/wire/SysGetExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
+#include "MultiSense/details/wire/SysApriltagParamsMessage.hh"
 
 #include "MultiSense/details/wire/ImuGetInfoMessage.hh"
 #include "MultiSense/details/wire/ImuGetConfigMessage.hh"
@@ -1405,6 +1406,20 @@ Status impl::setGroundSurfaceParams (const system::GroundSurfaceParams& params)
     return waitAck(w);
 }
 
+Status impl::setApriltagParams (const system::ApriltagParams& params)
+{
+    (void)params;
+    wire::SysApriltagParams w;
+
+    w.family = params.family;
+    w.quad_detection_blur_sigma = params.quad_detection_blur_sigma;
+    w.quad_detection_decimate = params.quad_detection_decimate;
+    w.min_border_width = params.min_border_width;
+    w.refine_quad_edges = params.refine_quad_edges;
+    w.decode_sharpening = params.decode_sharpening;
+
+    return waitAck(w);
+}
 //
 // Sets the device info
 

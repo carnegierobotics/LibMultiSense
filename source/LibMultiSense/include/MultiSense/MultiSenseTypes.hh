@@ -3405,6 +3405,100 @@ class MULTISENSE_API GroundSurfaceParams {
 };
 
 /**
+ * Class containing parameters for the apriltag fiduciual detection algorithm
+ * application which may be running on the specifically commissioned MultiSenses.
+ *
+ * Example code to set a device's apriltag parameters:
+ ** \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of ApriltagParams to store the device's params
+ *     crl::multisense::system::ApriltagParams params;
+ *
+ *     //
+ *     // Set the parameter values
+ *     params.family = "tagStandard52h13";
+ *     params.quad_detection_blur_sigma = 0.75;
+ *     params.quad_detection_decimate = 1.0;
+ *     params.min_border_width = 5;
+ *     params.refine_quad_edges = false;
+ *     params.decode_sharpening = 0.25;
+ *
+ *     //
+ *     // Send the new external calibration to the device
+ *     crl::multisense::Status status = channel->setApriltagParams(params));
+ *
+ *     //
+ *     // Check to see if the new network configuration was received
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to set the devices's apriltag params");
+ *     }
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API ApriltagParams {
+    public:
+        /** Apriltag family to detect */
+        std::string family;
+
+        /** Sigma of the Gaussian blur applied to the image before quad_detection
+         * Specified in full resolution pixels. Kernel size = 4*sigma, rounded up to
+         * the next odd number. (<0.5 results in no blur) */
+        double quad_detection_blur_sigma;
+
+        /** Amount to decimate image before detecting quads. Values < 1.0
+         *(0.5 decimation reduces height/width by half) */
+        double quad_detection_decimate;
+
+        /** Minimum border width that can be considered a valid tag. Used to filter
+         * contours based on area and perimeter. Units are in undecimated image pixels.
+         * Increasing the value will speed up the detector and may reduce false detection rates
+         * at the expense of reducing ability to detect small tags.
+         * NOTE: If this value is smaller than the smallest tag border, detector will override
+         * with the minimum border width out of the active families in the detector.
+         *
+         *        Family border widths for reference:
+         *            tag16h5 : 6 px
+         *            tag25h9 : 7 px
+         *            tag36h11 : 8 px
+         *            tagCircle21h7 : 5 px
+         *            tagCircle49h12 : 5 px
+         *            tagCustom48h12 : 6 px
+         *            tagStandard41h12 : 5 px
+         *            tagStandard52h13 : 6 px
+         */
+        size_t min_border_width;
+
+        /** Whether or not to refine the edges before attempting to decode */
+        bool refine_quad_edges;
+
+        /** How much to sharpen the quad before sampling the pixels. After the homography
+         * turns the sampled pixels into a perfect square image representing the tag bits,
+         * the sharpening is applied bring out the potentially soft edges. 0 to turn off,
+         * large values are stronger sharpening, recommended to stay below 1 */
+        double decode_sharpening;
+
+        /** Default constructor */
+        ApriltagParams():
+            family("tagStandard52h13"),
+            quad_detection_blur_sigma(0.75),
+            quad_detection_decimate(1.0),
+            min_border_width(5),
+            refine_quad_edges(false),
+            decode_sharpening(0.25) {};
+};
+
+/**
  * PTP status data associated with a specific stamped MultiSense message
  */
 class MULTISENSE_API PtpStatus {
