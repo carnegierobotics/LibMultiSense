@@ -91,7 +91,7 @@ public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     // The family of the tag
-    uint64_t family;
+    std::string family;
 
     // The ID of the tag
     uint32_t id;

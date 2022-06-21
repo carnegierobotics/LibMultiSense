@@ -55,6 +55,7 @@ public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     std::string family;
+    uint8_t max_hamming;
     double quad_detection_blur_sigma;
     double quad_detection_decimate;
     uint64_t min_border_width;
@@ -68,6 +69,7 @@ public:
     SysApriltagParams()
     {
         family = "tagStandard52h13";
+        max_hamming = 0;
         quad_detection_blur_sigma = 0.75;
         quad_detection_decimate = 1.0;
         min_border_width = 5;
@@ -85,6 +87,7 @@ public:
         (void) version;
 
         message & family;
+        message & max_hamming;
         message & quad_detection_blur_sigma;
         message & quad_detection_decimate;
         message & min_border_width;
