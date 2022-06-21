@@ -91,7 +91,7 @@ public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     // The family of the tag
-    std::string family;
+    char family[32];
 
     // The ID of the tag
     uint32_t id;
@@ -129,7 +129,8 @@ public:
     {
         (void) version;
 
-        message & family;
+        SER_ARRAY_1(family, 32);
+
         message & id;
         message & hamming;
         message & decisionMargin;

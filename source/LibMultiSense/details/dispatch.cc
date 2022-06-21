@@ -508,7 +508,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         {
             apriltag::Header::ApriltagDetection outgoing;
 
-            outgoing.family = incoming.family;
+            outgoing.family = std::string(incoming.family);
             outgoing.id = incoming.id;
             outgoing.hamming = incoming.hamming;
             outgoing.decisionMargin = incoming.decisionMargin;

@@ -2615,7 +2615,7 @@ namespace apriltag {
 class MULTISENSE_API Header : public HeaderBase {
 public:
     struct ApriltagDetection {
-        uint64_t family;
+        std::string family;
         uint32_t id;
         uint8_t hamming;
         float decisionMargin;
@@ -3425,6 +3425,7 @@ class MULTISENSE_API GroundSurfaceParams {
  *     //
  *     // Set the parameter values
  *     params.family = "tagStandard52h13";
+ *     params.max_hamming = 0;
  *     params.quad_detection_blur_sigma = 0.75;
  *     params.quad_detection_decimate = 1.0;
  *     params.min_border_width = 5;
@@ -3450,6 +3451,9 @@ class MULTISENSE_API ApriltagParams {
     public:
         /** Apriltag family to detect */
         std::string family;
+
+        /** The maximum hamming correction that will be applied while detecting codes */
+        uint8_t max_hamming;
 
         /** Sigma of the Gaussian blur applied to the image before quad_detection
          * Specified in full resolution pixels. Kernel size = 4*sigma, rounded up to
@@ -3491,6 +3495,7 @@ class MULTISENSE_API ApriltagParams {
         /** Default constructor */
         ApriltagParams():
             family("tagStandard52h13"),
+            max_hamming(0),
             quad_detection_blur_sigma(0.75),
             quad_detection_decimate(1.0),
             min_border_width(5),

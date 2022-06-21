@@ -1412,6 +1412,7 @@ Status impl::setApriltagParams (const system::ApriltagParams& params)
     wire::SysApriltagParams w;
 
     w.family = params.family;
+    w.max_hamming = params.max_hamming;
     w.quad_detection_blur_sigma = params.quad_detection_blur_sigma;
     w.quad_detection_decimate = params.quad_detection_decimate;
     w.min_border_width = params.min_border_width;
