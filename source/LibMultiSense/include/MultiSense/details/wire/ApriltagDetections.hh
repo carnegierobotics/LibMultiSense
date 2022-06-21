@@ -56,9 +56,6 @@ public:
     VersionType version;
 #endif // SENSORPOD_FIRMWARE
 
-    //
-    // Frame ID, timestamp and success flag of images that the algorithm was processed on
-
     // The frame ID of the image that the apriltags were detected on
     int64_t     frameId;
 
