@@ -99,6 +99,7 @@ void apriltagCallback(const apriltag::Header& header, void* userDataP)
     std::cout << "----------------------------" << std::endl;
     std::cout << "frameId: " << header.frameId << std::endl;
     std::cout << "timestamp: " << header.timestamp << std::endl;
+    std::cout << "imageSource: " << header.imageSource << std::endl;
     std::cout << "success: " << (header.success ? "true" : "false") << std::endl;
     std::cout << "numDetections: " << header.numDetections << std::endl;
 
@@ -209,6 +210,38 @@ int main(int    argc,
     status = channelP->setMtu(mtu);
     if (Status_Ok != status) {
         std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    //
+    // Enable apriltag profile
+
+    image::Config cfg;
+
+    status = channelP->getImageConfig(cfg);
+    if (Status_Ok != status) {
+        std::cerr << "Reconfigure: failed to query image config: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    crl::multisense::CameraProfile profile = crl::multisense::User_Control;
+    profile |= crl::multisense::AprilTag;
+    cfg.setCameraProfile(profile);
+
+    status = channelP->setImageConfig(cfg);
+    if (Status_Ok != status) {
+        std::cerr << "Reconfigure: failed to set image config: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    //
+    // Send default parameters
+
+    crl::multisense::system::ApriltagParams params;
+
+    status = channelP->setApriltagParams(params);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to set apriltag params: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
