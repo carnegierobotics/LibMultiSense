@@ -2615,19 +2615,41 @@ namespace apriltag {
 class MULTISENSE_API Header : public HeaderBase {
 public:
     struct ApriltagDetection {
+        /** The family of the tag */
         std::string family;
+        /** The ID of the tag */
         uint32_t id;
+        /** The hamming distance between the detection and the real code */
         uint8_t hamming;
+        /** The quality/confidence of the binary decoding process
+         * average difference between intensity of data bit vs decision thresh.
+         * Higher is better. Only useful for small tags */
         float decisionMargin;
+        /** The 3x3 homography matrix describing the projection from an
+         * "ideal" tag (with corners at (-1,1), (1,1), (1,-1), and (-1,
+         * -1)) to pixels in the image */
         double tagToImageHomography[3][3];
+        /** The 2D position of the origin of the tag in the image */
         double center[2];
+        /** The 4 tag corner pixel locations in the order:
+         * point 0: [-squareLength / 2, squareLength / 2]
+         * point 1: [ squareLength / 2, squareLength / 2]
+         * point 2: [ squareLength / 2, -squareLength / 2]
+         * point 3: [-squareLength / 2, -squareLength / 2] */
         double corners[4][2];
     };
 
+    /** The frame ID of the image that the apriltags were detected on */
     int64_t     frameId;
+    /** The frame timestamp (nanoseconds) of the image that the apriltags were detected on */
     int64_t     timestamp;
+    /** The image source that the apriltags were detected on */
+    std::string imageSource;
+    /** Success flag to indicate whether for the apriltag algorithm ran successfully */
     uint8_t     success;
+    /** The number of apriltags that were detected */
     uint32_t    numDetections;
+    /** Apriltag detections */
     std::vector<ApriltagDetection> detections;
 };
 

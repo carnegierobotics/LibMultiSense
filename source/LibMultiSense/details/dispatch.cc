@@ -500,6 +500,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         header.frameId = apriltag.frameId;
         header.timestamp = apriltag.timestamp;
+        header.imageSource = std::string(apriltag.imageSource);
         header.success = apriltag.success;
         header.numDetections = apriltag.numDetections;
 
@@ -521,10 +522,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
                 }
             }
 
-            for (unsigned int i = 0; i < 2; i++)
-            {
-                outgoing.center[i] = incoming.center[i];
-            }
+            outgoing.center[0] = incoming.center[0];
+            outgoing.center[1] = incoming.center[1];
 
             for (unsigned int i = 0; i < 4; i++)
             {

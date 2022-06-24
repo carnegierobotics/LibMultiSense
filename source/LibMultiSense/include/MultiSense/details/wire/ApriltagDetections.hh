@@ -62,6 +62,9 @@ public:
     // The frame timestamp (nanoseconds) of the image that the apriltags were detected on
     int64_t     timestamp;
 
+    // The image source that the apriltags were detected on
+    char imageSource[32];
+
     // Success flag to indicate whether for the apriltag algorithm ran successfully
     uint8_t     success;
 
@@ -80,7 +83,9 @@ public:
         timestamp(0),
         success(0),
         numDetections(0)
-    {};
+    {
+        strncpy(imageSource, "", sizeof(imageSource));
+    };
 };
 
 class ApriltagDetection {
@@ -127,11 +132,9 @@ public:
         (void) version;
 
         SER_ARRAY_1(family, 32);
-
         message & id;
         message & hamming;
         message & decisionMargin;
-
         SER_ARRAY_2(tagToImageHomography, 3, 3);
         SER_ARRAY_1(center, 2);
         SER_ARRAY_2(corners, 4, 2);
@@ -167,6 +170,7 @@ public:
 
         message & frameId;
         message & timestamp;
+        SER_ARRAY_1(imageSource, 32);
         message & success;
         message & numDetections;
 
