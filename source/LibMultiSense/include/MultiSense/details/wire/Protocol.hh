@@ -220,6 +220,8 @@ static CRL_CONSTEXPR IdType ID_DATA_EXPOSURE_CONFIG                    = 0x011e;
 static CRL_CONSTEXPR IdType ID_DATA_GROUND_SURFACE_SPLINE_DATA_MESSAGE = 0x011f;
 static CRL_CONSTEXPR IdType ID_DATA_COMPRESSED_IMAGE                   = 0x0120;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_GROUND_SURFACE_PARAM           = 0x0121;
+static CRL_CONSTEXPR IdType ID_DATA_APRILTAG_DETECTIONS_MESSAGE        = 0x0122;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_APRILTAG_PARAM                 = 0x0123;
 
 //
 // Data sources
@@ -244,6 +246,7 @@ static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT                   = (1U<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1U<<17);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1U<<20);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1U<<22);
+static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1U<<21);
 static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR                   = (1U<<23);
 static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN                  = (1U<<24);
 static CRL_CONSTEXPR SourceType SOURCE_IMU                         = (1U<<25);
@@ -280,6 +283,7 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_JPEG_LEFT       |
                                                             SOURCE_RGB_LEFT        |
                                                             SOURCE_GROUND_SURFACE_CLASS_IMAGE|
+                                                            SOURCE_APRILTAG_DETECTIONS       |
                                                             SOURCE_COMPRESSED_LEFT           |
                                                             SOURCE_COMPRESSED_RIGHT          |
                                                             SOURCE_COMPRESSED_AUX            |

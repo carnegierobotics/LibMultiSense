@@ -90,6 +90,7 @@
 #include "MultiSense/details/wire/SysGetExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
+#include "MultiSense/details/wire/SysApriltagParamsMessage.hh"
 
 #include "MultiSense/details/wire/ImuGetInfoMessage.hh"
 #include "MultiSense/details/wire/ImuGetConfigMessage.hh"
@@ -226,7 +227,7 @@ Status impl::addIsolatedCallback(compressed_image::Callback callback,
 // Adds a new Ground Surface listener
 
 Status impl::addIsolatedCallback(ground_surface::Callback callback,
-                                 void         *userDataP)
+                                 void *userDataP)
 {
     try {
 
@@ -235,6 +236,27 @@ Status impl::addIsolatedCallback(ground_surface::Callback callback,
                                                  0,
                                                  userDataP,
                                                  MAX_USER_GROUND_SURFACE_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
+// Adds a new april tag listener
+
+Status impl::addIsolatedCallback(apriltag::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_aprilTagDetectionListeners.push_back(new AprilTagDetectionListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_APRILTAG_QUEUE_SIZE));
 
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
@@ -399,6 +421,34 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_groundSurfaceSplineListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a ground surface listener
+
+Status impl::removeIsolatedCallback(apriltag::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<AprilTagDetectionListener*>::iterator it;
+        for(it  = m_aprilTagDetectionListeners.begin();
+            it != m_aprilTagDetectionListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_aprilTagDetectionListeners.erase(it);
                 return Status_Ok;
             }
         }
@@ -1356,6 +1406,21 @@ Status impl::setGroundSurfaceParams (const system::GroundSurfaceParams& params)
     return waitAck(w);
 }
 
+Status impl::setApriltagParams (const system::ApriltagParams& params)
+{
+    (void)params;
+    wire::SysApriltagParams w;
+
+    w.family = params.family;
+    w.max_hamming = params.max_hamming;
+    w.quad_detection_blur_sigma = params.quad_detection_blur_sigma;
+    w.quad_detection_decimate = params.quad_detection_decimate;
+    w.min_border_width = params.min_border_width;
+    w.refine_quad_edges = params.refine_quad_edges;
+    w.decode_sharpening = params.decode_sharpening;
+
+    return waitAck(w);
+}
 //
 // Sets the device info
 

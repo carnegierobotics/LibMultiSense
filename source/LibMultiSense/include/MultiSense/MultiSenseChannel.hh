@@ -297,6 +297,32 @@ public:
                                        void         *userDataP=NULL) = 0;
 
     /**
+     * Add a user defined callback attached to the AprilTag result stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * AprilTag data is queued per-callback. For each AprilTag
+     * callback the maximum queue depth is 5 AprilTag messages.
+     *
+     * Adding multiple callbacks subscribing to the same AprilTag data is
+     * allowed.
+     *
+     * AprilTag data is stored on the heap and released after returning
+     * from the callback
+     *
+     * @param callback A user defined apriltag::Callback to send Ground
+     * Surface data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(apriltag::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
+    /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
      *
@@ -367,6 +393,18 @@ public:
      */
 
     virtual Status removeIsolatedCallback(ground_surface::Callback callback) = 0;
+
+    /**
+     * Unregister a user defined apriltag::Callback. This stops the callback
+     * from receiving ground surface data
+     *
+     * @param callback The user defined apriltag::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(apriltag::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available
@@ -999,9 +1037,19 @@ public:
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params) = 0;
 
     /**
+     * Set the apriltag parameters associated with the MultiSense device
+     *
+     * @param params The apriltag parameters to send to the on-camera apriltag
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status setApriltagParams (const system::ApriltagParams& params) = 0;
+
+    /**
      * Flash a new FPGA bitstream file to the sensor.
      *
-     * WARNING: This member should not be used directly. Inproper usage can
+     * WARNING: This member should not be used directly. Improper usage can
      * result in the sensor being inoperable. Use the MultiSenseUpdater
      * script to update the sensor's firmware/bitstream
      *
@@ -1016,7 +1064,7 @@ public:
     /**
      * Flash a new firmware file to the sensor.
      *
-     * WARNING: This member should not be used directly. Inproper usage can
+     * WARNING: This member should not be used directly. Improper usage can
      * result in the sensor being inoperable. Use the MultiSenseUpdater
      * script to update the sensor's firmware/bitstream
      *

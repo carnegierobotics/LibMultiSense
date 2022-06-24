@@ -56,6 +56,7 @@ endif ()
 # Recurse into each of these directories.
 #
 
+add_subdirectory(AprilTagTestUtility)
 add_subdirectory(ChangeFps)
 add_subdirectory(ChangeIpUtility)
 add_subdirectory(ChangeResolution)
