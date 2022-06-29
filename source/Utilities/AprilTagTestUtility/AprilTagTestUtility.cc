@@ -138,6 +138,12 @@ int main(int    argc,
     std::string currentAddress = "10.66.171.21";
     uint32_t    mtu            = 7200;
 
+    crl::multisense::CameraProfile  profile = crl::multisense::User_Control;
+    crl::multisense::system::ApriltagParams params;
+    bool apriltag_supported = false;
+    std::vector<system::DeviceMode> deviceModes;
+    image::Config cfg;
+
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
 #else
@@ -179,14 +185,13 @@ int main(int    argc,
     //
     // Make sure firmware supports AprilTag detections
 
-    std::vector<system::DeviceMode> deviceModes;
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to query device modes: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-    const bool apriltag_supported =
+    apriltag_supported =
         std::any_of(deviceModes.begin(), deviceModes.end(), [](const auto &mode) {
             return mode.supportedDataSources & Source_AprilTag_Detections; });
 
@@ -216,15 +221,12 @@ int main(int    argc,
     //
     // Enable apriltag profile
 
-    image::Config cfg;
-
     status = channelP->getImageConfig(cfg);
     if (Status_Ok != status) {
         std::cerr << "Reconfigure: failed to query image config: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-    crl::multisense::CameraProfile profile = crl::multisense::User_Control;
     profile |= crl::multisense::AprilTag;
     cfg.setCameraProfile(profile);
 
@@ -236,8 +238,6 @@ int main(int    argc,
 
     //
     // Send default parameters
-
-    crl::multisense::system::ApriltagParams params;
 
     status = channelP->setApriltagParams(params);
     if (Status_Ok != status) {
