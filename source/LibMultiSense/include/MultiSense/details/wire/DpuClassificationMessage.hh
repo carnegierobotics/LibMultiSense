@@ -56,6 +56,10 @@ public:
     VersionType version;
 #endif  // SENSORPOD_FIRMWARE
 
+    int64_t frameId;
+    int64_t timestamp;
+    uint8_t success;
+
     int classId;
 
     DpuClassificationResultHeader() :
