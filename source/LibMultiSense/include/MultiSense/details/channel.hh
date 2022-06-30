@@ -440,6 +440,7 @@ private:
     std::list<ImuListener*>                     m_imuListeners;
     std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
+    std::list<DpuClassificationListener*>       m_dpuClassificationListeners;
 
     //
     // A message signal interface
