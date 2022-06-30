@@ -406,7 +406,7 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Compressed_Rectified_Aux)         wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_AUX;
     if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
     if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
-
+    if (mask & Source_DpuClassification_Detections      wire_mask |= wire::SOURCE_APRILTAG_DETECTIONS;
     return wire_mask;
 }
 
