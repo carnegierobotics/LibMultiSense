@@ -2579,6 +2579,18 @@ typedef void (*Callback)(const Header& header,
 
 } // namespace ground_surface
 
+namespace dpu_classification {
+class MULTISENSE_API Header : public HeaderBase {
+    int64_t frameId;
+    int64_t timestamp;
+    uint8_t success;
+
+    int classId;
+};
+
+typedef void (*Callback)(const Header& header, void *userDataP);
+}
+
 namespace system {
 
 /**
