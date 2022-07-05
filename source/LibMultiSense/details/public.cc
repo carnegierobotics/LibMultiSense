@@ -243,6 +243,22 @@ Status impl::addIsolatedCallback(ground_surface::Callback callback,
     return Status_Ok;
 }
 
+Status impl::addIsolatedCallback(dpu_classification::Callback callback,
+                                 void       *userDataP)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+        m_dpuClassificationListeners.push_back(new DpuClassificationListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_DPU_CLASSIFICATION_QUEUE_SIZE));
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
 //
 // Removes an image listener
 
@@ -408,6 +424,27 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
         return Status_Exception;
     }
 
+    return Status_Error;
+}
+
+Status impl::removeIsolatedCallback(dpu_classification::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<DpuClassificationListener*>::iterator it;
+        for(it  = m_dpuClassificationListeners.begin();
+            it != m_dpuClassificationListeners.end();
+            it ++) {
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_dpuClassificationListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+    } catch (const std::exception& e) {
+
+    }
     return Status_Error;
 }
 
