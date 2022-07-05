@@ -406,7 +406,7 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Compressed_Rectified_Aux)         wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_AUX;
     if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
     if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
-    if (mask & Source_DpuClassification_Detections      wire_mask |= wire::SOURCE_APRILTAG_DETECTIONS;
+    if (mask & Source_DpuClassification_Detections)      wire_mask |= wire::SOURCE_DPUCLASSIFICATION_DETECTIONS;
     return wire_mask;
 }
 
@@ -444,6 +444,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT)     api_mask |= Source_Compressed_Rectified_Right;
     if (mask & wire::SOURCE_COMPRESSED_AUX)                 api_mask |= Source_Compressed_Aux;
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_AUX)       api_mask |= Source_Compressed_Rectified_Aux;
+    if (mask & wire::SOURCE_DPUCLASSIFICATION_DETECTIONS)   api_mask |= Source_DpuClassification_Detections;
 
     return api_mask;
 }
