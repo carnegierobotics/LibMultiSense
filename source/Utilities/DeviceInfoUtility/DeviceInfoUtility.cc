@@ -66,10 +66,39 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-a <ip_address>    : ip address (default=10.66.171.21)\n");
     fprintf(stderr, "\t-k <passphrase>    : passphrase for setting device info\n");
     fprintf(stderr, "\t-s <file_name>     : set device info from file\n");
+    fprintf(stderr, "\t-r                 : remote head channel (options: VPB, 0, 1, 2, 3)\n");
     fprintf(stderr, "\t-q                 : query device info (default)\n");
     fprintf(stderr, "\t-y                 : disable confirmation prompt\n");
 
     exit(-1);
+}
+
+static int getRemoteHeadIdFromString(const std::string &head_str, RemoteHeadChannel & rh)
+{
+  int err = 0;
+
+  if (head_str == "VPB")
+      rh = Remote_Head_VPB;
+  else if (head_str == "0")
+      rh = Remote_Head_0;
+  else if (head_str == "1")
+      rh = Remote_Head_1;
+  else if (head_str == "2")
+      rh = Remote_Head_2;
+  else if (head_str == "3")
+      rh = Remote_Head_3;
+  else {
+       fprintf(stderr, "Error: Unrecognized remote head\n");
+       fprintf(stderr, "Please use one of the following:\n");
+       fprintf(stderr, "\tVPB\n");
+       fprintf(stderr, "\t0'\n");
+       fprintf(stderr, "\t1\n");
+       fprintf(stderr, "\t2\n");
+       fprintf(stderr, "\t3\n");
+       err = -1;
+  }
+
+  return err;
 }
 
 //
@@ -239,6 +268,8 @@ int main(int    argc,
     std::string ipAddress  = "10.66.171.21";
     std::string key;
     std::string fileName;
+    std::string remoteHeadChannelId;
+    bool        cameraRemoteHead=false;
     bool        query  = false;
     bool        prompt = true;
 
@@ -247,11 +278,16 @@ int main(int    argc,
 
     int c;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:k:s:qy")))
+    while(-1 != (c = getopt(argc, argvPP, "a:k:s:r:qy")))
         switch(c) {
         case 'a': ipAddress = std::string(optarg);    break;
         case 'k': key       = std::string(optarg);    break;
         case 's': fileName  = std::string(optarg);    break;
+        case 'r': {
+              remoteHeadChannelId = std::string(optarg);
+              cameraRemoteHead = true;
+              break;
+        }
         case 'q': query     = true;                   break;
         case 'y': prompt    = false;                  break;
         default: usage(*argvPP);                      break;
@@ -269,7 +305,18 @@ int main(int    argc,
     //
     // Initialize communications.
 
-    Channel *channelP = Channel::Create(ipAddress);
+    Channel *channelP = NULL;
+    if (cameraRemoteHead) {
+        RemoteHeadChannel rch;
+        if (getRemoteHeadIdFromString(remoteHeadChannelId, rch) < 0) {
+            return -1;
+        }
+        channelP = Channel::Create(ipAddress, rch);
+    }
+    else {
+        channelP = Channel::Create(ipAddress);
+    }
+
     if (NULL == channelP) {
 	fprintf(stderr, "Failed to establish communications with \"%s\"\n",
 		ipAddress.c_str());
