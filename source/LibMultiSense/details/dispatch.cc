@@ -200,8 +200,8 @@ void impl::dispatchDpuClassificationResult(dpu_classification::Header& header)
 
     std::list<DpuClassificationListener*>::const_iterator it;
 
-    for(it = m_groundSurfaceSplineListeners.begin();
-        it != m_groundSurfaceSplineListeners.end();
+    for(it = m_dpuClassificationListeners.begin();
+        it != m_dpuClassificationListeners.end();
         it++)
     {
         (*it)->dispatch(header);
