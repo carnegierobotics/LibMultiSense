@@ -82,7 +82,7 @@ public:
     void* classIdPtr;
     
     DpuClassificationResult(utility::BufferStreamReader &r, VersionType v) {serialize(r, v);};
-    DpuClassificationResult() : classId(NULL) {};
+    DpuClassificationResult() : classIdPtr(NULL) {};
 
     template<class Archive>
         void serialize(Archive&          message,
@@ -98,13 +98,13 @@ public:
         const uint32_t dataSize = static_cast<uint32_t> (sizeof(classId));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-            message.write(classIdPtr, datasize);
+            message.write(classIdPtr, dataSize);
         } else {
             classIdPtr = message.peek();
             message.seek(message.tell() + dataSize);
         }
     }
-}
+};
 #endif  // !SENSORPOD_FIRMWARE
 
 }}}}    // Namespace termination
