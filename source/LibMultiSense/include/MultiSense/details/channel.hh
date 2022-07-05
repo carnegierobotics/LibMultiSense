@@ -118,7 +118,9 @@ public:
 
     virtual Status addIsolatedCallback   (dpu_classification::Callback callback,
                                           void         *userDataP); 
-
+    virtual Status addIsolatedCallback   (apriltag::Callback callback,
+                                          void         *userDataP);
+    
     virtual Status removeIsolatedCallback(image::Callback callback);
     virtual Status removeIsolatedCallback(lidar::Callback callback);
     virtual Status removeIsolatedCallback(pps::Callback   callback);
@@ -126,6 +128,7 @@ public:
     virtual Status removeIsolatedCallback(compressed_image::Callback   callback);
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
     virtual Status removeIsolatedCallback(dpu_classification::Callback callback);
+    virtual Status removeIsolatedCallback(apriltag::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -195,6 +198,7 @@ public:
     virtual Status setExternalCalibration (const system::ExternalCalibration& calibration);
 
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params);
+    virtual Status setApriltagParams      (const system::ApriltagParams& params);
 
     virtual Status flashBitstream        (const std::string& file);
     virtual Status flashFirmware         (const std::string& file);
@@ -304,6 +308,7 @@ private:
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 50;
     static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 5;
     static CRL_CONSTEXPR uint32_t MAX_USER_DPU_CLASSIFICATION_QUEUE_SIZE = 5;
+    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE = 5;
 
     //
     // The maximum number of directed streams
@@ -446,6 +451,7 @@ private:
     std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<DpuClassificationListener*>       m_dpuClassificationListeners;
+    std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
 
     //
     // A message signal interface
@@ -516,6 +522,7 @@ private:
                                                          compressed_image::Header& header);
     void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
     void                         dispatchDpuClassificationResult(dpu_classification::Header& header);
+    void                         dispatchAprilTagDetections(apriltag::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

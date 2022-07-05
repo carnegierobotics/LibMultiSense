@@ -79,6 +79,7 @@
 #include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
+#include "MultiSense/details/wire/ApriltagDetections.hh"
 #include "MultiSense/details/wire/DpuClassificationMessage.hh"
 
 #include <limits>
@@ -207,6 +208,22 @@ void impl::dispatchDpuClassificationResult(dpu_classification::Header& header)
         (*it)->dispatch(header);
     }
 }
+
+//
+// Publish an AprilTag detection event
+
+void impl::dispatchAprilTagDetections(apriltag::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<AprilTagDetectionListener*>::const_iterator it;
+
+    for(it  = m_aprilTagDetectionListeners.begin();
+        it != m_aprilTagDetectionListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
 
 //
 // Dispatch incoming messages
@@ -488,7 +505,53 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchGroundSurfaceSpline(header);
+        break;
+    }
+    case MSG_ID(wire::ApriltagDetections::ID):
+    {
+        wire::ApriltagDetections apriltag(stream, version);
 
+        apriltag::Header header;
+
+        header.frameId = apriltag.frameId;
+        header.timestamp = apriltag.timestamp;
+        header.imageSource = std::string(apriltag.imageSource);
+        header.success = apriltag.success;
+        header.numDetections = apriltag.numDetections;
+
+        // Loop over detections and convert from wire to header type
+        for (const auto &incoming : apriltag.detections)
+        {
+            apriltag::Header::ApriltagDetection outgoing;
+
+            outgoing.family = std::string(incoming.family);
+            outgoing.id = incoming.id;
+            outgoing.hamming = incoming.hamming;
+            outgoing.decisionMargin = incoming.decisionMargin;
+
+            for (unsigned int i = 0; i < 3; i++)
+            {
+                for (unsigned int j = 0; j < 3; j++)
+                {
+                    outgoing.tagToImageHomography[i][j] = incoming.tagToImageHomography[i][j];
+                }
+            }
+
+            outgoing.center[0] = incoming.center[0];
+            outgoing.center[1] = incoming.center[1];
+
+            for (unsigned int i = 0; i < 4; i++)
+            {
+                for (unsigned int j = 0; j < 2; j++)
+                {
+                    outgoing.corners[i][j] = incoming.corners[i][j];
+                }
+            }
+
+            header.detections.push_back(outgoing);
+        }
+
+        dispatchAprilTagDetections(header);
         break;
     }
     case MSG_ID(wire::DpuClassificationResult::ID):

@@ -76,7 +76,7 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-G <new_gateway>        : NEW IPV4 gateway     (default=10.66.171.1)\n");
     fprintf(stderr, "\t-N <new_netmask>        : NEW IPV4 address     (default=255.255.240.0)\n");
 #ifndef WIN32
-    fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface (requires root)\n");
+    fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface\n");
 #endif
     fprintf(stderr, "\t-y                      : disable confirmation prompt\n");
 
@@ -228,14 +228,14 @@ int main(int    argc,
 
         #ifdef __APPLE__
         if (setsockopt(sockfd,SOL_SOCKET,IP_RECVIF,iface.c_str(),iface.size()+1)==-1) {
-            perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
+            perror("setsockopt(...SO_BINDTODEVICE) failed");
             goto clean_out;
         }
         #else
         // bind to a specific interface so broadcast packet goes to the right place
         // note: on most systems, this will require elevated privileges
         if (setsockopt(sockfd,SOL_SOCKET,SO_BINDTODEVICE,iface.c_str(),iface.size()+1)==-1) {
-            perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
+            perror("setsockopt(...SO_BINDTODEVICE) failed");
             goto clean_out;
         }
         #endif

@@ -406,7 +406,9 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Compressed_Rectified_Aux)         wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_AUX;
     if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
     if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
-    if (mask & Source_DpuClassification_Detections)      wire_mask |= wire::SOURCE_DPUCLASSIFICATION_DETECTIONS;
+    if (mask & Source_AprilTag_Detections)              wire_mask |= wire::SOURCE_APRILTAG_DETECTIONS;
+    if (mask & Source_DpuClassification_Detections)     wire_mask |= wire::SOURCE_DPUCLASSIFICATION_DETECTIONS;
+    
     return wire_mask;
 }
 
@@ -438,6 +440,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
     if (mask & wire::SOURCE_GROUND_SURFACE_SPLINE_DATA)     api_mask |= Source_Ground_Surface_Spline_Data;
     if (mask & wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE)     api_mask |= Source_Ground_Surface_Class_Image;
+    if (mask & wire::SOURCE_APRILTAG_DETECTIONS)            api_mask |= Source_AprilTag_Detections;
     if (mask & wire::SOURCE_COMPRESSED_LEFT)                api_mask |= Source_Compressed_Left;
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_LEFT)      api_mask |= Source_Compressed_Rectified_Left;
     if (mask & wire::SOURCE_COMPRESSED_RIGHT)               api_mask |= Source_Compressed_Right;

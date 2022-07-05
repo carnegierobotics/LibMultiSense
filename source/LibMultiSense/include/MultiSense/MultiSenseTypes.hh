@@ -132,6 +132,7 @@ static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
+static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1U<<23);
 static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1U<<24);
 static CRL_CONSTEXPR DataSource Source_Imu                           = (1U<<25);
 static CRL_CONSTEXPR DataSource Source_Pps                           = (1U<<26);
@@ -178,8 +179,9 @@ static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
 /** User would like full resolution images from the aux camera regardless of the requested resolution of the stereo pair.
  *  Warning: This profile will be deprecated in future revisions of the software.*/
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
+/** User would like to run apriltag detector on the camera*/
+static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
 static CRL_CONSTEXPR CameraProfile DpuClassification = (1U<<6);
-
 
 /**
  * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
@@ -2617,6 +2619,62 @@ public:
 typedef void (*Callback)(const Header& header, void *userDataP);
 }
 
+namespace apriltag {
+
+/**
+ * Class containing Header information for a apriltag callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    struct ApriltagDetection {
+        /** The family of the tag */
+        std::string family;
+        /** The ID of the tag */
+        uint32_t id;
+        /** The hamming distance between the detection and the real code */
+        uint8_t hamming;
+        /** The quality/confidence of the binary decoding process
+         * average difference between intensity of data bit vs decision thresh.
+         * Higher is better. Only useful for small tags */
+        float decisionMargin;
+        /** The 3x3 homography matrix describing the projection from an
+         * "ideal" tag (with corners at (-1,1), (1,1), (1,-1), and (-1,
+         * -1)) to pixels in the image */
+        double tagToImageHomography[3][3];
+        /** The 2D position of the origin of the tag in the image */
+        double center[2];
+        /** The 4 tag corner pixel locations in the order:
+         * point 0: [-squareLength / 2, squareLength / 2]
+         * point 1: [ squareLength / 2, squareLength / 2]
+         * point 2: [ squareLength / 2, -squareLength / 2]
+         * point 3: [-squareLength / 2, -squareLength / 2] */
+        double corners[4][2];
+    };
+
+    /** The frame ID of the image that the apriltags were detected on */
+    int64_t     frameId;
+    /** The frame timestamp (nanoseconds) of the image that the apriltags were detected on */
+    int64_t     timestamp;
+    /** The image source that the apriltags were detected on */
+    std::string imageSource;
+    /** Success flag to indicate whether for the apriltag algorithm ran successfully */
+    uint8_t     success;
+    /** The number of apriltags that were detected */
+    uint32_t    numDetections;
+    /** Apriltag detections */
+    std::vector<ApriltagDetection> detections;
+};
+
+/**
+ * Function pointer for receiving callbacks for apriltag data
+ */
+typedef void (*Callback)(const Header& header,
+                         void         *userDataP);
+
+} // namespace apriltag
+
 namespace system {
 
 /**
@@ -3379,6 +3437,105 @@ class MULTISENSE_API GroundSurfaceParams {
             ground_surface_obstacle_percentage_thresh(0.5),
             ground_surface_max_fitting_iterations(10),
             ground_surface_adjacent_cell_search_size_m(1.5) {};
+};
+
+/**
+ * Class containing parameters for the apriltag fiduciual detection algorithm
+ * application which may be running on the specifically commissioned MultiSenses.
+ *
+ * Example code to set a device's apriltag parameters:
+ ** \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //
+ *     // Create a instance of ApriltagParams to store the device's params
+ *     crl::multisense::system::ApriltagParams params;
+ *
+ *     //
+ *     // Set the parameter values
+ *     params.family = "tagStandard52h13";
+ *     params.max_hamming = 0;
+ *     params.quad_detection_blur_sigma = 0.75;
+ *     params.quad_detection_decimate = 1.0;
+ *     params.min_border_width = 5;
+ *     params.refine_quad_edges = false;
+ *     params.decode_sharpening = 0.25;
+ *
+ *     //
+ *     // Send the new external calibration to the device
+ *     crl::multisense::Status status = channel->setApriltagParams(params));
+ *
+ *     //
+ *     // Check to see if the new network configuration was received
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to set the devices's apriltag params");
+ *     }
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API ApriltagParams {
+    public:
+        /** Apriltag family to detect */
+        std::string family;
+
+        /** The maximum hamming correction that will be applied while detecting codes */
+        uint8_t max_hamming;
+
+        /** Sigma of the Gaussian blur applied to the image before quad_detection
+         * Specified in full resolution pixels. Kernel size = 4*sigma, rounded up to
+         * the next odd number. (<0.5 results in no blur) */
+        double quad_detection_blur_sigma;
+
+        /** Amount to decimate image before detecting quads. Values < 1.0
+         *(0.5 decimation reduces height/width by half) */
+        double quad_detection_decimate;
+
+        /** Minimum border width that can be considered a valid tag. Used to filter
+         * contours based on area and perimeter. Units are in undecimated image pixels.
+         * Increasing the value will speed up the detector and may reduce false detection rates
+         * at the expense of reducing ability to detect small tags.
+         * NOTE: If this value is smaller than the smallest tag border, detector will override
+         * with the minimum border width out of the active families in the detector.
+         *
+         *        Family border widths for reference:
+         *            tag16h5 : 6 px
+         *            tag25h9 : 7 px
+         *            tag36h11 : 8 px
+         *            tagCircle21h7 : 5 px
+         *            tagCircle49h12 : 5 px
+         *            tagCustom48h12 : 6 px
+         *            tagStandard41h12 : 5 px
+         *            tagStandard52h13 : 6 px
+         */
+        size_t min_border_width;
+
+        /** Whether or not to refine the edges before attempting to decode */
+        bool refine_quad_edges;
+
+        /** How much to sharpen the quad before sampling the pixels. After the homography
+         * turns the sampled pixels into a perfect square image representing the tag bits,
+         * the sharpening is applied bring out the potentially soft edges. 0 to turn off,
+         * large values are stronger sharpening, recommended to stay below 1 */
+        double decode_sharpening;
+
+        /** Default constructor */
+        ApriltagParams():
+            family("tagStandard52h13"),
+            max_hamming(0),
+            quad_detection_blur_sigma(0.75),
+            quad_detection_decimate(1.0),
+            min_border_width(5),
+            refine_quad_edges(false),
+            decode_sharpening(0.25) {};
 };
 
 /**
