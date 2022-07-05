@@ -280,6 +280,9 @@ public:
     virtual Status addIsolatedCallback(ground_surface::Callback callback,
                                        void         *userDataP=NULL) = 0;
 
+    virtual Status addIsolatedCallback(dpu_classification::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
     /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
