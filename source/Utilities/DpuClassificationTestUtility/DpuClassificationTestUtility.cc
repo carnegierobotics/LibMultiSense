@@ -54,6 +54,8 @@
 #include <iomanip>
 #include <algorithm>
 
+#include <bitset>
+
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
@@ -66,7 +68,7 @@ namespace {     // Anonymous
 volatile bool quit_flag = false;
 
 void usage(const char* programNamePtr){
-    std::cerr << "USAGE: " << programNamePtr < " [<options>]" << std::endl;
+    std::cerr << "USAGE: " << programNamePtr << " [<options>]" << std::endl;
     std::cerr << "Available <options>:" << std::endl;
     std::cerr << "\t-a <ip_address> : IPV4 address of camera (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>        : Max packet size in bytes (default=7200)" << std::endl;
@@ -97,7 +99,7 @@ void dpuClassificationCallback(const dpu_classification::Header& header, void* u
     std::cout << "******************" << std::endl;
     std::cout << "Frame ID: " << header.frameId << std::endl;
     std::cout << "Time Stamp: " << header.timestamp << std::endl;
-    std::cout << "Image Source: " << header.imageSource << std::endl;
+    // std::cout << "Image Source: " << header.imageSource << std::endl;
     std::cout << "Success: " << header.success << std::endl;
     std::cout << "Classification ID: " << header.classId << std::endl;
 }
@@ -111,7 +113,9 @@ void destroyChannel(Channel* channelPtr){
 
 int main(int argc, char** argv){
     std::string currentAddress = "10.66.171.21";
-    uint32_t mtu = 7200;
+    uint32_t mtu = 1500;
+    bool dpuSupported = false;
+    image::Config cfg;
 
     crl::multisense::CameraProfile profile = crl::multisense::User_Control;
     std::vector<system::DeviceMode> deviceModes;
@@ -139,86 +143,123 @@ int main(int argc, char** argv){
     }
 
     // Camera communication initialization
+    std::cerr << "Before camera communication initialization" << std::endl;
     Channel *channelPtr = Channel::Create(currentAddress);
     if (NULL == channelPtr){
         std::cerr << "Failed to initialize communications with camera at " << currentAddress << std::endl;
         std::cerr << "Please check that IP address is valid." << std::endl;
         return -1;
     }
+    std::cerr << "*******************" << std::endl;
 
     // Fetch firmware version
     system::VersionInfo v;
+    std::cerr << "Before fetch firmware version" << std::endl;
     Status status = channelPtr->getVersionInfo(v);
     if(Status_Ok != status){
         std::cerr << "Failed to obtain sensor version: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
 
     // Check to see if firmware supports DPU classification
+    std::cerr << "Before get device modes" << std::endl;
     status = channelPtr->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
-        std::cerr << "Failed to get device modes: " << Channel:statusString(status) << std::endl;
+        std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
 
     dpuSupported = std::any_of(deviceModes.begin(), deviceModes.end(), [](const auto &mode) {
         return mode.supportedDataSources & Source_DpuClassification_Detections;});
 
+    for(auto dm : deviceModes){
+        std::cerr << "dm.supportedDataSources             = " << std::bitset<32>(dm.supportedDataSources) << std::endl;
+    }
+    std::cerr << "Source_DpuClassification_Detections = " << std::bitset<32>(Source_DpuClassification_Detections) << std::endl;
+
+    std::cerr << "Before DPU support check" << std::endl;
     if (!dpuSupported) {
         std::cerr << "DPU classification not supported with this firmware" << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
     
     // Shut down all streams
+    // FIXME:  Stopping all streams results in the following error:
+    //         00026.291 s19: Selected stream to remove does not exist. Port 16017
+    //         The port number appears variable.
+    std::cerr << "Before stop all streams" << std::endl;
     status = channelPtr->stopStreams(Source_All);
     if (Status_Ok != status){
         std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
 
     // Change MTU size
-    status = channelP->setMtu(mtu);
+    // NOTE: This will fail if the MTU is set to over 1500 when using an
+    // external USB-C to ethernet adapter.
+    std::cerr << "Before set MTU size" << std::endl;
+    status = channelPtr->setMtu(mtu);
     if (Status_Ok != status) {
         std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
 
     // Enable DPU classification profile
+    // FIXME:  This getImageConfig call results in a crash, hitting the error handler.
+    //         This corresponds the following error in the S19 binary:
+    //         00243.068 s19: Error: Invalid gain setting!
+    std::cerr << "Before get image config" << std::endl;
     status = channelPtr->getImageConfig(cfg);
     if (Status_Ok != status) {
-        std::cerr << "Reconfigure: Failed to query image config: " << Channel:statusString(status) << std::endl;
+        std::cerr << "Reconfigure: Failed to query image config: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
-
+    std::cerr << "*******************" << std::endl;
+    
     profile |= crl::multisense::DpuClassification;
     cfg.setCameraProfile(profile);
 
+    std::cerr << "Before set image config" << std::endl;
     status = channelPtr->setImageConfig(cfg);
     if (Status_Ok != status) {
         std::cerr << "Reconfigure: failed to set image config: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
-
+    std::cerr << "*******************" << std::endl;
 
     // Configure callbacks
+    std::cerr << "Before add DPU callback" << std::endl;
     channelPtr->addIsolatedCallback(dpuClassificationCallback);
+    std::cerr << "*******************" << std::endl;
 
     // Start streaming
+    // FIXME:  Starting the stream causes a segfault on the camera's S19 binary.
+    // FIXME:  This may be due to the IMU queue being disabled in the crl.ko kernel module.
+    std::cerr << "Before start streams" << std::endl;
     status = channelPtr->startStreams(Source_DpuClassification_Detections);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
 
     while(!quit_flag){
+        std::cerr << "Streaming!" << std::endl;
         usleep(100000);
     }
 
     // Stop stream
+    std::cerr << "Before stop all streams" << std::endl;
     status = channelPtr->stopStreams(Source_All);
     if (Status_Ok != status){
         std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
+    std::cerr << "*******************" << std::endl;
 }
 
