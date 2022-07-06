@@ -210,9 +210,6 @@ int main(int argc, char** argv){
     std::cerr << "*******************" << std::endl;
 
     // Enable DPU classification profile
-    // FIXME:  This getImageConfig call results in a crash, hitting the error handler.
-    //         This corresponds the following error in the S19 binary:
-    //         00243.068 s19: Error: Invalid gain setting!
     std::cerr << "Before get image config" << std::endl;
     status = channelPtr->getImageConfig(cfg);
     if (Status_Ok != status) {
@@ -224,6 +221,9 @@ int main(int argc, char** argv){
     profile |= crl::multisense::DpuClassification;
     cfg.setCameraProfile(profile);
 
+    // FIXME:  This getImageConfig call results in a crash, hitting the error handler.
+    //         This corresponds the following error in the S19 binary:
+    //         00243.068 s19: Error: Invalid gain setting!
     std::cerr << "Before set image config" << std::endl;
     status = channelPtr->setImageConfig(cfg);
     if (Status_Ok != status) {
