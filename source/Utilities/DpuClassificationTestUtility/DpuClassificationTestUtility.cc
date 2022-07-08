@@ -215,7 +215,6 @@ int main(int argc, char** argv){
     }
 
     // Configure callbacks
-    // FIXME:  This callback is registered correctly, but never seems to fire.
     status = channelPtr->addIsolatedCallback(dpuClassificationCallback);
     if (Status_Ok != status) {
         std::cerr << "Failed to add DPU callback." << std::endl;
