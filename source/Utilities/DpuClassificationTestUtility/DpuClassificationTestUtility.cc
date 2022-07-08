@@ -98,8 +98,7 @@ void dpuClassificationCallback(const dpu_classification::Header& header, void* u
     std::cout << "DPU Classification Output:" << std::endl;
     std::cout << "Frame ID: " << header.frameId << std::endl;
     std::cout << "Time Stamp: " << header.timestamp << std::endl;
-    // std::cout << "Image Source: " << header.imageSource << std::endl;
-    std::cout << "Success: " << header.success << std::endl;
+    std::cout << "Success: " << uint16_t(header.success) << std::endl;
     std::cout << "Classification ID: " << header.classId << std::endl;
 }
 
