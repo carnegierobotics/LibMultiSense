@@ -201,12 +201,6 @@ void impl::dispatchDpuClassificationResult(dpu_classification::Header& header)
 
     std::list<DpuClassificationListener*>::const_iterator it;
 
-    std::cout << "m_dpuClassificationListeners.size() = " << m_dpuClassificationListeners.size() << std::endl;
-
-    std::cout << "m_imageListeners.size() = " << m_imageListeners.size() << std::endl;
-
-    std::cout << "m_lidarListeners.size() = " << m_lidarListeners.size() << std::endl;
-
     for(it = m_dpuClassificationListeners.begin();
         it != m_dpuClassificationListeners.end();
         it++)

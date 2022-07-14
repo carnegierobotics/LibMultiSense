@@ -102,6 +102,7 @@ void dpuClassificationCallback(const dpu_classification::Header& header, void* u
     std::cout << "  Classification ID: " << header.classId << std::endl;
 }
 
+// TODO: Find out why this callback isn't firing, even though the above DPU callback is working
 void colorImageCallback(const image::Header& header, void* userDataPtr)
 {
     (void) userDataPtr;
@@ -109,7 +110,6 @@ void colorImageCallback(const image::Header& header, void* userDataPtr)
     std::cout << "******************" << std::endl;
     std::cout << "Image Output:" << std::endl;
     std::cout << "  Frame ID: " << header.frameId << std::endl;
-    // std::cout << "Time Stamp: " << header.timestamp << std::endl;
 }
 
 void destroyChannel(Channel* channelPtr){

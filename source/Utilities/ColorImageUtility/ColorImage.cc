@@ -261,7 +261,6 @@ bool saveColor(const std::string& fileName,
 void imageCallback(const image::Header& header,
         void* userDataP)
 {
-    std::cout << "Hit imageCallback!" << std::endl;
     UserData* userData = reinterpret_cast<UserData*>(userDataP);
 
 
@@ -328,8 +327,7 @@ int main(int    argc,
         char** argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    // int32_t mtu = 7200;
-    int32_t mtu = 1500;
+    int32_t mtu = 7200;
     std::pair<DataSource, DataSource> userSource{ Source_Chroma_Rectified_Aux, Source_Luma_Rectified_Aux };
 
 #if WIN32
