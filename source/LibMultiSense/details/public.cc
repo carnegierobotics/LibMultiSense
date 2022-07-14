@@ -123,6 +123,7 @@ Status impl::addIsolatedCallback(image::Callback callback,
                                  DataSource     imageSourceMask,
                                  void           *userDataP)
 {
+    std::cerr << "Adding image callback" << std::endl;
     try {
 
         utility::ScopedLock lock(m_dispatchLock);

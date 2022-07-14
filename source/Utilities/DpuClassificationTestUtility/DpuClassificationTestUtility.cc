@@ -96,10 +96,20 @@ void dpuClassificationCallback(const dpu_classification::Header& header, void* u
 
     std::cout << "******************" << std::endl;
     std::cout << "DPU Classification Output:" << std::endl;
-    std::cout << "Frame ID: " << header.frameId << std::endl;
-    std::cout << "Time Stamp: " << header.timestamp << std::endl;
-    std::cout << "Success: " << uint16_t(header.success) << std::endl;
-    std::cout << "Classification ID: " << header.classId << std::endl;
+    std::cout << "  Frame ID: " << header.frameId << std::endl;
+    std::cout << "  Time Stamp: " << header.timestamp << std::endl;
+    std::cout << "  Success: " << uint16_t(header.success) << std::endl;
+    std::cout << "  Classification ID: " << header.classId << std::endl;
+}
+
+void colorImageCallback(const image::Header& header, void* userDataPtr)
+{
+    (void) userDataPtr;
+
+    std::cout << "******************" << std::endl;
+    std::cout << "Image Output:" << std::endl;
+    std::cout << "  Frame ID: " << header.frameId << std::endl;
+    // std::cout << "Time Stamp: " << header.timestamp << std::endl;
 }
 
 void destroyChannel(Channel* channelPtr){
@@ -220,8 +230,14 @@ int main(int argc, char** argv){
         std::cerr << "Failed to add DPU callback." << std::endl;
     }
 
+    status = channelPtr->addIsolatedCallback(colorImageCallback, Source_All);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to add color image callback." << std::endl;
+    }
+
     // Start streaming
-    status = channelPtr->startStreams(Source_DpuClassification_Detections);
+    std::cerr << "Before startStreams" << std::endl;
+    status = channelPtr->startStreams(Source_DpuClassification_Detections | Source_Luma_Rectified_Left);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
