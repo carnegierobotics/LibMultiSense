@@ -230,7 +230,7 @@ int main(int argc, char** argv){
         std::cerr << "Failed to add DPU callback." << std::endl;
     }
 
-    status = channelPtr->addIsolatedCallback(colorImageCallback, Source_All);
+    status = channelPtr->addIsolatedCallback(colorImageCallback, Source_Luma_Rectified_Left);
     if (Status_Ok != status) {
         std::cerr << "Failed to add color image callback." << std::endl;
     }
