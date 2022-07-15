@@ -642,6 +642,8 @@ void *impl::statusThread(void *userDataP)
                 // Cache the status message
 
                 selfP->m_statusResponseMessage = msg;
+            } else {
+                selfP->m_statusResponseMessage.getStatusReturnStatus = crl::multisense::Status_TimedOut;
             }
 
         } catch (const std::exception& e) {
