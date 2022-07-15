@@ -121,7 +121,7 @@ void destroyChannel(Channel* channelPtr){
 
 int main(int argc, char** argv){
     std::string currentAddress = "10.66.171.21";
-    uint32_t mtu = 1500;
+    uint32_t mtu = 7200;
     bool dpuSupported = false;
     image::Config cfg;
 
