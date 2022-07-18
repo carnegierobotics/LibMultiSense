@@ -642,6 +642,9 @@ void *impl::statusThread(void *userDataP)
                 // Cache the status message
 
                 selfP->m_statusResponseMessage = msg;
+                selfP->m_getStatusReturnStatus = Status_Ok;
+            } else {
+                selfP->m_getStatusReturnStatus = Status_TimedOut;
             }
 
         } catch (const std::exception& e) {

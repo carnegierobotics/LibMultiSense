@@ -483,6 +483,10 @@ private:
     wire::StatusResponse m_statusResponseMessage;
 
     //
+    // Status set in statusThread indicating if the request for status msg timed out 
+    Status               m_getStatusReturnStatus;
+
+    //
     // Private procedures
 
     template<class T, class U> Status waitData(const T&      command,

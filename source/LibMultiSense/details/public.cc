@@ -1319,6 +1319,10 @@ Status impl::getDeviceInfo(system::DeviceInfo& info)
 
 Status impl::getDeviceStatus(system::StatusMessage& status)
 {
+    if (m_getStatusReturnStatus != Status_Ok){
+        return m_getStatusReturnStatus;
+    }
+    
     status.uptime = static_cast<double>(m_statusResponseMessage.uptime.getNanoSeconds()) * 1e-9;
 
     status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==
