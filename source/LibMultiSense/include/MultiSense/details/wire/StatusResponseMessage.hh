@@ -85,9 +85,6 @@ public:
     float              logicPower;
     float              imagerPower;
 
-    //
-    // Var to indicate if LMS is getting response to status request 
-    uint32_t           getStatusReturnStatus;
 
     //
     // Constructors
@@ -103,8 +100,7 @@ public:
                        inputCurrent(-1.0),
                        fpgaPower(-1.0),
                        logicPower(-1.0),
-                       imagerPower(-1.0),
-                       getStatusReturnStatus(0) {};
+                       imagerPower(-1.0) {};
 
     //
     // Serialization routine
