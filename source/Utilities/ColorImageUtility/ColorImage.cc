@@ -202,7 +202,7 @@ template <typename T>
         if (px_b < 0.0f)        px_b = 0.0f;
         else if (px_b > 255.0f) px_b = 255.0f;
 
-        return { static_cast<uint8_t>(px_r), static_cast<uint8_t>(px_g), static_cast<uint8_t>(px_b) };
+        return { {static_cast<uint8_t>(px_r), static_cast<uint8_t>(px_g), static_cast<uint8_t>(px_b)} };
     }
 
 void ycbcrToBgr(const crl::multisense::image::Header& luma,

@@ -157,7 +157,7 @@ public:
 
     ApriltagDetections(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
 
-    ApriltagDetections() : detections(std::vector<ApriltagDetection>{}) {};
+    ApriltagDetections() : detections(std::vector<ApriltagDetection>()) {};
 
     //
     // Serialization routine
