@@ -85,7 +85,6 @@ public:
     float              logicPower;
     float              imagerPower;
 
-
     //
     // Constructors
 
