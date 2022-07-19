@@ -296,6 +296,26 @@ public:
     virtual Status addIsolatedCallback(ground_surface::Callback callback,
                                        void         *userDataP=NULL) = 0;
 
+    /**
+     * Add a user defined callback attached to the DPU Classification result stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * DPU Classification data is queued per-callback.  For each DPU Classification
+     * callback, the maximum queue depth is 5 DPU Classification messages.
+     *
+     * Adding multiple callbacks subscribing to the same DPU Classification data is
+     * allowed.
+     *
+     * @param callback A user defined dpu_classification::Callback to send 
+     * DPU Classification data to.
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
     virtual Status addIsolatedCallback(dpu_classification::Callback callback,
                                        void         *userDataP=NULL) = 0;
 
