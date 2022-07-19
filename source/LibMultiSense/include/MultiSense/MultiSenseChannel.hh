@@ -430,6 +430,17 @@ public:
     virtual Status removeIsolatedCallback(apriltag::Callback callback) = 0;
 
     /**
+     * Unregister a user defined dpu_classification::Callback. This stops the callback
+     * from receiving DPU Classification data
+     *
+     * @param callback The user defined dpu_classification::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+    virtual Status removeIsolatedCallback(dpu_classification::Callback callback) = 0;
+
+    /**
      * Reserve image or lidar data within a isolated callback so it is available
      * after the callback returns.
      *

@@ -449,6 +449,9 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
     return Status_Error;
 }
 
+//
+// Removes a DPU Classification listener
+
 Status impl::removeIsolatedCallback(dpu_classification::Callback callback)
 {
     try {
