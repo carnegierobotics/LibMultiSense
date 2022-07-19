@@ -102,7 +102,6 @@ void dpuClassificationCallback(const dpu_classification::Header& header, void* u
     std::cout << "  Classification ID: " << header.classId << std::endl;
 }
 
-// TODO: Find out why this callback isn't firing, even though the above DPU callback is working
 void colorImageCallback(const image::Header& header, void* userDataPtr)
 {
     (void) userDataPtr;
@@ -197,6 +196,7 @@ int main(int argc, char** argv){
     status = channelPtr->setMtu(mtu);
     if (Status_Ok != status) {
         std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
+        std::cerr << "Check adapter to make sure it supports a frame size >1500 (Jumbo frames)" << std::endl;
         destroyChannel(channelPtr);
     }
 
@@ -230,14 +230,14 @@ int main(int argc, char** argv){
         std::cerr << "Failed to add DPU callback." << std::endl;
     }
 
-    status = channelPtr->addIsolatedCallback(colorImageCallback, Source_Luma_Rectified_Left);
+    status = channelPtr->addIsolatedCallback(colorImageCallback, Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to add color image callback." << std::endl;
     }
 
     // Start streaming
     std::cerr << "Before startStreams" << std::endl;
-    status = channelPtr->startStreams(Source_DpuClassification_Detections | Source_Luma_Rectified_Left);
+    status = channelPtr->startStreams(Source_DpuClassification_Detections | Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
