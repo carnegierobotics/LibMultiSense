@@ -148,6 +148,7 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
 static CRL_CONSTEXPR DataSource Source_DpuClassification_Detections  = (1U<<18);
+static CRL_CONSTEXPR DataSource Source_DpuBbox_Detections            = (1U<<19);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -182,6 +183,7 @@ static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 /** User would like to run apriltag detector on the camera*/
 static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
 static CRL_CONSTEXPR CameraProfile DpuClassification = (1U<<6);
+static CRL_CONSTEXPR CameraProfile DpuBbox = (1U<<7);
 
 /**
  * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
@@ -2617,7 +2619,29 @@ public:
 };
 
 typedef void (*Callback)(const Header& header, void *userDataP);
-}
+}   // namespace dpu_classification
+
+namespace dpu_bbox {
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    struct BboxDetection {
+        uint16_t label;
+        float score;
+        uint16_t x;
+        uint16_t y;
+        uint16_t width;
+        uint16_t height;
+    };
+    int64_t frameId;
+    int64_t timestamp;
+    uint8_t success;
+
+    uint32_t num_detections;
+    std::vector<BboxDetection> detections;
+};
+
+typedef void (*Callback)(const Header& header, void *userDataP);
+}   // namespace dpu_bbox
 
 namespace apriltag {
 
