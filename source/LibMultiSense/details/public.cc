@@ -260,6 +260,22 @@ Status impl::addIsolatedCallback(dpu_classification::Callback callback,
     return Status_Ok;
 }
 
+Status impl::addIsolatedCallback(dpu_bbox::Callback callback,
+                                 void *userDataPtr)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+        m_dpuBboxListeners.push_back(new DpuBboxListener(callback,
+                                     0,
+                                     userDataPtr,
+                                     MAX_USER_DPU_BBOX_QUEUE_SIZE));
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
 //
 // Adds a new april tag listener
 
@@ -468,7 +484,30 @@ Status impl::removeIsolatedCallback(dpu_classification::Callback callback)
             }
         }
     } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Error;
+}
 
+Status impl::removeIsolatedCallback(dpu_bbox::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<DpuBboxListener*>::iterator it;
+        for (it = m_dpuBboxListeners.begin();
+             it != m_dpuBboxListeners.end();
+             it++) {
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_dpuBboxListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
     }
     return Status_Error;
 }
