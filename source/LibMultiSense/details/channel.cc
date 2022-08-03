@@ -154,8 +154,8 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     Status status = waitData(wire::SysGetMtu(), mtu);
     if (Status_Ok != status) {
         cleanup();
-        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\"",
-                      address.c_str());
+        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
+                      address.c_str(), cameraId);
     } else {
 
         //
