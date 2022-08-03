@@ -201,17 +201,17 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  * Remote_Head_2   The Remote Head Camera located in position 2
  * Remote_Head_3   The Remote Head Camera located in position 3
  */
-typedef uint32_t RemoteHeadChannel;
+typedef int32_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = 0;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
 /** The Remote Head Camera at position 0*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 0;
 /** The Remote Head Camera at position 1*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 2;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 1;
 /** The Remote Head Camera at position 2*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 3;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 2;
 /** The Remote Head Camera at position 3*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 4;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 3;
 
 
 /**
@@ -2867,6 +2867,7 @@ public:
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                           = 100;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                           = 101;
 
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_NONE           = 0;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
@@ -2876,8 +2877,11 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0239_COLOR   = 202;
 
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
-    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_SL_INTERNAL = 1;
-    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_EXTERNAL = 2;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_INTERNAL = 1;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_EXTERNAL = 2;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_PATTERN_PROJECTOR = 3;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_OUTPUT_TRIGGER = 4;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_PATTERN_PROJECTOR_AND_OUTPUT_TRIGGER = 5;
 
     /** The name of a given device */
     std::string name;
