@@ -119,7 +119,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
-    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + cameraId);
+    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint32_t>(cameraId + 1));
     m_sensorAddress.sin_addr   = addr;
 
     //
@@ -154,8 +154,8 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     Status status = waitData(wire::SysGetMtu(), mtu);
     if (Status_Ok != status) {
         cleanup();
-        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\"",
-                      address.c_str());
+        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
+                      address.c_str(), cameraId);
     } else {
 
         //
@@ -671,7 +671,7 @@ Channel* Channel::Create(const std::string& address)
 {
     try {
 
-        return new details::impl(address, 0);
+        return new details::impl(address, Remote_Head_VPB);
 
     } catch (const std::exception& e) {
 
