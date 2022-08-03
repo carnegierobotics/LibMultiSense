@@ -72,6 +72,8 @@ void usage(const char *programNameP)
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=7200)" << std::endl;
+    std::cerr << "\t-r <head_id>    : remote head ID (default=0)" << std::endl;
 
     exit(1);
 }
@@ -90,6 +92,39 @@ void signalHandler(int sig)
     doneG = true;
 }
 #endif
+
+RemoteHeadChannel getRemoteHeadIdFromString(const std::string &head_str)
+{
+  if (head_str == "VPB")
+  {
+      return Remote_Head_VPB;
+  }
+  else if (head_str == "0")
+  {
+      return Remote_Head_0;
+  }
+  else if (head_str == "1")
+  {
+      return Remote_Head_1;
+  }
+  else if (head_str == "2")
+  {
+      return Remote_Head_2;
+  }
+  else if (head_str == "3")
+  {
+      return Remote_Head_3;
+  }
+
+  fprintf(stderr, "Error: Unrecognized remote head\n");
+  fprintf(stderr, "Please use one of the following:\n");
+  fprintf(stderr, "\tVPB\n");
+  fprintf(stderr, "\t0'\n");
+  fprintf(stderr, "\t1\n");
+  fprintf(stderr, "\t2\n");
+  fprintf(stderr, "\t3\n");
+  exit(EXIT_FAILURE);
+}
 
 system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes)
 {
@@ -221,6 +256,7 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     int32_t mtu = 7200;
+    RemoteHeadChannel head_id = Remote_Head_VPB;
 
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
@@ -233,17 +269,18 @@ int main(int    argc,
 
     int c;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:m:")))
+    while(-1 != (c = getopt(argc, argvPP, "a:m:r:")))
         switch(c) {
-        case 'a': currentAddress = std::string(optarg);    break;
-        case 'm': mtu            = atoi(optarg);           break;
-        default: usage(*argvPP);                           break;
+        case 'a': currentAddress = std::string(optarg);               break;
+        case 'm': mtu            = atoi(optarg);                      break;
+        case 'r': head_id        = getRemoteHeadIdFromString(optarg); break;
+        default: usage(*argvPP);                                      break;
         }
 
     //
     // Initialize communications.
 
-    Channel *channelP = Channel::Create(currentAddress);
+    Channel *channelP = Channel::Create(currentAddress, head_id);
     if (NULL == channelP) {
 		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
         return -1;
@@ -259,6 +296,7 @@ int main(int    argc,
     system::DeviceMode operatingMode;
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
+
     if (Status_Ok != status) {
 		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
