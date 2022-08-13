@@ -781,7 +781,10 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setNumberOfPulses(data.number_of_pulses);
 
-    c.setLedStartupTime(data.led_delay_us);
+    c.setStartupTime(data.led_delay_us < lighting::INVERSION_OFFSET_US ? data.led_delay_us :
+                                                                            data.led_delay_us - lighting::INVERSION_OFFSET_US);
+
+    c.setInvertPulse(data.led_delay_us >= lighting::INVERSION_OFFSET_US);
 
     return Status_Ok;
 }
@@ -800,7 +803,7 @@ Status impl::setLightingConfig(const lighting::Config& c)
         }
     }
 
-    msg.led_delay_us = c.getStartupTime();
+    msg.led_delay_us = c.getInvertPulse() ? (c.getStartupTime() + lighting::INVERSION_OFFSET_US) : c.getStartupTime();
 
     msg.number_of_pulses = c.getNumberOfPulses();
 
@@ -1322,7 +1325,7 @@ Status impl::getDeviceStatus(system::StatusMessage& status)
     if (m_getStatusReturnStatus != Status_Ok){
         return m_getStatusReturnStatus;
     }
-    
+
     status.uptime = static_cast<double>(m_statusResponseMessage.uptime.getNanoSeconds()) * 1e-9;
 
     status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==
