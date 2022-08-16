@@ -536,7 +536,15 @@ void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 {
     utility::ScopedLock lock(m_timeLock);
 
-    if (false == m_timeOffsetInit) {
+    //
+    // Reseed on startup or if there is a large jump in time
+    //
+    CRL_CONSTEXPR int TIME_SYNC_THRESH_SECONDS = 100;
+    const bool seed_offset = (false == m_timeOffsetInit) ||
+                             (abs(m_timeOffset.getSeconds() - offset.getSeconds()) > TIME_SYNC_THRESH_SECONDS);
+
+    if (seed_offset)
+    {
         m_timeOffset = offset; // seed
         m_timeOffsetInit = true;
         return;
