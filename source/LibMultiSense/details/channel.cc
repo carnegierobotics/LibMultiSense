@@ -126,7 +126,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     // Create a pool of RX buffers
 
     uint32_t largeBufferRetry = 0;
-    for(uint32_t i=0; i<RX_POOL_LARGE_BUFFER_COUNT; i++)
+    for(uint32_t i=0; i<RX_POOL_LARGE_BUFFER_COUNT;)
     {
         try {
             m_rxLargeBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_LARGE_BUFFER_SIZE));
@@ -143,7 +143,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     }
 
     uint32_t smallBufferRetry = 0;
-    for(uint32_t i=0; i<RX_POOL_SMALL_BUFFER_COUNT; i++)
+    for(uint32_t i=0; i<RX_POOL_SMALL_BUFFER_COUNT;)
     {
         try {
             m_rxSmallBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_SMALL_BUFFER_SIZE));
