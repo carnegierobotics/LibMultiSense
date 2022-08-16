@@ -131,6 +131,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
         try {
             m_rxLargeBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_LARGE_BUFFER_SIZE));
             i++;
+            largeBufferRetry = 0;
         }
         catch (const std::exception &e) {
             CRL_DEBUG("Failed to allocate memory (will sleep and try again): %s", e.what());
@@ -148,6 +149,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
         try {
             m_rxSmallBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_SMALL_BUFFER_SIZE));
             i++;
+            smallBufferRetry = 0;
         }
         catch (const std::exception &e) {
             CRL_DEBUG("Failed to allocate memory (will sleep and try again): %s", e.what());
