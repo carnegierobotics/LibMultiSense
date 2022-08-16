@@ -273,12 +273,13 @@ private:
     //
     // Misc. internal constants
 
-    static CRL_CONSTEXPR uint32_t MAX_MTU_SIZE               = 9000;
-    static CRL_CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT     = 9001;
-    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE  = (10 * (1024 * 1024));
-    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT = 50;
-    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE  = (10 * (1024));
-    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT = 100;
+    static CRL_CONSTEXPR uint32_t MAX_MTU_SIZE                  = 9000;
+    static CRL_CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT        = 9001;
+    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE     = (10 * (1024 * 1024));
+    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT    = 8;
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE     = (10 * (1024));
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 100;
+    static CRL_CONSTEXPR uint32_t MAX_BUFFER_ALLOCATION_RETRIES = 5;
 
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
@@ -483,7 +484,7 @@ private:
     wire::StatusResponse m_statusResponseMessage;
 
     //
-    // Status set in statusThread indicating if the request for status msg timed out 
+    // Status set in statusThread indicating if the request for status msg timed out
     Status               m_getStatusReturnStatus;
 
     //

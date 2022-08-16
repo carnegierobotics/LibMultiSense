@@ -125,15 +125,50 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     //
     // Create a pool of RX buffers
 
+    uint32_t largeBufferRetry = 0;
     for(uint32_t i=0; i<RX_POOL_LARGE_BUFFER_COUNT; i++)
-        m_rxLargeBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_LARGE_BUFFER_SIZE));
+    {
+        try {
+            m_rxLargeBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_LARGE_BUFFER_SIZE));
+            i++;
+        }
+        catch (const std::exception &e) {
+            CRL_DEBUG("Failed to allocate memory (will sleep and try again): %s", e.what());
+            usleep(static_cast<unsigned int> (10000));
+            largeBufferRetry++;
+
+            if (largeBufferRetry >= MAX_BUFFER_ALLOCATION_RETRIES)
+                throw e;
+        }
+    }
+
+    uint32_t smallBufferRetry = 0;
     for(uint32_t i=0; i<RX_POOL_SMALL_BUFFER_COUNT; i++)
-        m_rxSmallBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_SMALL_BUFFER_SIZE));
+    {
+        try {
+            m_rxSmallBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_SMALL_BUFFER_SIZE));
+            i++;
+        }
+        catch (const std::exception &e) {
+            CRL_DEBUG("Failed to allocate memory (will sleep and try again): %s", e.what());
+            usleep(static_cast<unsigned int> (10000));
+            smallBufferRetry++;
+
+            if (smallBufferRetry >= MAX_BUFFER_ALLOCATION_RETRIES)
+                throw e;
+        }
+    }
 
     //
     // Bind to the port
 
-    bind();
+    try {
+        bind();
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        cleanup();
+        throw e;
+    }
 
     //
     // Register any special UDP reassemblers
@@ -227,6 +262,14 @@ void impl::cleanup()
         it != m_rxSmallBufferPool.end();
         ++it)
         delete *it;
+
+    m_imageListeners.clear();
+    m_lidarListeners.clear();
+    m_ppsListeners.clear();
+    m_imuListeners.clear();
+    m_compressedImageListeners.clear();
+    m_rxLargeBufferPool.clear();
+    m_rxSmallBufferPool.clear();
 
     if (m_serverSocket > 0)
         closesocket(m_serverSocket);
