@@ -1916,8 +1916,6 @@ namespace lighting {
 static CRL_CONSTEXPR uint32_t MAX_LIGHTS     = 8;
 /** The maximum duty cycle for adjusting light intensity */
 static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
-/** The integer offset used to invert the pulse signal */
-static CRL_CONSTEXPR uint32_t INVERSION_OFFSET_US = 1000000;
 
 /**
  * Class used to store a specific lighting configuration. Member of this class
@@ -2135,7 +2133,7 @@ public:
 
     /**
     * Get whether or not the LED pulse is inverted. True means the output
-    * will be low during the exposureFalse means the output will be high
+    * will be low during the exposure. False means the output will be high
     * during the exposure.
     *
     * @return True if the pulse is inverted
@@ -2146,7 +2144,7 @@ public:
 
     /**
     * Invert the output signal that drives lighting. True means the output
-    * will be low during the exposureFalse means the output will be high
+    * will be low during the exposure. False means the output will be high
     * during the exposure.
     *
     * @param invert Whether or not to invert the pulse signal

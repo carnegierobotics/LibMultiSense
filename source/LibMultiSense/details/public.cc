@@ -781,10 +781,9 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setNumberOfPulses(data.number_of_pulses);
 
-    c.setStartupTime(data.led_delay_us < lighting::INVERSION_OFFSET_US ? data.led_delay_us :
-                                                                            data.led_delay_us - lighting::INVERSION_OFFSET_US);
+    c.setStartupTime(data.led_delay_us);
 
-    c.setInvertPulse(data.led_delay_us >= lighting::INVERSION_OFFSET_US);
+    c.setInvertPulse(data.invert_pulse != 0);
 
     return Status_Ok;
 }
@@ -803,9 +802,11 @@ Status impl::setLightingConfig(const lighting::Config& c)
         }
     }
 
-    msg.led_delay_us = c.getInvertPulse() ? (c.getStartupTime() + lighting::INVERSION_OFFSET_US) : c.getStartupTime();
+    msg.led_delay_us = c.getStartupTime();
 
     msg.number_of_pulses = c.getNumberOfPulses();
+
+    msg.invert_pulse = c.getInvertPulse() ? 1 : 0;
 
     return waitAck(msg);
 }
