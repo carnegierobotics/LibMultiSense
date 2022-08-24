@@ -2145,7 +2145,7 @@ public:
     /**
     * Invert the output signal that drives lighting. True means the output
     * will be low during the exposure. False means the output will be high
-    * during the exposure.
+    * during the exposure. (Only supported for firmware >=5.21)
     *
     * @param invert Whether or not to invert the pulse signal
     *
