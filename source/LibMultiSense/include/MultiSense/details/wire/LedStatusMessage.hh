@@ -50,7 +50,7 @@ namespace wire {
 class LedStatus {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_LED_STATUS;
-    static CRL_CONSTEXPR VersionType VERSION = 2;
+    static CRL_CONSTEXPR VersionType VERSION = 3;
 
     //
     // Bit mask indicating which LEDs are implemented
