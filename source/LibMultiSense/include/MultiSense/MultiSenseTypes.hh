@@ -2120,11 +2120,35 @@ public:
     }
 
     /**
+    * Enable a rolling shutter camera flash synchronization, this will Allow
+    * an LED to flash with in sync with a rolling shutter imager, to reduce
+    * the possibility of, seeing inconsistent lighting artifacts with rolling
+    * shutter imagers.
+    *
+    * @param enabled enable/disable the rolling shutter synchronization feature.
+    *
+    * @return True on success, False on failure
+    */
+    bool setRollingShutterSynchronization( bool enabled) {
+      m_rollingShutterSynchronized = enabled;
+      return true;
+    }
+
+    /**
+    * Get the setting of the rollingShutterSynchronization.
+    *
+    * @return True if enabled, False if disabled
+    */
+    bool getRollingShutterSynchronization( void) const {
+      return m_rollingShutterSynchronized;
+    }
+
+    /**
      * Default constructor. Flashing is disabled and all lights are off
      */
 
     Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f),
-               m_numberPulses(1), m_lightStartupOffset_us(0) {};
+               m_numberPulses(1), m_lightStartupOffset_us(0), m_rollingShutterSynchronized(false) {};
 
 private:
 
@@ -2132,6 +2156,7 @@ private:
     std::vector<float> m_dutyCycle;
     uint32_t           m_numberPulses;
     uint32_t           m_lightStartupOffset_us;
+    bool               m_rollingShutterSynchronized;
 };
 
 /**

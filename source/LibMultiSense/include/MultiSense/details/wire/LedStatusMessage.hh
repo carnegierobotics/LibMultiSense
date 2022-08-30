@@ -80,6 +80,11 @@ public:
     uint32_t number_of_pulses;
 
     //
+    // The status of the rolling shutter led enable flag, can be used confirm that
+    // the LED synchronization technique, can be used with a rolling shutter imager.
+    uint8_t rolling_shutter_led;
+
+    //
     // Constructors
 
     LedStatus(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
@@ -107,6 +112,15 @@ public:
         {
           led_delay_us = 0;
           number_of_pulses = 1;
+        }
+
+        if (version >= 3)
+        {
+          message & rolling_shutter_led;
+        }
+        else
+        {
+          rolling_shutter_led = false;
         }
     }
 };

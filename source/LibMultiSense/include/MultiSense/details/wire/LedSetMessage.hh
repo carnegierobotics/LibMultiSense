@@ -50,7 +50,7 @@ namespace wire {
 class LedSet {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_LED_SET;
-    static CRL_CONSTEXPR VersionType VERSION = 2;
+    static CRL_CONSTEXPR VersionType VERSION = 3;
 
     //
     // Bit mask selecting which LEDs to update
@@ -80,10 +80,16 @@ public:
     uint32_t number_of_pulses;
 
     //
+    // Used to enable the rolling shutter led feature, applicatble for cameras
+    // with a rolling shutter imager.
+    uint8_t rolling_shutter_led;
+
+    //
     // Constructors
 
     LedSet(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    LedSet() : mask(0), flash(0), led_delay_us(0), number_of_pulses(1) {};
+    LedSet() : mask(0), flash(0), led_delay_us(0), number_of_pulses(1),
+    rolling_shutter_led(false) {};
 
     //
     // Serialization routine
@@ -107,6 +113,15 @@ public:
         {
           led_delay_us = 0;
           number_of_pulses = 1;
+        }
+
+        if (version >= 3)
+        {
+          archive & rolling_shutter_led;
+        }
+        else
+        {
+          rolling_shutter_led = false;
         }
     }
 };

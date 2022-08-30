@@ -783,6 +783,8 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setLedStartupTime(data.led_delay_us);
 
+    c.setRollingShutterSynchronization(data.rolling_shutter_led);
+
     return Status_Ok;
 }
 
@@ -803,6 +805,8 @@ Status impl::setLightingConfig(const lighting::Config& c)
     msg.led_delay_us = c.getStartupTime();
 
     msg.number_of_pulses = c.getNumberOfPulses();
+
+    msg.rolling_shutter_led = c.getRollingShutterSynchronization();
 
     return waitAck(msg);
 }
