@@ -222,6 +222,7 @@ static CRL_CONSTEXPR IdType ID_DATA_COMPRESSED_IMAGE                   = 0x0120;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_GROUND_SURFACE_PARAM           = 0x0121;
 static CRL_CONSTEXPR IdType ID_DATA_APRILTAG_DETECTIONS_MESSAGE        = 0x0122;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_APRILTAG_PARAM                 = 0x0123;
+static CRL_CONSTEXPR IdType ID_DATA_DPU_CLASSIFICATION_RESULT_MESSAGE  = 0x0124;
 
 //
 // Data sources
@@ -262,6 +263,7 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1U<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1U<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1U<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1U<<17); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_DPUCLASSIFICATION_DETECTIONS = (1U<<18);
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
@@ -289,7 +291,8 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_AUX            |
                                                             SOURCE_COMPRESSED_RECTIFIED_LEFT |
                                                             SOURCE_COMPRESSED_RECTIFIED_RIGHT|
-                                                            SOURCE_COMPRESSED_RECTIFIED_AUX
+                                                            SOURCE_COMPRESSED_RECTIFIED_AUX  |
+                                                            SOURCE_DPUCLASSIFICATION_DETECTIONS
                                                           );
 
 //

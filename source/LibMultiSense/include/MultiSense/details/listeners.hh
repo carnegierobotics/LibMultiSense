@@ -223,13 +223,14 @@ private:
     utility::Thread             *m_dispatchThreadP;
 };
 
-typedef Listener<image::Header,            image::Callback>            ImageListener;
-typedef Listener<lidar::Header,            lidar::Callback>            LidarListener;
-typedef Listener<pps::Header,              pps::Callback>              PpsListener;
-typedef Listener<imu::Header,              imu::Callback>              ImuListener;
-typedef Listener<compressed_image::Header, compressed_image::Callback> CompressedImageListener;
-typedef Listener<ground_surface::Header,   ground_surface::Callback>   GroundSurfaceSplineListener;
-typedef Listener<apriltag::Header,         apriltag::Callback>         AprilTagDetectionListener;
+typedef Listener<image::Header,              image::Callback>              ImageListener;
+typedef Listener<lidar::Header,              lidar::Callback>              LidarListener;
+typedef Listener<pps::Header,                pps::Callback>                PpsListener;
+typedef Listener<imu::Header,                imu::Callback>                ImuListener;
+typedef Listener<compressed_image::Header,   compressed_image::Callback>   CompressedImageListener;
+typedef Listener<ground_surface::Header,     ground_surface::Callback>     GroundSurfaceSplineListener;
+typedef Listener<dpu_classification::Header, dpu_classification::Callback> DpuClassificationListener;
+typedef Listener<apriltag::Header,           apriltag::Callback>           AprilTagDetectionListener;
 
 } // namespace details
 } // namespace multisense

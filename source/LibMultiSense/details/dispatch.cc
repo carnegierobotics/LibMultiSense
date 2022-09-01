@@ -80,6 +80,7 @@
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
+#include "MultiSense/details/wire/DpuClassificationMessage.hh"
 
 #include <limits>
 
@@ -192,6 +193,20 @@ void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
         it != m_groundSurfaceSplineListeners.end();
         it ++)
         (*it)->dispatch(header);
+}
+
+void impl::dispatchDpuClassificationResult(dpu_classification::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<DpuClassificationListener*>::const_iterator it;
+
+    for(it = m_dpuClassificationListeners.begin();
+        it != m_dpuClassificationListeners.end();
+        it++)
+    {
+        (*it)->dispatch(header);
+    }
 }
 
 //
@@ -538,6 +553,22 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchAprilTagDetections(header);
+        break;
+    }
+    case MSG_ID(wire::DpuClassificationResult::ID):
+    {
+        wire::DpuClassificationResult result(stream, version);
+
+        dpu_classification::Header header;
+
+        header.frameId = result.frameId;
+        header.timestamp = result.timestamp;
+        header.success = result.success;
+
+        header.classId = result.classId;
+
+        dispatchDpuClassificationResult(header);
+
         break;
     }
     case MSG_ID(wire::Ack::ID):

@@ -147,6 +147,7 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1U<<14);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_DpuClassification_Detections  = (1U<<18);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -180,7 +181,7 @@ static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 /** User would like to run apriltag detector on the camera*/
 static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
-
+static CRL_CONSTEXPR CameraProfile DpuClassification = (1U<<6);
 
 /**
  * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
@@ -2605,6 +2606,19 @@ typedef void (*Callback)(const Header& header,
 
 } // namespace ground_surface
 
+namespace dpu_classification {
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    int64_t frameId;
+    int64_t timestamp;
+    uint8_t success;
+
+    int classId;
+};
+
+typedef void (*Callback)(const Header& header, void *userDataP);
+}
+
 namespace apriltag {
 
 /**
@@ -2660,7 +2674,6 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace apriltag
-
 
 namespace system {
 
