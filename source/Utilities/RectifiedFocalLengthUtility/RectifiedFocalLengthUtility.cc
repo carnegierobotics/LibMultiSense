@@ -155,19 +155,19 @@ int main(int    argc,
 
         tx = calibration.right.P[0][3] / calibration.right.P[0][0];
 
-        calibration.left.P[0][0]  = rectifiedFocalLength;
-        calibration.left.P[1][1]  = rectifiedFocalLength;
-        calibration.right.P[0][0] = rectifiedFocalLength;
-        calibration.right.P[1][1] = rectifiedFocalLength;
-        calibration.right.P[0][3] = rectifiedFocalLength * tx;
+        calibration.left.P[0][0]  = static_cast<float> (rectifiedFocalLength);
+        calibration.left.P[1][1]  = static_cast<float> (rectifiedFocalLength);
+        calibration.right.P[0][0] = static_cast<float> (rectifiedFocalLength);
+        calibration.right.P[1][1] = static_cast<float> (rectifiedFocalLength);
+        calibration.right.P[0][3] = static_cast<float> (rectifiedFocalLength * tx);
 
         if (hasAuxCamera) {
 
             auxTx = calibration.aux.P[0][3] / calibration.aux.P[0][0];
 
-            calibration.aux.P[0][0] = rectifiedFocalLength;
-            calibration.aux.P[1][1] = rectifiedFocalLength;
-            calibration.aux.P[0][3] = rectifiedFocalLength * auxTx;
+            calibration.aux.P[0][0] = static_cast<float> (rectifiedFocalLength);
+            calibration.aux.P[1][1] = static_cast<float> (rectifiedFocalLength);
+            calibration.aux.P[0][3] = static_cast<float> (rectifiedFocalLength * auxTx);
         }
 
         status = channelP->setImageCalibration(calibration);
