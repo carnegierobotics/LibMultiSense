@@ -46,3 +46,6 @@ docs/latex/
 *.exe
 *.out
 *.app
+
+# Visual Studio cache/options directory
+.vs

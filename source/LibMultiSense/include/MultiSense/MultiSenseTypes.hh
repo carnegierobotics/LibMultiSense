@@ -201,7 +201,7 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  * Remote_Head_2   The Remote Head Camera located in position 2
  * Remote_Head_3   The Remote Head Camera located in position 3
  */
-typedef int32_t RemoteHeadChannel;
+typedef int16_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
 /** The Remote Head Camera at position 0*/
