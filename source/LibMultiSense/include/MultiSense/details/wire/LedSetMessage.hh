@@ -50,7 +50,7 @@ namespace wire {
 class LedSet {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_LED_SET;
-    static CRL_CONSTEXPR VersionType VERSION = 2;
+    static CRL_CONSTEXPR VersionType VERSION = 3;
 
     //
     // Bit mask selecting which LEDs to update
@@ -80,16 +80,23 @@ public:
     uint32_t number_of_pulses;
 
     //
+    // Invert the output signal that drives lighting. 1 means the output
+    // will be low during the exposure. 0 means the output will be high
+    // during the exposure.
+
+    uint8_t invert_pulse;
+
+    //
     // Constructors
 
     LedSet(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    LedSet() : mask(0), flash(0), led_delay_us(0), number_of_pulses(1) {};
+    LedSet() : mask(0), flash(0), led_delay_us(0), number_of_pulses(1), invert_pulse(0) {};
 
     //
     // Serialization routine
 
     template <class Archiver>
-        void serialize(Archiver&      archive,
+        void serialize(Archiver& archive,
                        const VersionType version)
     {
         (void) version;
@@ -107,6 +114,15 @@ public:
         {
           led_delay_us = 0;
           number_of_pulses = 1;
+        }
+
+        if (version >= 3)
+        {
+          archive & invert_pulse;
+        }
+        else
+        {
+          invert_pulse = false;
         }
     }
 };
