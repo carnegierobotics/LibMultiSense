@@ -118,7 +118,7 @@ public:
 
         if (version >= 3)
         {
-          archive & invert_pulse;
+          message & invert_pulse;
         }
         else
         {
