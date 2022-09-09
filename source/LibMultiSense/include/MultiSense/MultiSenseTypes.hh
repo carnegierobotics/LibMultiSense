@@ -201,7 +201,7 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  * Remote_Head_2   The Remote Head Camera located in position 2
  * Remote_Head_3   The Remote Head Camera located in position 3
  */
-typedef int32_t RemoteHeadChannel;
+typedef int16_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
 /** The Remote Head Camera at position 0*/
@@ -2078,7 +2078,11 @@ public:
     };
 
     /**
-    * Get the number of pulses of the light within a single exposure
+    * Get the number of pulses of the light per a single exposure
+    * This is used to trigger the light or output signal multiple times after a
+    * single exposure. For values greater than 1, pulses will occur between the
+    * exposures, not during. This can be used to leverage human persistence of
+    * vision to make the light appear as though it is not flashing
     *
     * @return The current number of pulses
     */
@@ -2088,10 +2092,14 @@ public:
 
     /**
     * Set the number of pulses of the light within a single exposure
+    * This is used to trigger the light or output signal multiple times after a
+    * single exposure. For values greater than 1, pulses will occur between the
+    * exposures, not during. This can be used to leverage human persistence of
+    * vision to make the light appear as though it is not flashing
     *
     * @return True on success, False on failure
     */
-    bool setNumberOfPulses( uint32_t numPulses) {
+    bool setNumberOfPulses(const uint32_t numPulses) {
 
       m_numberPulses = numPulses;
       return true;
@@ -2099,6 +2107,8 @@ public:
 
     /**
     * Get the startup time offset of the led in microseconds
+    * The LED or output trigger is triggered this many microseconds before
+    * the start of the image exposure
     *
     * @return The current led startup time
     */
@@ -2108,23 +2118,49 @@ public:
 
     /**
     * Set the transient startup time of the led, for better synchronization.
+    * The LED or output trigger is triggered this many microseconds before
+    * the start of the image exposure
     *
-    * @param the led transient time.
+    * @param ledTransientResponse_us The led transient time.
     *
     * @return True on success, False on failure
     */
-    bool setLedStartupTime( uint32_t ledTransientResponse_us) {
+    bool setStartupTime(uint32_t ledTransientResponse_us) {
 
       m_lightStartupOffset_us = ledTransientResponse_us;
       return true;
     }
 
     /**
+    * Get whether or not the LED pulse is inverted. True means the output
+    * will be low during the exposure. False means the output will be high
+    * during the exposure.
+    *
+    * @return True if the pulse is inverted
+    */
+    bool getInvertPulse( ) const {
+        return m_invertPulse;
+    }
+
+    /**
+    * Invert the output signal that drives lighting. True means the output
+    * will be low during the exposure. False means the output will be high
+    * during the exposure. (Only supported for firmware >=5.21)
+    *
+    * @param invert Whether or not to invert the pulse signal
+    *
+    * @return True on success, False on failure
+    */
+    bool setInvertPulse(const bool invert) {
+        m_invertPulse = invert;
+        return true;
+    }
+
+    /**
      * Default constructor. Flashing is disabled and all lights are off
      */
-
     Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f),
-               m_numberPulses(1), m_lightStartupOffset_us(0) {};
+               m_numberPulses(1), m_lightStartupOffset_us(0), m_invertPulse(false) {};
 
 private:
 
@@ -2132,6 +2168,7 @@ private:
     std::vector<float> m_dutyCycle;
     uint32_t           m_numberPulses;
     uint32_t           m_lightStartupOffset_us;
+    bool               m_invertPulse;
 };
 
 /**

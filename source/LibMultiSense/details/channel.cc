@@ -119,7 +119,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
-    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint32_t>(cameraId + 1));
+    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint16_t>(cameraId + 1));
     m_sensorAddress.sin_addr   = addr;
 
     //
@@ -581,7 +581,15 @@ void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 {
     utility::ScopedLock lock(m_timeLock);
 
-    if (false == m_timeOffsetInit) {
+    //
+    // Reseed on startup or if there is a large jump in time
+    //
+    CRL_CONSTEXPR int TIME_SYNC_THRESH_SECONDS = 100;
+    const bool seed_offset = (false == m_timeOffsetInit) ||
+                             (abs(m_timeOffset.getSeconds() - offset.getSeconds()) > TIME_SYNC_THRESH_SECONDS);
+
+    if (seed_offset)
+    {
         m_timeOffset = offset; // seed
         m_timeOffsetInit = true;
         return;
