@@ -191,7 +191,10 @@ namespace details {
 
         void insert_(KEY key, DATA* data) {
             if (m_map.size() == m_depth)
+            {
                 pop_oldest_();
+            }
+
             typename MapType::iterator it = m_map.find(key);
             if (it == m_map.end()) {
                 m_queue.push_front(key);
@@ -219,11 +222,17 @@ namespace details {
         };
 
         void pop_oldest_() {
-            KEY k = m_queue.back();
-            typename MapType::iterator it2 = m_map.find(k);
-            if (m_map.end() != it2) {
-                delete it2->second;
-                m_map.erase(it2);
+
+            while (!m_queue.empty())
+            {
+                KEY k = m_queue.back();
+                typename MapType::iterator it2 = m_map.find(k);
+                if (m_map.end() != it2) {
+                    delete it2->second;
+                    m_map.erase(it2);
+                    m_queue.pop_back();
+                    break;
+                }
                 m_queue.pop_back();
             }
         };
