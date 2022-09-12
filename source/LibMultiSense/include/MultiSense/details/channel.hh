@@ -295,7 +295,7 @@ private:
 #if __cplusplus > 199711L
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > IMAGE_META_CACHE_DEPTH, "Image metadata depth cache too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
-    static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
+    static_assert(RX_POOL_SMALL_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
 #endif
 
     //
