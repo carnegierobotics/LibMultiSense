@@ -293,8 +293,8 @@ private:
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY     = 8;
 
 #if __cplusplus > 199711L
-    static_assert(RX_POOL_LARGE_BUFFER_SIZE > IMAGE_META_CACHE_DEPTH, "Image metadata depth cache too large");
-    static_assert(RX_POOL_LARGE_BUFFER_SIZE > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > IMAGE_META_CACHE_DEPTH, "Image metadata depth cache too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
 #endif
 
@@ -310,9 +310,9 @@ private:
     static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 8;
 
 #if __cplusplus > 199711L
-    static_assert(RX_POOL_LARGE_BUFFER_SIZE > MAX_USER_IMAGE_QUEUE_SIZE, "Image queue too large");
-    static_assert(RX_POOL_LARGE_BUFFER_SIZE > MAX_USER_LASER_QUEUE_SIZE, "Laser queue too large");
-    static_assert(RX_POOL_LARGE_BUFFER_SIZE > MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE, "Compressed image queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_IMAGE_QUEUE_SIZE, "Image queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_LASER_QUEUE_SIZE, "Laser queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE, "Compressed image queue too large");
 #endif
 
     //
