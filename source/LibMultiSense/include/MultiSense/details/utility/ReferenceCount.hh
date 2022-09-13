@@ -51,7 +51,7 @@ namespace utility {
 class ReferenceCount
 {
 public:
-    
+
     bool isShared() const {
         if (m_countP && (*m_countP) > 1)
             return true;
@@ -63,10 +63,10 @@ public:
         m_countP = new int32_t(1);
     }
 
-    ReferenceCount() 
+    ReferenceCount()
         : m_countP(new int32_t(1)) {};
 
-    ReferenceCount(const ReferenceCount& source) 
+    ReferenceCount(const ReferenceCount& source)
         : m_countP(source.m_countP) {
         share();
     }
@@ -82,12 +82,12 @@ public:
             share();
         }
         return *this;
-    }                  
+    }
 
 private:
 
     volatile int32_t *m_countP;
-        
+
     void share() {
         if (m_countP)
 #if WIN32

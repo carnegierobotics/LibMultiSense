@@ -40,7 +40,7 @@
 #include "MultiSense/details/utility/Thread.hh"
 
 #include <map>
-#include <set>
+#include <deque>
 
 namespace crl {
 namespace multisense {
@@ -131,9 +131,8 @@ namespace details {
     class DepthCache {
     public:
 
-        DepthCache(std::size_t depth, KEY min) :
-            m_depth(depth),
-            m_minimum(min) {};
+        DepthCache(std::size_t depth) :
+            m_depth(depth) {};
 
         ~DepthCache() {
             utility::ScopedLock lock(m_lock);
@@ -178,6 +177,7 @@ namespace details {
 
     private:
 
+        typedef std::deque<KEY> QueueType;
         typedef std::map<KEY,DATA*> MapType;
 
         DATA* find_(KEY key) {
@@ -191,9 +191,19 @@ namespace details {
 
         void insert_(KEY key, DATA* data) {
             if (m_map.size() == m_depth)
+            {
                 pop_oldest_();
+            }
 
-            m_map[key] = data;
+            typename MapType::iterator it = m_map.find(key);
+            if (it == m_map.end()) {
+                m_queue.push_front(key);
+                m_map[key] = data;
+            }
+            else {
+                it->second = data;
+            }
+
         };
 
         void remove_(KEY key) {
@@ -202,20 +212,34 @@ namespace details {
                 delete it2->second;
                 m_map.erase(it2);
             }
+            //assume we're erasing an older key, so search the order queue from the back
+            for (typename QueueType::reverse_iterator it = m_queue.rbegin(); it != m_queue.rend(); it++) {
+                if (*it == key) {
+                    m_queue.erase(it.base());
+                    break;
+                }
+            }
         };
 
         void pop_oldest_() {
-            typename MapType::iterator it2 = m_map.lower_bound(m_minimum);
-            if (m_map.end() != it2) {
-                delete it2->second;
-                m_map.erase(it2);
+
+            while (!m_queue.empty())
+            {
+                KEY k = m_queue.back();
+                typename MapType::iterator it2 = m_map.find(k);
+                if (m_map.end() != it2) {
+                    delete it2->second;
+                    m_map.erase(it2);
+                    m_queue.pop_back();
+                    break;
+                }
+                m_queue.pop_back();
             }
         };
 
         const std::size_t m_depth;
-        const KEY         m_minimum; // for lower_bound()
-
         MapType           m_map;
+        QueueType         m_queue;
         utility::Mutex    m_lock;
     };
 

@@ -67,6 +67,7 @@
 #endif
 #endif
 
+#include <assert.h>
 #include <vector>
 #include <list>
 #include <set>
@@ -268,23 +269,34 @@ private:
     //
     // The version of this API
 
-    static CRL_CONSTEXPR VersionType API_VERSION = 0x0308; // 3.8
+    static CRL_CONSTEXPR VersionType API_VERSION = 0x0402; // 4.2
 
     //
     // Misc. internal constants
 
-    static CRL_CONSTEXPR uint32_t MAX_MTU_SIZE               = 9000;
-    static CRL_CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT     = 9001;
-    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE  = (10 * (1024 * 1024));
-    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT = 50;
-    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE  = (10 * (1024));
-    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT = 100;
+    static CRL_CONSTEXPR uint32_t MAX_MTU_SIZE                  = 9000;
+    static CRL_CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT        = 9001;
+
+    //
+    // Handle the worst case size of a 2MP floating point image
+
+    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE     = (10 * (1024 * 1024));
+    static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT    = 16;
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE     = (8 * (1024));
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 128;
+    static CRL_CONSTEXPR uint32_t MAX_BUFFER_ALLOCATION_RETRIES = 5;
 
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
-    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 20;
-    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 10;
+    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 8;
+    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 8;
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY     = 8;
+
+#if __cplusplus > 199711L
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > IMAGE_META_CACHE_DEPTH, "Image metadata depth cache too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
+    static_assert(RX_POOL_SMALL_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH, "UDP depth cache too large");
+#endif
 
     //
     // We must protect ourselves from user callbacks misbehaving
@@ -293,18 +305,24 @@ private:
     // These define the maximum number of datums that we will
     // queue up in a user dispatch thread.
 
-    static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 5;
-    static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 20;
-    static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 5;
+    static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 8;
+
+#if __cplusplus > 199711L
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_IMAGE_QUEUE_SIZE, "Image queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_LASER_QUEUE_SIZE, "Laser queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE, "Compressed image queue too large");
+#endif
 
     //
     // PPS and IMU callbacks do not reserve an RX buffer, so queue
     // depths are limited by RAM (via heap.)
 
     static CRL_CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
-    static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 50;
-    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 5;
-    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE = 5;
+    static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 64;
+    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE = 8;
 
     //
     // The maximum number of directed streams
@@ -483,7 +501,7 @@ private:
     wire::StatusResponse m_statusResponseMessage;
 
     //
-    // Status set in statusThread indicating if the request for status msg timed out 
+    // Status set in statusThread indicating if the request for status msg timed out
     Status               m_getStatusReturnStatus;
 
     //
