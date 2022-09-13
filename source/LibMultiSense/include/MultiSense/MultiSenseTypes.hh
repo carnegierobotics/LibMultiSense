@@ -1081,6 +1081,23 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
+
+    /**
+     * Enable sharpening
+     *
+     * @param s The value true or false of sharpening
+     */
+
+    void setSharpening(const bool &s)    { m_sharpening  = s; };
+
+    /**
+     * Set the sharpening percentage. The amount of sharpening to apply.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
+
     //
     // Query
 
@@ -1435,6 +1452,20 @@ public:
     float yaw()   const { return m_yaw;   };
 
     /**
+     * Query whether sharpening is enabled or not on the camera.
+     *
+     * @return Return true if sharpening is enabled, false if sharpening is disabled.
+     */
+    bool sharpening() const { return m_sharpening; };
+
+    /**
+     * Query the percentage of sharpening applied to the image.
+     *
+     * @return A value within the range of 0 - 100
+     */
+    float sharpeningPercentage() const { return m_sharpeningPercentage; };
+
+    /**
      * Default constructor for a image configuration. Initializes all image
      * configuration members to their default values
      */
@@ -1446,6 +1477,7 @@ public:
                m_profile(User_Control),
                m_secondary_exposures(),
                m_gamma(2.0),
+               m_sharpening(false), m_sharpeningPercentage(0.0f),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1466,7 +1498,9 @@ private:
     bool     m_storeSettingsInFlash;
     CameraProfile m_profile;
     std::vector<ExposureConfig> m_secondary_exposures;
-    float m_gamma;
+    float    m_gamma;
+    bool     m_sharpening;
+    float    m_sharpeningPercentage;
 
 protected:
 
