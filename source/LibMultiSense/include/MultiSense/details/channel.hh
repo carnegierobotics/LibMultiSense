@@ -288,8 +288,8 @@ private:
 
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
-    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 8;
-    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 8;
+    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 4;
+    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 4;
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY     = 8;
 
 #if __cplusplus > 199711L
