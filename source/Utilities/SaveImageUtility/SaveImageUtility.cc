@@ -171,18 +171,6 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
     return target_mode;
 }
 
-std::string writeVector(const float* data, size_t length)
-{
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(4);
-
-    for (size_t i = 0 ; i < length ; ++i) {
-        ss << data[i] << ",";
-    }
-
-    return ss.str();
-}
-
 
 std::string writeMatrix(const float* data, size_t width, size_t height)
 {
@@ -219,16 +207,16 @@ std::string assembledInfoString(const image::Header&       header,
     ss << "gain," << header.gain << ",";
     ss << "fps," << header.framesPerSecond << ",";
     ss << "leftM," << writeMatrix(&calibration.left.M[0][0], 3, 3);
-    ss << "leftD," << writeVector(calibration.left.D, 8);
+    ss << "leftD," << writeMatrix(calibration.left.D, 8, 1);
     ss << "leftR," << writeMatrix(&calibration.left.R[0][0], 3, 3);
     ss << "leftP," << writeMatrix(&calibration.left.P[0][0], 4, 3);
     ss << "rightM," << writeMatrix(&calibration.right.M[0][0], 3, 3);
-    ss << "rightD," << writeVector(calibration.right.D, 8);
+    ss << "rightD," << writeMatrix(calibration.right.D, 8, 1);
     ss << "rightR," << writeMatrix(&calibration.right.R[0][0], 3, 3);
     ss << "rightP," << writeMatrix(&calibration.right.P[0][0], 4, 3);
     if (hasAuxCamera) {
         ss << "auxM," << writeMatrix(&calibration.aux.M[0][0], 3, 3);
-        ss << "auxD," << writeVector(calibration.aux.D, 8);
+        ss << "auxD," << writeMatrix(calibration.aux.D, 8, 1);
         ss << "auxR," << writeMatrix(&calibration.aux.R[0][0], 3, 3);
         ss << "auxP," << writeMatrix(&calibration.aux.P[0][0], 4, 3);
     }
