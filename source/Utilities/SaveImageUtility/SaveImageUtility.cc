@@ -175,7 +175,7 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
 std::string writeMatrix(const float* data, size_t width, size_t height)
 {
     std::stringstream ss;
-    ss << std::fixed << std::setprecision(4);
+    ss << std::fixed << std::setprecision(6);
 
     for (size_t h = 0 ; h < height ; ++h) {
         for (size_t w = 0 ; w < width ; ++w) {
