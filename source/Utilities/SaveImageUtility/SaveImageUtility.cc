@@ -463,7 +463,7 @@ int main(int    argc,
 
     status = channelP->getDeviceInfo(info);
     if (Status_Ok != status) {
-		std::cerr << "Failed to get image calibration: " << Channel::statusString(status) << std::endl;
+		std::cerr << "Failed to get device info: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
