@@ -75,6 +75,19 @@ set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #
+# Write target outputs to bin and lib directories
+#
+if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif ()
+if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif ()
+if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif ()
+
+#
 # Dispatch to subordinate CMakeList.txt files.
 #
 
