@@ -50,6 +50,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
