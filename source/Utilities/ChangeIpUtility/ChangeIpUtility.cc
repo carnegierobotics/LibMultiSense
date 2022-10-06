@@ -76,7 +76,8 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-G <new_gateway>        : NEW IPV4 gateway     (default=10.66.171.1)\n");
     fprintf(stderr, "\t-N <new_netmask>        : NEW IPV4 address     (default=255.255.240.0)\n");
 #ifndef WIN32
-    fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface\n");
+    fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface. "
+                                                 "This sets the ip address to the default 10.66.171.21\n");
 #endif
     fprintf(stderr, "\t-y                      : disable confirmation prompt\n");
 
@@ -200,18 +201,6 @@ int main(int    argc,
         goto clean_out;
 #else
         int broadcast=1;
-
-        if (192 == a1  && 168 == a2 && 0 == a3)
-        {
-            fprintf(stderr, "MultiSense SL units use the 192.168.0 subnet to talk to the Hokuyo ");
-            fprintf(stderr, "laser. Setting the IP address of the MultiSense to 192.168.0.X will ");
-            fprintf(stderr, "interfere with the networking configuration.  This unit may be a ");
-            fprintf(stderr, "MultiSense SL as in broadcast mode this tool cannot query the device.\n");
-            fprintf(stderr, "\n");
-            fprintf(stderr, "Aborting IP Change.\n");
-            fflush(stderr);
-            goto clean_out;
-        }
 
         // create UDP socket
         sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
