@@ -117,7 +117,7 @@ public:
 
     bool  sharpeningEnable;
     float sharpeningPercentage;
-
+    uint8_t sharpeningLimit;
 
 
     //
@@ -213,11 +213,13 @@ public:
         {
             message & sharpeningEnable;
             message & sharpeningPercentage;
+            message & sharpeningLimit;
         }
         else
         {
             sharpeningEnable = false;
             sharpeningPercentage = 0.0f;
+            sharpeningLimit = 0;
         }
 
     }

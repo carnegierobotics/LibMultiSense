@@ -1088,7 +1088,7 @@ public:
      * @param s The value true or false of sharpening
      */
 
-    void setSharpening(const bool &s)    { m_sharpening  = s; };
+    void enableSharpening(const bool &s)    { m_sharpeningEnable  = s; };
 
     /**
      * Set the sharpening percentage. The amount of sharpening to apply.
@@ -1097,6 +1097,16 @@ public:
      */
 
     void setSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
+
+    /**
+     * Set the sharpening limit. The maximum difference in pixels that sharpening is
+     * is allowed to change between neighboring pixels. This is useful for clamping
+     * the sharpening percentage, while still maintaining a large gain.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
 
     //
     // Query
@@ -1456,7 +1466,7 @@ public:
      *
      * @return Return true if sharpening is enabled, false if sharpening is disabled.
      */
-    bool sharpening() const { return m_sharpening; };
+    bool enableSharpening() const { return m_sharpeningEnable; };
 
     /**
      * Query the percentage of sharpening applied to the image.
@@ -1464,6 +1474,13 @@ public:
      * @return A value within the range of 0 - 100
      */
     float sharpeningPercentage() const { return m_sharpeningPercentage; };
+
+    /**
+     * Query the limit of sharpening applied to the image.
+     *
+     * @return A value within the range of 0 - 255 in
+     */
+    float sharpeningLimit() const { return m_sharpeningLimit; };
 
     /**
      * Default constructor for a image configuration. Initializes all image
@@ -1477,7 +1494,7 @@ public:
                m_profile(User_Control),
                m_secondary_exposures(),
                m_gamma(2.0),
-               m_sharpening(false), m_sharpeningPercentage(0.0f),
+               m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1499,8 +1516,9 @@ private:
     CameraProfile m_profile;
     std::vector<ExposureConfig> m_secondary_exposures;
     float    m_gamma;
-    bool     m_sharpening;
+    bool     m_sharpeningEnable;
     float    m_sharpeningPercentage;
+    uint8_t  m_sharpeningLimit;
 
 protected:
 

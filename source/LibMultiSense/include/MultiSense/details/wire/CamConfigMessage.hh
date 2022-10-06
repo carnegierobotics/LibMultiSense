@@ -124,6 +124,7 @@ public:
 
     bool sharpeningEnable;
     float sharpeningPercentage;
+    uint8_t sharpeningLimit;
 
     //
     // Constructors
@@ -167,7 +168,8 @@ public:
         autoExposureTargetIntensity(Default_Target_Intensity),
         gamma(Default_Gamma),
         sharpeningEnable(false),
-        sharpeningPercentage(0.0f)
+        sharpeningPercentage(0.0f),
+        sharpeningLimit(0)
         {};
 
     //
@@ -273,11 +275,13 @@ public:
         {
           message & sharpeningEnable;
           message & sharpeningPercentage;
+          message & sharpeningLimit;
         }
         else
         {
           sharpeningEnable = false;
           sharpeningPercentage = 0.0f;
+          sharpeningLimit = 0;
         }
 
     }
