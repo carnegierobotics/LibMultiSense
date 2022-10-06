@@ -1480,7 +1480,7 @@ public:
      *
      * @return A value within the range of 0 - 255 in
      */
-    float sharpeningLimit() const { return m_sharpeningLimit; };
+    uint8_t sharpeningLimit() const { return m_sharpeningLimit; };
 
     /**
      * Default constructor for a image configuration. Initializes all image
