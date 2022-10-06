@@ -951,8 +951,8 @@ Status impl::getImageConfig(image::Config& config)
     a.setGamma(d.gamma);
 
     a.enableSharpening(d.sharpeningEnable);
-
     a.setSharpeningPercentage(d.sharpeningPercentage);
+    a.setSharpeningLimit(d.sharpeningLimit);
 
     return Status_Ok;
 }
