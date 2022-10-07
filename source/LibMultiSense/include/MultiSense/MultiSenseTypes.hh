@@ -1083,20 +1083,20 @@ public:
 
 
     /**
-     * Enable sharpening
+     * Enable sharpening for the aux luma channel.
      *
-     * @param s The value true or false of sharpening
+     * @param s Set to the value of true to enable or false to disable aux luma sharpening.
      */
 
-    void enableSharpening(const bool &s)    { m_sharpeningEnable  = s; };
+    void enableAuxSharpening(const bool &s)    { m_sharpeningEnable  = s; };
 
     /**
-     * Set the sharpening percentage. The amount of sharpening to apply.
+     * Set the sharpening percentage for the aux luma channel.
      *
      * @param s The percentage of sharpening to apply. In the range of 0 - 100
      */
 
-    void setSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
+    void setAuxSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
 
     /**
      * Set the sharpening limit. The maximum difference in pixels that sharpening is
@@ -1106,7 +1106,7 @@ public:
      * @param s The percentage of sharpening to apply. In the range of 0 - 100
      */
 
-    void setSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
+    void setAuxSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
 
     //
     // Query
@@ -1462,25 +1462,25 @@ public:
     float yaw()   const { return m_yaw;   };
 
     /**
-     * Query whether sharpening is enabled or not on the camera.
+     * Query whether sharpening is enabled or not on the aux camera.
      *
      * @return Return true if sharpening is enabled, false if sharpening is disabled.
      */
-    bool enableSharpening() const { return m_sharpeningEnable; };
+    bool enableAuxSharpening() const { return m_sharpeningEnable; };
 
     /**
-     * Query the percentage of sharpening applied to the image.
+     * Query the percentage of sharpening applied to the aux luma image.
      *
      * @return A value within the range of 0 - 100
      */
-    float sharpeningPercentage() const { return m_sharpeningPercentage; };
+    float auxSharpeningPercentage() const { return m_sharpeningPercentage; };
 
     /**
-     * Query the limit of sharpening applied to the image.
+     * Query the limit of sharpening applied to the aux luma image.
      *
      * @return A value within the range of 0 - 255 in
      */
-    uint8_t sharpeningLimit() const { return m_sharpeningLimit; };
+    uint8_t auxSharpeningLimit() const { return m_sharpeningLimit; };
 
     /**
      * Default constructor for a image configuration. Initializes all image
