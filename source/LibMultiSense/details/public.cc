@@ -950,6 +950,10 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setGamma(d.gamma);
 
+    a.enableAuxSharpening(d.sharpeningEnable);
+    a.setAuxSharpeningPercentage(d.sharpeningPercentage);
+    a.setAuxSharpeningLimit(d.sharpeningLimit);
+
     return Status_Ok;
 }
 
@@ -1001,6 +1005,9 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.exposureSource = sourceApiToWire(c.exposureSource());
     cmd.gamma = c.gamma();
+    cmd.sharpeningEnable = c.enableAuxSharpening();
+    cmd.sharpeningPercentage = c.auxSharpeningPercentage();
+    cmd.sharpeningLimit = c.auxSharpeningLimit();
 
     std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
     std::vector<wire::ExposureConfig> secondaryConfigs;
