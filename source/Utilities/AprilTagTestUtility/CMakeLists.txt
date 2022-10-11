@@ -3,19 +3,38 @@
 #
 
 #
-# Setup the executable that we will use.
+# This utility requires c++14
 #
 
-add_executable(AprilTagTestUtility AprilTagTestUtility.cc)
+if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.0) OR
+    (CMAKE_CXX_COMPILER_ID MATCHES GNU AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9) OR
+    (CMAKE_CXX_COMPILER_ID MATCHES Clang AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 3.4))
 
-#
-# Specify libraries against which to link.
-#
+    set(CMAKE_CXX_STANDARD 14)
 
-target_link_libraries (AprilTagTestUtility ${MULTISENSE_UTILITY_LIBS})
+    #
+    # Setup the executable that we will use.
+    #
 
-#
-# Specify the install location
-#
+    #
+    # Setup the executable that we will use.
+    #
 
-install(TARGETS AprilTagTestUtility RUNTIME DESTINATION "bin")
+    add_executable(AprilTagTestUtility AprilTagTestUtility.cc)
+
+    #
+    # Specify libraries against which to link.
+    #
+
+    target_link_libraries (AprilTagTestUtility ${MULTISENSE_UTILITY_LIBS})
+
+    #
+    # Specify the install location
+    #
+
+    install(TARGETS AprilTagTestUtility RUNTIME DESTINATION "bin")
+
+endif()

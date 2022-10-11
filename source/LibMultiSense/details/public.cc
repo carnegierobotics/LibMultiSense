@@ -781,9 +781,11 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setNumberOfPulses(data.number_of_pulses);
 
-    c.setLedStartupTime(data.led_delay_us);
+    c.setStartupTime(data.led_delay_us);
 
-    c.setRollingShutterSynchronization(data.rolling_shutter_led);
+    c.setInvertPulse(data.invert_pulse != 0);
+
+    c.enableRollingShutterLedSynchronization(data.rolling_shutter_led != 0);
 
     return Status_Ok;
 }
@@ -806,7 +808,9 @@ Status impl::setLightingConfig(const lighting::Config& c)
 
     msg.number_of_pulses = c.getNumberOfPulses();
 
-    msg.rolling_shutter_led = c.getRollingShutterSynchronization();
+    msg.invert_pulse = c.getInvertPulse() ? 1 : 0;
+
+    msg.rolling_shutter_led = c.getRollingShutterLedSynchronizationStatus() ? 1 : 0;
 
     return waitAck(msg);
 }
@@ -950,6 +954,10 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setGamma(d.gamma);
 
+    a.enableAuxSharpening(d.sharpeningEnable);
+    a.setAuxSharpeningPercentage(d.sharpeningPercentage);
+    a.setAuxSharpeningLimit(d.sharpeningLimit);
+
     return Status_Ok;
 }
 
@@ -1001,6 +1009,9 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.exposureSource = sourceApiToWire(c.exposureSource());
     cmd.gamma = c.gamma();
+    cmd.sharpeningEnable = c.enableAuxSharpening();
+    cmd.sharpeningPercentage = c.auxSharpeningPercentage();
+    cmd.sharpeningLimit = c.auxSharpeningLimit();
 
     std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
     std::vector<wire::ExposureConfig> secondaryConfigs;
@@ -1323,6 +1334,10 @@ Status impl::getDeviceInfo(system::DeviceInfo& info)
 
 Status impl::getDeviceStatus(system::StatusMessage& status)
 {
+    if (m_getStatusReturnStatus != Status_Ok){
+        return m_getStatusReturnStatus;
+    }
+
     status.uptime = static_cast<double>(m_statusResponseMessage.uptime.getNanoSeconds()) * 1e-9;
 
     status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==

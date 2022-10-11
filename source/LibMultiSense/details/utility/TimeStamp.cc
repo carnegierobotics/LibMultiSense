@@ -40,6 +40,7 @@
  **/
 
 #include "MultiSense/details/utility/TimeStamp.hh"
+#include "MultiSense/details/utility/Exception.hh"
 
 #ifndef WIN32
 #include <sys/time.h>
@@ -198,7 +199,22 @@ TimeStamp TimeStamp::getCurrentTime()
     timeStamp.time.tv_usec = static_cast<long> ((currentTimeAsLargeInteger.QuadPart - static_cast<int64_t>(timeStamp.time.tv_sec) * 10000000) / 10);
 
 #else
+
+#if defined (USE_MONOTONIC_CLOCK)
+    struct timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 0;
+
+    if (0 != clock_gettime(CLOCK_MONOTONIC, &ts))
+    {
+        CRL_EXCEPTION("Failed to call clock_gettime().");
+    }
+
+    TIMESPEC_TO_TIMEVAL(&timeStamp.time, &ts);
+#else
     gettimeofday(&timeStamp.time, 0);
+#endif
+
 #endif
 
     return timeStamp;

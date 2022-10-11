@@ -201,17 +201,17 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  * Remote_Head_2   The Remote Head Camera located in position 2
  * Remote_Head_3   The Remote Head Camera located in position 3
  */
-typedef uint32_t RemoteHeadChannel;
+typedef int16_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = 0;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
 /** The Remote Head Camera at position 0*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 0;
 /** The Remote Head Camera at position 1*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 2;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 1;
 /** The Remote Head Camera at position 2*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 3;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 2;
 /** The Remote Head Camera at position 3*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 4;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 3;
 
 
 /**
@@ -1081,6 +1081,33 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
+
+    /**
+     * Enable sharpening for the aux luma channel.
+     *
+     * @param s Set to the value of true to enable or false to disable aux luma sharpening.
+     */
+
+    void enableAuxSharpening(const bool &s)    { m_sharpeningEnable  = s; };
+
+    /**
+     * Set the sharpening percentage for the aux luma channel.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setAuxSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
+
+    /**
+     * Set the sharpening limit. The maximum difference in pixels that sharpening is
+     * is allowed to change between neighboring pixels. This is useful for clamping
+     * the sharpening percentage, while still maintaining a large gain.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setAuxSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
+
     //
     // Query
 
@@ -1435,6 +1462,27 @@ public:
     float yaw()   const { return m_yaw;   };
 
     /**
+     * Query whether sharpening is enabled or not on the aux camera.
+     *
+     * @return Return true if sharpening is enabled, false if sharpening is disabled.
+     */
+    bool enableAuxSharpening() const { return m_sharpeningEnable; };
+
+    /**
+     * Query the percentage of sharpening applied to the aux luma image.
+     *
+     * @return A value within the range of 0 - 100
+     */
+    float auxSharpeningPercentage() const { return m_sharpeningPercentage; };
+
+    /**
+     * Query the limit of sharpening applied to the aux luma image.
+     *
+     * @return A value within the range of 0 - 255 in
+     */
+    uint8_t auxSharpeningLimit() const { return m_sharpeningLimit; };
+
+    /**
      * Default constructor for a image configuration. Initializes all image
      * configuration members to their default values
      */
@@ -1446,6 +1494,7 @@ public:
                m_profile(User_Control),
                m_secondary_exposures(),
                m_gamma(2.0),
+               m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1466,7 +1515,10 @@ private:
     bool     m_storeSettingsInFlash;
     CameraProfile m_profile;
     std::vector<ExposureConfig> m_secondary_exposures;
-    float m_gamma;
+    float    m_gamma;
+    bool     m_sharpeningEnable;
+    float    m_sharpeningPercentage;
+    uint8_t  m_sharpeningLimit;
 
 protected:
 
@@ -2078,7 +2130,11 @@ public:
     };
 
     /**
-    * Get the number of pulses of the light within a single exposure
+    * Get the number of pulses of the light per a single exposure
+    * This is used to trigger the light or output signal multiple times after a
+    * single exposure. For values greater than 1, pulses will occur between the
+    * exposures, not during. This can be used to leverage human persistence of
+    * vision to make the light appear as though it is not flashing
     *
     * @return The current number of pulses
     */
@@ -2088,10 +2144,14 @@ public:
 
     /**
     * Set the number of pulses of the light within a single exposure
+    * This is used to trigger the light or output signal multiple times after a
+    * single exposure. For values greater than 1, pulses will occur between the
+    * exposures, not during. This can be used to leverage human persistence of
+    * vision to make the light appear as though it is not flashing
     *
     * @return True on success, False on failure
     */
-    bool setNumberOfPulses( uint32_t numPulses) {
+    bool setNumberOfPulses(const uint32_t numPulses) {
 
       m_numberPulses = numPulses;
       return true;
@@ -2099,6 +2159,8 @@ public:
 
     /**
     * Get the startup time offset of the led in microseconds
+    * The LED or output trigger is triggered this many microseconds before
+    * the start of the image exposure
     *
     * @return The current led startup time
     */
@@ -2108,18 +2170,44 @@ public:
 
     /**
     * Set the transient startup time of the led, for better synchronization.
+    * The LED or output trigger is triggered this many microseconds before
+    * the start of the image exposure
     *
-    * @param the led transient time.
+    * @param ledTransientResponse_us The led transient time.
     *
     * @return True on success, False on failure
     */
-    bool setLedStartupTime( uint32_t ledTransientResponse_us) {
+    bool setStartupTime(uint32_t ledTransientResponse_us) {
 
       m_lightStartupOffset_us = ledTransientResponse_us;
       return true;
     }
 
     /**
+    * Get whether or not the LED pulse is inverted. True means the output
+    * will be low during the exposure. False means the output will be high
+    * during the exposure.
+    *
+    * @return True if the pulse is inverted
+    */
+    bool getInvertPulse( ) const {
+        return m_invertPulse;
+    }
+
+    /**
+    * Invert the output signal that drives lighting. True means the output
+    * will be low during the exposure. False means the output will be high
+    * during the exposure. (Only supported for firmware >=5.21)
+    *
+    * @param invert Whether or not to invert the pulse signal
+    *
+    * @return True on success, False on failure
+    */
+    bool setInvertPulse(const bool invert) {
+        m_invertPulse = invert;
+        return true;
+    }
+    /*
     * Enable a rolling shutter camera flash synchronization, this will Allow
     * an LED to flash with in sync with a rolling shutter imager, to reduce
     * the possibility of, seeing inconsistent lighting artifacts with rolling
@@ -2129,8 +2217,8 @@ public:
     *
     * @return True on success, False on failure
     */
-    bool setRollingShutterSynchronization( bool enabled) {
-      m_rollingShutterSynchronized = enabled;
+    bool enableRollingShutterLedSynchronization(const bool enabled) {
+      m_rollingShutterLedEnabled = enabled;
       return true;
     }
 
@@ -2139,16 +2227,16 @@ public:
     *
     * @return True if enabled, False if disabled
     */
-    bool getRollingShutterSynchronization( void) const {
-      return m_rollingShutterSynchronized;
+    bool getRollingShutterLedSynchronizationStatus(void) const {
+      return m_rollingShutterLedEnabled;
     }
 
     /**
      * Default constructor. Flashing is disabled and all lights are off
      */
-
     Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f),
-               m_numberPulses(1), m_lightStartupOffset_us(0), m_rollingShutterSynchronized(false) {};
+               m_numberPulses(1), m_lightStartupOffset_us(0), m_invertPulse(false),
+               m_rollingShutterLedEnabled(false) {};
 
 private:
 
@@ -2156,7 +2244,8 @@ private:
     std::vector<float> m_dutyCycle;
     uint32_t           m_numberPulses;
     uint32_t           m_lightStartupOffset_us;
-    bool               m_rollingShutterSynchronized;
+    bool               m_invertPulse;
+    bool               m_rollingShutterLedEnabled;
 };
 
 /**
@@ -2892,6 +2981,7 @@ public:
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                           = 100;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                           = 101;
 
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_NONE           = 0;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_GREY   = 1;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
@@ -2901,8 +2991,11 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0239_COLOR   = 202;
 
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
-    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_SL_INTERNAL = 1;
-    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_EXTERNAL = 2;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_INTERNAL = 1;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_EXTERNAL = 2;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_PATTERN_PROJECTOR = 3;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_OUTPUT_TRIGGER = 4;
+    static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_PATTERN_PROJECTOR_AND_OUTPUT_TRIGGER = 5;
 
     /** The name of a given device */
     std::string name;

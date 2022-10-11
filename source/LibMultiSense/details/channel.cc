@@ -69,10 +69,10 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     m_txSeqId(0),
     m_lastRxSeqId(-1),
     m_unWrappedRxSeqId(0),
-    m_udpTrackerCache(UDP_TRACKER_CACHE_DEPTH, 0),
+    m_udpTrackerCache(UDP_TRACKER_CACHE_DEPTH),
     m_rxLargeBufferPool(),
     m_rxSmallBufferPool(),
-    m_imageMetaCache(IMAGE_META_CACHE_DEPTH, 0),
+    m_imageMetaCache(IMAGE_META_CACHE_DEPTH),
     m_udpAssemblerMap(),
     m_dispatchLock(),
     m_streamLock(),
@@ -119,21 +119,58 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
-    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + cameraId);
+    m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint16_t>(cameraId + 1));
     m_sensorAddress.sin_addr   = addr;
 
     //
     // Create a pool of RX buffers
 
-    for(uint32_t i=0; i<RX_POOL_LARGE_BUFFER_COUNT; i++)
-        m_rxLargeBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_LARGE_BUFFER_SIZE));
-    for(uint32_t i=0; i<RX_POOL_SMALL_BUFFER_COUNT; i++)
-        m_rxSmallBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_SMALL_BUFFER_SIZE));
+    uint32_t largeBufferRetry = 0;
+    for(uint32_t i=0; i<RX_POOL_LARGE_BUFFER_COUNT;)
+    {
+        try {
+            m_rxLargeBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_LARGE_BUFFER_SIZE));
+            i++;
+            largeBufferRetry = 0;
+        }
+        catch (const std::exception &e) {
+            CRL_DEBUG("Failed to allocate memory (will sleep and try again): %s", e.what());
+            usleep(static_cast<unsigned int> (10000));
+            largeBufferRetry++;
+
+            if (largeBufferRetry >= MAX_BUFFER_ALLOCATION_RETRIES)
+                throw e;
+        }
+    }
+
+    uint32_t smallBufferRetry = 0;
+    for(uint32_t i=0; i<RX_POOL_SMALL_BUFFER_COUNT;)
+    {
+        try {
+            m_rxSmallBufferPool.push_back(new utility::BufferStreamWriter(RX_POOL_SMALL_BUFFER_SIZE));
+            i++;
+            smallBufferRetry = 0;
+        }
+        catch (const std::exception &e) {
+            CRL_DEBUG("Failed to allocate memory (will sleep and try again): %s", e.what());
+            usleep(static_cast<unsigned int> (10000));
+            smallBufferRetry++;
+
+            if (smallBufferRetry >= MAX_BUFFER_ALLOCATION_RETRIES)
+                throw e;
+        }
+    }
 
     //
     // Bind to the port
 
-    bind();
+    try {
+        bind();
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        cleanup();
+        throw e;
+    }
 
     //
     // Register any special UDP reassemblers
@@ -154,8 +191,8 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     Status status = waitData(wire::SysGetMtu(), mtu);
     if (Status_Ok != status) {
         cleanup();
-        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\"",
-                      address.c_str());
+        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
+                      address.c_str(), cameraId);
     } else {
 
         //
@@ -227,6 +264,14 @@ void impl::cleanup()
         it != m_rxSmallBufferPool.end();
         ++it)
         delete *it;
+
+    m_imageListeners.clear();
+    m_lidarListeners.clear();
+    m_ppsListeners.clear();
+    m_imuListeners.clear();
+    m_compressedImageListeners.clear();
+    m_rxLargeBufferPool.clear();
+    m_rxSmallBufferPool.clear();
 
     if (m_serverSocket > 0)
         closesocket(m_serverSocket);
@@ -536,7 +581,15 @@ void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 {
     utility::ScopedLock lock(m_timeLock);
 
-    if (false == m_timeOffsetInit) {
+    //
+    // Reseed on startup or if there is a large jump in time
+    //
+    CRL_CONSTEXPR int TIME_SYNC_THRESH_SECONDS = 100;
+    const bool seed_offset = (false == m_timeOffsetInit) ||
+                             (abs(m_timeOffset.getSeconds() - offset.getSeconds()) > TIME_SYNC_THRESH_SECONDS);
+
+    if (seed_offset)
+    {
         m_timeOffset = offset; // seed
         m_timeOffsetInit = true;
         return;
@@ -642,6 +695,9 @@ void *impl::statusThread(void *userDataP)
                 // Cache the status message
 
                 selfP->m_statusResponseMessage = msg;
+                selfP->m_getStatusReturnStatus = Status_Ok;
+            } else {
+                selfP->m_getStatusReturnStatus = Status_TimedOut;
             }
 
         } catch (const std::exception& e) {
@@ -668,7 +724,7 @@ Channel* Channel::Create(const std::string& address)
 {
     try {
 
-        return new details::impl(address, 0);
+        return new details::impl(address, Remote_Head_VPB);
 
     } catch (const std::exception& e) {
 

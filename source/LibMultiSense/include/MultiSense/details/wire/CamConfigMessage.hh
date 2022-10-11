@@ -52,7 +52,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 8;
+    static CRL_CONSTEXPR VersionType VERSION = 9;
 
     //
     // Parameters representing the current camera configuration
@@ -118,6 +118,14 @@ public:
 
     float autoExposureTargetIntensity;
     float gamma;
+
+    //
+    // Version 9 additions
+
+    bool sharpeningEnable;
+    float sharpeningPercentage;
+    uint8_t sharpeningLimit;
+
     //
     // Constructors
 
@@ -158,7 +166,10 @@ public:
         exposureSource(Default_Exposure_Source),
         secondaryExposureConfigs(),
         autoExposureTargetIntensity(Default_Target_Intensity),
-        gamma(Default_Gamma)
+        gamma(Default_Gamma),
+        sharpeningEnable(false),
+        sharpeningPercentage(0.0f),
+        sharpeningLimit(0)
         {};
 
     //
@@ -258,6 +269,19 @@ public:
         {
             autoExposureTargetIntensity = Default_Target_Intensity;
             gamma = Default_Gamma;
+        }
+
+        if (version >= 9)
+        {
+          message & sharpeningEnable;
+          message & sharpeningPercentage;
+          message & sharpeningLimit;
+        }
+        else
+        {
+          sharpeningEnable = false;
+          sharpeningPercentage = 0.0f;
+          sharpeningLimit = 0;
         }
 
     }

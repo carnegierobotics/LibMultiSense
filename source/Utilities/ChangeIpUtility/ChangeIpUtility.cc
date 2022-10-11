@@ -76,7 +76,8 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-G <new_gateway>        : NEW IPV4 gateway     (default=10.66.171.1)\n");
     fprintf(stderr, "\t-N <new_netmask>        : NEW IPV4 address     (default=255.255.240.0)\n");
 #ifndef WIN32
-    fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface (requires root)\n");
+    fprintf(stderr, "\t-b <interface>          : send broadcast packet to specified network interface. "
+                                                 "This sets the ip address to the default 10.66.171.21\n");
 #endif
     fprintf(stderr, "\t-y                      : disable confirmation prompt\n");
 
@@ -201,18 +202,6 @@ int main(int    argc,
 #else
         int broadcast=1;
 
-        if (192 == a1  && 168 == a2 && 0 == a3)
-        {
-            fprintf(stderr, "MultiSense SL units use the 192.168.0 subnet to talk to the Hokuyo ");
-            fprintf(stderr, "laser. Setting the IP address of the MultiSense to 192.168.0.X will ");
-            fprintf(stderr, "interfere with the networking configuration.  This unit may be a ");
-            fprintf(stderr, "MultiSense SL as in broadcast mode this tool cannot query the device.\n");
-            fprintf(stderr, "\n");
-            fprintf(stderr, "Aborting IP Change.\n");
-            fflush(stderr);
-            goto clean_out;
-        }
-
         // create UDP socket
         sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
         if(sockfd == -1) {
@@ -228,14 +217,14 @@ int main(int    argc,
 
         #ifdef __APPLE__
         if (setsockopt(sockfd,SOL_SOCKET,IP_RECVIF,iface.c_str(),iface.size()+1)==-1) {
-            perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
+            perror("setsockopt(...SO_BINDTODEVICE) failed");
             goto clean_out;
         }
         #else
         // bind to a specific interface so broadcast packet goes to the right place
         // note: on most systems, this will require elevated privileges
         if (setsockopt(sockfd,SOL_SOCKET,SO_BINDTODEVICE,iface.c_str(),iface.size()+1)==-1) {
-            perror("setsockopt(...SO_BINDTODEVICE) failed (are you root?)");
+            perror("setsockopt(...SO_BINDTODEVICE) failed");
             goto clean_out;
         }
         #endif

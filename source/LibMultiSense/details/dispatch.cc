@@ -505,8 +505,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.numDetections = apriltag.numDetections;
 
         // Loop over detections and convert from wire to header type
-        for (const auto &incoming : apriltag.detections)
+        for (size_t index = 0 ; index < apriltag.detections.size() ; ++index)
         {
+            const wire::ApriltagDetection incoming = apriltag.detections[index];
+
             apriltag::Header::ApriltagDetection outgoing;
 
             outgoing.family = std::string(incoming.family);

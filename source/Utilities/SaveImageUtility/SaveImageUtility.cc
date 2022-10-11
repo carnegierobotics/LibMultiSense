@@ -50,6 +50,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -67,11 +68,21 @@ namespace {  // anonymous
 
 volatile bool doneG = false;
 
+struct UserData
+{
+    Channel *channelP;
+    system::VersionInfo version;
+    system::DeviceInfo deviceInfo;
+    image::Calibration calibration;
+};
+
 void usage(const char *programNameP)
 {
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=7200)" << std::endl;
+    std::cerr << "\t-r <head_id>    : remote head ID (default=0)" << std::endl;
 
     exit(1);
 }
@@ -90,6 +101,39 @@ void signalHandler(int sig)
     doneG = true;
 }
 #endif
+
+RemoteHeadChannel getRemoteHeadIdFromString(const std::string &head_str)
+{
+  if (head_str == "VPB")
+  {
+      return Remote_Head_VPB;
+  }
+  else if (head_str == "0")
+  {
+      return Remote_Head_0;
+  }
+  else if (head_str == "1")
+  {
+      return Remote_Head_1;
+  }
+  else if (head_str == "2")
+  {
+      return Remote_Head_2;
+  }
+  else if (head_str == "3")
+  {
+      return Remote_Head_3;
+  }
+
+  fprintf(stderr, "Error: Unrecognized remote head\n");
+  fprintf(stderr, "Please use one of the following:\n");
+  fprintf(stderr, "\tVPB\n");
+  fprintf(stderr, "\t0'\n");
+  fprintf(stderr, "\t1\n");
+  fprintf(stderr, "\t2\n");
+  fprintf(stderr, "\t3\n");
+  exit(EXIT_FAILURE);
+}
 
 system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes)
 {
@@ -128,11 +172,65 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
     return target_mode;
 }
 
+
+std::string writeMatrix(const float* data, size_t width, size_t height)
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+
+    for (size_t h = 0 ; h < height ; ++h) {
+        for (size_t w = 0 ; w < width ; ++w) {
+            ss << data[w + width * h] << ",";
+        }
+    }
+
+    return ss.str();
+}
+
+std::string assembledInfoString(const image::Header&       header,
+                                const system::DeviceInfo&  info,
+                                const system::VersionInfo& version,
+                                const image::Calibration&  calibration)
+{
+    std::stringstream ss;
+
+    bool hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
+                        info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 ||
+                        info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
+
+    ss << "SN," << info.serialNumber << ",";
+    ss << "HWRev," << info.hardwareRevision << ",";
+    ss << "APIVersion," << version.apiVersion << ",";
+    ss << "FirmwareVersion," << version.sensorFirmwareVersion << ",";
+    ss << "timeSec," << header.timeSeconds << ",";
+    ss << "timeMiroSec," << header.timeMicroSeconds << ",";
+    ss << "exposure," << header.exposure << ",";
+    ss << "gain," << header.gain << ",";
+    ss << "fps," << header.framesPerSecond << ",";
+    ss << "leftM," << writeMatrix(&calibration.left.M[0][0], 3, 3);
+    ss << "leftD," << writeMatrix(calibration.left.D, 8, 1);
+    ss << "leftR," << writeMatrix(&calibration.left.R[0][0], 3, 3);
+    ss << "leftP," << writeMatrix(&calibration.left.P[0][0], 4, 3);
+    ss << "rightM," << writeMatrix(&calibration.right.M[0][0], 3, 3);
+    ss << "rightD," << writeMatrix(calibration.right.D, 8, 1);
+    ss << "rightR," << writeMatrix(&calibration.right.R[0][0], 3, 3);
+    ss << "rightP," << writeMatrix(&calibration.right.P[0][0], 4, 3);
+    if (hasAuxCamera) {
+        ss << "auxM," << writeMatrix(&calibration.aux.M[0][0], 3, 3);
+        ss << "auxD," << writeMatrix(calibration.aux.D, 8, 1);
+        ss << "auxR," << writeMatrix(&calibration.aux.R[0][0], 3, 3);
+        ss << "auxP," << writeMatrix(&calibration.aux.P[0][0], 4, 3);
+    }
+
+    return ss.str();
+}
+
 bool savePgm(const std::string& fileName,
              uint32_t           width,
              uint32_t           height,
              uint32_t           bitsPerPixel,
-             const void        *dataP)
+             const std::string& comment,
+             const void         *dataP)
 {
     std::ofstream outputStream(fileName.c_str(), std::ios::binary | std::ios::out);
 
@@ -148,6 +246,7 @@ bool savePgm(const std::string& fileName,
     {
 
         outputStream << "P5\n"
+                     << "#" << comment << "\n"
                      << width << " " << height << "\n"
                      << 0xFF << "\n";
 
@@ -158,6 +257,7 @@ bool savePgm(const std::string& fileName,
     case 16:
     {
         outputStream << "P5\n"
+                     << "#" << comment << "\n"
                      << width << " " << height << "\n"
                      << 0xFFFF << "\n";
 
@@ -174,6 +274,22 @@ bool savePgm(const std::string& fileName,
 
     outputStream.close();
     return true;
+}
+
+bool savePgm(const std::string&         fileName,
+             const image::Header&       header,
+             const system::DeviceInfo&  info,
+             const system::VersionInfo& version,
+             const image::Calibration&  calibration)
+{
+    const std::string comment = assembledInfoString(header, info, version, calibration);
+
+    return savePgm(fileName,
+                   header.width,
+                   header.height,
+                   header.bitsPerPixel,
+                   comment,
+                   header.imageDataP);
 }
 
 void ppsCallback(const pps::Header& header,
@@ -193,24 +309,24 @@ void laserCallback(const lidar::Header& header,
 void imageCallback(const image::Header& header,
                    void                *userDataP)
 {
-    Channel *channelP = reinterpret_cast<Channel*>(userDataP);
+    UserData *userData = reinterpret_cast<UserData*>(userDataP);
 
     static int64_t lastFrameId = -1;
 
     if (-1 == lastFrameId)
     {
         savePgm("test.pgm",
-                header.width,
-                header.height,
-                header.bitsPerPixel,
-                header.imageDataP);
+                header,
+                userData->deviceInfo,
+                userData->version,
+                userData->calibration);
     }
 
     lastFrameId = header.frameId;
 
     image::Histogram histogram;
 
-	if (Status_Ok != channelP->getImageHistogram(header.frameId, histogram))
+	if (Status_Ok != userData->channelP->getImageHistogram(header.frameId, histogram))
 		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
@@ -221,6 +337,7 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     int32_t mtu = 7200;
+    RemoteHeadChannel head_id = Remote_Head_VPB;
 
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
@@ -233,17 +350,18 @@ int main(int    argc,
 
     int c;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:m:")))
+    while(-1 != (c = getopt(argc, argvPP, "a:m:r:")))
         switch(c) {
-        case 'a': currentAddress = std::string(optarg);    break;
-        case 'm': mtu            = atoi(optarg);           break;
-        default: usage(*argvPP);                           break;
+        case 'a': currentAddress = std::string(optarg);               break;
+        case 'm': mtu            = atoi(optarg);                      break;
+        case 'r': head_id        = getRemoteHeadIdFromString(optarg); break;
+        default: usage(*argvPP);                                      break;
         }
 
     //
     // Initialize communications.
 
-    Channel *channelP = Channel::Create(currentAddress);
+    Channel *channelP = Channel::Create(currentAddress, head_id);
     if (NULL == channelP) {
 		std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
         return -1;
@@ -257,8 +375,13 @@ int main(int    argc,
     VersionType version;
     std::vector<system::DeviceMode> deviceModes;
     system::DeviceMode operatingMode;
+    image::Calibration calibration;
+    system::DeviceInfo info;
+    UserData userData;
+
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
+
     if (Status_Ok != status) {
 		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
@@ -328,9 +451,32 @@ int main(int    argc,
     }
 
     //
+    // Get image Calibration
+
+    status = channelP->getImageCalibration(calibration);
+    if (Status_Ok != status) {
+		std::cerr << "Failed to get image calibration: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    //
+    // Get device info
+
+    status = channelP->getDeviceInfo(info);
+    if (Status_Ok != status) {
+		std::cerr << "Failed to get device info: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
+    userData.channelP = channelP;
+    userData.version = v;
+    userData.deviceInfo = info;
+    userData.calibration = calibration;
+
+    //
     // Add callbacks
 
-    channelP->addIsolatedCallback(imageCallback, Source_All, channelP);
+    channelP->addIsolatedCallback(imageCallback, Source_All, &userData);
     channelP->addIsolatedCallback(laserCallback, channelP);
     channelP->addIsolatedCallback(ppsCallback, channelP);
 

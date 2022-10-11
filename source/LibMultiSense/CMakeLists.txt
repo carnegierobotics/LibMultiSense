@@ -10,6 +10,7 @@ include(CheckFunctionExists)
 
 check_function_exists(vasprintf HAVE_VASPRINTF)
 
+option (MULTISENSE_USE_MONOTONIC_CLOCK "Build LibMultiSense to use CLOCK_MONOTONIC for network time sync. Defaults to OFF." OFF)
 option(MULTISENSE_INSTALL_WIRE_PROTOCOL "Install low level wire headers, for integration with external event systems" OFF)
 
 #
@@ -125,10 +126,14 @@ endif()
 add_library(MultiSense ${MULTISENSE_HEADERS}
                        ${DETAILS_HEADERS}
                        ${DETAILS_SRC})
+
+if (MULTISENSE_USE_MONOTONIC_CLOCK)
+    target_compile_definitions(MultiSense PRIVATE USE_MONOTONIC_CLOCK=${MULTISENSE_USE_MONOTONIC_CLOCK})
+endif()
 #
 # Versioning...someday lets automate this somehow
 #
-set(version "4.1.0")
+set(version "4.2.0")
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
 
 target_include_directories(MultiSense PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
