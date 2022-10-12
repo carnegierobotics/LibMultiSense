@@ -2212,6 +2212,8 @@ public:
     * an LED to flash with in sync with a rolling shutter imager, to reduce
     * the possibility of, seeing inconsistent lighting artifacts with rolling
     * shutter imagers.
+    * Note: This feature is only available for Next Gen Stereo Cameras, with a
+    * rolling shutter imager.
     *
     * @param enabled enable/disable the rolling shutter synchronization feature.
     *
@@ -2224,6 +2226,8 @@ public:
 
     /**
     * Get the setting of the rollingShutterSynchronization.
+    * Note: This feature is only available for Next Gen Stereo Cameras, with a
+    * rolling shutter imager.
     *
     * @return True if enabled, False if disabled
     */

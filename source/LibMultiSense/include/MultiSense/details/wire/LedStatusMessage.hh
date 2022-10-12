@@ -134,11 +134,11 @@ public:
 
         if (version >= 4)
         {
-          message & invert_pulse;
+          message & rolling_shutter_led;
         }
         else
         {
-          invert_pulse = 0;
+          rolling_shutter_led = 0;
         }
     }
 };
