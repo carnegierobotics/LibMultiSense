@@ -2213,7 +2213,7 @@ public:
     * the possibility of, seeing inconsistent lighting artifacts with rolling
     * shutter imagers.
     * Note: This feature is only available for Next Gen Stereo Cameras, with a
-    * rolling shutter imager.
+    * rolling shutter aux imager.
     *
     * @param enabled enable/disable the rolling shutter synchronization feature.
     *
