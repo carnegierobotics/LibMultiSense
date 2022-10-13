@@ -50,7 +50,7 @@ namespace wire {
 class LedStatus {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_LED_STATUS;
-    static CRL_CONSTEXPR VersionType VERSION = 3;
+    static CRL_CONSTEXPR VersionType VERSION = 4;
 
     //
     // Bit mask indicating which LEDs are implemented
@@ -87,10 +87,17 @@ public:
     uint8_t invert_pulse;
 
     //
+    // The status of the rolling shutter led enable flag, can be used confirm that
+    // the LED synchronization technique, can be used with a rolling shutter imager.
+
+    uint8_t rolling_shutter_led;
+
+    //
     // Constructors
 
     LedStatus(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    LedStatus() : available(0), flash(0), led_delay_us(0), number_of_pulses(1), invert_pulse(0) {};
+    LedStatus() : available(0), flash(0), led_delay_us(0), number_of_pulses(1),
+    invert_pulse(0), rolling_shutter_led(0) {};
 
     //
     // Serialization routine
@@ -122,7 +129,16 @@ public:
         }
         else
         {
-          invert_pulse = false;
+          invert_pulse = 0;
+        }
+
+        if (version >= 4)
+        {
+          message & rolling_shutter_led;
+        }
+        else
+        {
+          rolling_shutter_led = 0;
         }
     }
 };

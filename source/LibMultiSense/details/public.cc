@@ -785,6 +785,8 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setInvertPulse(data.invert_pulse != 0);
 
+    c.enableRollingShutterLedSynchronization(data.rolling_shutter_led != 0);
+
     return Status_Ok;
 }
 
@@ -807,6 +809,8 @@ Status impl::setLightingConfig(const lighting::Config& c)
     msg.number_of_pulses = c.getNumberOfPulses();
 
     msg.invert_pulse = c.getInvertPulse() ? 1 : 0;
+
+    msg.rolling_shutter_led = c.getRollingShutterLedSynchronizationStatus() ? 1 : 0;
 
     return waitAck(msg);
 }

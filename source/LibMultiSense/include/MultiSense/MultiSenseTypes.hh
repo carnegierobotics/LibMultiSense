@@ -2207,12 +2207,40 @@ public:
         m_invertPulse = invert;
         return true;
     }
+    /*
+    * Enable a rolling shutter camera flash synchronization, this will Allow
+    * an LED to flash with in sync with a rolling shutter imager, to reduce
+    * the possibility of, seeing inconsistent lighting artifacts with rolling
+    * shutter imagers.
+    * Note: This feature is only available for Next Gen Stereo Cameras, with a
+    * rolling shutter aux imager.
+    *
+    * @param enabled enable/disable the rolling shutter synchronization feature.
+    *
+    * @return True on success, False on failure
+    */
+    bool enableRollingShutterLedSynchronization(const bool enabled) {
+      m_rollingShutterLedEnabled = enabled;
+      return true;
+    }
+
+    /**
+    * Get the setting of the rollingShutterSynchronization.
+    * Note: This feature is only available for Next Gen Stereo Cameras, with a
+    * rolling shutter imager.
+    *
+    * @return True if enabled, False if disabled
+    */
+    bool getRollingShutterLedSynchronizationStatus(void) const {
+      return m_rollingShutterLedEnabled;
+    }
 
     /**
      * Default constructor. Flashing is disabled and all lights are off
      */
     Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f),
-               m_numberPulses(1), m_lightStartupOffset_us(0), m_invertPulse(false) {};
+               m_numberPulses(1), m_lightStartupOffset_us(0), m_invertPulse(false),
+               m_rollingShutterLedEnabled(false) {};
 
 private:
 
@@ -2221,6 +2249,7 @@ private:
     uint32_t           m_numberPulses;
     uint32_t           m_lightStartupOffset_us;
     bool               m_invertPulse;
+    bool               m_rollingShutterLedEnabled;
 };
 
 /**
