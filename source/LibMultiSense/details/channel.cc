@@ -313,7 +313,7 @@ void impl::bind(const std::string &ifName)
         }
     #else
     if (!ifName.empty())
-        CRL_DEBUG("User specified binding to adapter %s, but this feature is only supported under linux. Ignoring..", ifName.c_str());
+        CRL_DEBUG("User specified binding to adapter %s, but this feature is only supported under linux. Ignoring bind to specific adapter", ifName.c_str());
     #endif
 
     //
