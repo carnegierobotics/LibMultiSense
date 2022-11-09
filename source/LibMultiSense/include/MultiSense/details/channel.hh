@@ -94,7 +94,7 @@ public:
     //
     // Construction
 
-    impl(const std::string& address, const RemoteHeadChannel &cameraId);
+    impl(const std::string& address, const RemoteHeadChannel &cameraId, const std::string& ifName);
     ~impl();
 
     //
@@ -560,7 +560,7 @@ private:
                                                        uint32_t&     microseconds);
 
     void                         cleanup();
-    void                         bind   ();
+    void                         bind   (const std::string& ifName);
     void                         handle ();
 
     //

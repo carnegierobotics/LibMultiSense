@@ -302,6 +302,7 @@ void impl::bind(const std::string &ifName)
     if (m_serverSocket < 0)
         CRL_EXCEPTION("failed to create the UDP socket: %s",
                       strerror(errno));
+
     #if __linux__
         //
         // Bind to spcific interface if specified
