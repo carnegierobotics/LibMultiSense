@@ -378,7 +378,7 @@ int main(int    argc,
     // Initialize communications.
 
     auto channelP = std::make_unique<ChannelWrapper>(currentAddress);
-    if (nullptr == channelP) {
+    if (nullptr == channelP || nullptr == channelP->ptr()) {
         std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
         return EXIT_FAILURE;
     }
