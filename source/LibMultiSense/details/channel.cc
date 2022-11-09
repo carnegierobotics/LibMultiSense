@@ -60,7 +60,7 @@ namespace details {
 //
 // Implementation constructor
 
-impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
+impl::impl(const std::string &address, const RemoteHeadChannel &cameraId, const std::string& ifName) :
     m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
@@ -165,7 +165,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     // Bind to the port
 
     try {
-        bind();
+        bind(ifName);
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
         cleanup();
@@ -293,7 +293,7 @@ impl::~impl()
 // Binds the communications channel, preparing it to send/receive data
 // over the network.
 
-void impl::bind()
+void impl::bind(const std::string &ifName)
 {
     //
     // Create the socket.
@@ -302,7 +302,16 @@ void impl::bind()
     if (m_serverSocket < 0)
         CRL_EXCEPTION("failed to create the UDP socket: %s",
                       strerror(errno));
-
+    #if __linux__
+        //
+        // Bind to spcific interface if specified
+        if (!ifName.empty()){
+            if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_BINDTODEVICE,  ifName.c_str(), ifName.size())){
+                CRL_EXCEPTION("Failed to bind to device %s. Error: %s", ifName.c_str(),
+                              strerror(errno));
+            }
+        }
+    #endif
     //
     // Turn non-blocking on.
 #if WIN32
@@ -724,7 +733,7 @@ Channel* Channel::Create(const std::string& address)
 {
     try {
 
-        return new details::impl(address, Remote_Head_VPB);
+        return new details::impl(address, Remote_Head_VPB, "");
 
     } catch (const std::exception& e) {
 
@@ -737,7 +746,7 @@ Channel* Channel::Create(const std::string& address, const RemoteHeadChannel &ca
 {
     try {
 
-        return new details::impl(address, cameraId);
+        return new details::impl(address, cameraId, "");
 
     } catch (const std::exception& e) {
 
@@ -745,6 +754,26 @@ Channel* Channel::Create(const std::string& address, const RemoteHeadChannel &ca
         return NULL;
     }
 }
+
+Channel* Channel::Create(const std::string &address, const std::string& ifName)
+    {
+        try {
+            return new details::impl(address, Remote_Head_VPB, ifName);
+        } catch (const std::exception& e) {
+            CRL_DEBUG("exception: %s\n", e.what());
+            return NULL;
+        }
+    }
+
+Channel* Channel::Create(const std::string &address, const RemoteHeadChannel &cameraId, const std::string &ifName)
+    {
+        try {
+            return new details::impl(address, cameraId, ifName);
+        } catch (const std::exception& e) {
+            CRL_DEBUG("exception: %s\n", e.what());
+            return NULL;
+        }
+    }
 
 void Channel::Destroy(Channel *instanceP)
 {
