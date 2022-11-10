@@ -315,6 +315,7 @@ void impl::bind(const std::string &ifName)
         if (!ifName.empty())
             CRL_DEBUG("User specified binding to adapter %s, but this feature is only supported under linux. Ignoring bind to specific adapter", ifName.c_str());
     #endif
+
     //
     // Turn non-blocking on.
 #if WIN32
