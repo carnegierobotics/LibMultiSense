@@ -96,7 +96,36 @@ public:
      * return A pointer to a new Channel instance
      */
 
-    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel &cameraId);
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel& cameraId);
+    /**
+     * @note (Linux only!)
+     * Create a Channel instance, used to manage all communications
+     * with a sensor.  The resulting pointer must be explicitly
+     * destroyed using the static member function Channel::Destroy().
+     *
+     * @param sensorAddress The device IPv4 address which can be a dotted-quad,
+     * or any hostname resolvable by gethostbyname().
+     * @param interfaceName The name of the network interface to bind to using the SO_BINDTODEVICE option
+     * @return A pointer to a new Channel instance
+     */
+    static Channel* Create(const std::string& sensorAddress,  const std::string& interfaceName);
+
+    /**
+     * @note (Linux only!)
+     * Create a Channel instance, used to manage all communications
+     * with a sensor.  The resulting pointer must be explicitly
+     * destroyed using the static member function Channel::Destroy().
+     *
+     * @param sensorAddress The device IPv4 address which can be a dotted-quad,
+     * or any hostname resolvable by gethostbyname().
+     * @param cameraId The ID of the remote camera to connect to. This is used for
+     * newer remote head based systems which have multiple stereo cameras
+     * connected to a single FPGA for stereo processing
+     * @param interfaceName The name of the network interface to bind to use for this connection.
+     * Set using the socket option SO_BINDTODEVICE
+     * @return A pointer to a new Channel instance
+     */
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel& cameraId, const std::string& interfaceName);
 
     /**
      * Destroy a channel instance that was created using the static
@@ -106,7 +135,7 @@ public:
      * @param instanceP A pointer to a Channel instance to be destroyed
      */
 
-    static void Destroy(Channel *instanceP);
+    static void Destroy(Channel* instanceP);
 
     /**
      * Destructor.
