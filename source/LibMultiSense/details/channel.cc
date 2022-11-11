@@ -60,7 +60,7 @@ namespace details {
 //
 // Implementation constructor
 
-impl::impl(const std::string &address, const RemoteHeadChannel &cameraId, const std::string& ifName) :
+impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const std::string& ifName) :
     m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
@@ -293,7 +293,7 @@ impl::~impl()
 // Binds the communications channel, preparing it to send/receive data
 // over the network.
 
-void impl::bind(const std::string &ifName)
+void impl::bind(const std::string& ifName)
 {
     //
     // Create the socket.

@@ -96,7 +96,7 @@ public:
      * return A pointer to a new Channel instance
      */
 
-    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel &cameraId);
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel& cameraId);
     /**
      * @note (Linux only!)
      * Create a Channel instance, used to manage all communications
@@ -108,7 +108,7 @@ public:
      * @param interfaceName The name of the network interface to bind to using the SO_BINDTODEVICE option
      * @return A pointer to a new Channel instance
      */
-    static Channel* Create(const std::string &sensorAddress,  const std::string &interfaceName);
+    static Channel* Create(const std::string& sensorAddress,  const std::string& interfaceName);
 
     /**
      * @note (Linux only!)
@@ -125,7 +125,7 @@ public:
      * Set using the socket option SO_BINDTODEVICE
      * @return A pointer to a new Channel instance
      */
-    static Channel* Create(const std::string &sensorAddress, const RemoteHeadChannel &cameraId, const std::string &interfaceName);
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel& cameraId, const std::string& interfaceName);
 
     /**
      * Destroy a channel instance that was created using the static
@@ -135,7 +135,7 @@ public:
      * @param instanceP A pointer to a Channel instance to be destroyed
      */
 
-    static void Destroy(Channel *instanceP);
+    static void Destroy(Channel* instanceP);
 
     /**
      * Destructor.

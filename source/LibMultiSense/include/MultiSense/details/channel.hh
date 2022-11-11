@@ -94,7 +94,7 @@ public:
     //
     // Construction
 
-    impl(const std::string& address, const RemoteHeadChannel &cameraId, const std::string& ifName);
+    impl(const std::string& address, const RemoteHeadChannel& cameraId, const std::string& ifName);
     ~impl();
 
     //
