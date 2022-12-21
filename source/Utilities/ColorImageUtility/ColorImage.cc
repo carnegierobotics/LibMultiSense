@@ -208,9 +208,10 @@ void ycbcrToBgr(const crl::multisense::image::Header& luma,
                 const crl::multisense::image::Header& chroma,
                 uint8_t* output)
 {
-    if (luma.bitsPerPixel != 8 || chroma.bitsPerPixel != 8)
+    if (luma.bitsPerPixel != 8 || chroma.bitsPerPixel != 16)
     {
-        throw std::runtime_error("Only 8-bit images are supported by the ycbcrToBgr conversion function");
+        throw std::runtime_error("Only 8-bit luma and 16-bit chroma images are supported by the \
+                                  ycbcrToBgr conversion function");
     }
 
     const size_t rgb_stride = luma.width * 3;
