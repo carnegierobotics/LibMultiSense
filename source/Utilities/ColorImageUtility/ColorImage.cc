@@ -174,41 +174,45 @@ struct UserData
     std::pair<DataSource, DataSource> colorSource;
 };
 
+template<typename T>
+constexpr std::array<uint8_t, 3> ycbcrToBgr(const crl::multisense::image::Header& luma,
+                                            const crl::multisense::image::Header& chroma,
+                                            const size_t u,
+                                            const size_t v)
+{
+    const uint8_t* lumaP = reinterpret_cast<const uint8_t*>(luma.imageDataP);
+    const uint8_t* chromaP = reinterpret_cast<const uint8_t*>(chroma.imageDataP);
 
-template <typename T>
-    constexpr std::array<uint8_t, 3> ycbcrToBgr(const crl::multisense::image::Header& luma,
-            const crl::multisense::image::Header& chroma,
-            size_t u,
-            size_t v)
-    {
-        const uint8_t* lumaP = reinterpret_cast<const uint8_t*>(luma.imageDataP);
-        const uint8_t* chromaP = reinterpret_cast<const uint8_t*>(chroma.imageDataP);
+    const size_t luma_offset = (v * luma.width) + u;
+    const size_t chroma_offset = 2 * (((v / 2) * (luma.width / 2)) + (u / 2));
 
-        const size_t luma_offset = (v * luma.width) + u;
-        const size_t chroma_offset = 2 * (((v / 2) * (luma.width / 2)) + (u / 2));
+    const float px_y = static_cast<float>(lumaP[luma_offset]);
+    const float px_cb = static_cast<float>(chromaP[chroma_offset + 0]) - 128.0f;
+    const float px_cr = static_cast<float>(chromaP[chroma_offset + 1]) - 128.0f;
 
-        const float px_y = static_cast<float>(lumaP[luma_offset]);
-        const float px_cb = static_cast<float>(chromaP[chroma_offset + 0]) - 128.0f;
-        const float px_cr = static_cast<float>(chromaP[chroma_offset + 1]) - 128.0f;
+    float px_r = px_y + 1.13983f * px_cr;
+    float px_g = px_y - 0.39465f * px_cb - 0.58060f * px_cr;
+    float px_b = px_y + 2.03211f * px_cb;
 
-        float px_r = px_y + 1.13983f * px_cr;
-        float px_g = px_y - 0.39465f * px_cb - 0.58060f * px_cr;
-        float px_b = px_y + 2.03211f * px_cb;
+    if (px_r < 0.0f)        px_r = 0.0f;
+    else if (px_r > 255.0f) px_r = 255.0f;
+    if (px_g < 0.0f)        px_g = 0.0f;
+    else if (px_g > 255.0f) px_g = 255.0f;
+    if (px_b < 0.0f)        px_b = 0.0f;
+    else if (px_b > 255.0f) px_b = 255.0f;
 
-        if (px_r < 0.0f)        px_r = 0.0f;
-        else if (px_r > 255.0f) px_r = 255.0f;
-        if (px_g < 0.0f)        px_g = 0.0f;
-        else if (px_g > 255.0f) px_g = 255.0f;
-        if (px_b < 0.0f)        px_b = 0.0f;
-        else if (px_b > 255.0f) px_b = 255.0f;
-
-        return { {static_cast<uint8_t>(px_r), static_cast<uint8_t>(px_g), static_cast<uint8_t>(px_b)} };
-    }
+    return { {static_cast<uint8_t>(px_r), static_cast<uint8_t>(px_g), static_cast<uint8_t>(px_b)} };
+}
 
 void ycbcrToBgr(const crl::multisense::image::Header& luma,
-        const crl::multisense::image::Header& chroma,
-        uint8_t* output)
+                const crl::multisense::image::Header& chroma,
+                uint8_t* output)
 {
+    if (luma.bitsPerPixel != 8 || chroma.bitsPerPixel != 8)
+    {
+        throw std::runtime_error("Only 8-bit images are supported by the ycbcrToBgr conversion function");
+    }
+
     const size_t rgb_stride = luma.width * 3;
 
     for (uint32_t y = 0; y < luma.height; ++y)
@@ -305,7 +309,7 @@ std::pair<DataSource, DataSource> colorSourceFromArg(const std::string &srcStr)
 {
     if (srcStr == "aux")
     {
-        return { Source_Chroma_Rectified_Aux, Source_Chroma_Rectified_Aux };
+        return { Source_Chroma_Rectified_Aux, Source_Luma_Rectified_Aux };
     }
     else if (srcStr == "left")
     {
