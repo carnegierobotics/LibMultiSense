@@ -694,7 +694,7 @@ public:
      *
      * See image::AuxConfig for a usage example
      *
-     * @param c The image configuration returned by reference from the query
+     * @param c The aux image configuration returned by reference from the query
      *
      * @return A crl::multisense::Status indicating if the image configuration
      * query succeeded
@@ -703,11 +703,11 @@ public:
     virtual Status getAuxImageConfig      (image::AuxConfig& c)                   = 0;
 
     /**
-     * Set the image configuration.
+     * Set the aux image configuration.
      *
      * See image::AuxConfig for a usage example
      *
-     * @param c The new image configuration to send to the sensor
+     * @param c The new aux image configuration to send to the sensor
      *
      * @return A crl::multisense::Status indicating if the image configuration
      * was successfully received by the sensor
