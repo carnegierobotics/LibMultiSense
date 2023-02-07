@@ -41,6 +41,7 @@
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
 
+#include "MultiSense/details/wire/AuxCamConfigMessage.hh"
 #include "MultiSense/details/wire/CamConfigMessage.hh"
 #include "MultiSense/details/wire/CompressedImageMessage.hh"
 #include "MultiSense/details/wire/DisparityMessage.hh"
@@ -76,7 +77,6 @@
 #include "MultiSense/details/wire/ImuInfoMessage.hh"
 
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
-#include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
@@ -546,6 +546,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     case MSG_ID(wire::CamConfig::ID):
         m_messages.store(wire::CamConfig(stream, version));
         break;
+    case MSG_ID(wire::AuxCamConfig::ID):
+        m_messages.store(wire::AuxCamConfig(stream, version));
+        break;
     case MSG_ID(wire::CamHistory::ID):
         m_messages.store(wire::CamHistory(stream, version));
         break;
@@ -599,9 +602,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysTestMtuResponse::ID):
         m_messages.store(wire::SysTestMtuResponse(stream, version));
-        break;
-    case MSG_ID(wire::SysDirectedStreams::ID):
-        m_messages.store(wire::SysDirectedStreams(stream, version));
         break;
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));

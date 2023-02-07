@@ -1,9 +1,9 @@
 /**
- * @file LibMultiSense/CamControlMessage.hh
+ * @file LibMultiSense/AuxCamConfigMessage.hh
  *
  * This message contains the current camera configuration.
  *
- * Copyright 2013-2022
+ * Copyright 2013-2023
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,12 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-05-08, ekratzer@carnegierobotics.com, PR1044, Significant rewrite.
- *   2012-04-14, dtascione@carnegierobotics.com, RD1020, Created file.
+ *   2023-02-06, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_CamControlMessage
-#define LibMultiSense_CamControlMessage
+#ifndef LibMultiSense_AuxCamConfigMessage
+#define LibMultiSense_AuxCamConfigMessage
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/wire/ExposureConfigMessage.hh"
@@ -49,14 +48,16 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class CamControl {
+class AuxCamConfig {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 9;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_AUX_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Parameters representing the current camera configuration
 
+    uint16_t width;
+    uint16_t height;
     float    framesPerSecond;
     float    gain;
 
@@ -72,59 +73,50 @@ public:
     uint32_t autoWhiteBalanceDecay;
     float    autoWhiteBalanceThresh;
 
-    //
-    // Additions in version 2
-
-    float    stereoPostFilterStrength; // [0.0, 1.0]
-
-    //
-    // Additions in version 3
-
-    bool     hdrEnabled;
-
-    //
-    // Additions in version 4
-
-    bool  storeSettingsInFlash;  // boolean
-
-    //
-    // Additions in version 5
+    bool hdrEnabled;
 
     uint16_t autoExposureRoiX;
     uint16_t autoExposureRoiY;
     uint16_t autoExposureRoiWidth;
     uint16_t autoExposureRoiHeight;
 
-    //
-    // Additions in version 6
-
     uint32_t cameraProfile;
-
-    //
-    // Additions in version 7
-
-    SourceType exposureSource; // Deprecated
-    std::vector<ExposureConfig> secondaryExposureConfigs; // Deprecated
-
-    //
-    // Additions in version 8
 
     float autoExposureTargetIntensity;
     float gamma;
 
-    //
-    // Additions in version 9
-
-    bool  sharpeningEnable; // Deprecated
-    float sharpeningPercentage; // Deprecated
-    uint8_t sharpeningLimit; // Deprecated
-
+    bool sharpeningEnable;
+    float sharpeningPercentage;
+    uint8_t sharpeningLimit;
 
     //
     // Constructors
 
-    CamControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    CamControl() {};
+    AuxCamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    AuxCamConfig():
+        gain(0.0),
+        exposure(0),
+        autoExposure(0),
+        autoExposureMax(0),
+        autoExposureDecay(0),
+        autoExposureThresh(0.0),
+        whiteBalanceRed(0.0),
+        whiteBalanceBlue(0.0),
+        autoWhiteBalance(0),
+        autoWhiteBalanceDecay(0),
+        autoWhiteBalanceThresh(0.0),
+        hdrEnabled(false),
+        autoExposureRoiX(0),
+        autoExposureRoiY(0),
+        autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
+        autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
+        cameraProfile(0),
+        autoExposureTargetIntensity(Default_Target_Intensity),
+        gamma(Default_Gamma),
+        sharpeningEnable(false),
+        sharpeningPercentage(0.0f),
+        sharpeningLimit(0)
+        {};
 
     //
     // Serialization routine
@@ -133,6 +125,8 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
+
         message & framesPerSecond;
         message & gain;
 
@@ -148,79 +142,20 @@ public:
         message & autoWhiteBalanceDecay;
         message & autoWhiteBalanceThresh;
 
-        if (version >= 2)
-            message & stereoPostFilterStrength;
-        else
-            stereoPostFilterStrength = 0.5f;
+        message & hdrEnabled;
 
-        if (version >= 3)
-            message & hdrEnabled;
-        else
-            hdrEnabled = false;
+        message & autoExposureRoiX;
+        message & autoExposureRoiY;
+        message & autoExposureRoiWidth;
+        message & autoExposureRoiHeight;
+        message & cameraProfile;
 
-        if (version >= 4)
-            message & storeSettingsInFlash;
-        else
-            storeSettingsInFlash = false;
+        message & autoExposureTargetIntensity;
+        message & gamma;
 
-        if (version >= 5)
-        {
-            message & autoExposureRoiX;
-            message & autoExposureRoiY;
-            message & autoExposureRoiWidth;
-            message & autoExposureRoiHeight;
-        }
-        else
-        {
-            autoExposureRoiX = 0;
-            autoExposureRoiY = 0;
-            autoExposureRoiWidth = crl::multisense::Roi_Full_Image;
-            autoExposureRoiHeight = crl::multisense::Roi_Full_Image;
-        }
-
-        if (version >= 6)
-        {
-            message & cameraProfile;
-        }
-        else
-        {
-            cameraProfile = 0;
-        }
-
-        if (version >= 7)
-        {
-            message & exposureSource;
-            message & secondaryExposureConfigs;
-        }
-        else
-        {
-            exposureSource = Default_Exposure_Source;
-            secondaryExposureConfigs = std::vector<ExposureConfig>();
-        }
-
-        if (version >= 8)
-        {
-            message & autoExposureTargetIntensity;
-            message & gamma;
-        }
-        else
-        {
-            autoExposureTargetIntensity = Default_Target_Intensity;
-            gamma = Default_Gamma;
-        }
-
-        if (version >= 9)
-        {
-            message & sharpeningEnable;
-            message & sharpeningPercentage;
-            message & sharpeningLimit;
-        }
-        else
-        {
-            sharpeningEnable = false;
-            sharpeningPercentage = 0.0f;
-            sharpeningLimit = 0;
-        }
+        message & sharpeningEnable;
+        message & sharpeningPercentage;
+        message & sharpeningLimit;
 
     }
 };
