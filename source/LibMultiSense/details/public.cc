@@ -870,36 +870,50 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
     Status             status;
     wire::AuxCamConfig d;
 
+    // for access to protected calibration members
+    class ConfigAccess : public image::AuxConfig {
+    public:
+        void setCal(float fx, float fy, float cx, float cy) {
+            m_fx = fx; m_fy = fy; m_cx = cx; m_cy = cy;
+        };
+    };
+
+    // what is the proper c++ cast for this?
+    ConfigAccess& a = *((ConfigAccess *) &config);
+
     status = waitData(wire::AuxCamGetConfig(), d);
     if (Status_Ok != status)
         return status;
 
-    config.setGain(d.gain);
+    a.setGain(d.gain);
 
-    config.setExposure(d.exposure);
-    config.setAutoExposure(d.autoExposure != 0);
-    config.setAutoExposureMax(d.autoExposureMax);
-    config.setAutoExposureDecay(d.autoExposureDecay);
-    config.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
-    config.setAutoExposureThresh(d.autoExposureThresh);
-    config.setGain(d.gain);
+    a.setExposure(d.exposure);
+    a.setAutoExposure(d.autoExposure != 0);
+    a.setAutoExposureMax(d.autoExposureMax);
+    a.setAutoExposureDecay(d.autoExposureDecay);
+    a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
+    a.setAutoExposureThresh(d.autoExposureThresh);
 
-    config.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
-    config.setAutoWhiteBalance(d.autoWhiteBalance != 0);
-    config.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
-    config.setAutoWhiteBalanceThresh(d.autoWhiteBalanceThresh);
-    config.setHdr(d.hdrEnabled);
+    a.setGain(d.gain);
 
-    config.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
+    a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
+    a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
+    a.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
+    a.setAutoWhiteBalanceThresh(d.autoWhiteBalanceThresh);
+    a.setHdr(d.hdrEnabled);
+
+    a.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
                          d.autoExposureRoiWidth, d.autoExposureRoiHeight);
 
-    config.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
+    a.setCal(d.fx, d.fy, d.cx, d.cy);
 
-    config.setGamma(d.gamma);
+    a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
-    config.enableSharpening(d.sharpeningEnable);
-    config.setSharpeningPercentage(d.sharpeningPercentage);
-    config.setSharpeningLimit(d.sharpeningLimit);
+    a.setGamma(d.gamma);
+
+    a.enableSharpening(d.sharpeningEnable);
+    a.setSharpeningPercentage(d.sharpeningPercentage);
+    a.setSharpeningLimit(d.sharpeningLimit);
 
     return Status_Ok;
 }

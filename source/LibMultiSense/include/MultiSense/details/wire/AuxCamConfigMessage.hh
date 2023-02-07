@@ -73,6 +73,9 @@ public:
     uint32_t autoWhiteBalanceDecay;
     float    autoWhiteBalanceThresh;
 
+    float fx, fy;
+    float cx, cy;
+
     bool hdrEnabled;
 
     uint16_t autoExposureRoiX;
@@ -105,6 +108,10 @@ public:
         autoWhiteBalance(0),
         autoWhiteBalanceDecay(0),
         autoWhiteBalanceThresh(0.0),
+        fx(0.0),
+        fy(0.0),
+        cx(0.0),
+        cy(0.0),
         hdrEnabled(false),
         autoExposureRoiX(0),
         autoExposureRoiY(0),
@@ -141,6 +148,11 @@ public:
         message & autoWhiteBalance;
         message & autoWhiteBalanceDecay;
         message & autoWhiteBalanceThresh;
+
+        message & fx;
+        message & fy;
+        message & cx;
+        message & cy;
 
         message & hdrEnabled;
 

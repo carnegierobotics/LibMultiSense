@@ -1000,7 +1000,6 @@ public:
      *
      * @return The current image gain setting
      */
-
     float    gain              () const { return m_gain;      };
 
 
@@ -1485,9 +1484,64 @@ public:
 
     //
     // Query
+    //
+    //
+    // Query camera calibration (read-only)
+    //
+    // These parameters are adjusted for the current operating resolution of the device.
 
+    /**
+     * Query the current aux camera calibration rectified projection focal length
+     * in the x dimension.
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibrations focal length in the x dimension
+     */
+
+    float fx()    const { return m_fx;    };
+
+    /**
+     * Query the current aux camera calibration rectified projection focal length
+     * in the y dimension.
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibrations focal length in the y dimension
+     */
+
+    float fy()    const { return m_fy;    };
+
+    /**
+     * Query the current aux camera calibration aux rectified image center in the
+     * x dimension
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibrations rectified image center in the
+     * x dimension
+     */
+
+    float cx()    const { return m_cx;    };
+
+    /**
+     * Query the current aux camera calibration aux rectified image center in the
+     * y dimension
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibration rectified image center in the
+     * y dimension
+     */
+
+    float cy()    const { return m_cy;    };
+
+    /**
+     * Query the current image configuration's gain setting
+     *
+     * @return The current image gain setting
+     */
     float    gain              () const { return m_gain;      };
-
 
     /**
      * Query the current image configuration's exposure setting
@@ -1631,119 +1685,6 @@ public:
      */
     float gamma() const { return m_gamma; };
 
-    //
-    // Query camera calibration (read-only)
-    //
-    // These parameters are adjusted for the current operating resolution of the device.
-
-    /**
-     * Query the current camera calibrations rectified projection focal length
-     * in the x dimension.
-     *
-     * Note this value is scaled based on the current image resolution
-     *
-     * @return The current camera calibrations focal length in the x dimension
-     */
-
-    float fx()    const { return m_fx;    };
-
-    /**
-     * Query the current camera calibrations rectified projection focal length
-     * in the y dimension.
-     *
-     * Note this value is scaled based on the current image resolution
-     *
-     * @return The current camera calibrations focal length in the y dimension
-     */
-
-    float fy()    const { return m_fy;    };
-
-    /**
-     * Query the current camera calibrations left rectified image center in the
-     * x dimension
-     *
-     * Note this value is scaled based on the current image resolution
-     *
-     * @return The current camera calibrations rectified image center in the
-     * x dimension
-     */
-
-    float cx()    const { return m_cx;    };
-
-    /**
-     * Query the current camera calibrations left rectified image center in the
-     * y dimension
-     *
-     * Note this value is scaled based on the current image resolution
-     *
-     * @return The current camera calibrations rectified image center in the
-     * y dimension
-     */
-
-    float cy()    const { return m_cy;    };
-
-    /**
-     * Query the current camera calibrations stereo baseline. This is the
-     * component of the vector in the x dimension which points from the right
-     * rectified camera frame to the left rectified camera frame
-     *
-     * @return The x component of the current calibrations stereo baseline
-     */
-
-    float tx()    const { return m_tx;    };
-
-    /**
-     * Query the current camera calibrations stereo baseline. This is the
-     * component of the vector in the y dimension which points from the right
-     * rectified camera frame to the left rectified camera frame. For
-     * rectified images this value will be 0.
-     *
-     * @return The y component of the current calibrations stereo baseline
-     */
-
-    float ty()    const { return m_ty;    };
-
-    /**
-     * Query the current camera calibrations stereo baseline. This is the
-     * component of the vector in the z dimension which points from the right
-     * rectified frame center to the left rectified camera frame. For
-     * rectified images this value will be 0.
-     *
-     * @return The z component of the current calibrations stereo baseline
-     */
-
-    float tz()    const { return m_tz;    };
-
-    /**
-     * Query the current camera calibrations roll value. This is the Euler
-     * roll angle to rotate the right camera frame into the left camera frame.
-     * For rectified images this value will be 0.
-     *
-     * @return the current camera calibrations roll value
-     */
-
-    float roll()  const { return m_roll;  };
-
-    /**
-     * Query the current camera calibrations pitch  value. This is the Euler
-     * pitch  angle to rotate the right camera frame into the left camera frame.
-     * For rectified images this value will be 0.
-     *
-     * @return the current camera calibrations pitch  value
-     */
-
-    float pitch() const { return m_pitch; };
-
-    /**
-     * Query the current camera calibrations yaw value. This is the Euler
-     * yaw angle to rotate the right camera frame into the left camera frame.
-     * For rectified images this value will be 0.
-     *
-     * @return the current camera calibrations yaw value
-     */
-
-    float yaw()   const { return m_yaw;   };
-
     /**
      * Query whether sharpening is enabled or not on the aux camera.
      *
@@ -1776,8 +1717,7 @@ public:
                m_profile(User_Control),
                m_gamma(2.0),
                m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
-               m_fx(0), m_fy(0), m_cx(0), m_cy(0),
-               m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
+               m_fx(0), m_fy(0), m_cx(0), m_cy(0) {};
 private:
 
     float    m_gain;
@@ -1797,8 +1737,6 @@ private:
 protected:
 
     float    m_fx, m_fy, m_cx, m_cy;
-    float    m_tx, m_ty, m_tz;
-    float    m_roll, m_pitch, m_yaw;
 };
 
 /**
