@@ -76,12 +76,12 @@ public:
                        const VersionType version)
     {
 
-      (void) version;
+        (void) version;
 
-      message & syncPair1.controller;
-      message & syncPair1.responder;
-      message & syncPair2.controller;
-      message & syncPair2.responder;
+        message & syncPair1.controller;
+        message & syncPair1.responder;
+        message & syncPair2.controller;
+        message & syncPair2.responder;
 
     }
 };

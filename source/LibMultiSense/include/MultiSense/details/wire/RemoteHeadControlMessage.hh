@@ -66,9 +66,9 @@ public:
 
     RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     RemoteHeadControl() :
-      syncPair1(Remote_Head_Invalid,Remote_Head_Invalid),
-      syncPair2(Remote_Head_Invalid,Remote_Head_Invalid)
-      {};
+        syncPair1(Remote_Head_Invalid,Remote_Head_Invalid),
+        syncPair2(Remote_Head_Invalid,Remote_Head_Invalid)
+        {};
 
     //
     // Serialization routine
@@ -79,7 +79,7 @@ public:
     {
 
         (void) version;
-        
+
         message & syncPair1.controller;
         message & syncPair1.responder;
         message & syncPair2.controller;
