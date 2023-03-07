@@ -1866,6 +1866,11 @@ public:
     {
       Status status = Status_Ok;
 
+      if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
+        status = Status_Error;
+        goto failed;
+      }
+
       // Ensure that we block attempts to synchronize one head to multiple heads
       if (r == c) {
         status = Status_Error;
@@ -1893,6 +1898,11 @@ public:
                              RemoteHeadChannel r)
     {
       Status status = Status_Ok;
+
+      if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
+        status = Status_Error;
+        goto failed;
+      }
 
       // Ensure that we block attempts to synchronize one head to multiple heads
       if (r == c) {
