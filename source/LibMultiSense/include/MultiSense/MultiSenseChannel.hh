@@ -775,6 +775,29 @@ public:
     virtual Status setImageConfig      (const image::Config& c)             = 0;
 
     /**
+     * Set the current Remote Head Config
+     *
+     * @param c The new image remote head config to send to the sensor
+     *
+     * @return A crl::multisense::Status indicating if the remote head configuration
+     * was successfully recieved by the sensor
+     */
+
+    virtual Status setRemoteHeadConfig      (const image::RemoteHeadConfig& c)             = 0;
+
+    /**
+     * Set the current Remote Head Config
+     *
+     * @param c A remoteHeadConfig returned by reference from
+     * getRemoteHeadConfig()
+     *
+     * @return A crl::multisense::Status indicating if the Remote Head Config
+     * was successfully queried
+     */
+
+    virtual Status getRemoteHeadConfig      (image::RemoteHeadConfig& c)             = 0;
+
+    /**
      * Query the current camera calibration.
      *
      * See image::Calibration for a usage example

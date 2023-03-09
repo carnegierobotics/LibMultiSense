@@ -58,6 +58,10 @@
 #include "MultiSense/details/wire/CamConfigMessage.hh"
 #include "MultiSense/details/wire/CamSetTriggerSourceMessage.hh"
 
+#include "MultiSense/details/wire/RemoteHeadControlMessage.hh"
+#include "MultiSense/details/wire/RemoteHeadGetConfigMessage.hh"
+#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
+
 #include "MultiSense/details/wire/LidarSetMotorMessage.hh"
 
 #include "MultiSense/details/wire/LedGetStatusMessage.hh"
@@ -1040,6 +1044,42 @@ Status impl::setImageConfig(const image::Config& c)
 
     return waitAck(cmd);
 }
+
+//
+// Get Remote Head Configuration
+Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
+{
+    Status                 status;
+    wire::RemoteHeadConfig r;
+
+    status = waitData(wire::RemoteHeadGetConfig(), r);
+    if (Status_Ok != status)
+        return status;
+
+    c.m_syncPair1.controller = r.syncPair1.controller;
+    c.m_syncPair1.responder  = r.syncPair1.responder;
+
+    c.m_syncPair2.controller = r.syncPair2.controller;
+    c.m_syncPair2.responder  = r.syncPair2.responder;
+
+    return status;
+}
+
+//
+// Set Remote Head Configuration
+Status impl::setRemoteHeadConfig(const image::RemoteHeadConfig& c)
+{
+    wire::RemoteHeadControl cmd;
+
+    cmd.syncPair1.controller = c.syncPair1Controller();
+    cmd.syncPair1.responder  = c.syncPair1Responder();
+    cmd.syncPair2.controller = c.syncPair2Controller();
+    cmd.syncPair2.responder  = c.syncPair2Responder();
+
+    return waitAck(cmd);
+}
+
+
 
 //
 // Get camera calibration

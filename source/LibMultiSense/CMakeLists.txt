@@ -84,6 +84,9 @@ set(WIRE_HEADERS
   include/MultiSense/details/wire/ImuGetInfoMessage.hh
   include/MultiSense/details/wire/AckMessage.hh
   include/MultiSense/details/wire/ApriltagDetections.hh
+  include/MultiSense/details/wire/RemoteHeadControlMessage.hh
+  include/MultiSense/details/wire/RemoteHeadConfigMessage.hh
+  include/MultiSense/details/wire/RemoteHeadGetConfigMessage.hh
 )
 set(UTILITY_HEADERS
   include/MultiSense/details/utility/Portability.hh

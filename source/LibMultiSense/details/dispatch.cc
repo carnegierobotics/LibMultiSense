@@ -42,6 +42,7 @@
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
 
 #include "MultiSense/details/wire/CamConfigMessage.hh"
+#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
 #include "MultiSense/details/wire/CompressedImageMessage.hh"
 #include "MultiSense/details/wire/DisparityMessage.hh"
 #include "MultiSense/details/wire/ImageMessage.hh"
@@ -545,6 +546,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break; // handle below
     case MSG_ID(wire::CamConfig::ID):
         m_messages.store(wire::CamConfig(stream, version));
+        break;
+    case MSG_ID(wire::RemoteHeadConfig::ID):
+        m_messages.store(wire::RemoteHeadConfig(stream, version));
         break;
     case MSG_ID(wire::CamHistory::ID):
         m_messages.store(wire::CamHistory(stream, version));

@@ -38,7 +38,7 @@
 #define LibMultiSense_MultiSenseTypes_hh
 
 #include <stdint.h>
-
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -203,15 +203,58 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  */
 typedef int16_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB         = -1;
 /** The Remote Head Camera at position 0*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 0;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0           = 0;
 /** The Remote Head Camera at position 1*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1           = 1;
 /** The Remote Head Camera at position 2*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 2;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2           = 2;
 /** The Remote Head Camera at position 3*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 3;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3           = 3;
+/** Invalid Remote Head position*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
+
+/**
+ * Remote head sync pair defines a pair of remote heads which will have their
+ * image captures synchronized.
+ * Given that there is only 4 possible remote head cameras, there are only 2
+ * possible remote head synchronization pairs.
+ * It is currently not possible to synchronize more than 2 pairs of remote heads.
+ * Furthermore, it is not possible to synchronize one head to multiple heads.
+ * It is not possible to synchronize Remote Head Stereo Cameras.
+ * Possible components are:
+ * Remote_Head_0   The Remote Head Camera located in position 0
+ * Remote_Head_1   The Remote Head Camera located in position 1
+ * Remote_Head_2   The Remote Head Camera located in position 2
+ * Remote_Head_3   The Remote Head Camera located in position 3
+ */
+struct RemoteHeadSyncPair {
+
+  /**
+   * Default constructor
+   */
+  RemoteHeadSyncPair() {};
+
+  /**
+   * Constructor to initialize a remote head sync pair
+   *
+   * @param c The remote head sync pair controller
+   *
+   * @param r The remote head sync pair responder
+   *
+   */
+  RemoteHeadSyncPair(RemoteHeadChannel c,
+                     RemoteHeadChannel r) :
+    controller(c),
+    responder(r) {};
+
+  /** The synchronization controller */
+  RemoteHeadChannel controller;
+  /** The synchronization responder */
+  RemoteHeadChannel responder;
+
+};
 
 
 /**
@@ -1799,6 +1842,110 @@ public:
      * data is equal to channels * bins */
     std::vector<uint32_t> data;
 };
+
+class MULTISENSE_API RemoteHeadConfig {
+    /**
+     * Class to store remote head sync pairs.
+     */
+    class MULTISENSE_API SyncPair {
+    public:
+
+        /**Remote head synchronization pairs */
+        RemoteHeadChannel controller;
+        RemoteHeadChannel responder;
+
+        SyncPair(RemoteHeadChannel c, RemoteHeadChannel r) :
+            controller(c),
+            responder(r) {};
+
+    };
+
+public:
+
+    Status setSyncPair1     (RemoteHeadChannel c,
+                             RemoteHeadChannel r)
+    {
+        Status status = Status_Ok;
+
+        if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        // Ensure that we block attempts to synchronize one head to multiple heads
+        if (r == c) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((c == m_syncPair2.controller) || (c == m_syncPair2.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((r == m_syncPair2.controller) || (r == m_syncPair2.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        m_syncPair1.controller = c;
+        m_syncPair1.responder = r;
+
+        failed:
+        return status;
+    }
+
+    Status setSyncPair2     (RemoteHeadChannel c,
+                             RemoteHeadChannel r)
+    {
+        Status status = Status_Ok;
+
+        if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        // Ensure that we block attempts to synchronize one head to multiple heads
+        if (r == c) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((c == m_syncPair1.controller) || (c == m_syncPair1.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((r == m_syncPair1.controller) || (r == m_syncPair1.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        m_syncPair2.controller = c;
+        m_syncPair2.responder = r;
+
+        failed:
+        return status;
+    }
+
+    RemoteHeadChannel syncPair1Controller   () const {return m_syncPair1.controller;}
+    RemoteHeadChannel syncPair1Responder    () const {return m_syncPair1.responder;}
+    RemoteHeadChannel syncPair2Controller   () const {return m_syncPair2.controller;}
+    RemoteHeadChannel syncPair2Responder    () const {return m_syncPair2.responder;}
+
+    /**
+     * Default constructor
+     */
+    RemoteHeadConfig() :
+        m_syncPair1(Remote_Head_Invalid, Remote_Head_Invalid),
+        m_syncPair2(Remote_Head_Invalid, Remote_Head_Invalid) {};
+
+    /**The first pair of remote head cameras to be synchronized */
+    SyncPair     m_syncPair1;
+    /**The second pair of remote head cameras to be synchronized */
+    SyncPair     m_syncPair2;
+};
+
 
 } // namespace image
 
