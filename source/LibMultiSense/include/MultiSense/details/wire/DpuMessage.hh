@@ -60,7 +60,10 @@ public:
     int64_t timestamp;
     uint8_t success;
 
-    int classId;
+    uint16_t classRank;
+    uint16_t confidenceRank;
+    uint16_t bboxRank;
+    uint16_t maskRank;
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -89,7 +92,10 @@ public:
         message & frameId;
         message & timestamp;
         message & success;
-        message & classId;
+        message & classRank;
+        message & confidenceRank;
+        message & bboxRank;
+        message & maskRank;
     }
 };
 #endif  // !SENSORPOD_FIRMWARE
