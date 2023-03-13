@@ -263,6 +263,7 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1U<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1U<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1U<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1U<<17); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_DPU_RESULT                  = (1U<<18);
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
