@@ -81,6 +81,7 @@
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
 #include "MultiSense/details/wire/DpuClassificationMessage.hh"
+#include "MultiSense/details/wire/DpuBboxMessage.hh"
 
 #include <limits>
 
@@ -203,6 +204,20 @@ void impl::dispatchDpuClassificationResult(dpu_classification::Header& header)
 
     for(it = m_dpuClassificationListeners.begin();
         it != m_dpuClassificationListeners.end();
+        it++)
+    {
+        (*it)->dispatch(header);
+    }
+}
+
+void impl::dispatchDpuBboxResult(dpu_bbox::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<DpuBboxListener*>::const_iterator it;
+
+    for(it = m_dpuBboxListeners.begin();
+        it != m_dpuBboxListeners.end();
         it++)
     {
         (*it)->dispatch(header);
@@ -568,6 +583,34 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         dispatchDpuClassificationResult(header);
 
+        break;
+    }
+    case MSG_ID(wire::DpuBboxResult::ID):
+    {
+        wire::DpuBboxResult result(stream, version);
+
+        dpu_bbox::Header header;
+
+        header.frameId = result.frameId;
+        header.timestamp = result.timestamp;
+        header.success = result.success;
+        header.num_detections = result.num_detections;
+
+        for (const auto &incoming : result.detections)
+        {
+            dpu_bbox::Header::BboxDetection outgoing;
+
+            outgoing.label  = incoming.label;
+            outgoing.score  = incoming.score;
+            outgoing.x      = incoming.x;
+            outgoing.y      = incoming.y;
+            outgoing.width  = incoming.width;
+            outgoing.height = incoming.height;
+
+            header.detections.push_back(outgoing);
+        }
+
+        dispatchDpuBboxResult(header);
         break;
     }
     case MSG_ID(wire::Ack::ID):

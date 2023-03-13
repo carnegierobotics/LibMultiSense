@@ -230,6 +230,7 @@ typedef Listener<imu::Header,                imu::Callback>                ImuLi
 typedef Listener<compressed_image::Header,   compressed_image::Callback>   CompressedImageListener;
 typedef Listener<ground_surface::Header,     ground_surface::Callback>     GroundSurfaceSplineListener;
 typedef Listener<dpu_classification::Header, dpu_classification::Callback> DpuClassificationListener;
+typedef Listener<dpu_bbox::Header,           dpu_bbox::Callback>           DpuBboxListener;
 typedef Listener<apriltag::Header,           apriltag::Callback>           AprilTagDetectionListener;
 
 } // namespace details

@@ -319,6 +319,9 @@ public:
     virtual Status addIsolatedCallback(dpu_classification::Callback callback,
                                        void         *userDataP=NULL) = 0;
 
+    virtual Status addIsolatedCallback(dpu_bbox::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
     /**
      * Add a user defined callback attached to the AprilTag result stream.
      *
@@ -439,6 +442,8 @@ public:
      * succeeded or failed
      */
     virtual Status removeIsolatedCallback(dpu_classification::Callback callback) = 0;
+
+    virtual Status removeIsolatedCallback(dpu_bbox::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available
