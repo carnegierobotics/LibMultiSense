@@ -181,6 +181,8 @@ static CRL_CONSTEXPR CameraProfile Ground_Surface = (1U<<3);
 static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 /** User would like to run apriltag detector on the camera*/
 static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
+/** User would like to run DPU on the camera */
+static CRL_CONSTEXPR CameraProfile DpuResult = (1U<<6);
 
 
 /**
@@ -2723,6 +2725,39 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace ground_surface
+
+namespace dpu_result {
+class MULTISENSE_API Header : public HeaderBase {
+public:
+    struct dpu_result {
+        int64_t frame_id;
+        int64_t timestamp;
+        uint8_t success;
+        dpu_result_type result_type;
+
+        uint16_t class_rank;
+        uint16_t* class_dims;
+        uint8_t* class_array;
+
+        uint16_t confidence_rank;
+        uint16_t* confidence_dims;
+        float* confidence_array;
+
+        uint16_t bbox_rank;
+        uint16_t* bbox_dims;
+        float* bbox_array;
+
+        uint16_t mask_rank;
+        uint16_t* mask_dims;
+        uint8_t* mask_array;
+    };
+    int64_t frameId;
+    int64_t timestamp;
+    uint8_t success;
+};
+
+typedef void (*Callback)(const Header& header, void *userDataP);
+} // namespace dpu_result
 
 namespace apriltag {
 
