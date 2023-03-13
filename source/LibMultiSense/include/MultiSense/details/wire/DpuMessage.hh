@@ -73,7 +73,10 @@ public:
         frameId(0),
         timestamp(0),
         success(0),
-        classId(0)
+        classRank(0),
+        confidenceRank(0),
+        bboxRank(0),
+        maskRank(0)
     {};
 };
 
