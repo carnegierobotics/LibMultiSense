@@ -105,6 +105,11 @@ namespace {
         std::cout << "  Score Rank: " << header.confidenceRank << std::endl;
         std::cout << "  Box Rank:   " << header.bboxRank << std::endl;
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
+        std::cout << "DPU Dim Data:" << std::endl;
+        std::cout << "  Class Dims: " << header.classDims << std::endl;
+        std::cout << "  Score Dims: " << header.confidenceDims << std::endl;
+        std::cout << "  Box Dims:   " << header.bboxDims << std::endl;
+        std::cout << "  Mask Dims:  " << header.maskDims << std::endl;
     }
 
     /*
