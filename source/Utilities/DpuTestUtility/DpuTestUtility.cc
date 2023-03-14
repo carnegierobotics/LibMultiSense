@@ -102,7 +102,7 @@ namespace {
         std::cout << "DPU Rank Data:" << std::endl;
         std::cout << "  Class Rank: " << header.classRank << std::endl;
         std::cout << "  Score Rank: " << header.confidenceRank << std::endl;
-        std::cout << "  Box Rank:   " << header.boxRank << std::endl;
+        std::cout << "  Box Rank:   " << header.bboxRank << std::endl;
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
         std::cout << "==================" << std::endl;
     }
@@ -168,7 +168,7 @@ int main(int argc, char** argv){
         destroyChannel(channelPtr);
     }
 
-    // Check to see if firmware supports DPU bboxes
+    // Check to see if firmware supports DPU results
     status = channelPtr->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
@@ -176,7 +176,7 @@ int main(int argc, char** argv){
     }
 
     dpuSupported = std::any_of(deviceModes.begin(), deviceModes.end(), [](const auto &mode) {
-        return mode.supportedDataSources & Source_DpuBbox_Detections;});
+        return mode.supportedDataSources & Source_DPU_Result;});
 
     if (!dpuSupported) {
         std::cerr << "DPU results not supported with this firmware" << std::endl;
@@ -203,14 +203,14 @@ int main(int argc, char** argv){
         destroyChannel(channelPtr);
     }
 
-    // Enable DPU bbox profile
+    // Enable DPU results profile
     status = channelPtr->getImageConfig(cfg);
     if (Status_Ok != status) {
         std::cerr << "Reconfigure: Failed to query image config: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
     }
 
-    profile |= crl::multisense::DpuBbox;
+    profile |= crl::multisense::DpuResult;
 
     cfg.setCameraProfile(profile);
     // TODO: This is a hack.  Fix this for real.
@@ -240,7 +240,7 @@ int main(int argc, char** argv){
 
     // Start streaming
     std::cerr << "Before startStreams" << std::endl;
-    status = channelPtr->startStreams(Source_DpuBbox_Detections | Source_Luma_Rectified_Aux);
+    status = channelPtr->startStreams(Source_DPU_Result | Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
