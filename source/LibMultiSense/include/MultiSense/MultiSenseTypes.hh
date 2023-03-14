@@ -2729,31 +2729,26 @@ typedef void (*Callback)(const Header& header,
 namespace dpu_result {
 class MULTISENSE_API Header : public HeaderBase {
 public:
-    struct dpu_result {
-        int64_t frame_id;
-        int64_t timestamp;
-        uint8_t success;
-        dpu_result_type result_type;
-
-        uint16_t class_rank;
-        uint16_t* class_dims;
-        uint8_t* class_array;
-
-        uint16_t confidence_rank;
-        uint16_t* confidence_dims;
-        float* confidence_array;
-
-        uint16_t bbox_rank;
-        uint16_t* bbox_dims;
-        float* bbox_array;
-
-        uint16_t mask_rank;
-        uint16_t* mask_dims;
-        uint8_t* mask_array;
-    };
     int64_t frameId;
     int64_t timestamp;
     uint8_t success;
+    uint32_t resultType;
+
+    uint16_t classRank;
+    uint16_t* classDims;
+    uint8_t* classArray;
+
+    uint16_t confidenceRank;
+    uint16_t* confidenceDims;
+    float* confidenceArray;
+
+    uint16_t bboxRank;
+    uint16_t* bboxDims;
+    float* bboxArray;
+
+    uint16_t maskRank;
+    uint16_t* maskDims;
+    uint8_t* maskArray;
 };
 
 typedef void (*Callback)(const Header& header, void *userDataP);
