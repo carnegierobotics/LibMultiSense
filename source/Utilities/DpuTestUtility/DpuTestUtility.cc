@@ -53,6 +53,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <bitset>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
@@ -94,19 +95,19 @@ namespace {
     void dpuResultCallback(const dpu_result::Header &header, void *userDataPtr) {
         // TODO: Rewrite for tensors
         (void) userDataPtr;
-        std::cout << "******************" << std::endl;
         std::cout << "DPU Result Metadata:" << std::endl;
         std::cout << "  Frame ID: " << header.frameId << std::endl;
         std::cout << "  Time Stamp: " << header.timestamp << std::endl;
         std::cout << "  Success: " << uint16_t(header.success) << std::endl;
+        std::cout << "DPU Result Type: " << header.resultType << std::endl;
         std::cout << "DPU Rank Data:" << std::endl;
         std::cout << "  Class Rank: " << header.classRank << std::endl;
         std::cout << "  Score Rank: " << header.confidenceRank << std::endl;
         std::cout << "  Box Rank:   " << header.bboxRank << std::endl;
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
-        std::cout << "==================" << std::endl;
     }
 
+    /*
     void colorImageCallback(const image::Header &header, void *userDataPtr) {
         (void) userDataPtr;
 
@@ -114,6 +115,7 @@ namespace {
         std::cout << "Image Output:" << std::endl;
         std::cout << "  Frame ID: " << header.frameId << std::endl;
     }
+    */
 
     void destroyChannel(Channel *channelPtr) {
         Channel::Destroy(channelPtr);
@@ -233,13 +235,14 @@ int main(int argc, char** argv){
         std::cerr << "Failed to add DPU callback." << std::endl;
     }
 
+    /*
     status = channelPtr->addIsolatedCallback(colorImageCallback, Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to add color image callback." << std::endl;
     }
+    */
 
     // Start streaming
-    std::cerr << "Before startStreams" << std::endl;
     status = channelPtr->startStreams(Source_DPU_Result | Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
