@@ -566,6 +566,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.timestamp = result.timestamp;
         header.success = result.success;
 
+        header.resultType = result.resultType;
         header.classRank = result.classRank;
         header.confidenceRank = result.confidenceRank;
         header.bboxRank = result.bboxRank;

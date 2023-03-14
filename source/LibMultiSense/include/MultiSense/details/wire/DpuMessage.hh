@@ -60,10 +60,17 @@ public:
     int64_t timestamp;
     uint8_t success;
 
+    uint32_t resultType;
+
     uint16_t classRank;
     uint16_t confidenceRank;
     uint16_t bboxRank;
     uint16_t maskRank;
+
+    uint16_t* classDims;
+    uint16_t* confidenceDims;
+    uint16_t* bboxDims;
+    uint16_t* maskDims;
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -73,6 +80,7 @@ public:
         frameId(0),
         timestamp(0),
         success(0),
+        resultType(0),
         classRank(0),
         confidenceRank(0),
         bboxRank(0),
@@ -95,6 +103,7 @@ public:
         message & frameId;
         message & timestamp;
         message & success;
+        message & resultType;
         message & classRank;
         message & confidenceRank;
         message & bboxRank;
