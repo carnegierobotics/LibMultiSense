@@ -117,6 +117,9 @@ public:
     virtual Status addIsolatedCallback   (ground_surface::Callback callback,
                                           void         *userDataP);
 
+    virtual Status addIsolatedCallback   (dpu_result::Callback callback,
+                                          void         *userDataP);
+
     virtual Status addIsolatedCallback   (apriltag::Callback callback,
                                           void         *userDataP);
 
@@ -126,6 +129,7 @@ public:
     virtual Status removeIsolatedCallback(imu::Callback   callback);
     virtual Status removeIsolatedCallback(compressed_image::Callback   callback);
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
+    virtual Status removeIsolatedCallback(dpu_result::Callback callback);
     virtual Status removeIsolatedCallback(apriltag::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
@@ -323,6 +327,7 @@ private:
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 64;
     static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 8;
     static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_DPU_RESULT_QUEUE_SIZE = 5;
 
     //
     // The maximum number of directed streams
@@ -465,6 +470,7 @@ private:
     std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
+    std::list<DpuListener*>                     m_dpuListeners;
 
     //
     // A message signal interface
@@ -539,6 +545,7 @@ private:
                                                          compressed_image::Header& header);
     void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
     void                         dispatchAprilTagDetections(apriltag::Header& header);
+    void                         dispatchDpuResult(dpu_result::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

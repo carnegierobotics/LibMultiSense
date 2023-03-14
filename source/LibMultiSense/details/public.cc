@@ -244,6 +244,22 @@ Status impl::addIsolatedCallback(ground_surface::Callback callback,
     return Status_Ok;
 }
 
+Status impl::addIsolatedCallback(dpu_result::Callback callback,
+                                 void *userDataPtr)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+        m_dpuListeners.push_back(new DpuListener(callback,
+                                     0,
+                                     userDataPtr,
+                                     MAX_USER_DPU_RESULT_QUEUE_SIZE));
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
 //
 // Adds a new april tag listener
 
@@ -430,6 +446,28 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
         return Status_Exception;
     }
 
+    return Status_Error;
+}
+
+Status impl::removeIsolatedCallback(dpu_result::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<DpuListener*>::iterator it;
+        for (it = m_dpuListeners.begin();
+             it != m_dpuListeners.end();
+             it++) {
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_dpuListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
     return Status_Error;
 }
 
