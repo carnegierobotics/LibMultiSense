@@ -67,10 +67,11 @@ public:
     uint16_t bboxRank;
     uint16_t maskRank;
 
-    uint16_t* classDims;
-    uint16_t* confidenceDims;
-    uint16_t* bboxDims;
-    uint16_t* maskDims;
+    // TODO: Hard coded memory offsets.  Make dynamic later.
+    uint16_t classDims[1];
+    uint16_t confidenceDims[1];
+    uint16_t bboxDims[2];
+    uint16_t maskDims[3];
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
