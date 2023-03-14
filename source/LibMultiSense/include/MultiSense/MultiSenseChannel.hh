@@ -322,6 +322,9 @@ public:
     virtual Status addIsolatedCallback(apriltag::Callback callback,
                                        void         *userDataP=NULL) = 0;
 
+    virtual Status addIsolatedCallback(dpu_result::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
     /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
@@ -405,6 +408,8 @@ public:
      */
 
     virtual Status removeIsolatedCallback(apriltag::Callback callback) = 0;
+
+    virtual Status removeIsolatedCallback(dpu_result::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available
