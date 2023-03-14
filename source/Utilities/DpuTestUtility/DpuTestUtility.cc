@@ -91,7 +91,7 @@ namespace {
 
 #endif
 
-    void dpuResultCallback(const dpu_bbox::Header &header, void *userDataPtr) {
+    void dpuResultCallback(const dpu_result::Header &header, void *userDataPtr) {
         // TODO: Rewrite for tensors
         (void) userDataPtr;
         std::cout << "******************" << std::endl;
