@@ -291,7 +291,8 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_AUX            |
                                                             SOURCE_COMPRESSED_RECTIFIED_LEFT |
                                                             SOURCE_COMPRESSED_RECTIFIED_RIGHT|
-                                                            SOURCE_COMPRESSED_RECTIFIED_AUX
+                                                            SOURCE_COMPRESSED_RECTIFIED_AUX  |
+                                                            SOURCE_DPU_RESULT
                                                           );
 
 //
