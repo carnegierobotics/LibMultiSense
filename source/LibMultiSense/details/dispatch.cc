@@ -565,12 +565,17 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.frameId = result.frameId;
         header.timestamp = result.timestamp;
         header.success = result.success;
-
         header.resultType = result.resultType;
+
         header.classRank = result.classRank;
         header.confidenceRank = result.confidenceRank;
         header.bboxRank = result.bboxRank;
         header.maskRank = result.maskRank;
+
+        CPY_ARRAY_1(header.classDims,      result.classDims,      result.classRank);
+        CPY_ARRAY_1(header.confidenceDims, result.confidenceDims, result.confidenceRank);
+        CPY_ARRAY_1(header.bboxDims,       result.bboxDims,       result.bboxRank);
+        CPY_ARRAY_1(header.maskDims,       result.maskDims,       result.maskRank);
 
         dispatchDpuResult(header);
         break;
