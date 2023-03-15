@@ -101,14 +101,31 @@ public:
     {
         (void) version;
 
+        // Serialize metadata
         message & frameId;
         message & timestamp;
         message & success;
         message & resultType;
+        
+        // Serialize tensor ranks
         message & classRank;
         message & confidenceRank;
         message & bboxRank;
         message & maskRank;
+
+        // Serialize tensor dimensions
+        for (int i = 0; i < classRank; i++) {
+            message & classDims[i];
+        }
+        for (int i = 0; i < confidenceRank; i++) {
+            message & confidenceDims[i];
+        }
+        for (int i = 0; i < bboxRank; i++) {
+            message & bboxDims[i];
+        }
+        for (int i = 0; i < maskRank; i++) {
+            message & maskDims[i];
+        }
     }
 };
 #endif  // !SENSORPOD_FIRMWARE
