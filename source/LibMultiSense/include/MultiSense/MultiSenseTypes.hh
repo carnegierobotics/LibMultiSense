@@ -2735,19 +2735,19 @@ public:
     uint32_t resultType;
 
     uint16_t classRank;
-    uint16_t* classDims;
+    uint16_t classDims[1];
     uint8_t* classArray;
 
     uint16_t confidenceRank;
-    uint16_t* confidenceDims;
+    uint16_t confidenceDims[1];
     float* confidenceArray;
 
     uint16_t bboxRank;
-    uint16_t* bboxDims;
+    uint16_t bboxDims[2];
     float* bboxArray;
 
     uint16_t maskRank;
-    uint16_t* maskDims;
+    uint16_t maskDims[3];
     uint8_t* maskArray;
 };
 
