@@ -107,8 +107,10 @@ namespace {
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
         std::cout << "DPU Dim Data:" << std::endl;
         std::cout << "  Class Dims: ";
+        uint32_t class_num_elements = 1;
         for (int i = 0; i < header.classRank; i++) {
             std::cout << header.classDims[i] << " ";
+            class_num_elements *= header.classDims[i];
         }
         std::cout << std::endl;
         std::cout << "  Score Dims: ";
@@ -124,6 +126,11 @@ namespace {
         std::cout << "  Mask Dims:  ";
         for (int i = 0; i < header.maskRank; i++) {
             std::cout << header.maskDims[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "DPU Class Data: ";
+        for (uint32_t i = 0; i < class_num_elements; i++) {
+            std::cout << int32_t(header.classArray[i]) << " ";
         }
         std::cout << std::endl;
         std::cout << "********************" << std::endl;
