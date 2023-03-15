@@ -2736,7 +2736,7 @@ public:
 
     uint16_t classRank;
     uint16_t classDims[1];
-    uint8_t* classArray;
+    uint8_t classArray[100];
 
     uint16_t confidenceRank;
     uint16_t confidenceDims[1];

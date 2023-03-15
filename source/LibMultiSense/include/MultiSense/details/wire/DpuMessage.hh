@@ -56,22 +56,27 @@ public:
     VersionType version;
 #endif  // SENSORPOD_FIRMWARE
 
+    // Frame metadata
     int64_t frameId;
     int64_t timestamp;
     uint8_t success;
 
+    // Tensor metadata
+    // Ranks track number of dimensions
+    // Dims track actual tensor geometry for later reconstruction
     uint32_t resultType;
-
     uint16_t classRank;
     uint16_t confidenceRank;
     uint16_t bboxRank;
     uint16_t maskRank;
-
     // TODO: Hard coded memory offsets.  Make dynamic later.
     uint16_t classDims[1];
     uint16_t confidenceDims[1];
     uint16_t bboxDims[2];
     uint16_t maskDims[3];
+
+    // Tensor data
+    uint8_t classArray[100];
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -125,6 +130,12 @@ public:
         }
         for (int i = 0; i < maskRank; i++) {
             message & maskDims[i];
+        }
+
+        // TODO: Fix all the magic numbers here
+        // Serialize class IDs
+        for (int i = 0; i < 100; i++) {
+            message & classArray[i];
         }
     }
 };
