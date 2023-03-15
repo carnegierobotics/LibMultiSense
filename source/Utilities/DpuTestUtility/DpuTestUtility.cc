@@ -106,10 +106,27 @@ namespace {
         std::cout << "  Box Rank:   " << header.bboxRank << std::endl;
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
         std::cout << "DPU Dim Data:" << std::endl;
-        std::cout << "  Class Dims: " << header.classDims << std::endl;
-        std::cout << "  Score Dims: " << header.confidenceDims << std::endl;
-        std::cout << "  Box Dims:   " << header.bboxDims << std::endl;
-        std::cout << "  Mask Dims:  " << header.maskDims << std::endl;
+        std::cout << "  Class Dims: ";
+        for (int i = 0; i < header.classRank; i++) {
+            std::cout << header.classDims[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "  Score Dims: ";
+        for (int i = 0; i < header.confidenceRank; i++) {
+            std::cout << header.confidenceDims[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "  Box Dims:   ";
+        for (int i = 0; i < header.bboxRank; i++) {
+            std::cout << header.bboxDims[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "  Mask Dims:  ";
+        for (int i = 0; i < header.maskRank; i++) {
+            std::cout << header.maskDims[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "********************" << std::endl;
     }
 
     /*
