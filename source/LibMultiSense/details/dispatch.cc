@@ -562,20 +562,28 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         dpu_result::Header header;
 
+        // Frame metadata
         header.frameId = result.frameId;
         header.timestamp = result.timestamp;
         header.success = result.success;
         header.resultType = result.resultType;
 
+        // Tensor metadata
         header.classRank = result.classRank;
         header.confidenceRank = result.confidenceRank;
         header.bboxRank = result.bboxRank;
         header.maskRank = result.maskRank;
-
         CPY_ARRAY_1(header.classDims,      result.classDims,      result.classRank);
         CPY_ARRAY_1(header.confidenceDims, result.confidenceDims, result.confidenceRank);
         CPY_ARRAY_1(header.bboxDims,       result.bboxDims,       result.bboxRank);
         CPY_ARRAY_1(header.maskDims,       result.maskDims,       result.maskRank);
+
+        // Class data
+        uint32_t class_num_elements = 1;
+        for (int i = 0; i < header.classRank; i++) {
+            class_num_elements *= header.classDims[i];
+        }
+        CPY_ARRAY_1(header.classArray, result.classArray, class_num_elements);
 
         dispatchDpuResult(header);
         break;
