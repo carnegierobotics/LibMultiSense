@@ -2735,20 +2735,24 @@ public:
     uint32_t resultType;
 
     uint16_t classRank;
-    uint16_t classDims[1];
-    uint8_t classArray[100];
-
     uint16_t confidenceRank;
-    uint16_t confidenceDims[1];
-    float* confidenceArray;
-
     uint16_t bboxRank;
-    uint16_t bboxDims[2];
-    float* bboxArray;
-
     uint16_t maskRank;
+    
+    uint32_t classBlobLen;
+    uint32_t confidenceBlobLen;
+    uint32_t bboxBlobLen;
+    uint32_t maskBlobLen;
+
+    uint16_t classDims[1];
+    uint16_t confidenceDims[1];
+    uint16_t bboxDims[2];
     uint16_t maskDims[3];
-    uint8_t* maskArray;
+    
+    uint8_t classArray[100];
+    float confidenceArray[100];
+    // float bboxArray[400];
+    // uint8_t maskArray[57600000];
 };
 
 typedef void (*Callback)(const Header& header, void *userDataP);

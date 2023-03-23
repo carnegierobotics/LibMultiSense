@@ -64,19 +64,31 @@ public:
     // Tensor metadata
     // Ranks track number of dimensions
     // Dims track actual tensor geometry for later reconstruction
+    // TODO: Remove hardcoded magic numbers
     uint32_t resultType;
+
     uint16_t classRank;
     uint16_t confidenceRank;
     uint16_t bboxRank;
     uint16_t maskRank;
-    // TODO: Hard coded memory offsets.  Make dynamic later.
+    
+    // Linear tensor blob lengths
+    uint32_t classBlobLen;
+    uint32_t confidenceBlobLen;
+    uint32_t bboxBlobLen;
+    uint32_t maskBlobLen;
+
     uint16_t classDims[1];
     uint16_t confidenceDims[1];
     uint16_t bboxDims[2];
     uint16_t maskDims[3];
-
+    
     // Tensor data
+    // TODO: Remove these magic numbers
     uint8_t classArray[100];
+    float confidenceArray[100];
+    // float bboxArray[400];
+    // uint8_t maskArray[57600000];
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -90,7 +102,11 @@ public:
         classRank(0),
         confidenceRank(0),
         bboxRank(0),
-        maskRank(0)
+        maskRank(0),
+        classBlobLen(0),
+        confidenceBlobLen(0),
+        bboxBlobLen(0),
+        maskBlobLen(0)
     {};
 };
 
@@ -118,6 +134,12 @@ public:
         message & bboxRank;
         message & maskRank;
 
+        // Serialize blob lengths
+        message & classBlobLen;
+        message & confidenceBlobLen;
+        message & bboxBlobLen;
+        message & maskBlobLen;
+
         // Serialize tensor dimensions
         for (int i = 0; i < classRank; i++) {
             message & classDims[i];
@@ -132,11 +154,28 @@ public:
             message & maskDims[i];
         }
 
-        // TODO: Fix all the magic numbers here
+        // TODO: Fix these magic numbers
         // Serialize class IDs
         for (int i = 0; i < 100; i++) {
             message & classArray[i];
         }
+
+        // Serialize confidence scores
+        for (int i = 0; i < 100; i++) {
+            message & confidenceArray[i];
+        }
+
+        /*
+        // Serialize bboxes
+        for (int i = 0; i < 400; i++) {
+            message & bboxArray[i];
+        }
+
+        // Serialize masks
+        for (int i = 0; i < 57600000; i++) {
+            message & maskArray[i];
+        }
+        */
     }
 };
 #endif  // !SENSORPOD_FIRMWARE
