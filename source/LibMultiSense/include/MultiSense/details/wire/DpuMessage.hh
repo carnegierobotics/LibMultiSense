@@ -87,7 +87,7 @@ public:
     // TODO: Remove these magic numbers
     uint8_t classArray[100];
     float confidenceArray[100];
-    // float bboxArray[400];
+    float bboxArray[400];
     // uint8_t maskArray[57600000];
 
     DpuResultHeader() :
@@ -164,14 +164,14 @@ public:
         for (int i = 0; i < 100; i++) {
             message & confidenceArray[i];
         }
-
-        /*
+        
         // Serialize bboxes
         for (int i = 0; i < 400; i++) {
             message & bboxArray[i];
         }
 
         // Serialize masks
+        /*
         for (int i = 0; i < 57600000; i++) {
             message & maskArray[i];
         }
