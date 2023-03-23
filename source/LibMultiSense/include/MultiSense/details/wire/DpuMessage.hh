@@ -88,7 +88,7 @@ public:
     uint8_t classArray[100];
     float confidenceArray[100];
     uint16_t bboxArray[400];
-    // uint8_t maskArray[57600000];
+    uint8_t maskArray[57600000];
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -171,11 +171,9 @@ public:
         }
 
         // Serialize masks
-        /*
         for (int i = 0; i < 57600000; i++) {
             message & maskArray[i];
         }
-        */
     }
 };
 #endif  // !SENSORPOD_FIRMWARE

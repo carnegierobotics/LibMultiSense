@@ -586,6 +586,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         CPY_ARRAY_1(header.classArray,      result.classArray,      header.classBlobLen);
         CPY_ARRAY_1(header.confidenceArray, result.confidenceArray, header.confidenceBlobLen);
         CPY_ARRAY_1(header.bboxArray,       result.bboxArray,       header.bboxBlobLen);
+        CPY_ARRAY_1(header.maskArray,       result.maskArray,       header.maskBlobLen);
 
         dispatchDpuResult(header);
         break;
