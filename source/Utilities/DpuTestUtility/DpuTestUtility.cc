@@ -146,6 +146,10 @@ namespace {
             std::cout << header.bboxArray[i] << " ";
         }
         std::cout << std::endl;
+        std::cout << "DPU Mask Data: ";
+        for (uint32_t i = 0; i < header.maskBlobLen; i++) {
+            std::cout << header.maskArray[i] << " ";
+        }
         std::cout << "********************" << std::endl;
     }
 
