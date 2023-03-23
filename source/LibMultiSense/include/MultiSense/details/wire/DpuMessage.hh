@@ -87,7 +87,7 @@ public:
     // TODO: Remove these magic numbers
     uint8_t classArray[100];
     float confidenceArray[100];
-    float bboxArray[400];
+    uint16_t bboxArray[400];
     // uint8_t maskArray[57600000];
 
     DpuResultHeader() :
