@@ -93,7 +93,6 @@ namespace {
 #endif
 
     void dpuResultCallback(const dpu_result::Header &header, void *userDataPtr) {
-        std::cerr << "entered dpu callback" << std::endl;
         // TODO: Rewrite for tensors
         (void) userDataPtr;
         std::cout << "DPU Result Metadata:" << std::endl;
@@ -113,17 +112,13 @@ namespace {
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
         std::cout << "DPU Dim Data:" << std::endl;
         std::cout << "  Class Dims: ";
-        uint32_t class_count = 1;
         for (int i = 0; i < header.classRank; i++) {
             std::cout << header.classDims[i] << " ";
-            class_count *= header.classDims[i];
         }
         std::cout << std::endl;
         std::cout << "  Score Dims: ";
-        uint32_t conf_count = 1;
         for (int i = 0; i < header.confidenceRank; i++) {
             std::cout << header.confidenceDims[i] << " ";
-            conf_count *= header.confidenceDims[i];
         }
         std::cout << std::endl;
         std::cout << "  Box Dims:   ";
@@ -137,13 +132,18 @@ namespace {
         }
         std::cout << std::endl;
         std::cout << "DPU Class Data: ";
-        for (uint32_t i = 0; i < class_count; i++) {
+        for (uint32_t i = 0; i < header.classBlobLen; i++) {
             std::cout << int32_t(header.classArray[i]) << " ";
         }
         std::cout << std::endl;
         std::cout << "DPU Confidence Data: ";
-        for (uint32_t i = 0; i < conf_count; i++) {
+        for (uint32_t i = 0; i < header.confidenceBlobLen; i++) {
             std::cout << header.confidenceArray[i] << " ";
+        }
+        std::cout << std::endl;
+        std::cout << "DPU Bbox Data: ";
+        for (uint32_t i = 0; i < header.bboxBlobLen; i++) {
+            std::cout << header.bboxArray[i] << " ";
         }
         std::cout << std::endl;
         std::cout << "********************" << std::endl;
