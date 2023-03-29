@@ -99,57 +99,37 @@ namespace {
         std::cout << "  Frame ID: " << header.frameId << std::endl;
         std::cout << "  Time Stamp: " << header.timestamp << std::endl;
         std::cout << "  Success: " << uint16_t(header.success) << std::endl;
-        std::cout << "DPU Result Type: " << header.resultType << std::endl;
-        std::cout << "DPU Blob Lengths:" << std::endl;
-        std::cout << "  Class Blob: " << header.classBlobLen << std::endl;
-        std::cout << "  Score Blob: " << header.confidenceBlobLen << std::endl;
-        std::cout << "  Box Blob:   " << header.bboxBlobLen << std::endl;
-        std::cout << "  Mask Blob:  " << header.maskBlobLen << std::endl;
-        std::cout << "DPU Rank Data:" << std::endl;
-        std::cout << "  Class Rank: " << header.classRank << std::endl;
-        std::cout << "  Score Rank: " << header.confidenceRank << std::endl;
-        std::cout << "  Box Rank:   " << header.bboxRank << std::endl;
+        std::cout << "  Detection Count: " << uint16_t(header.numDetections) << std::endl;
+        std::cout << "  Sequence ID: " << uint16_t(header.sequenceId) << std::endl;
+        std::cout << "  Result Type: " << header.resultType << std::endl;
+        std::cout << "  Mask Blob Len:  " << header.maskBlobLen << std::endl;
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
-        std::cout << "DPU Dim Data:" << std::endl;
-        std::cout << "  Class Dims: ";
-        for (int i = 0; i < header.classRank; i++) {
-            std::cout << header.classDims[i] << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "  Score Dims: ";
-        for (int i = 0; i < header.confidenceRank; i++) {
-            std::cout << header.confidenceDims[i] << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "  Box Dims:   ";
-        for (int i = 0; i < header.bboxRank; i++) {
-            std::cout << header.bboxDims[i] << " ";
-        }
-        std::cout << std::endl;
         std::cout << "  Mask Dims:  ";
         for (int i = 0; i < header.maskRank; i++) {
             std::cout << header.maskDims[i] << " ";
         }
         std::cout << std::endl;
-        std::cout << "DPU Class Data: ";
-        for (uint32_t i = 0; i < header.classBlobLen; i++) {
-            std::cout << int32_t(header.classArray[i]) << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "DPU Confidence Data: ";
-        for (uint32_t i = 0; i < header.confidenceBlobLen; i++) {
-            std::cout << header.confidenceArray[i] << " ";
-        }
-        std::cout << std::endl;
-        std::cout << "DPU Bbox Data: ";
-        for (uint32_t i = 0; i < header.bboxBlobLen; i++) {
+        std::cout << "DPU Result Data: " << std::endl;
+        std::cout << "  Class ID: " << int(header.classId) << std::endl;
+        std::cout << "  Confidence Score: " << header.confidenceScore << std::endl;
+        std::cout << "  Bbox Data: ";
+        for (uint32_t i = 0; i < 4; i++) {
             std::cout << header.bboxArray[i] << " ";
         }
         std::cout << std::endl;
-        std::cout << "DPU Mask Data: ";
+        uint32_t num_zeros = 0;
+        uint32_t num_ones = 0;
+        std::cout << "  Mask Data: " << std::endl;
         for (uint32_t i = 0; i < header.maskBlobLen; i++) {
-            std::cout << header.maskArray[i] << " ";
+            if (header.maskArray[i]) {
+                num_ones++;
+            } else {
+                num_zeros++;
+            }
         }
+        std::cout << "    Num Zeros = " << num_zeros << std::endl;
+        std::cout << "    Num Ones = " << num_ones << std::endl;
+        std::cout << "    Mask Count Sum = " << num_zeros + num_ones << std::endl;
         std::cout << "********************" << std::endl;
     }
 
