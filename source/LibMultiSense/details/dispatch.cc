@@ -581,14 +581,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         CPY_ARRAY_1(header.bboxArray, result.bboxArray, 4);
         CPY_ARRAY_1(header.maskArray, result.maskArray, 960 * 600);
        
-        for (int j = 0; j < result.maskRank; j++) {
-            std::cout << result.maskDims[j] << " ";
-        }
-        
-        for (int j = 0; j < 4; j++) {
-            std::cout << result.bboxArray[j] << " ";
-        }
-        
         dispatchDpuResult(header);
         break;
     }
