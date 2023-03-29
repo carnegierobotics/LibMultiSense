@@ -567,27 +567,28 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.timestamp = result.timestamp;
         header.success = result.success;
         header.resultType = result.resultType;
+        header.numDetections = result.numDetections;
+        header.sequenceId = result.sequenceId;
 
         // Tensor metadata
-        header.classRank = result.classRank;
-        header.confidenceRank = result.confidenceRank;
-        header.bboxRank = result.bboxRank;
         header.maskRank = result.maskRank;
-        header.classBlobLen = result.classBlobLen;
-        header.confidenceBlobLen = result.confidenceBlobLen;
-        header.bboxBlobLen = result.bboxBlobLen;
         header.maskBlobLen = result.maskBlobLen;
-        CPY_ARRAY_1(header.classDims,      result.classDims,      result.classRank);
-        CPY_ARRAY_1(header.confidenceDims, result.confidenceDims, result.confidenceRank);
-        CPY_ARRAY_1(header.bboxDims,       result.bboxDims,       result.bboxRank);
-        CPY_ARRAY_1(header.maskDims,       result.maskDims,       result.maskRank);
+        CPY_ARRAY_1(header.maskDims, result.maskDims, result.maskRank);
 
         // Tensor data
-        CPY_ARRAY_1(header.classArray,      result.classArray,      header.classBlobLen);
-        CPY_ARRAY_1(header.confidenceArray, result.confidenceArray, header.confidenceBlobLen);
-        CPY_ARRAY_1(header.bboxArray,       result.bboxArray,       header.bboxBlobLen);
-        CPY_ARRAY_1(header.maskArray,       result.maskArray,       header.maskBlobLen);
-
+        header.classId = result.classId[0];
+        header.confidenceScore = result.confidenceScore[0];
+        CPY_ARRAY_1(header.bboxArray, result.bboxArray, 4);
+        CPY_ARRAY_1(header.maskArray, result.maskArray, 960 * 600);
+       
+        for (int j = 0; j < result.maskRank; j++) {
+            std::cout << result.maskDims[j] << " ";
+        }
+        
+        for (int j = 0; j < 4; j++) {
+            std::cout << result.bboxArray[j] << " ";
+        }
+        
         dispatchDpuResult(header);
         break;
     }
