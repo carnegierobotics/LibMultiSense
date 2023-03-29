@@ -2734,25 +2734,18 @@ public:
     uint8_t success;
     uint32_t resultType;
 
-    uint16_t classRank;
-    uint16_t confidenceRank;
-    uint16_t bboxRank;
-    uint16_t maskRank;
-    
-    uint32_t classBlobLen;
-    uint32_t confidenceBlobLen;
-    uint32_t bboxBlobLen;
-    uint32_t maskBlobLen;
+    uint8_t numDetections;
+    uint8_t sequenceId;
 
-    uint16_t classDims[1];
-    uint16_t confidenceDims[1];
-    uint16_t bboxDims[2];
-    uint16_t maskDims[3];
+    // TODO: Remove the magic numbers
+    uint16_t maskRank;
+    uint32_t maskBlobLen;
+    uint16_t maskDims[4];
     
-    uint8_t classArray[100];
-    float confidenceArray[100];
-    uint16_t bboxArray[400];
-    uint8_t maskArray[57600000];
+    uint8_t classId;
+    float confidenceScore;
+    uint16_t bboxArray[4];
+    uint8_t maskArray[960 * 600];
 };
 
 typedef void (*Callback)(const Header& header, void *userDataP);

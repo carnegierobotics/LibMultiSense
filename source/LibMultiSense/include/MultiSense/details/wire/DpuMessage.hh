@@ -59,36 +59,22 @@ public:
     // Frame metadata
     int64_t frameId;
     int64_t timestamp;
-    uint8_t success;
+    bool success;
 
     // Tensor metadata
-    // Ranks track number of dimensions
-    // Dims track actual tensor geometry for later reconstruction
-    // TODO: Remove hardcoded magic numbers
+    // TODO: Remove magic numbers
     uint32_t resultType;
-
-    uint16_t classRank;
-    uint16_t confidenceRank;
-    uint16_t bboxRank;
+    uint8_t numDetections;
+    uint8_t sequenceId;
     uint16_t maskRank;
-    
-    // Linear tensor blob lengths
-    uint32_t classBlobLen;
-    uint32_t confidenceBlobLen;
-    uint32_t bboxBlobLen;
+    uint16_t maskDims[4];
     uint32_t maskBlobLen;
-
-    uint16_t classDims[1];
-    uint16_t confidenceDims[1];
-    uint16_t bboxDims[2];
-    uint16_t maskDims[3];
     
     // Tensor data
-    // TODO: Remove these magic numbers
-    uint8_t classArray[100];
-    float confidenceArray[100];
-    uint16_t bboxArray[400];
-    uint8_t maskArray[57600000];
+    uint8_t classId[1];
+    float confidenceScore[1];
+    uint16_t bboxArray[4];
+    uint8_t maskArray[960 * 600];
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -99,13 +85,9 @@ public:
         timestamp(0),
         success(0),
         resultType(0),
-        classRank(0),
-        confidenceRank(0),
-        bboxRank(0),
+        numDetections(0),
+        sequenceId(0),
         maskRank(0),
-        classBlobLen(0),
-        confidenceBlobLen(0),
-        bboxBlobLen(0),
         maskBlobLen(0)
     {};
 };
@@ -127,51 +109,27 @@ public:
         message & timestamp;
         message & success;
         message & resultType;
+        message & numDetections;
+        message & sequenceId;
         
-        // Serialize tensor ranks
-        message & classRank;
-        message & confidenceRank;
-        message & bboxRank;
+        // Serialize mask metadata 
         message & maskRank;
-
-        // Serialize blob lengths
-        message & classBlobLen;
-        message & confidenceBlobLen;
-        message & bboxBlobLen;
-        message & maskBlobLen;
-
-        // Serialize tensor dimensions
-        for (int i = 0; i < classRank; i++) {
-            message & classDims[i];
-        }
-        for (int i = 0; i < confidenceRank; i++) {
-            message & confidenceDims[i];
-        }
-        for (int i = 0; i < bboxRank; i++) {
-            message & bboxDims[i];
-        }
-        for (int i = 0; i < maskRank; i++) {
+        for (int i = 0; i < 4; i++) {
             message & maskDims[i];
         }
+        message & maskBlobLen;
 
-        // TODO: Fix these magic numbers
-        // Serialize class IDs
-        for (int i = 0; i < 100; i++) {
-            message & classArray[i];
-        }
-
-        // Serialize confidence scores
-        for (int i = 0; i < 100; i++) {
-            message & confidenceArray[i];
-        }
+        // Serialze data
+        message & classId[0];
+        message & confidenceScore[0];
         
         // Serialize bboxes
-        for (int i = 0; i < 400; i++) {
+        for (int i = 0; i < 4; i++) {
             message & bboxArray[i];
         }
 
         // Serialize masks
-        for (int i = 0; i < 57600000; i++) {
+        for (uint32_t i = 0; i < maskBlobLen; i++) {
             message & maskArray[i];
         }
     }
