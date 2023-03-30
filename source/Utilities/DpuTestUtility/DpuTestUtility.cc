@@ -313,7 +313,6 @@ int main(int argc, char** argv){
     while(!quit_flag){
         for (const auto &rm : reconstruction_map) {
             if (rm.second.size() == rm.second[0].numDetections) {
-                std::cout << "Tensors! Assemble!" << std::endl;
                 std::vector<uint8_t> class_ids;
                 std::vector<float> confidence_scores;
                 std::vector<uint16_t> bboxes;
