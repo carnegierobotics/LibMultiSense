@@ -54,13 +54,19 @@
 #include <iomanip>
 #include <algorithm>
 #include <bitset>
+#include <map>
+#include <vector>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
+#include <torch/csrc/api/include/torch/torch.h>
+
 #include <Utilities/portability/getopt/getopt.h>
 
 using namespace crl::multisense;
+
+std::map<int64_t, std::vector<dpu_result::Header>> reconstruction_map;
 
 namespace {
 
@@ -93,7 +99,6 @@ namespace {
 #endif
 
     void dpuResultCallback(const dpu_result::Header &header, void *userDataPtr) {
-        // TODO: Rewrite for tensors
         (void) userDataPtr;
         std::cout << "DPU Result Metadata:" << std::endl;
         std::cout << "  Frame ID: " << header.frameId << std::endl;
@@ -131,6 +136,12 @@ namespace {
         std::cout << "    Num Ones = " << num_ones << std::endl;
         std::cout << "    Mask Count Sum = " << num_zeros + num_ones << std::endl;
         std::cout << "********************" << std::endl;
+        if (reconstruction_map.count(header.frameId) == 0) {
+            reconstruction_map[header.frameId] = std::vector<dpu_result::Header>();
+            reconstruction_map[header.frameId].push_back(header);
+        } else {
+            reconstruction_map[header.frameId].push_back(header);
+        }
     }
 
     /*
@@ -149,6 +160,30 @@ namespace {
     }
 
 }   // Anonymous
+
+std::vector<torch::Tensor> convert_tensor_map_to_vector(std::map<std::string, torch::Tensor> tensor_map,
+                                                        std::vector<std::string> key_order) {
+    std::vector<torch::Tensor> tensor_vector;
+    for (const auto &ko: key_order) {
+        tensor_vector.push_back(tensor_map[ko]);
+    }
+    return tensor_vector;
+}
+
+void export_tensor_to_pytorch(const std::string &tensor_filename,
+                              std::map<std::string, torch::Tensor> tensor_map,
+                              std::vector<std::string> key_order) {
+    std::vector<torch::Tensor> tensor_vector;
+    if (tensor_map.empty()) {
+        for (const auto &ko : key_order) {
+            (void)ko;
+            tensor_vector.push_back(torch::empty({0}));
+        }
+    } else {
+        tensor_vector = convert_tensor_map_to_vector(tensor_map, key_order);
+    }
+    torch::save(tensor_vector, tensor_filename);
+}
 
 int main(int argc, char** argv){
     std::string currentAddress = "10.66.171.21";
@@ -276,6 +311,46 @@ int main(int argc, char** argv){
     }
 
     while(!quit_flag){
+        for (const auto &rm : reconstruction_map) {
+            if (rm.second.size() == rm.second[0].numDetections) {
+                std::cout << "Tensors! Assemble!" << std::endl;
+                std::vector<uint8_t> class_ids;
+                std::vector<float> confidence_scores;
+                std::vector<uint16_t> bboxes;
+                std::vector<uint8_t> masks;
+                for (const auto &rms : rm.second) {
+                    class_ids.push_back(rms.classId);
+                    confidence_scores.push_back(rms.confidenceScore);
+                    for (int i = 0; i < 4; i++) {
+                        bboxes.push_back(rms.bboxArray[i]);
+                    }
+                    for (uint32_t i = 0; i < rms.maskBlobLen; i++) {
+                        masks.push_back(rms.maskArray[i]);
+                    }
+                }
+                torch::TensorOptions class_options = torch::TensorOptions().dtype(torch::kUInt8).device(torch::kCPU);
+                torch::Tensor class_id_tensor = torch::from_blob(
+                        class_ids.data(), {int64_t(class_ids.size())}, class_options);
+                torch::TensorOptions score_options = torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU);
+                torch::Tensor score_tensor = torch::from_blob(
+                        confidence_scores.data(), {int64_t(confidence_scores.size())}, score_options);
+                torch::TensorOptions bbox_options = torch::TensorOptions().dtype(torch::kInt16).device(torch::kCPU);
+                torch::Tensor bbox_tensor = torch::from_blob(
+                        bboxes.data(), {int64_t(bboxes.size() / 4), 4}, bbox_options);
+                torch::TensorOptions mask_options = torch::TensorOptions().dtype(torch::kUInt8).device(torch::kCPU);
+                torch::Tensor mask_tensor = torch::from_blob(
+                        masks.data(), {int64_t(class_ids.size()), 600, 960}, mask_options);
+                std::map<std::string, torch::Tensor> export_map;
+                export_map["class"] = class_id_tensor;
+                export_map["score"] = score_tensor;
+                export_map["box"] = bbox_tensor;
+                export_map["mask"] = mask_tensor;
+                export_tensor_to_pytorch(
+                    "camera_test.pt", export_map, {"box", "class", "mask", "score"});
+                reconstruction_map.erase(rm.first);
+                break;
+            }
+        }
         usleep(100000);
     }
 
