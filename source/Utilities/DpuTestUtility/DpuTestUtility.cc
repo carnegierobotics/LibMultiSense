@@ -60,6 +60,10 @@
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+
 #include <torch/csrc/api/include/torch/torch.h>
 
 #include <Utilities/portability/getopt/getopt.h>
@@ -67,6 +71,8 @@
 using namespace crl::multisense;
 
 std::map<int64_t, std::vector<dpu_result::Header>> reconstruction_map;
+std::map<int64_t, cv::Mat> luma_map;
+std::map<int64_t, cv::Mat> chroma_map;
 
 namespace {
 
@@ -144,15 +150,35 @@ namespace {
         }
     }
 
-    /*
-    void colorImageCallback(const image::Header &header, void *userDataPtr) {
+    void lumaImageCallback(const image::Header &header, void *userDataPtr) {
         (void) userDataPtr;
 
         std::cout << "******************" << std::endl;
+        std::cout << "Luma hit!" << std::endl;
         std::cout << "Image Output:" << std::endl;
         std::cout << "  Frame ID: " << header.frameId << std::endl;
+        std::cout << "  Height: " << header.height << std::endl;
+        std::cout << "  Width: " << header.width << std::endl;
+        std::cout << "  BPP: " << header.bitsPerPixel << std::endl;
+        cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
+        std::cout << "luma.size() = " << luma.size() << std::endl;
+        luma_map[header.frameId] = luma;
     }
-    */
+
+    void chromaImageCallback(const image::Header &header, void *userDataPtr) {
+        (void) userDataPtr;
+
+        std::cout << "******************" << std::endl;
+        std::cout << "Chroma hit!" << std::endl;
+        std::cout << "Image Output:" << std::endl;
+        std::cout << "  Frame ID: " << header.frameId << std::endl;
+        std::cout << "  Height: " << header.height << std::endl;
+        std::cout << "  Width: " << header.width << std::endl;
+        std::cout << "  BPP: " << header.bitsPerPixel << std::endl;
+        cv::Mat chroma = cv::Mat(header.height, header.width, CV_16UC1, const_cast<void*>(header.imageDataP)).clone();
+        std::cout << "chroma.size() = " << chroma.size() << std::endl;
+        chroma_map[header.frameId] = chroma;
+    }
 
     void destroyChannel(Channel *channelPtr) {
         Channel::Destroy(channelPtr);
@@ -296,15 +322,18 @@ int main(int argc, char** argv){
         std::cerr << "Failed to add DPU callback." << std::endl;
     }
 
-    /*
-    status = channelPtr->addIsolatedCallback(colorImageCallback, Source_Luma_Rectified_Aux);
+    status = channelPtr->addIsolatedCallback(lumaImageCallback, Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
-        std::cerr << "Failed to add color image callback." << std::endl;
+        std::cerr << "Failed to add luma image callback." << std::endl;
     }
-    */
+
+    status = channelPtr->addIsolatedCallback(chromaImageCallback, Source_Chroma_Rectified_Aux);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to add chroma image callback." << std::endl;
+    }
 
     // Start streaming
-    status = channelPtr->startStreams(Source_DPU_Result | Source_Luma_Rectified_Aux);
+    status = channelPtr->startStreams(Source_DPU_Result | Source_Luma_Rectified_Aux | Source_Chroma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         destroyChannel(channelPtr);
@@ -339,6 +368,14 @@ int main(int argc, char** argv){
                 torch::TensorOptions mask_options = torch::TensorOptions().dtype(torch::kUInt8).device(torch::kCPU);
                 torch::Tensor mask_tensor = torch::from_blob(
                         masks.data(), {int64_t(class_ids.size()), 600, 960}, mask_options);
+                int64_t fid = rm.second[0].frameId;
+                cv::Mat matching_luma = luma_map[fid];
+                cv::Mat matching_chroma = chroma_map[fid];
+                cv::Mat rgb;
+                cv::cvtColorTwoPlane(matching_luma, matching_chroma, rgb, cv::COLOR_YUV2BGR_NV12);
+                cv::imwrite("rgb.png", rgb);
+                // luma_map.clear();
+                // chroma_map.clear();
                 std::map<std::string, torch::Tensor> export_map;
                 export_map["class"] = class_id_tensor;
                 export_map["score"] = score_tensor;
