@@ -47,6 +47,9 @@
 #include <MultiSense/details/wire/AuxCamConfigMessage.hh>
 #include <MultiSense/details/wire/AuxCamControlMessage.hh>
 #include <MultiSense/details/wire/AuxCamGetConfigMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadConfigMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadControlMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadGetConfigMessage.hh>
 #include <MultiSense/details/wire/CamGetHistoryMessage.hh>
 #include <MultiSense/details/wire/CamHistoryMessage.hh>
 #include <MultiSense/details/wire/CamSetResolutionMessage.hh>
@@ -115,6 +118,9 @@ namespace wire {
     CRL_CONSTEXPR IdType AuxCamConfig::ID;
     CRL_CONSTEXPR IdType AuxCamControl::ID;
     CRL_CONSTEXPR IdType AuxCamGetConfig::ID;
+    CRL_CONSTEXPR IdType RemoteHeadConfig::ID;
+    CRL_CONSTEXPR IdType RemoteHeadControl::ID;
+    CRL_CONSTEXPR IdType RemoteHeadGetConfig::ID;
     CRL_CONSTEXPR IdType CamGetHistory::ID;
     CRL_CONSTEXPR IdType CamHistory::ID;
     CRL_CONSTEXPR IdType CamSetResolution::ID;

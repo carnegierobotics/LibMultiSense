@@ -157,11 +157,14 @@ public:
     virtual Status getAuxImageConfig     (image::AuxConfig& c);
     virtual Status setAuxImageConfig     (const image::AuxConfig& c);
 
+    virtual Status getRemoteHeadConfig   (image::RemoteHeadConfig& c);
+    virtual Status setRemoteHeadConfig   (const image::RemoteHeadConfig& c);
+
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 
-	virtual Status getTransmitDelay   (image::TransmitDelay& c);
-	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
+  	virtual Status getTransmitDelay   (image::TransmitDelay& c);
+  	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
 
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
