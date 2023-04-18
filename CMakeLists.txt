@@ -15,7 +15,7 @@ if (${CMAKE_VERSION} VERSION_LESS "3.12")
 project(LibMultiSense
   LANGUAGES C CXX
   HOMEPAGE_URL https://carnegierobotics.com
-  DESCRIPTION "The CRL Vplumber Video Pipeline Toolkit"
+  DESCRIPTION "The CRL Multisense Interface Library"
   VERSION ${CPACK_PACKAGE_VERSION})
 else (${CMAKE_VERSION} VERSION_LESS "3.12")
 project(LibMultiSense
