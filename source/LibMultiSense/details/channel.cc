@@ -57,6 +57,63 @@ namespace crl {
 namespace multisense {
 namespace details {
 
+namespace
+{
+
+//
+// Patch from dtascione@tbdrobotics.com
+// Resolves the given hostname/address to an address that can be passed to sin_addr.
+in_addr resolve_to_ip(const std::string &address)
+{
+    size_t buffer_length = 512;
+
+    while (buffer_length < 65536)
+    {
+        //
+        // Allocate the buffer from the buffer length...
+
+        char *buffer = reinterpret_cast<char *>(alloca(buffer_length));
+
+        if (buffer == nullptr)
+        {
+            CRL_EXCEPTION("Failed to allocate memory off the stack to resolve a hostname.");
+        }
+
+        //
+        // Now resolve, if this fails with ERANGE, try to allocate more memory.
+
+        struct hostent host_buffer;
+        struct hostent *host_result;
+
+        int error = 0;
+
+        auto result = gethostbyname_r(address.c_str(), &host_buffer, buffer, buffer_length, &host_result, &error);
+
+        if (result == ERANGE)
+        {
+            buffer_length *= 2;
+            continue;
+        }
+
+        if (result != 0 || host_result == nullptr)
+        {
+            CRL_EXCEPTION("Failed to resolve '%s': %s", address.c_str(), hstrerror(h_errno));
+        }
+
+        in_addr addr;
+
+        memset(&addr, 0, sizeof(in_addr));
+        memcpy(&(addr.s_addr), host_result->h_addr, host_result->h_length);
+
+        return addr;
+    }
+
+    CRL_EXCEPTION("Failed to resolve '%s'", address.c_str());
+}
+
+}
+
+
 //
 // Implementation constructor
 
@@ -100,7 +157,6 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     int result = WSAStartup (MAKEWORD (0x02, 0x02), &wsaData);
     if (result != 0)
         CRL_EXCEPTION("WSAStartup() failed: %d", result);
-#endif
 
     //
     // Make sure the sensor address is sane
@@ -110,12 +166,16 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
         CRL_EXCEPTION("unable to resolve \"%s\": %s",
                       address.c_str(), strerror(errno));
 
+    in_addr addr;
+    memcpy(&(addr.s_addr), hostP->h_addr, hostP->h_length);
+#else
     //
     // Set up the address for transmission
 
-    in_addr addr;
+    in_addr addr = resolve_to_ip(address);
+#endif
 
-    memcpy(&(addr.s_addr), hostP->h_addr, hostP->h_length);
+
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
