@@ -57,63 +57,6 @@ namespace crl {
 namespace multisense {
 namespace details {
 
-namespace
-{
-
-//
-// Patch from dtascione@tbdrobotics.com
-// Resolves the given hostname/address to an address that can be passed to sin_addr.
-in_addr resolve_to_ip(const std::string &address)
-{
-    size_t buffer_length = 512;
-
-    while (buffer_length < 65536)
-    {
-        //
-        // Allocate the buffer from the buffer length...
-
-        char *buffer = reinterpret_cast<char *>(alloca(buffer_length));
-
-        if (buffer == nullptr)
-        {
-            CRL_EXCEPTION("Failed to allocate memory off the stack to resolve a hostname.");
-        }
-
-        //
-        // Now resolve, if this fails with ERANGE, try to allocate more memory.
-
-        struct hostent host_buffer;
-        struct hostent *host_result;
-
-        int error = 0;
-
-        auto result = gethostbyname_r(address.c_str(), &host_buffer, buffer, buffer_length, &host_result, &error);
-
-        if (result == ERANGE)
-        {
-            buffer_length *= 2;
-            continue;
-        }
-
-        if (result != 0 || host_result == nullptr)
-        {
-            CRL_EXCEPTION("Failed to resolve '%s': %s", address.c_str(), hstrerror(h_errno));
-        }
-
-        in_addr addr;
-
-        memset(&addr, 0, sizeof(in_addr));
-        memcpy(&(addr.s_addr), host_result->h_addr, host_result->h_length);
-
-        return addr;
-    }
-
-    CRL_EXCEPTION("Failed to resolve '%s'", address.c_str());
-}
-
-}
-
-
 //
 // Implementation constructor
 
@@ -152,35 +95,36 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_ptpTimeSyncEnabled(false),
     m_sensorVersion()
 {
+
 #if WIN32
     WSADATA wsaData;
     int result = WSAStartup (MAKEWORD (0x02, 0x02), &wsaData);
     if (result != 0)
         CRL_EXCEPTION("WSAStartup() failed: %d", result);
 
-    //
-    // Make sure the sensor address is sane
-
-    struct hostent *hostP = gethostbyname(address.c_str());
-    if (NULL == hostP)
-        CRL_EXCEPTION("unable to resolve \"%s\": %s",
-                      address.c_str(), strerror(errno));
-
-    in_addr addr;
-    memcpy(&(addr.s_addr), hostP->h_addr, hostP->h_length);
-#else
-    //
-    // Set up the address for transmission
-
-    in_addr addr = resolve_to_ip(address);
 #endif
 
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = 0;
+
+    const int addrstatus = getaddrinfo(address.c_str(), NULL, &hints, &res);
+    if (addrstatus != 0 || res == NULL)
+    {
+        CRL_EXCEPTION("unable to resolve \"%s\": %s", address.c_str(), strerror(errno));
+    }
+
+    in_addr addr;
+    memcpy(&addr, &(((struct sockaddr_in *)(res->ai_addr))->sin_addr), sizeof(in_addr));
 
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
     m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint16_t>(cameraId + 1));
     m_sensorAddress.sin_addr   = addr;
+
+    freeaddrinfo(res);
 
     //
     // Create a pool of RX buffers
