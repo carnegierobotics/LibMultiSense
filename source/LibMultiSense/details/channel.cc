@@ -111,9 +111,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
 
     const int addrstatus = getaddrinfo(address.c_str(), NULL, &hints, &res);
     if (addrstatus != 0 || res == NULL)
-    {
         CRL_EXCEPTION("unable to resolve \"%s\": %s", address.c_str(), strerror(errno));
-    }
 
     in_addr addr;
     memcpy(&addr, &(((struct sockaddr_in *)(res->ai_addr))->sin_addr), sizeof(in_addr));
