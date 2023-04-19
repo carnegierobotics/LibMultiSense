@@ -47,7 +47,9 @@
 
 #include "MultiSense/details/utility/Functional.hh"
 
-#ifndef WIN32
+#ifdef WIN32
+#include <ws2tcpip.h>
+#else
 #include <netdb.h>
 #endif
 #include <errno.h>
