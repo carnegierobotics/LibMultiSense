@@ -47,7 +47,9 @@
 
 #include "MultiSense/details/utility/Functional.hh"
 
-#ifndef WIN32
+#ifdef WIN32
+#include <ws2tcpip.h>
+#else
 #include <netdb.h>
 #endif
 #include <errno.h>
@@ -95,32 +97,34 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_ptpTimeSyncEnabled(false),
     m_sensorVersion()
 {
+
 #if WIN32
     WSADATA wsaData;
     int result = WSAStartup (MAKEWORD (0x02, 0x02), &wsaData);
     if (result != 0)
         CRL_EXCEPTION("WSAStartup() failed: %d", result);
+
 #endif
 
-    //
-    // Make sure the sensor address is sane
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = 0;
 
-    struct hostent *hostP = gethostbyname(address.c_str());
-    if (NULL == hostP)
-        CRL_EXCEPTION("unable to resolve \"%s\": %s",
-                      address.c_str(), strerror(errno));
-
-    //
-    // Set up the address for transmission
+    const int addrstatus = getaddrinfo(address.c_str(), NULL, &hints, &res);
+    if (addrstatus != 0 || res == NULL)
+        CRL_EXCEPTION("unable to resolve \"%s\": %s", address.c_str(), strerror(errno));
 
     in_addr addr;
+    memcpy(&addr, &(((struct sockaddr_in *)(res->ai_addr))->sin_addr), sizeof(in_addr));
 
-    memcpy(&(addr.s_addr), hostP->h_addr, hostP->h_length);
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
     m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint16_t>(cameraId + 1));
     m_sensorAddress.sin_addr   = addr;
+
+    freeaddrinfo(res);
 
     //
     // Create a pool of RX buffers
