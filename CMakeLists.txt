@@ -12,17 +12,16 @@ cmake_minimum_required(VERSION 3.1)
 set(CPACK_PACKAGE_VERSION "4.3.0")
 
 if (${CMAKE_VERSION} VERSION_LESS "3.12")
-project(LibMultiSense
-  LANGUAGES C CXX
-  HOMEPAGE_URL https://carnegierobotics.com
-  DESCRIPTION "The CRL Multisense Interface Library"
-  VERSION ${CPACK_PACKAGE_VERSION})
-else (${CMAKE_VERSION} VERSION_LESS "3.12")
-project(LibMultiSense
-  LANGUAGES C CXX
-  VERSION ${CPACK_PACKAGE_VERSION})
-endif (${CMAKE_VERSION} VERSION_LESS "3.12")
-
+    project(LibMultiSense
+      LANGUAGES C CXX
+      VERSION ${CPACK_PACKAGE_VERSION})
+else()
+    project(LibMultiSense
+      LANGUAGES C CXX
+      HOMEPAGE_URL https://carnegierobotics.com
+      DESCRIPTION "The CRL Multisense Interface Library"
+      VERSION ${CPACK_PACKAGE_VERSION})
+endif ()
 
 include (CheckCXXSourceCompiles)
 
@@ -106,21 +105,22 @@ add_subdirectory(source)
 #
 # Generate pc file, for pkgconfig compatibility
 #
-if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12")
-file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/LibMultiSense.pc CONTENT
-"prefix=\"${CMAKE_INSTALL_PREFIX}\"
-exec_prefix=\"\${prefix}\"
-libdir=\"\${prefix}/lib\"
-includedir=\"\${prefix}/include\"
-Name: ${PROJECT_NAME}
-Description: ${CMAKE_PROJECT_DESCRIPTION}
-URL: ${CMAKE_PROJECT_HOMEPAGE_URL}
-Version: ${PROJECT_VERSION}
-Cflags: -I$<JOIN:\"\${includedir}\";$<TARGET_PROPERTY:MultiSense,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>, -I>
-Libs: -L\"\${libdir}\" -lMultiSense
-")
-install(FILES ${CMAKE_BINARY_DIR}/LibMultiSense.pc DESTINATION lib/pkgconfig COMPONENT development)
-endif (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12")
+if (NOT ${CMAKE_VERSION} VERSION_LESS "3.12")
+    file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/LibMultiSense.pc CONTENT
+    "prefix=\"${CMAKE_INSTALL_PREFIX}\"
+    exec_prefix=\"\${prefix}\"
+    libdir=\"\${prefix}/lib\"
+    includedir=\"\${prefix}/include\"
+    Name: ${PROJECT_NAME}
+    Description: ${CMAKE_PROJECT_DESCRIPTION}
+    URL: ${CMAKE_PROJECT_HOMEPAGE_URL}
+    Version: ${PROJECT_VERSION}
+    Cflags: -I$<JOIN:\"\${includedir}\";$<TARGET_PROPERTY:MultiSense,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>, -I>
+    Libs: -L\"\${libdir}\" -lMultiSense
+    ")
+
+    install(FILES ${CMAKE_BINARY_DIR}/LibMultiSense.pc DESTINATION lib/pkgconfig COMPONENT development)
+endif ()
 
 #
 # Add cpack
