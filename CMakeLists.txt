@@ -9,7 +9,7 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-set(CPACK_PACKAGE_VERSION "4.2.0")
+set(CPACK_PACKAGE_VERSION "4.3.0")
 
 if (${CMAKE_VERSION} VERSION_LESS "3.12")
     project(LibMultiSense
