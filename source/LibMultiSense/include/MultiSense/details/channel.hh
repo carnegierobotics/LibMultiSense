@@ -94,7 +94,7 @@ public:
     //
     // Construction
 
-    impl(const std::string& address, const RemoteHeadChannel &cameraId);
+    impl(const std::string& address, const RemoteHeadChannel& cameraId, const std::string& ifName);
     ~impl();
 
     //
@@ -160,14 +160,17 @@ public:
     virtual Status getImageConfig        (image::Config& c);
     virtual Status setImageConfig        (const image::Config& c);
 
+    virtual Status getRemoteHeadConfig   (image::RemoteHeadConfig& c);
+    virtual Status setRemoteHeadConfig   (const image::RemoteHeadConfig& c);
+
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 
-	virtual Status getSensorCalibration   (image::SensorCalibration& c);
-	virtual Status setSensorCalibration   (const image::SensorCalibration& c);
+    virtual Status getSensorCalibration   (image::SensorCalibration& c);
+    virtual Status setSensorCalibration   (const image::SensorCalibration& c);
 
-	virtual Status getTransmitDelay   (image::TransmitDelay& c);
-	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
+    virtual Status getTransmitDelay   (image::TransmitDelay& c);
+    virtual Status setTransmitDelay   (const image::TransmitDelay& c);
 
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
@@ -288,8 +291,8 @@ private:
 
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS       = 5;
-    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 8;
-    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 8;
+    static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH     = 4;
+    static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH    = 4;
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY     = 8;
 
 #if __cplusplus > 199711L
@@ -560,7 +563,7 @@ private:
                                                        uint32_t&     microseconds);
 
     void                         cleanup();
-    void                         bind   ();
+    void                         bind   (const std::string& ifName);
     void                         handle ();
 
     //

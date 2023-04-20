@@ -38,7 +38,7 @@
 #define LibMultiSense_MultiSenseTypes_hh
 
 #include <stdint.h>
-
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -203,15 +203,58 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  */
 typedef int16_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB         = -1;
 /** The Remote Head Camera at position 0*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 0;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0           = 0;
 /** The Remote Head Camera at position 1*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1           = 1;
 /** The Remote Head Camera at position 2*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 2;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2           = 2;
 /** The Remote Head Camera at position 3*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 3;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3           = 3;
+/** Invalid Remote Head position*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
+
+/**
+ * Remote head sync pair defines a pair of remote heads which will have their
+ * image captures synchronized.
+ * Given that there is only 4 possible remote head cameras, there are only 2
+ * possible remote head synchronization pairs.
+ * It is currently not possible to synchronize more than 2 pairs of remote heads.
+ * Furthermore, it is not possible to synchronize one head to multiple heads.
+ * It is not possible to synchronize Remote Head Stereo Cameras.
+ * Possible components are:
+ * Remote_Head_0   The Remote Head Camera located in position 0
+ * Remote_Head_1   The Remote Head Camera located in position 1
+ * Remote_Head_2   The Remote Head Camera located in position 2
+ * Remote_Head_3   The Remote Head Camera located in position 3
+ */
+struct RemoteHeadSyncPair {
+
+  /**
+   * Default constructor
+   */
+  RemoteHeadSyncPair() {};
+
+  /**
+   * Constructor to initialize a remote head sync pair
+   *
+   * @param c The remote head sync pair controller
+   *
+   * @param r The remote head sync pair responder
+   *
+   */
+  RemoteHeadSyncPair(RemoteHeadChannel c,
+                     RemoteHeadChannel r) :
+    controller(c),
+    responder(r) {};
+
+  /** The synchronization controller */
+  RemoteHeadChannel controller;
+  /** The synchronization responder */
+  RemoteHeadChannel responder;
+
+};
 
 
 /**
@@ -1081,6 +1124,33 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
+
+    /**
+     * Enable sharpening for the aux luma channel.
+     *
+     * @param s Set to the value of true to enable or false to disable aux luma sharpening.
+     */
+
+    void enableAuxSharpening(const bool &s)    { m_sharpeningEnable  = s; };
+
+    /**
+     * Set the sharpening percentage for the aux luma channel.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setAuxSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
+
+    /**
+     * Set the sharpening limit. The maximum difference in pixels that sharpening is
+     * is allowed to change between neighboring pixels. This is useful for clamping
+     * the sharpening percentage, while still maintaining a large gain.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setAuxSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
+
     //
     // Query
 
@@ -1435,6 +1505,27 @@ public:
     float yaw()   const { return m_yaw;   };
 
     /**
+     * Query whether sharpening is enabled or not on the aux camera.
+     *
+     * @return Return true if sharpening is enabled, false if sharpening is disabled.
+     */
+    bool enableAuxSharpening() const { return m_sharpeningEnable; };
+
+    /**
+     * Query the percentage of sharpening applied to the aux luma image.
+     *
+     * @return A value within the range of 0 - 100
+     */
+    float auxSharpeningPercentage() const { return m_sharpeningPercentage; };
+
+    /**
+     * Query the limit of sharpening applied to the aux luma image.
+     *
+     * @return A value within the range of 0 - 255 in
+     */
+    uint8_t auxSharpeningLimit() const { return m_sharpeningLimit; };
+
+    /**
      * Default constructor for a image configuration. Initializes all image
      * configuration members to their default values
      */
@@ -1446,6 +1537,7 @@ public:
                m_profile(User_Control),
                m_secondary_exposures(),
                m_gamma(2.0),
+               m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1466,7 +1558,10 @@ private:
     bool     m_storeSettingsInFlash;
     CameraProfile m_profile;
     std::vector<ExposureConfig> m_secondary_exposures;
-    float m_gamma;
+    float    m_gamma;
+    bool     m_sharpeningEnable;
+    float    m_sharpeningPercentage;
+    uint8_t  m_sharpeningLimit;
 
 protected:
 
@@ -1747,6 +1842,110 @@ public:
      * data is equal to channels * bins */
     std::vector<uint32_t> data;
 };
+
+class MULTISENSE_API RemoteHeadConfig {
+    /**
+     * Class to store remote head sync pairs.
+     */
+    class MULTISENSE_API SyncPair {
+    public:
+
+        /**Remote head synchronization pairs */
+        RemoteHeadChannel controller;
+        RemoteHeadChannel responder;
+
+        SyncPair(RemoteHeadChannel c, RemoteHeadChannel r) :
+            controller(c),
+            responder(r) {};
+
+    };
+
+public:
+
+    Status setSyncPair1     (RemoteHeadChannel c,
+                             RemoteHeadChannel r)
+    {
+        Status status = Status_Ok;
+
+        if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        // Ensure that we block attempts to synchronize one head to multiple heads
+        if (r == c) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((c == m_syncPair2.controller) || (c == m_syncPair2.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((r == m_syncPair2.controller) || (r == m_syncPair2.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        m_syncPair1.controller = c;
+        m_syncPair1.responder = r;
+
+        failed:
+        return status;
+    }
+
+    Status setSyncPair2     (RemoteHeadChannel c,
+                             RemoteHeadChannel r)
+    {
+        Status status = Status_Ok;
+
+        if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        // Ensure that we block attempts to synchronize one head to multiple heads
+        if (r == c) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((c == m_syncPair1.controller) || (c == m_syncPair1.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        if ((r == m_syncPair1.controller) || (r == m_syncPair1.responder)) {
+            status = Status_Error;
+            goto failed;
+        }
+
+        m_syncPair2.controller = c;
+        m_syncPair2.responder = r;
+
+        failed:
+        return status;
+    }
+
+    RemoteHeadChannel syncPair1Controller   () const {return m_syncPair1.controller;}
+    RemoteHeadChannel syncPair1Responder    () const {return m_syncPair1.responder;}
+    RemoteHeadChannel syncPair2Controller   () const {return m_syncPair2.controller;}
+    RemoteHeadChannel syncPair2Responder    () const {return m_syncPair2.responder;}
+
+    /**
+     * Default constructor
+     */
+    RemoteHeadConfig() :
+        m_syncPair1(Remote_Head_Invalid, Remote_Head_Invalid),
+        m_syncPair2(Remote_Head_Invalid, Remote_Head_Invalid) {};
+
+    /**The first pair of remote head cameras to be synchronized */
+    SyncPair     m_syncPair1;
+    /**The second pair of remote head cameras to be synchronized */
+    SyncPair     m_syncPair2;
+};
+
 
 } // namespace image
 
@@ -2155,12 +2354,40 @@ public:
         m_invertPulse = invert;
         return true;
     }
+    /*
+    * Enable a rolling shutter camera flash synchronization, this will Allow
+    * an LED to flash with in sync with a rolling shutter imager, to reduce
+    * the possibility of, seeing inconsistent lighting artifacts with rolling
+    * shutter imagers.
+    * Note: This feature is only available for Next Gen Stereo Cameras, with a
+    * rolling shutter aux imager.
+    *
+    * @param enabled enable/disable the rolling shutter synchronization feature.
+    *
+    * @return True on success, False on failure
+    */
+    bool enableRollingShutterLedSynchronization(const bool enabled) {
+      m_rollingShutterLedEnabled = enabled;
+      return true;
+    }
+
+    /**
+    * Get the setting of the rollingShutterSynchronization.
+    * Note: This feature is only available for Next Gen Stereo Cameras, with a
+    * rolling shutter imager.
+    *
+    * @return True if enabled, False if disabled
+    */
+    bool getRollingShutterLedSynchronizationStatus(void) const {
+      return m_rollingShutterLedEnabled;
+    }
 
     /**
      * Default constructor. Flashing is disabled and all lights are off
      */
     Config() : m_flashEnabled(false), m_dutyCycle(MAX_LIGHTS, -1.0f),
-               m_numberPulses(1), m_lightStartupOffset_us(0), m_invertPulse(false) {};
+               m_numberPulses(1), m_lightStartupOffset_us(0), m_invertPulse(false),
+               m_rollingShutterLedEnabled(false) {};
 
 private:
 
@@ -2169,6 +2396,7 @@ private:
     uint32_t           m_numberPulses;
     uint32_t           m_lightStartupOffset_us;
     bool               m_invertPulse;
+    bool               m_rollingShutterLedEnabled;
 };
 
 /**

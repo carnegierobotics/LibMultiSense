@@ -52,7 +52,7 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 8;
+    static CRL_CONSTEXPR VersionType VERSION = 9;
 
     //
     // Parameters representing the current camera configuration
@@ -111,6 +111,14 @@ public:
 
     float autoExposureTargetIntensity;
     float gamma;
+
+    //
+    // Additions in version 9
+
+    bool  sharpeningEnable;
+    float sharpeningPercentage;
+    uint8_t sharpeningLimit;
+
 
     //
     // Constructors
@@ -199,6 +207,19 @@ public:
         {
             autoExposureTargetIntensity = Default_Target_Intensity;
             gamma = Default_Gamma;
+        }
+
+        if (version >= 9)
+        {
+            message & sharpeningEnable;
+            message & sharpeningPercentage;
+            message & sharpeningLimit;
+        }
+        else
+        {
+            sharpeningEnable = false;
+            sharpeningPercentage = 0.0f;
+            sharpeningLimit = 0;
         }
 
     }

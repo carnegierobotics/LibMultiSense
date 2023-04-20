@@ -16,11 +16,15 @@ LibMultiSense uses CMake for its build system.
 
 To build the standalone LibMultiSense library and demonstration applications.
 
+    # Note this only needs to be run once before building
+    > sudo apt install build-essential
+
     > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > mkdir build
     > cd build && cmake -DCMAKE_INSTALL_PREFIX=../install ..
-    > make
+    > make install
+    > cd ../install
 
 To build the standalone LibMultiSense library without the demonstration applications,
 set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`

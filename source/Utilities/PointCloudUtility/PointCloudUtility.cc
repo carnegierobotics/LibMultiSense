@@ -50,6 +50,7 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -262,23 +263,26 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBuff
 bool savePly(const std::string& fileName,
              const std::vector<WorldPoint> &points)
 {
-    std::ofstream ply(fileName.c_str());
+    std::stringstream ss;
 
-    ply << "ply\n";
-    ply << "format ascii 1.0\n";
-    ply << "element vertex " << points.size() << "\n";
-    ply << "property float x\n";
-    ply << "property float y\n";
-    ply << "property float z\n";
-    ply << "property uchar red\n";
-    ply << "property uchar green\n";
-    ply << "property uchar blue\n";
-    ply << "end_header\n";
+    ss << "ply\n";
+    ss << "format ascii 1.0\n";
+    ss << "element vertex " << points.size() << "\n";
+    ss << "property float x\n";
+    ss << "property float y\n";
+    ss << "property float z\n";
+    ss << "property uchar red\n";
+    ss << "property uchar green\n";
+    ss << "property uchar blue\n";
+    ss << "end_header\n";
 
     for (const auto &point : points) {
         const uint32_t luma = static_cast<uint32_t>(point.luma);
-        ply << point.x << " " << point.y << " " << point.z << " " << luma << " " << luma << " " << luma << "\n";
+        ss << point.x << " " << point.y << " " << point.z << " " << luma << " " << luma << " " << luma << "\n";
     }
+
+    std::ofstream ply(fileName.c_str());
+    ply << ss.str();
 
     return true;
 }
@@ -374,7 +378,7 @@ int main(int    argc,
     // Initialize communications.
 
     auto channelP = std::make_unique<ChannelWrapper>(currentAddress);
-    if (nullptr == channelP) {
+    if (nullptr == channelP || nullptr == channelP->ptr()) {
         std::cerr << "Failed to establish communications with \"" << currentAddress << "\"" << std::endl;
         return EXIT_FAILURE;
     }

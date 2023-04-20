@@ -9,10 +9,20 @@
 
 cmake_minimum_required(VERSION 3.1)
 
-project(LibMultiSense
-    LANGUAGES C CXX
-    VERSION 4.3.0)
 set(CPACK_PACKAGE_VERSION "4.3.0")
+
+if (${CMAKE_VERSION} VERSION_LESS "3.12")
+project(LibMultiSense
+  LANGUAGES C CXX
+  HOMEPAGE_URL https://carnegierobotics.com
+  DESCRIPTION "The CRL Multisense Interface Library"
+  VERSION ${CPACK_PACKAGE_VERSION})
+else (${CMAKE_VERSION} VERSION_LESS "3.12")
+project(LibMultiSense
+  LANGUAGES C CXX
+  VERSION ${CPACK_PACKAGE_VERSION})
+endif (${CMAKE_VERSION} VERSION_LESS "3.12")
+
 
 include (CheckCXXSourceCompiles)
 
@@ -75,10 +85,42 @@ set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #
+# Write target outputs to bin and lib directories
+#
+if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif ()
+if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+endif ()
+if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+endif ()
+
+#
 # Dispatch to subordinate CMakeList.txt files.
 #
 
 add_subdirectory(source)
+
+#
+# Generate pc file, for pkgconfig compatibility
+#
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12")
+file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/LibMultiSense.pc CONTENT
+"prefix=\"${CMAKE_INSTALL_PREFIX}\"
+exec_prefix=\"\${prefix}\"
+libdir=\"\${prefix}/lib\"
+includedir=\"\${prefix}/include\"
+Name: ${PROJECT_NAME}
+Description: ${CMAKE_PROJECT_DESCRIPTION}
+URL: ${CMAKE_PROJECT_HOMEPAGE_URL}
+Version: ${PROJECT_VERSION}
+Cflags: -I$<JOIN:\"\${includedir}\";$<TARGET_PROPERTY:MultiSense,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>, -I>
+Libs: -L\"\${libdir}\" -lMultiSense
+")
+install(FILES ${CMAKE_BINARY_DIR}/LibMultiSense.pc DESTINATION lib/pkgconfig COMPONENT development)
+endif (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12")
 
 #
 # Add cpack

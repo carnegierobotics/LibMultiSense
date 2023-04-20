@@ -212,12 +212,14 @@ namespace details {
                 delete it2->second;
                 m_map.erase(it2);
             }
+
             //assume we're erasing an older key, so search the order queue from the back
-            for (typename QueueType::reverse_iterator it = m_queue.rbegin(); it != m_queue.rend(); it++) {
+            for (typename QueueType::reverse_iterator it = m_queue.rbegin(); it != m_queue.rend();) {
                 if (*it == key) {
-                    m_queue.erase(it.base());
+                    m_queue.erase(--(it.base()));
                     break;
                 }
+                ++it;
             }
         };
 

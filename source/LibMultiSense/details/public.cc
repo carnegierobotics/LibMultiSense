@@ -58,6 +58,10 @@
 #include "MultiSense/details/wire/CamConfigMessage.hh"
 #include "MultiSense/details/wire/CamSetTriggerSourceMessage.hh"
 
+#include "MultiSense/details/wire/RemoteHeadControlMessage.hh"
+#include "MultiSense/details/wire/RemoteHeadGetConfigMessage.hh"
+#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
+
 #include "MultiSense/details/wire/LidarSetMotorMessage.hh"
 
 #include "MultiSense/details/wire/LedGetStatusMessage.hh"
@@ -785,6 +789,8 @@ Status impl::getLightingConfig(lighting::Config& c)
 
     c.setInvertPulse(data.invert_pulse != 0);
 
+    c.enableRollingShutterLedSynchronization(data.rolling_shutter_led != 0);
+
     return Status_Ok;
 }
 
@@ -807,6 +813,8 @@ Status impl::setLightingConfig(const lighting::Config& c)
     msg.number_of_pulses = c.getNumberOfPulses();
 
     msg.invert_pulse = c.getInvertPulse() ? 1 : 0;
+
+    msg.rolling_shutter_led = c.getRollingShutterLedSynchronizationStatus() ? 1 : 0;
 
     return waitAck(msg);
 }
@@ -950,6 +958,10 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setGamma(d.gamma);
 
+    a.enableAuxSharpening(d.sharpeningEnable);
+    a.setAuxSharpeningPercentage(d.sharpeningPercentage);
+    a.setAuxSharpeningLimit(d.sharpeningLimit);
+
     return Status_Ok;
 }
 
@@ -1001,6 +1013,9 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.exposureSource = sourceApiToWire(c.exposureSource());
     cmd.gamma = c.gamma();
+    cmd.sharpeningEnable = c.enableAuxSharpening();
+    cmd.sharpeningPercentage = c.auxSharpeningPercentage();
+    cmd.sharpeningLimit = c.auxSharpeningLimit();
 
     std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
     std::vector<wire::ExposureConfig> secondaryConfigs;
@@ -1029,6 +1044,42 @@ Status impl::setImageConfig(const image::Config& c)
 
     return waitAck(cmd);
 }
+
+//
+// Get Remote Head Configuration
+Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
+{
+    Status                 status;
+    wire::RemoteHeadConfig r;
+
+    status = waitData(wire::RemoteHeadGetConfig(), r);
+    if (Status_Ok != status)
+        return status;
+
+    c.m_syncPair1.controller = r.syncPair1.controller;
+    c.m_syncPair1.responder  = r.syncPair1.responder;
+
+    c.m_syncPair2.controller = r.syncPair2.controller;
+    c.m_syncPair2.responder  = r.syncPair2.responder;
+
+    return status;
+}
+
+//
+// Set Remote Head Configuration
+Status impl::setRemoteHeadConfig(const image::RemoteHeadConfig& c)
+{
+    wire::RemoteHeadControl cmd;
+
+    cmd.syncPair1.controller = c.syncPair1Controller();
+    cmd.syncPair1.responder  = c.syncPair1Responder();
+    cmd.syncPair2.controller = c.syncPair2Controller();
+    cmd.syncPair2.responder  = c.syncPair2Responder();
+
+    return waitAck(cmd);
+}
+
+
 
 //
 // Get camera calibration
