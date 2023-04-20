@@ -138,12 +138,6 @@ public:
     virtual Status stopStreams           (DataSource mask);
     virtual Status getEnabledStreams     (DataSource& mask);
 
-    virtual Status startDirectedStream   (const DirectedStream& stream);
-    virtual Status startDirectedStreams  (const std::vector<DirectedStream>& streams);
-    virtual Status stopDirectedStream    (const DirectedStream& stream);
-    virtual Status getDirectedStreams    (std::vector<DirectedStream>& streams);
-    virtual Status maxDirectedStreams    (uint32_t& maximum);
-
     virtual Status setTriggerSource      (TriggerSource s);
 
     virtual Status setMotorSpeed         (float rpm);
@@ -160,17 +154,17 @@ public:
     virtual Status getImageConfig        (image::Config& c);
     virtual Status setImageConfig        (const image::Config& c);
 
+    virtual Status getAuxImageConfig     (image::AuxConfig& c);
+    virtual Status setAuxImageConfig     (const image::AuxConfig& c);
+
     virtual Status getRemoteHeadConfig   (image::RemoteHeadConfig& c);
     virtual Status setRemoteHeadConfig   (const image::RemoteHeadConfig& c);
 
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 
-    virtual Status getSensorCalibration   (image::SensorCalibration& c);
-    virtual Status setSensorCalibration   (const image::SensorCalibration& c);
-
-    virtual Status getTransmitDelay   (image::TransmitDelay& c);
-    virtual Status setTransmitDelay   (const image::TransmitDelay& c);
+  	virtual Status getTransmitDelay   (image::TransmitDelay& c);
+  	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
 
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);

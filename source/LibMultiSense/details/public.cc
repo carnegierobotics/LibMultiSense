@@ -49,13 +49,14 @@
 
 #include "MultiSense/details/wire/StreamControlMessage.hh"
 #include "MultiSense/details/wire/SysSetPtpMessage.hh"
-#include "MultiSense/details/wire/SysGetDirectedStreamsMessage.hh"
-#include "MultiSense/details/wire/SysDirectedStreamsMessage.hh"
 
 #include "MultiSense/details/wire/CamControlMessage.hh"
+#include "MultiSense/details/wire/AuxCamControlMessage.hh"
 #include "MultiSense/details/wire/CamSetResolutionMessage.hh"
 #include "MultiSense/details/wire/CamGetConfigMessage.hh"
+#include "MultiSense/details/wire/AuxCamGetConfigMessage.hh"
 #include "MultiSense/details/wire/CamConfigMessage.hh"
+#include "MultiSense/details/wire/AuxCamConfigMessage.hh"
 #include "MultiSense/details/wire/CamSetTriggerSourceMessage.hh"
 
 #include "MultiSense/details/wire/RemoteHeadControlMessage.hh"
@@ -653,72 +654,6 @@ Status impl::getEnabledStreams(DataSource& mask)
 }
 
 //
-// Secondary stream control
-
-Status impl::startDirectedStream(const DirectedStream& stream)
-{
-    wire::SysDirectedStreams cmd(wire::SysDirectedStreams::CMD_START);
-
-    cmd.streams.push_back(wire::DirectedStream(stream.mask,
-                                               stream.address,
-                                               stream.udpPort,
-                                               stream.fpsDecimation));
-    return waitAck(cmd);
-}
-
-Status impl::startDirectedStreams(const std::vector<DirectedStream>& streams)
-{
-    wire::SysDirectedStreams cmd(wire::SysDirectedStreams::CMD_START);
-
-    for (uint32_t index = 0 ; index < streams.size() ; ++index) {
-        DirectedStream stream = streams[index];
-
-        cmd.streams.push_back(wire::DirectedStream(stream.mask,
-                                                   stream.address,
-                                                   stream.udpPort,
-                                                   stream.fpsDecimation));
-    }
-    return waitAck(cmd);
-}
-
-Status impl::stopDirectedStream(const DirectedStream& stream)
-{
-    wire::SysDirectedStreams cmd(wire::SysDirectedStreams::CMD_STOP);
-
-    cmd.streams.push_back(wire::DirectedStream(stream.mask,
-                                               stream.address,
-                                               stream.udpPort,
-                                               stream.fpsDecimation));
-    return waitAck(cmd);
-}
-
-Status impl::getDirectedStreams(std::vector<DirectedStream>& streams)
-{
-    Status                   status;
-    wire::SysDirectedStreams rsp;
-
-    streams.clear();
-
-    status = waitData(wire::SysGetDirectedStreams(), rsp);
-    if (Status_Ok != status)
-        return status;
-
-    std::vector<wire::DirectedStream>::const_iterator it = rsp.streams.begin();
-    for(; it != rsp.streams.end(); ++it)
-        streams.push_back(DirectedStream((*it).mask,
-                                         (*it).address,
-                                         (*it).udpPort,
-                                         (*it).fpsDecimation));
-    return Status_Ok;
-}
-
-Status impl::maxDirectedStreams(uint32_t& maximum)
-{
-    maximum = MAX_DIRECTED_STREAMS;
-    return Status_Ok;
-}
-
-//
 // Set the trigger source
 
 Status impl::setTriggerSource(TriggerSource s)
@@ -929,38 +864,60 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
-    a.setExposureSource(sourceWireToApi(d.exposureSource));
+    a.setGamma(d.gamma);
 
-    std::vector<image::ExposureConfig> secondaryExposures;
-    for (size_t i = 0 ; i < d.secondaryExposureConfigs.size() ; ++i)
-    {
-        image::ExposureConfig secondaryConfig;
+    return Status_Ok;
+}
 
-        secondaryConfig.setExposure(d.secondaryExposureConfigs[i].exposure);
-        secondaryConfig.setAutoExposure(d.secondaryExposureConfigs[i].autoExposure != 0);
-        secondaryConfig.setAutoExposureMax(d.secondaryExposureConfigs[i].autoExposureMax);
-        secondaryConfig.setAutoExposureDecay(d.secondaryExposureConfigs[i].autoExposureDecay);
-        secondaryConfig.setAutoExposureTargetIntensity(d.secondaryExposureConfigs[i].autoExposureTargetIntensity);
-        secondaryConfig.setGain(d.secondaryExposureConfigs[i].gain);
-        secondaryConfig.setAutoExposureThresh(d.secondaryExposureConfigs[i].autoExposureThresh);
+Status impl::getAuxImageConfig(image::AuxConfig& config)
+{
+    Status             status;
+    wire::AuxCamConfig d;
 
-        secondaryConfig.setAutoExposureRoi(d.secondaryExposureConfigs[i].autoExposureRoiX,
-                             d.secondaryExposureConfigs[i].autoExposureRoiY,
-                             d.secondaryExposureConfigs[i].autoExposureRoiWidth,
-                             d.secondaryExposureConfigs[i].autoExposureRoiHeight);
+    // for access to protected calibration members
+    class ConfigAccess : public image::AuxConfig {
+    public:
+        void setCal(float fx, float fy, float cx, float cy) {
+            m_fx = fx; m_fy = fy; m_cx = cx; m_cy = cy;
+        };
+    };
 
-        secondaryConfig.setExposureSource(sourceWireToApi(d.secondaryExposureConfigs[i].exposureSource));
+    // what is the proper c++ cast for this?
+    ConfigAccess& a = *((ConfigAccess *) &config);
 
-        secondaryExposures.push_back(secondaryConfig);
-    }
+    status = waitData(wire::AuxCamGetConfig(), d);
+    if (Status_Ok != status)
+        return status;
 
-    a.setSecondaryExposures(secondaryExposures);
+    a.setGain(d.gain);
+
+    a.setExposure(d.exposure);
+    a.setAutoExposure(d.autoExposure != 0);
+    a.setAutoExposureMax(d.autoExposureMax);
+    a.setAutoExposureDecay(d.autoExposureDecay);
+    a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
+    a.setAutoExposureThresh(d.autoExposureThresh);
+
+    a.setGain(d.gain);
+
+    a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
+    a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
+    a.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
+    a.setAutoWhiteBalanceThresh(d.autoWhiteBalanceThresh);
+    a.setHdr(d.hdrEnabled);
+
+    a.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
+                         d.autoExposureRoiWidth, d.autoExposureRoiHeight);
+
+    a.setCal(d.fx, d.fy, d.cx, d.cy);
+
+    a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
     a.setGamma(d.gamma);
 
-    a.enableAuxSharpening(d.sharpeningEnable);
-    a.setAuxSharpeningPercentage(d.sharpeningPercentage);
-    a.setAuxSharpeningLimit(d.sharpeningLimit);
+    a.enableSharpening(d.sharpeningEnable);
+    a.setSharpeningPercentage(d.sharpeningPercentage);
+    a.setSharpeningLimit(d.sharpeningLimit);
 
     return Status_Ok;
 }
@@ -977,9 +934,7 @@ Status impl::setImageConfig(const image::Config& c)
 
     status = waitAck(wire::CamSetResolution(c.width(),
                                             c.height(),
-                                            c.disparities(),
-                                            c.camMode(),
-                                            c.offset()));
+                                            c.disparities()));
     if (Status_Ok != status)
         return status;
 
@@ -1002,7 +957,6 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.autoWhiteBalanceThresh   = c.autoWhiteBalanceThresh();
     cmd.stereoPostFilterStrength = c.stereoPostFilterStrength();
     cmd.hdrEnabled               = c.hdrEnabled();
-    cmd.storeSettingsInFlash     = c.storeSettingsInFlash();
 
     cmd.autoExposureRoiX         = c.autoExposureRoiX();
     cmd.autoExposureRoiY         = c.autoExposureRoiY();
@@ -1011,36 +965,42 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
-    cmd.exposureSource = sourceApiToWire(c.exposureSource());
     cmd.gamma = c.gamma();
-    cmd.sharpeningEnable = c.enableAuxSharpening();
-    cmd.sharpeningPercentage = c.auxSharpeningPercentage();
-    cmd.sharpeningLimit = c.auxSharpeningLimit();
 
-    std::vector<image::ExposureConfig> secondaryExposures = c.secondaryExposures();
-    std::vector<wire::ExposureConfig> secondaryConfigs;
-    for (size_t i = 0 ; i < secondaryExposures.size() ; ++i)
-    {
-        wire::ExposureConfig secondaryConfig;
+    return waitAck(cmd);
+}
 
-        secondaryConfig.exposure           = secondaryExposures[i].exposure();
-        secondaryConfig.autoExposure       = secondaryExposures[i].autoExposure() ? 1 : 0;
-        secondaryConfig.autoExposureMax    = secondaryExposures[i].autoExposureMax();
-        secondaryConfig.autoExposureDecay  = secondaryExposures[i].autoExposureDecay();
-        secondaryConfig.autoExposureTargetIntensity  = secondaryExposures[i].autoExposureTargetIntensity();
-        secondaryConfig.autoExposureThresh = secondaryExposures[i].autoExposureThresh();
+Status impl::setAuxImageConfig(const image::AuxConfig& c)
+{
+    wire::AuxCamControl cmd;
 
-        secondaryConfig.autoExposureRoiX        = secondaryExposures[i].autoExposureRoiX();
-        secondaryConfig.autoExposureRoiY        = secondaryExposures[i].autoExposureRoiY();
-        secondaryConfig.autoExposureRoiWidth    = secondaryExposures[i].autoExposureRoiWidth();
-        secondaryConfig.autoExposureRoiHeight   = secondaryExposures[i].autoExposureRoiHeight();
+    cmd.gain            = c.gain();
 
-        secondaryConfig.exposureSource = sourceApiToWire(secondaryExposures[i].exposureSource());
-        secondaryConfig.gain = secondaryExposures[i].gain();
+    cmd.exposure                    = c.exposure();
+    cmd.autoExposure                = c.autoExposure() ? 1 : 0;
+    cmd.autoExposureMax             = c.autoExposureMax();
+    cmd.autoExposureDecay           = c.autoExposureDecay();
+    cmd.autoExposureThresh          = c.autoExposureThresh();
+    cmd.autoExposureTargetIntensity = c.autoExposureTargetIntensity();
 
-        secondaryConfigs.push_back(secondaryConfig);
-    }
-    cmd.secondaryExposureConfigs = secondaryConfigs;
+    cmd.whiteBalanceRed          = c.whiteBalanceRed();
+    cmd.whiteBalanceBlue         = c.whiteBalanceBlue();
+    cmd.autoWhiteBalance         = c.autoWhiteBalance() ? 1 : 0;
+    cmd.autoWhiteBalanceDecay    = c.autoWhiteBalanceDecay();
+    cmd.autoWhiteBalanceThresh   = c.autoWhiteBalanceThresh();
+    cmd.hdrEnabled               = c.hdrEnabled();
+
+    cmd.autoExposureRoiX         = c.autoExposureRoiX();
+    cmd.autoExposureRoiY         = c.autoExposureRoiY();
+    cmd.autoExposureRoiWidth     = c.autoExposureRoiWidth();
+    cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
+
+    cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
+
+    cmd.gamma = c.gamma();
+    cmd.sharpeningEnable = c.enableSharpening();
+    cmd.sharpeningPercentage = c.sharpeningPercentage();
+    cmd.sharpeningLimit = c.sharpeningLimit();
 
     return waitAck(cmd);
 }
@@ -1131,37 +1091,6 @@ Status impl::setImageCalibration(const image::Calibration& c)
     CPY_ARRAY_1(d.aux.D, c.aux.D, 8);
     CPY_ARRAY_2(d.aux.R, c.aux.R, 3, 3);
     CPY_ARRAY_2(d.aux.P, c.aux.P, 3, 4);
-
-    return waitAck(d);
-}
-
-//
-// Get sensor calibration
-
-Status impl::getSensorCalibration(image::SensorCalibration& c)
-{
-    wire::SysSensorCalibration d;
-
-    Status status = waitData(wire::SysGetSensorCalibration(), d);
-    if (Status_Ok != status)
-        return status;
-    CPY_ARRAY_1(c.adc_gain, d.adc_gain, 2);
-    CPY_ARRAY_1(c.bl_offset, d.bl_offset, 2);
-    CPY_ARRAY_1(c.vramp, d.vramp, 2);
-
-    return Status_Ok;
-}
-
-//
-// Set sensor calibration
-
-Status impl::setSensorCalibration(const image::SensorCalibration& c)
-{
-    wire::SysSensorCalibration d;
-
-    CPY_ARRAY_1(d.adc_gain, c.adc_gain, 2);
-    CPY_ARRAY_1(d.bl_offset, c.bl_offset, 2);
-    CPY_ARRAY_1(d.vramp, c.vramp, 2);
 
     return waitAck(d);
 }
