@@ -571,6 +571,7 @@ uint32_t impl::imagerApiToWire(uint32_t a)
     case system::DeviceInfo::IMAGER_TYPE_IMX104_COLOR:  return wire::SysDeviceInfo::IMAGER_TYPE_IMX104_COLOR;
     case system::DeviceInfo::IMAGER_TYPE_AR0234_GREY:   return wire::SysDeviceInfo::IMAGER_TYPE_AR0234_GREY;
     case system::DeviceInfo::IMAGER_TYPE_AR0239_COLOR:  return wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR;
+    case system::DeviceInfo::IMAGER_TYPE_FLIR_TAU2:  return wire::SysDeviceInfo::IMAGER_TYPE_FLIR_TAU2;
     default:
         CRL_DEBUG("unknown API imager type \"%d\"\n", a);
         return a; // pass through
@@ -586,6 +587,7 @@ uint32_t impl::imagerWireToApi(uint32_t w)
     case wire::SysDeviceInfo::IMAGER_TYPE_IMX104_COLOR:  return system::DeviceInfo::IMAGER_TYPE_IMX104_COLOR;
     case wire::SysDeviceInfo::IMAGER_TYPE_AR0234_GREY:   return system::DeviceInfo::IMAGER_TYPE_AR0234_GREY;
     case wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR:  return system::DeviceInfo::IMAGER_TYPE_AR0239_COLOR;
+    case wire::SysDeviceInfo::IMAGER_TYPE_FLIR_TAU2:  return system::DeviceInfo::IMAGER_TYPE_FLIR_TAU2;
     default:
         CRL_DEBUG("unknown WIRE imager type \"%d\"\n", w);
         return w; // pass through
