@@ -78,7 +78,6 @@ void usage(const char *programNameP)
 void printVersionInfo(const system::VersionInfo& info,
                       FILE*                      fP=stdout)
 {
-    fprintf(fP, "API build date: %s\n", info.apiBuildDate.c_str());
     fprintf(fP, "API version: %#06x\n", info.apiVersion);
     fprintf(fP, "\n");
     fprintf(fP, "Firmware build date: %s\n", info.sensorFirmwareBuildDate.c_str());

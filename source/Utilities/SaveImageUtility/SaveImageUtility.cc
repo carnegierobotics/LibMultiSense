@@ -387,7 +387,6 @@ int main(int    argc,
         goto clean_out;
     }
 
-	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
     std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
 	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
 	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
