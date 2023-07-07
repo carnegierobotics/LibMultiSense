@@ -153,30 +153,14 @@ namespace {
     void lumaImageCallback(const image::Header &header, void *userDataPtr) {
         (void) userDataPtr;
 
-        std::cout << "******************" << std::endl;
-        std::cout << "Luma hit!" << std::endl;
-        std::cout << "Image Output:" << std::endl;
-        std::cout << "  Frame ID: " << header.frameId << std::endl;
-        std::cout << "  Height: " << header.height << std::endl;
-        std::cout << "  Width: " << header.width << std::endl;
-        std::cout << "  BPP: " << header.bitsPerPixel << std::endl;
         cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
-        std::cout << "luma.size() = " << luma.size() << std::endl;
         luma_map[header.frameId] = luma;
     }
 
     void chromaImageCallback(const image::Header &header, void *userDataPtr) {
         (void) userDataPtr;
 
-        std::cout << "******************" << std::endl;
-        std::cout << "Chroma hit!" << std::endl;
-        std::cout << "Image Output:" << std::endl;
-        std::cout << "  Frame ID: " << header.frameId << std::endl;
-        std::cout << "  Height: " << header.height << std::endl;
-        std::cout << "  Width: " << header.width << std::endl;
-        std::cout << "  BPP: " << header.bitsPerPixel << std::endl;
         cv::Mat chroma = cv::Mat(header.height, header.width, CV_16UC1, const_cast<void*>(header.imageDataP)).clone();
-        std::cout << "chroma.size() = " << chroma.size() << std::endl;
         chroma_map[header.frameId] = chroma;
     }
 
@@ -372,10 +356,12 @@ int main(int argc, char** argv){
                 cv::Mat matching_luma = luma_map[fid];
                 cv::Mat matching_chroma = chroma_map[fid];
                 cv::Mat rgb;
-                cv::cvtColorTwoPlane(matching_luma, matching_chroma, rgb, cv::COLOR_YUV2BGR_NV12);
+                try {
+                    cv::cvtColorTwoPlane(matching_luma, matching_chroma, rgb, cv::COLOR_YUV2BGR_NV12);
+                } catch (cv::Exception &e) {
+                    break;
+                }
                 cv::imwrite("rgb.png", rgb);
-                // luma_map.clear();
-                // chroma_map.clear();
                 std::map<std::string, torch::Tensor> export_map;
                 export_map["class"] = class_id_tensor;
                 export_map["score"] = score_tensor;
@@ -384,6 +370,20 @@ int main(int argc, char** argv){
                 export_tensor_to_pytorch(
                     "camera_test.pt", export_map, {"box", "class", "mask", "score"});
                 reconstruction_map.erase(rm.first);
+                for (const auto &lm : luma_map) {
+                    if (lm.first <= fid) {
+                        luma_map.erase(lm.first);
+                    } else {
+                        break;
+                    }
+                }
+                for (const auto &cm : chroma_map) {
+                    if (cm.first <= fid) {
+                        chroma_map.erase(cm.first);
+                    } else {
+                        break;
+                    }
+                }
                 break;
             }
         }
