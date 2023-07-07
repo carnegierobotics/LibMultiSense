@@ -64,17 +64,17 @@ public:
     // Tensor metadata
     // TODO: Remove magic numbers
     uint32_t resultType;
-    uint8_t numDetections;
-    uint8_t sequenceId;
+    // uint8_t numDetections;
+    // uint8_t sequenceId;
     uint16_t maskRank;
-    uint16_t maskDims[4];
+    uint16_t maskDims[3];
     uint32_t maskBlobLen;
     
     // Tensor data
-    uint8_t classId[1];
-    float confidenceScore[1];
-    uint16_t bboxArray[4];
-    uint8_t maskArray[960 * 600];
+    // uint8_t classId[1];
+    // float confidenceScore[1];
+    // uint16_t bboxArray[4];
+    uint8_t maskArray[160 * 256];
 
     DpuResultHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -85,8 +85,8 @@ public:
         timestamp(0),
         success(0),
         resultType(0),
-        numDetections(0),
-        sequenceId(0),
+        // numDetections(0),
+        // sequenceId(0),
         maskRank(0),
         maskBlobLen(0)
     {};
@@ -109,24 +109,26 @@ public:
         message & timestamp;
         message & success;
         message & resultType;
-        message & numDetections;
-        message & sequenceId;
+        // message & numDetections;
+        // message & sequenceId;
         
         // Serialize mask metadata 
         message & maskRank;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             message & maskDims[i];
         }
         message & maskBlobLen;
 
         // Serialze data
-        message & classId[0];
-        message & confidenceScore[0];
+        // message & classId[0];
+        // message & confidenceScore[0];
         
         // Serialize bboxes
+        /*
         for (int i = 0; i < 4; i++) {
             message & bboxArray[i];
         }
+        */
 
         // Serialize masks
         for (uint32_t i = 0; i < maskBlobLen; i++) {
