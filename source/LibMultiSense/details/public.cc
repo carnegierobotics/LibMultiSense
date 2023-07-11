@@ -1014,13 +1014,27 @@ Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
 
     status = waitData(wire::RemoteHeadGetConfig(), r);
     if (Status_Ok != status)
+    {
         return status;
+    }
 
-    c.m_syncPair1.controller = r.syncPair1.controller;
-    c.m_syncPair1.responder  = r.syncPair1.responder;
+    std::vector<::crl::multisense::RemoteHeadSyncGroup> grp{};
+    grp.reserve(r.syncGroups.size());
 
-    c.m_syncPair2.controller = r.syncPair2.controller;
-    c.m_syncPair2.responder  = r.syncPair2.responder;
+    for (const auto& wire_sg : r.syncGroups)
+    {
+        std::vector<::crl::multisense::RemoteHeadChannel> responders{};
+        responders.reserve(wire_sg.responders.size());
+
+        for (const auto& resp : wire_sg.responders)
+        {
+            responders.emplace_back(resp.channel);
+        }
+
+        grp.emplace_back(wire_sg.controller.channel, std::move(responders));
+    }
+
+    c.setSyncGroups(std::move(grp));
 
     return status;
 }
@@ -1029,14 +1043,25 @@ Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
 // Set Remote Head Configuration
 Status impl::setRemoteHeadConfig(const image::RemoteHeadConfig& c)
 {
-    wire::RemoteHeadControl cmd;
+    wire::RemoteHeadControl r;
 
-    cmd.syncPair1.controller = c.syncPair1Controller();
-    cmd.syncPair1.responder  = c.syncPair1Responder();
-    cmd.syncPair2.controller = c.syncPair2Controller();
-    cmd.syncPair2.responder  = c.syncPair2Responder();
+    const auto c_sync_groups = c.syncGroups();
+    r.syncGroups.reserve(c_sync_groups.size());
 
-    return waitAck(cmd);
+    for (const auto& c_sg : c_sync_groups)
+    {
+        std::vector<wire::RemoteHeadChannel> r_responders;
+        r_responders.reserve(c_sg.responders.size());
+
+        for (const auto& c_resp : c_sg.responders)
+        {
+            r_responders.emplace_back(wire::RemoteHeadChannel{c_resp});
+        }
+
+        r.syncGroups.emplace_back(wire::RemoteHeadSyncGroup{wire::RemoteHeadChannel{c_sg.controller}, r_responders});
+    }
+
+    return waitAck(r);
 }
 
 
