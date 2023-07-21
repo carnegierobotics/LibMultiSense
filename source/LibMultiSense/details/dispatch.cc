@@ -567,8 +567,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.timestamp = result.timestamp;
         header.success = result.success;
         header.resultType = result.resultType;
-        header.numDetections = result.numDetections;
-        header.sequenceId = result.sequenceId;
+        // header.numDetections = result.numDetections;
+        // header.sequenceId = result.sequenceId;
 
         // Tensor metadata
         header.maskRank = result.maskRank;
@@ -576,10 +576,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         CPY_ARRAY_1(header.maskDims, result.maskDims, result.maskRank);
 
         // Tensor data
-        header.classId = result.classId[0];
-        header.confidenceScore = result.confidenceScore[0];
-        CPY_ARRAY_1(header.bboxArray, result.bboxArray, 4);
-        CPY_ARRAY_1(header.maskArray, result.maskArray, 960 * 600);
+        // header.classId = result.classId[0];
+        // header.confidenceScore = result.confidenceScore[0];
+        // CPY_ARRAY_1(header.bboxArray, result.bboxArray, 4);
+        CPY_ARRAY_1(header.maskArray, result.maskArray, 160 * 256);
        
         dispatchDpuResult(header);
         break;
