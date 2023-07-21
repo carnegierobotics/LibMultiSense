@@ -4,7 +4,7 @@
 
 list(APPEND CMAKE_PREFIX_PATH "/home/bblakeslee/build_libtorch_x86/pytorch/install_lp64")
 
-find_package(Torch REQUIRED)
+# find_package(Torch REQUIRED)
 find_package(OpenMP REQUIRED)
 find_package(OpenCV REQUIRED)
 
