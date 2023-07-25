@@ -43,6 +43,7 @@
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/wire/Protocol.hh"
+#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
 // #include "MultiSense/MultisenseTypes.hh"
 
 namespace crl {
@@ -58,16 +59,14 @@ public:
     //
     // Parameters representing the current remote head sync configuration
 
-    RemoteHeadSyncPair syncPair1;
-    RemoteHeadSyncPair syncPair2;
+    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
 
     //
     // Constructors
 
     RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     RemoteHeadControl() :
-        syncPair1(Remote_Head_Invalid,Remote_Head_Invalid),
-        syncPair2(Remote_Head_Invalid,Remote_Head_Invalid)
+        syncGroups({})
         {};
 
     //
@@ -80,10 +79,7 @@ public:
 
         (void) version;
 
-        message & syncPair1.controller;
-        message & syncPair1.responder;
-        message & syncPair2.controller;
-        message & syncPair2.responder;
+        message & syncGroups;
 
     }
 };

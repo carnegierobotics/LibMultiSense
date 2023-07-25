@@ -216,12 +216,12 @@ static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3           = 3;
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
 
 /**
- * Remote head sync pair defines a pair of remote heads which will have their
+ * Remote head sync group defines a group of remote heads which will have their
  * image captures synchronized.
- * Given that there is only 4 possible remote head cameras, there are only 2
- * possible remote head synchronization pairs.
  * It is currently not possible to synchronize more than 2 pairs of remote heads.
- * Furthermore, it is not possible to synchronize one head to multiple heads.
+ * Furthermore, it is currently not possible to synchronize one head to multiple heads.
+ * Given that there are currently only 4 possible remote head cameras, there are
+ * only 2 possible remote head synchronization pairs.
  * It is not possible to synchronize Remote Head Stereo Cameras.
  * Possible components are:
  * Remote_Head_0   The Remote Head Camera located in position 0
@@ -229,30 +229,30 @@ static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
  * Remote_Head_2   The Remote Head Camera located in position 2
  * Remote_Head_3   The Remote Head Camera located in position 3
  */
-struct RemoteHeadSyncPair {
+struct RemoteHeadSyncGroup {
 
   /**
    * Default constructor
    */
-  RemoteHeadSyncPair() {};
+  RemoteHeadSyncGroup() {};
 
   /**
    * Constructor to initialize a remote head sync pair
    *
    * @param c The remote head sync pair controller
    *
-   * @param r The remote head sync pair responder
+   * @param r The remote head sync responder channels
    *
    */
-  RemoteHeadSyncPair(RemoteHeadChannel c,
-                     RemoteHeadChannel r) :
+  RemoteHeadSyncGroup(const RemoteHeadChannel c,
+                      const std::vector<RemoteHeadChannel> &r) :
     controller(c),
-    responder(r) {};
+    responders(r) {};
 
   /** The synchronization controller */
   RemoteHeadChannel controller;
-  /** The synchronization responder */
-  RemoteHeadChannel responder;
+  /** The synchronization responders */
+  std::vector<RemoteHeadChannel> responders;
 
 };
 
@@ -1958,106 +1958,41 @@ public:
 };
 
 class MULTISENSE_API RemoteHeadConfig {
-    /**
-     * Class to store remote head sync pairs.
-     */
-    class MULTISENSE_API SyncPair {
-    public:
-
-        /**Remote head synchronization pairs */
-        RemoteHeadChannel controller;
-        RemoteHeadChannel responder;
-
-        SyncPair(RemoteHeadChannel c, RemoteHeadChannel r) :
-            controller(c),
-            responder(r) {};
-
-    };
-
 public:
 
-    Status setSyncPair1     (RemoteHeadChannel c,
-                             RemoteHeadChannel r)
-    {
-        Status status = Status_Ok;
-
-        if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        // Ensure that we block attempts to synchronize one head to multiple heads
-        if (r == c) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        if ((c == m_syncPair2.controller) || (c == m_syncPair2.responder)) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        if ((r == m_syncPair2.controller) || (r == m_syncPair2.responder)) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        m_syncPair1.controller = c;
-        m_syncPair1.responder = r;
-
-        failed:
-        return status;
-    }
-
-    Status setSyncPair2     (RemoteHeadChannel c,
-                             RemoteHeadChannel r)
-    {
-        Status status = Status_Ok;
-
-        if ((c == Remote_Head_Invalid) || (r == Remote_Head_Invalid)) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        // Ensure that we block attempts to synchronize one head to multiple heads
-        if (r == c) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        if ((c == m_syncPair1.controller) || (c == m_syncPair1.responder)) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        if ((r == m_syncPair1.controller) || (r == m_syncPair1.responder)) {
-            status = Status_Error;
-            goto failed;
-        }
-
-        m_syncPair2.controller = c;
-        m_syncPair2.responder = r;
-
-        failed:
-        return status;
-    }
-
-    RemoteHeadChannel syncPair1Controller   () const {return m_syncPair1.controller;}
-    RemoteHeadChannel syncPair1Responder    () const {return m_syncPair1.responder;}
-    RemoteHeadChannel syncPair2Controller   () const {return m_syncPair2.controller;}
-    RemoteHeadChannel syncPair2Responder    () const {return m_syncPair2.responder;}
+    /**
+     * Default constructor with no sync groups
+     */
+    RemoteHeadConfig() : m_syncGroups({})
+    {};
 
     /**
-     * Default constructor
+     * Constructor allowing definition of sync groups
+     *
+     * @param sync_groups A vector of remote head syncronization groups
      */
-    RemoteHeadConfig() :
-        m_syncPair1(Remote_Head_Invalid, Remote_Head_Invalid),
-        m_syncPair2(Remote_Head_Invalid, Remote_Head_Invalid) {};
+    RemoteHeadConfig(const std::vector<RemoteHeadSyncGroup> &sync_groups) :
+        m_syncGroups(sync_groups)
+    {}
 
-    /**The first pair of remote head cameras to be synchronized */
-    SyncPair     m_syncPair1;
-    /**The second pair of remote head cameras to be synchronized */
-    SyncPair     m_syncPair2;
+    /**
+     * Set the groups of remote head cameras to be synchronized
+     *
+     * @param sync_groups A vector of remote head synchronization groups to set
+     */
+    void setSyncGroups(const std::vector<RemoteHeadSyncGroup> &sync_groups) { m_syncGroups = sync_groups; }
+
+    /**
+     * Query the groups of remote head cameras to be synchronized
+     *
+     * @return The current remote head synchronization groups
+     */
+    std::vector<RemoteHeadSyncGroup> syncGroups() const { return m_syncGroups; }
+
+private:
+
+    /**The groups of remote head cameras to be synchronized */
+    std::vector<RemoteHeadSyncGroup> m_syncGroups = {};
 };
 
 

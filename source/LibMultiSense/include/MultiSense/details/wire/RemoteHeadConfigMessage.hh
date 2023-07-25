@@ -40,13 +40,52 @@
 #define LibMultiSense_RemoteHeadConfigMessage
 
 #include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
-// #include "MultiSense/MultisenseTypes.hh"
+//#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
+
+class RemoteHeadChannel {
+public:
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    ::crl::multisense::RemoteHeadChannel channel;
+
+    //
+    // Serialization routine
+    //
+    template<class Archive>
+    void serialize(Archive&          message,
+                   const VersionType version)
+    {
+        (void) version;
+
+        message & channel;
+    }
+};
+
+class RemoteHeadSyncGroup {
+public:
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    wire::RemoteHeadChannel controller;
+    std::vector<wire::RemoteHeadChannel> responders;
+
+    //
+    // Serialization routine
+    //
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
+
+        message & controller;
+        message & responders;
+    }
+};
 
 class RemoteHeadConfig {
 public:
@@ -56,17 +95,13 @@ public:
     //
     // Parameters representing the current camera configuration
 
-    RemoteHeadSyncPair syncPair1;
-    RemoteHeadSyncPair syncPair2;
+    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
 
     //
     // Constructors
 
     RemoteHeadConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    RemoteHeadConfig():
-        syncPair1(Remote_Head_Invalid,Remote_Head_Invalid),
-        syncPair2(Remote_Head_Invalid,Remote_Head_Invalid)
-        {};
+    RemoteHeadConfig() : syncGroups({}) {};
 
     //
     // Serialization routine
@@ -75,14 +110,9 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
 
-        message & syncPair1.controller;
-        message & syncPair1.responder;
-        message & syncPair2.controller;
-        message & syncPair2.responder;
-
+        message & syncGroups;
     }
 };
 
