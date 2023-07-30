@@ -791,7 +791,12 @@ Status impl::getApiVersion(VersionType& version)
 
 Status impl::getVersionInfo(system::VersionInfo& v)
 {
+#ifdef BUILD_API_DATE
     v.apiBuildDate            = std::string(__DATE__ ", " __TIME__);
+#else
+    v.apiBuildDate            = std::string("??? ?? ????, ??:??:??");
+#endif // BUILD_API_DATE
+
     v.apiVersion              = API_VERSION;
     v.sensorFirmwareBuildDate = m_sensorVersion.firmwareBuildDate;
     v.sensorFirmwareVersion   = m_sensorVersion.firmwareVersion;
