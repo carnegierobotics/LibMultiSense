@@ -11,6 +11,7 @@ include(CheckFunctionExists)
 check_function_exists(vasprintf HAVE_VASPRINTF)
 
 option (MULTISENSE_USE_MONOTONIC_CLOCK "Build LibMultiSense to use CLOCK_MONOTONIC for network time sync. Defaults to OFF." OFF)
+option (MULTISENSE_UDP_ASSEMBLER_DEBUG "Build LibMultiSense to print any failures to assemble a message. Defaults to OFF." OFF)
 option(MULTISENSE_INSTALL_WIRE_PROTOCOL "Install low level wire headers, for integration with external event systems" OFF)
 
 #
@@ -133,6 +134,10 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
 if (MULTISENSE_USE_MONOTONIC_CLOCK)
     target_compile_definitions(MultiSense PRIVATE USE_MONOTONIC_CLOCK=${MULTISENSE_USE_MONOTONIC_CLOCK})
 endif()
+if (MULTISENSE_UDP_ASSEMBLER_DEBUG)
+    target_compile_definitions(MultiSense PRIVATE UDP_ASSEMBLER_DEBUG=${MULTISENSE_UDP_ASSEMBLER_DEBUG})
+endif()
+
 #
 # Versioning...someday lets automate this somehow
 #

@@ -402,6 +402,11 @@ private:
     int64_t  m_unWrappedRxSeqId;
 
     //
+    // Sequence ID for tracking lost headers to prevent assembler debug spam
+
+    int64_t m_lastUnexpectedSequenceId;
+
+    //
     // A cache to track incoming messages by sequence ID
 
     DepthCache<int64_t, UdpTracker> m_udpTrackerCache;

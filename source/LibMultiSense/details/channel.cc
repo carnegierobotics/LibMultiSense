@@ -71,6 +71,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_txSeqId(0),
     m_lastRxSeqId(-1),
     m_unWrappedRxSeqId(0),
+    m_lastUnexpectedSequenceId(-1),
     m_udpTrackerCache(UDP_TRACKER_CACHE_DEPTH),
     m_rxLargeBufferPool(),
     m_rxSmallBufferPool(),

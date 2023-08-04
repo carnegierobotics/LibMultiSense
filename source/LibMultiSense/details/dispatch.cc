@@ -84,6 +84,10 @@
 
 #include <limits>
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -805,8 +809,16 @@ void impl::handle()
             // require the first datagram in order to assign an assembler.
             // TODO: re-think this.
 
-            if (0 != header.byteOffset)
+            if (0 != header.byteOffset) {
+#ifdef UDP_ASSEMBLER_DEBUG
+                if (m_lastUnexpectedSequenceId != sequence)
+                {
+                    CRL_DEBUG("Unexpected packet without header: sequence=%" PRId64 " byteOffset=%u\n", sequence, header.byteOffset);
+                    m_lastUnexpectedSequenceId = sequence;
+                }
+#endif
                 continue;
+            }
             else {
 
                 //
@@ -845,6 +857,13 @@ void impl::handle()
             // Cache the tracker, as more UDP packets are
             // forthcoming for this message.
 
+#ifdef UDP_ASSEMBLER_DEBUG
+            const std::pair<bool, int64_t> willBeDropped = m_udpTrackerCache.will_drop();
+            if (willBeDropped.first)
+            {
+                CRL_DEBUG("UDP Assembler dropping sequence=%" PRId64 "\n", willBeDropped.second);
+            }
+#endif
             m_udpTrackerCache.insert(sequence, trP);
         }
     }
