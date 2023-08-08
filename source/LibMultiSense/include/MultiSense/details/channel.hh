@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/details/flash.cc
+ * @file LibMultiSense/details/channel.hh
  *
  * Copyright 2013-2022
  * Carnegie Robotics, LLC
@@ -214,6 +214,8 @@ public:
     virtual Status setLargeBuffers       (const std::vector<uint8_t*>& buffers,
                                           uint32_t                     bufferSize);
     virtual Status getLocalUdpPort       (uint16_t& port);
+
+    virtual system::ChannelStatistics getStats();
 
 private:
 
@@ -505,6 +507,11 @@ private:
     //
     // Status set in statusThread indicating if the request for status msg timed out
     Status               m_getStatusReturnStatus;
+
+    //
+    // Channel statistics and corresponding mutex
+    utility::Mutex m_statisticsLock;
+    system::ChannelStatistics m_channelStatistics;
 
     //
     // Private procedures
