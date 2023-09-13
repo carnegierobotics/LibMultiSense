@@ -685,7 +685,7 @@ void *impl::statusThread(void *userDataP)
             // Wait for the response
 
             Status status;
-            if (ack.wait(status, 0.010)) {
+            if (ack.wait(status, DEFAULT_ACK_TIMEOUT())) {
 
                 //
                 // Record (approx) time of response
@@ -705,11 +705,17 @@ void *impl::statusThread(void *userDataP)
                 const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2);
 
                 //
-                // Compute and apply the estimated time offset
+                // If it took less than 5ms each direction for transmission consider this for a valid time offset
 
-                const utility::TimeStamp offset = ping + latency - msg.uptime;
+                if (latency.getNanoSeconds() < 5'000'000) {
 
-                selfP->applySensorTimeOffset(offset);
+                    //
+                    // Compute and apply the estimated time offset
+
+                    const utility::TimeStamp offset = ping + latency - msg.uptime;
+
+                    selfP->applySensorTimeOffset(offset);
+                }
 
                 //
                 // Cache the status message
