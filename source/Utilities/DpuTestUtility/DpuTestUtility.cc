@@ -64,13 +64,12 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#include <torch/csrc/api/include/torch/torch.h>
+// #include <torch/csrc/api/include/torch/torch.h>
 
 #include <Utilities/portability/getopt/getopt.h>
 
 using namespace crl::multisense;
 
-std::map<int64_t, std::vector<dpu_result::Header>> reconstruction_map;
 std::map<int64_t, cv::Mat> luma_map;
 std::map<int64_t, cv::Mat> chroma_map;
 
@@ -110,8 +109,8 @@ namespace {
         std::cout << "  Frame ID: " << header.frameId << std::endl;
         std::cout << "  Time Stamp: " << header.timestamp << std::endl;
         std::cout << "  Success: " << uint16_t(header.success) << std::endl;
-        std::cout << "  Detection Count: " << uint16_t(header.numDetections) << std::endl;
-        std::cout << "  Sequence ID: " << uint16_t(header.sequenceId) << std::endl;
+        // std::cout << "  Detection Count: " << uint16_t(header.numDetections) << std::endl;
+        // std::cout << "  Sequence ID: " << uint16_t(header.sequenceId) << std::endl;
         std::cout << "  Result Type: " << header.resultType << std::endl;
         std::cout << "  Mask Blob Len:  " << header.maskBlobLen << std::endl;
         std::cout << "  Mask Rank:  " << header.maskRank << std::endl;
@@ -121,48 +120,55 @@ namespace {
         }
         std::cout << std::endl;
         std::cout << "DPU Result Data: " << std::endl;
-        std::cout << "  Class ID: " << int(header.classId) << std::endl;
-        std::cout << "  Confidence Score: " << header.confidenceScore << std::endl;
+        // std::cout << "  Class ID: " << int(header.classId) << std::endl;
+        // std::cout << "  Confidence Score: " << header.confidenceScore << std::endl;
+        /*
         std::cout << "  Bbox Data: ";
         for (uint32_t i = 0; i < 4; i++) {
             std::cout << header.bboxArray[i] << " ";
         }
         std::cout << std::endl;
+        */
         uint32_t num_zeros = 0;
         uint32_t num_ones = 0;
+        uint32_t num_twos = 0;
         std::cout << "  Mask Data: " << std::endl;
         for (uint32_t i = 0; i < header.maskBlobLen; i++) {
-            if (header.maskArray[i]) {
-                num_ones++;
-            } else {
+            if (header.maskArray[i] == 0) {
                 num_zeros++;
+            } else if (header.maskArray[i] == 1) {
+                num_ones++;
+            } else if (header.maskArray[i] == 2) {
+                num_twos++;
             }
         }
         std::cout << "    Num Zeros = " << num_zeros << std::endl;
         std::cout << "    Num Ones = " << num_ones << std::endl;
-        std::cout << "    Mask Count Sum = " << num_zeros + num_ones << std::endl;
+        std::cout << "    Num Twos = " << num_twos << std::endl;
+        std::cout << "    Mask Count Sum = " << num_zeros + num_ones + num_twos << std::endl;
         std::cout << "********************" << std::endl;
-        if (reconstruction_map.count(header.frameId) == 0) {
-            reconstruction_map[header.frameId] = std::vector<dpu_result::Header>();
-            reconstruction_map[header.frameId].push_back(header);
-        } else {
-            reconstruction_map[header.frameId].push_back(header);
-        }
+        cv::Mat mask = cv::Mat(160, 256, CV_8UC1, const_cast<uint8_t*>(header.maskArray)).clone();
+        mask = mask * 100;
+        cv::imwrite(std::to_string(header.frameId) + "_mask.png", mask);
     }
 
     void lumaImageCallback(const image::Header &header, void *userDataPtr) {
         (void) userDataPtr;
 
         cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
-        luma_map[header.frameId] = luma;
+        cv::imwrite(std::to_string(header.frameId) + "_luma.png", luma);
+        // luma_map[header.frameId] = luma;
     }
 
+    /*
     void chromaImageCallback(const image::Header &header, void *userDataPtr) {
         (void) userDataPtr;
 
         cv::Mat chroma = cv::Mat(header.height, header.width, CV_16UC1, const_cast<void*>(header.imageDataP)).clone();
-        chroma_map[header.frameId] = chroma;
+        cv::imwrite(std::to_string(header.frameId) + "_chroma.png", chroma);
+        // chroma_map[header.frameId] = chroma;
     }
+    */
 
     void destroyChannel(Channel *channelPtr) {
         Channel::Destroy(channelPtr);
@@ -171,6 +177,7 @@ namespace {
 
 }   // Anonymous
 
+/*
 std::vector<torch::Tensor> convert_tensor_map_to_vector(std::map<std::string, torch::Tensor> tensor_map,
                                                         std::vector<std::string> key_order) {
     std::vector<torch::Tensor> tensor_vector;
@@ -190,14 +197,17 @@ void export_tensor_to_pytorch(const std::string &tensor_filename,
             tensor_vector.push_back(torch::empty({0}));
         }
     } else {
+        }
+    } else {
         tensor_vector = convert_tensor_map_to_vector(tensor_map, key_order);
     }
     torch::save(tensor_vector, tensor_filename);
 }
+*/
 
 int main(int argc, char** argv){
     std::string currentAddress = "10.66.171.21";
-    uint32_t mtu = 7200;
+    // uint32_t mtu = 7200;
     bool dpuSupported = false;
     image::Config cfg;
 
@@ -218,7 +228,7 @@ int main(int argc, char** argv){
                 currentAddress = std::string(optarg);
                 break;
             case 'm':
-                mtu = atoi(optarg);
+                // mtu = atoi(optarg);
                 break;
             default:
                 usage(*argv);
@@ -269,12 +279,14 @@ int main(int argc, char** argv){
     // Change MTU size
     // NOTE: This will fail if the MTU is set to over 1500 when using an
     // external USB-C to ethernet adapter.
+    /*
     status = channelPtr->setMtu(mtu);
     if (Status_Ok != status) {
         std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         std::cerr << "Check adapter to make sure it supports a frame size >1500 (Jumbo frames)" << std::endl;
         destroyChannel(channelPtr);
     }
+    */
 
     // Enable DPU results profile
     status = channelPtr->getImageConfig(cfg);
@@ -311,10 +323,12 @@ int main(int argc, char** argv){
         std::cerr << "Failed to add luma image callback." << std::endl;
     }
 
+    /*
     status = channelPtr->addIsolatedCallback(chromaImageCallback, Source_Chroma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to add chroma image callback." << std::endl;
     }
+    */
 
     // Start streaming
     status = channelPtr->startStreams(Source_DPU_Result | Source_Luma_Rectified_Aux | Source_Chroma_Rectified_Aux);
@@ -324,6 +338,7 @@ int main(int argc, char** argv){
     }
 
     while(!quit_flag){
+        /*
         for (const auto &rm : reconstruction_map) {
             if (rm.second.size() == rm.second[0].numDetections) {
                 std::vector<uint8_t> class_ids;
@@ -360,8 +375,6 @@ int main(int argc, char** argv){
                     cv::cvtColorTwoPlane(matching_luma, matching_chroma, rgb, cv::COLOR_YUV2BGR_NV12);
                 } catch (cv::Exception &e) {
                     break;
-                }
-                cv::imwrite("rgb.png", rgb);
                 std::map<std::string, torch::Tensor> export_map;
                 export_map["class"] = class_id_tensor;
                 export_map["score"] = score_tensor;
@@ -387,6 +400,7 @@ int main(int argc, char** argv){
                 break;
             }
         }
+        */
         usleep(100000);
     }
 
