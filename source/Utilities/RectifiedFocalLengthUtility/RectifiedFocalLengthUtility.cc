@@ -87,6 +87,7 @@ int main(int    argc,
     double currentFocalLength = 0.0;
     double tx = 0.0;
     double auxTx = 0.0;
+    double auxTy = 0.0;
 
     //
     // Parse args
@@ -164,10 +165,12 @@ int main(int    argc,
         if (hasAuxCamera) {
 
             auxTx = calibration.aux.P[0][3] / calibration.aux.P[0][0];
+            auxTy = calibration.aux.P[1][3] / calibration.aux.P[1][1];
 
             calibration.aux.P[0][0] = static_cast<float> (rectifiedFocalLength);
             calibration.aux.P[1][1] = static_cast<float> (rectifiedFocalLength);
             calibration.aux.P[0][3] = static_cast<float> (rectifiedFocalLength * auxTx);
+            calibration.aux.P[1][3] = static_cast<float> (rectifiedFocalLength * auxTy);
         }
 
         status = channelP->setImageCalibration(calibration);

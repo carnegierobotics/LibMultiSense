@@ -47,7 +47,9 @@
 
 #include "MultiSense/details/utility/Functional.hh"
 
-#ifndef WIN32
+#ifdef WIN32
+#include <ws2tcpip.h>
+#else
 #include <netdb.h>
 #endif
 #include <errno.h>
@@ -60,7 +62,7 @@ namespace details {
 //
 // Implementation constructor
 
-impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
+impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const std::string& ifName) :
     m_serverSocket(INVALID_SOCKET),
     m_serverSocketPort(0),
     m_sensorAddress(),
@@ -95,32 +97,34 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     m_ptpTimeSyncEnabled(false),
     m_sensorVersion()
 {
+
 #if WIN32
     WSADATA wsaData;
     int result = WSAStartup (MAKEWORD (0x02, 0x02), &wsaData);
     if (result != 0)
         CRL_EXCEPTION("WSAStartup() failed: %d", result);
+
 #endif
 
-    //
-    // Make sure the sensor address is sane
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = 0;
 
-    struct hostent *hostP = gethostbyname(address.c_str());
-    if (NULL == hostP)
-        CRL_EXCEPTION("unable to resolve \"%s\": %s",
-                      address.c_str(), strerror(errno));
-
-    //
-    // Set up the address for transmission
+    const int addrstatus = getaddrinfo(address.c_str(), NULL, &hints, &res);
+    if (addrstatus != 0 || res == NULL)
+        CRL_EXCEPTION("unable to resolve \"%s\": %s", address.c_str(), strerror(errno));
 
     in_addr addr;
+    memcpy(&addr, &(((struct sockaddr_in *)(res->ai_addr))->sin_addr), sizeof(in_addr));
 
-    memcpy(&(addr.s_addr), hostP->h_addr, hostP->h_length);
     memset(&m_sensorAddress, 0, sizeof(m_sensorAddress));
 
     m_sensorAddress.sin_family = AF_INET;
     m_sensorAddress.sin_port   = htons(DEFAULT_SENSOR_TX_PORT + static_cast<uint16_t>(cameraId + 1));
     m_sensorAddress.sin_addr   = addr;
+
+    freeaddrinfo(res);
 
     //
     // Create a pool of RX buffers
@@ -165,7 +169,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel &cameraId) :
     // Bind to the port
 
     try {
-        bind();
+        bind(ifName);
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
         cleanup();
@@ -293,7 +297,7 @@ impl::~impl()
 // Binds the communications channel, preparing it to send/receive data
 // over the network.
 
-void impl::bind()
+void impl::bind(const std::string& ifName)
 {
     //
     // Create the socket.
@@ -302,6 +306,20 @@ void impl::bind()
     if (m_serverSocket < 0)
         CRL_EXCEPTION("failed to create the UDP socket: %s",
                       strerror(errno));
+
+    #if __linux__
+        //
+        // Bind to spcific interface if specified
+        if (!ifName.empty()){
+            if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_BINDTODEVICE,  ifName.c_str(), ifName.size())){
+                CRL_EXCEPTION("Failed to bind to device %s. Error: %s", ifName.c_str(),
+                              strerror(errno));
+            }
+        }
+    #else
+        if (!ifName.empty())
+            CRL_DEBUG("User specified binding to adapter %s, but this feature is only supported under linux. Ignoring bind to specific adapter", ifName.c_str());
+    #endif
 
     //
     // Turn non-blocking on.
@@ -555,6 +573,7 @@ uint32_t impl::imagerApiToWire(uint32_t a)
     case system::DeviceInfo::IMAGER_TYPE_IMX104_COLOR:  return wire::SysDeviceInfo::IMAGER_TYPE_IMX104_COLOR;
     case system::DeviceInfo::IMAGER_TYPE_AR0234_GREY:   return wire::SysDeviceInfo::IMAGER_TYPE_AR0234_GREY;
     case system::DeviceInfo::IMAGER_TYPE_AR0239_COLOR:  return wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR;
+    case system::DeviceInfo::IMAGER_TYPE_FLIR_TAU2:  return wire::SysDeviceInfo::IMAGER_TYPE_FLIR_TAU2;
     default:
         CRL_DEBUG("unknown API imager type \"%d\"\n", a);
         return a; // pass through
@@ -570,6 +589,7 @@ uint32_t impl::imagerWireToApi(uint32_t w)
     case wire::SysDeviceInfo::IMAGER_TYPE_IMX104_COLOR:  return system::DeviceInfo::IMAGER_TYPE_IMX104_COLOR;
     case wire::SysDeviceInfo::IMAGER_TYPE_AR0234_GREY:   return system::DeviceInfo::IMAGER_TYPE_AR0234_GREY;
     case wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR:  return system::DeviceInfo::IMAGER_TYPE_AR0239_COLOR;
+    case wire::SysDeviceInfo::IMAGER_TYPE_FLIR_TAU2:  return system::DeviceInfo::IMAGER_TYPE_FLIR_TAU2;
     default:
         CRL_DEBUG("unknown WIRE imager type \"%d\"\n", w);
         return w; // pass through
@@ -667,7 +687,7 @@ void *impl::statusThread(void *userDataP)
             // Wait for the response
 
             Status status;
-            if (ack.wait(status, 0.010)) {
+            if (ack.wait(status, DEFAULT_ACK_TIMEOUT())) {
 
                 //
                 // Record (approx) time of response
@@ -687,11 +707,17 @@ void *impl::statusThread(void *userDataP)
                 const utility::TimeStamp latency((pong.getNanoSeconds() - ping.getNanoSeconds()) / 2);
 
                 //
-                // Compute and apply the estimated time offset
+                // If it took less than 5ms each direction for transmission consider this for a valid time offset
 
-                const utility::TimeStamp offset = ping + latency - msg.uptime;
+                if (latency.getNanoSeconds() < 5'000'000) {
 
-                selfP->applySensorTimeOffset(offset);
+                    //
+                    // Compute and apply the estimated time offset
+
+                    const utility::TimeStamp offset = ping + latency - msg.uptime;
+
+                    selfP->applySensorTimeOffset(offset);
+                }
 
                 //
                 // Cache the status message
@@ -726,7 +752,7 @@ Channel* Channel::Create(const std::string& address)
 {
     try {
 
-        return new details::impl(address, Remote_Head_VPB);
+        return new details::impl(address, Remote_Head_VPB, "");
 
     } catch (const std::exception& e) {
 
@@ -739,7 +765,7 @@ Channel* Channel::Create(const std::string& address, const RemoteHeadChannel &ca
 {
     try {
 
-        return new details::impl(address, cameraId);
+        return new details::impl(address, cameraId, "");
 
     } catch (const std::exception& e) {
 
@@ -747,6 +773,26 @@ Channel* Channel::Create(const std::string& address, const RemoteHeadChannel &ca
         return NULL;
     }
 }
+
+Channel* Channel::Create(const std::string &address, const std::string& ifName)
+    {
+        try {
+            return new details::impl(address, Remote_Head_VPB, ifName);
+        } catch (const std::exception& e) {
+            CRL_DEBUG("exception: %s\n", e.what());
+            return NULL;
+        }
+    }
+
+Channel* Channel::Create(const std::string &address, const RemoteHeadChannel &cameraId, const std::string &ifName)
+    {
+        try {
+            return new details::impl(address, cameraId, ifName);
+        } catch (const std::exception& e) {
+            CRL_DEBUG("exception: %s\n", e.what());
+            return NULL;
+        }
+    }
 
 void Channel::Destroy(Channel *instanceP)
 {

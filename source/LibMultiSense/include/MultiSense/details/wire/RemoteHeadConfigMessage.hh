@@ -1,9 +1,9 @@
 /**
- * @file LibMultiSense/CamSetResolutionMessage.hh
+ * @file LibMultiSense/RemoteHeadConfig.hh
  *
- * This message sets the output resolution of the camera.
+ * This message contains the current remote head vpb configuration.
  *
- * Copyright 2013-2022
+ * Copyright 2013-2023
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,47 +33,75 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-05-08, ekratzer@carnegierobotics.com, PR1044, Significant rewrite.
- *   2012-10-19, dstrother@carnegierobotics.com, RD1020, Created file.
+ *   2023-03-03, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_CamSetResolutionMessage
-#define LibMultiSense_CamSetResolutionMessage
+#ifndef LibMultiSense_RemoteHeadConfigMessage
+#define LibMultiSense_RemoteHeadConfigMessage
 
 #include "MultiSense/details/utility/Portability.hh"
+//#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class CamSetResolution {
+class RemoteHeadChannel {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_SET_RESOLUTION;
-    static CRL_CONSTEXPR VersionType VERSION = 3;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    ::crl::multisense::RemoteHeadChannel channel;
 
     //
-    // Parameters
+    // Serialization routine
+    //
+    template<class Archive>
+    void serialize(Archive&          message,
+                   const VersionType version)
+    {
+        (void) version;
 
-    uint32_t width;
-    uint32_t height;
+        message & channel;
+    }
+};
+
+class RemoteHeadSyncGroup {
+public:
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    wire::RemoteHeadChannel controller;
+    std::vector<wire::RemoteHeadChannel> responders;
 
     //
-    // Version 2 additions
+    // Serialization routine
+    //
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
 
-    int32_t disparities;
+        message & controller;
+        message & responders;
+    }
+};
+
+class RemoteHeadConfig {
+public:
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_REMOTE_HEAD_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // Version 3 additions
-    int camMode; // Deprecated
-    int offset; // Deprecated
+    // Parameters representing the current camera configuration
+
+    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
 
     //
     // Constructors
 
-    CamSetResolution(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    CamSetResolution(uint32_t w=0, uint32_t h=0, int32_t d=-1) :
-                     width(w), height(h), disparities(d), camMode(0), offset(-1) {};
+    RemoteHeadConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    RemoteHeadConfig() : syncGroups({}) {};
 
     //
     // Serialization routine
@@ -82,21 +110,9 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & width;
-        message & height;
+        (void) version;
 
-        if (version >= 2)
-            message & disparities;
-        else
-            disparities = 0;
-
-        if (version >= 3){
-            message & camMode;
-            message & offset;
-        }else{
-        	camMode = 0;
-        	offset = -1;
-        }
+        message & syncGroups;
     }
 };
 

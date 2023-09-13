@@ -1,9 +1,10 @@
 /**
- * @file LibMultiSense/CamSetResolutionMessage.hh
+ * @file LibMultiSense/RemoteHeadConfig.hh
  *
- * This message sets the output resolution of the camera.
+ * This message contains the current controls to configure a remote head vpb
+ * sync pair.
  *
- * Copyright 2013-2022
+ * Copyright 2013-2023
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,47 +34,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-05-08, ekratzer@carnegierobotics.com, PR1044, Significant rewrite.
- *   2012-10-19, dstrother@carnegierobotics.com, RD1020, Created file.
+ *   2023-03-03, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_CamSetResolutionMessage
-#define LibMultiSense_CamSetResolutionMessage
+
+#ifndef LibMultiSense_RemoteHeadControlMessage
+#define LibMultiSense_RemoteHeadControlMessage
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/wire/Protocol.hh"
+#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
+// #include "MultiSense/MultisenseTypes.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class CamSetResolution {
+class RemoteHeadControl {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_SET_RESOLUTION;
-    static CRL_CONSTEXPR VersionType VERSION = 3;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_REMOTE_HEAD_CONTROL;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // Parameters
+    // Parameters representing the current remote head sync configuration
 
-    uint32_t width;
-    uint32_t height;
-
-    //
-    // Version 2 additions
-
-    int32_t disparities;
-
-    //
-    // Version 3 additions
-    int camMode; // Deprecated
-    int offset; // Deprecated
+    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
 
     //
     // Constructors
 
-    CamSetResolution(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    CamSetResolution(uint32_t w=0, uint32_t h=0, int32_t d=-1) :
-                     width(w), height(h), disparities(d), camMode(0), offset(-1) {};
+    RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    RemoteHeadControl() :
+        syncGroups({})
+        {};
 
     //
     // Serialization routine
@@ -82,21 +76,11 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & width;
-        message & height;
 
-        if (version >= 2)
-            message & disparities;
-        else
-            disparities = 0;
+        (void) version;
 
-        if (version >= 3){
-            message & camMode;
-            message & offset;
-        }else{
-        	camMode = 0;
-        	offset = -1;
-        }
+        message & syncGroups;
+
     }
 };
 

@@ -201,6 +201,7 @@ namespace details {
                 m_map[key] = data;
             }
             else {
+                delete it->second;
                 it->second = data;
             }
 
