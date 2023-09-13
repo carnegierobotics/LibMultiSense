@@ -337,6 +337,7 @@ int main(int argc, char** argv){
         destroyChannel(channelPtr);
     }
 
+    int count = 0;
     while(!quit_flag){
         /*
         for (const auto &rm : reconstruction_map) {
@@ -402,6 +403,8 @@ int main(int argc, char** argv){
         }
         */
         usleep(100000);
+        std::cout << "#" << count << ": I'm alive!" << std::endl;
+        count++;
     }
 
     // Stop stream
