@@ -96,7 +96,36 @@ public:
      * return A pointer to a new Channel instance
      */
 
-    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel &cameraId);
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel& cameraId);
+    /**
+     * @note (Linux only!)
+     * Create a Channel instance, used to manage all communications
+     * with a sensor.  The resulting pointer must be explicitly
+     * destroyed using the static member function Channel::Destroy().
+     *
+     * @param sensorAddress The device IPv4 address which can be a dotted-quad,
+     * or any hostname resolvable by gethostbyname().
+     * @param interfaceName The name of the network interface to bind to using the SO_BINDTODEVICE option
+     * @return A pointer to a new Channel instance
+     */
+    static Channel* Create(const std::string& sensorAddress,  const std::string& interfaceName);
+
+    /**
+     * @note (Linux only!)
+     * Create a Channel instance, used to manage all communications
+     * with a sensor.  The resulting pointer must be explicitly
+     * destroyed using the static member function Channel::Destroy().
+     *
+     * @param sensorAddress The device IPv4 address which can be a dotted-quad,
+     * or any hostname resolvable by gethostbyname().
+     * @param cameraId The ID of the remote camera to connect to. This is used for
+     * newer remote head based systems which have multiple stereo cameras
+     * connected to a single FPGA for stereo processing
+     * @param interfaceName The name of the network interface to bind to use for this connection.
+     * Set using the socket option SO_BINDTODEVICE
+     * @return A pointer to a new Channel instance
+     */
+    static Channel* Create(const std::string& sensorAddress, const RemoteHeadChannel& cameraId, const std::string& interfaceName);
 
     /**
      * Destroy a channel instance that was created using the static
@@ -106,7 +135,7 @@ public:
      * @param instanceP A pointer to a Channel instance to be destroyed
      */
 
-    static void Destroy(Channel *instanceP);
+    static void Destroy(Channel* instanceP);
 
     /**
      * Destructor.
@@ -541,91 +570,6 @@ public:
 
 
     /**
-     * Start a directed stream used to stream data to multiple 3rd parties.
-     *
-     * Secondary stream control.  In addition to the primary stream control
-     * above, a set of streams may be directed to a 3rd party (or multiple
-     * 3rd parties), where a 3rd party is uniquely defined as an IP address /
-     * UDP port pair.
-     *
-     * The number of simulataneous parties supported can be queried via
-     * maxDirectedStreams(). If the number of maximum directed streams has
-     * already been achieved, startDirectedStream() will return an error code.
-     *
-     * If the stream address/port combination already exists as a streaming
-     * destination, then startDirectedStream() will update the data source
-     * mask and FPS decimation.
-     *
-     * @param stream A DrirectedStream to either add or update setting of
-     *
-     * @return A crl::multisense::Status indicating if the DirectedStream was
-     * successfully started
-     */
-
-    virtual Status startDirectedStream(const DirectedStream& stream) = 0;
-
-    /**
-     * Start several directed streams used to stream data to multiple 3rd parties.
-     *
-     * Secondary stream control.  In addition to the primary stream control
-     * above, a set of streams may be directed to a 3rd party (or multiple
-     * 3rd parties), where a 3rd party is uniquely defined as an IP address /
-     * UDP port pair.
-     *
-     * The number of simulataneous parties supported can be queried via
-     * maxDirectedStreams(). If the number of maximum directed streams has
-     * already been achieved, startDirectedStream() will return an error code.
-     *
-     * If the stream address/port combination already exists as a streaming
-     * destination, then startDirectedStream() will update the data source
-     * mask and FPS decimation.
-     *
-     * @param streams A vector of DrirectedStream to either add or
-     * update setting of
-     *
-     * @return A crl::multisense::Status indicating if the DirectedStream was
-     * successfully started
-     */
-    virtual Status startDirectedStreams(const std::vector<DirectedStream>& streams) = 0;
-
-    /**
-     * Stop a specific directed stream.
-     *
-     * @param stream A DirectedStream to stop
-     *
-     * @return A crl::multisense::Status indicating if the DirectedStream was
-     * successfully stopped
-     */
-
-    virtual Status stopDirectedStream (const DirectedStream& stream) = 0;
-
-    /**
-     * Get the current list of active streams.
-     *
-     * @param streams A vector of DirectedStreams which is populated by
-     * getDirectedStreams()
-     *
-     * @return A crl::multisense::Status indicating if the DirectedStream query
-     * succeeded
-     */
-
-    virtual Status getDirectedStreams (std::vector<DirectedStream>& streams) = 0;
-
-    /**
-     * Query the number of simultaneous parties which can be supported.
-     *
-     * If the number of maximum directed streams has
-     * already been achieved, startDirectedStream() will return an error code.
-     *
-     * @param maximum The maximum number of DirectedStreams returned by reference
-     *
-     * @return A crl::multisense::Status indicating if the query
-     * succeeded
-     */
-
-    virtual Status maxDirectedStreams (uint32_t& maximum) = 0;
-
-    /**
      * Set a new image trigger source. This is used to specify which source
      * is used to trigger a image capture.
      *
@@ -751,6 +695,55 @@ public:
     virtual Status setImageConfig      (const image::Config& c)             = 0;
 
     /**
+     * Set the current Remote Head Config
+     *
+     * @param c The new image remote head config to send to the sensor
+     *
+     * @return A crl::multisense::Status indicating if the remote head configuration
+     * was successfully recieved by the sensor
+     */
+
+    virtual Status setRemoteHeadConfig      (const image::RemoteHeadConfig& c)             = 0;
+
+    /**
+     * Set the current Remote Head Config
+     *
+     * @param c A remoteHeadConfig returned by reference from
+     * getRemoteHeadConfig()
+     *
+     * @return A crl::multisense::Status indicating if the Remote Head Config
+     * was successfully queried
+     */
+
+    virtual Status getRemoteHeadConfig      (image::RemoteHeadConfig& c)             = 0;
+
+    /**
+     * Query the aux image configuration.
+     *
+     * See image::AuxConfig for a usage example
+     *
+     * @param c The aux image configuration returned by reference from the query
+     *
+     * @return A crl::multisense::Status indicating if the image configuration
+     * query succeeded
+     */
+
+    virtual Status getAuxImageConfig      (image::AuxConfig& c)                   = 0;
+
+    /**
+     * Set the aux image configuration.
+     *
+     * See image::AuxConfig for a usage example
+     *
+     * @param c The new aux image configuration to send to the sensor
+     *
+     * @return A crl::multisense::Status indicating if the image configuration
+     * was successfully received by the sensor
+     */
+
+    virtual Status setAuxImageConfig      (const image::AuxConfig& c)             = 0;
+
+    /**
      * Query the current camera calibration.
      *
      * See image::Calibration for a usage example
@@ -776,31 +769,6 @@ public:
      */
 
     virtual Status setImageCalibration (const image::Calibration& c)        = 0;
-
-    /**
-     * Query the current device imager calibration. This is the DC imager gain
-     * and black level offset used to match the left and right imagers to improve
-     * stereo matching performance.
-     *
-     * @param c The sensor calibration instance which will be returned by
-     * reference
-     *
-     * @return A crl::multisense::Status indicating if the imager calibration
-     * was successfully queried
-     */
-    virtual Status getSensorCalibration (image::SensorCalibration& c)              = 0;
-
-    /**
-     * Set the devices imager calibration. This is used to adjust the DC imager
-     * gains and the black level offsets so that both imagers match one another.
-     * This calibration is stored in flash and only needs to be set once
-     *
-     * @param c The sensor calibration instance to write to flash memory
-     *
-     * @return A crl::multisense::Status indicating if the imager calibration
-     * was successfully received by the sensor
-     */
-	virtual Status setSensorCalibration (const image::SensorCalibration& c)        = 0;
 
     /**
      * Query the current device network delay.

@@ -38,7 +38,7 @@
 #define LibMultiSense_MultiSenseTypes_hh
 
 #include <stdint.h>
-
+#include <climits>
 #include <string>
 #include <vector>
 
@@ -206,63 +206,57 @@ static CRL_CONSTEXPR ImageCompressionCodec H264 = 0;
  */
 typedef int16_t RemoteHeadChannel;
 /** The Remote Head Vision Processor Board */
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB = -1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_VPB         = -1;
 /** The Remote Head Camera at position 0*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0   = 0;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_0           = 0;
 /** The Remote Head Camera at position 1*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1   = 1;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_1           = 1;
 /** The Remote Head Camera at position 2*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2   = 2;
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2           = 2;
 /** The Remote Head Camera at position 3*/
-static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3   = 3;
-
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3           = 3;
+/** Invalid Remote Head position*/
+static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
 
 /**
- * Class used to request that MultiSense data be sent to a 3rd-party
- * stream destination (UDP port), currently supported only by CRL's
- * Monocular IP Camera.  This functionality is not supported by any of
- * CRL's stereo sensor products.
+ * Remote head sync group defines a group of remote heads which will have their
+ * image captures synchronized.
+ * It is currently not possible to synchronize more than 2 pairs of remote heads.
+ * Furthermore, it is currently not possible to synchronize one head to multiple heads.
+ * Given that there are currently only 4 possible remote head cameras, there are
+ * only 2 possible remote head synchronization pairs.
+ * It is not possible to synchronize Remote Head Stereo Cameras.
+ * Possible components are:
+ * Remote_Head_0   The Remote Head Camera located in position 0
+ * Remote_Head_1   The Remote Head Camera located in position 1
+ * Remote_Head_2   The Remote Head Camera located in position 2
+ * Remote_Head_3   The Remote Head Camera located in position 3
  */
-class MULTISENSE_API DirectedStream {
-public:
+struct RemoteHeadSyncGroup {
 
-    /** Default UDP target port */
-    static CRL_CONSTEXPR uint16_t DFL_UDP_PORT = 10001;
+  /**
+   * Default constructor
+   */
+  RemoteHeadSyncGroup() {};
 
-    /** The data source to stream to a given device */
-    DataSource  mask;
-    /** IPv4 Address dotted quad */
-    std::string address;
-    /** default=10001 */
-    uint16_t    udpPort;
-    /** Every Nth image to send. For a value of 1 every image is sent */
-    uint32_t    fpsDecimation;
+  /**
+   * Constructor to initialize a remote head sync pair
+   *
+   * @param c The remote head sync pair controller
+   *
+   * @param r The remote head sync responder channels
+   *
+   */
+  RemoteHeadSyncGroup(const RemoteHeadChannel c,
+                      const std::vector<RemoteHeadChannel> &r) :
+    controller(c),
+    responders(r) {};
 
-    /**
-     * Default constructor
-     */
-    DirectedStream() {};
+  /** The synchronization controller */
+  RemoteHeadChannel controller;
+  /** The synchronization responders */
+  std::vector<RemoteHeadChannel> responders;
 
-    /**
-     * Constructor to initialize a directed stream between a MultiSense device
-     * and a host machine
-     *
-     * @param m The data Sources to stream to a give device
-     *
-     * @param addr A IP address to send steam data to
-     *
-     * @param p The UDP port to send stream data data to
-     *
-     * @param dec The number of frames to decimate (i.e. if image.frameID % dec == 0 send the image stream)
-     */
-    DirectedStream(DataSource         m,
-                   const std::string& addr,
-                   uint16_t           p=DFL_UDP_PORT,
-                   uint32_t           dec=1) :
-        mask(m),
-        address(addr),
-        udpPort(p),
-        fpsDecimation(dec) {};
 };
 
 /*
@@ -521,7 +515,7 @@ public:
       m_exposure(10000), m_aeEnabled(true), m_aeMax(5000000),  m_aeDecay(7), m_aeThresh(0.9f),
       m_autoExposureRoiX(0), m_autoExposureRoiY(0),
       m_autoExposureRoiWidth(Roi_Full_Image), m_autoExposureRoiHeight(Roi_Full_Image),
-      m_exposureSource(Exposure_Default_Source),  m_aeTargetIntensity(Exposure_Default_Target_Intensity),
+      m_aeTargetIntensity(Exposure_Default_Target_Intensity),
       m_gain(Exposure_Default_Gain) {};
 
     /**
@@ -596,14 +590,6 @@ public:
         m_autoExposureRoiWidth = width;
         m_autoExposureRoiHeight = height;
     }
-
-    /**
-     * Set the stream source which these exposure parameters should apply to
-     *
-     * @param s The image stream to apply these exposure parameters to
-     */
-
-    void setExposureSource(const DataSource &s)    { m_exposureSource  = s; };
 
     /**
      * Set the gain applied to the camera
@@ -697,13 +683,6 @@ public:
     uint16_t autoExposureRoiHeight   () const { return m_autoExposureRoiHeight; };
 
     /**
-     * Query the image source which the exposure parameters correspond with
-     *
-     * @return Return the image source associated with the exposure parameters
-     */
-    DataSource exposureSource() const { return m_exposureSource; };
-
-    /**
      * Query the gain applied to the camera
      *
      * @return Return the current image configurations gain
@@ -721,7 +700,6 @@ public:
         uint16_t m_autoExposureRoiY;
         uint16_t m_autoExposureRoiWidth;
         uint16_t m_autoExposureRoiHeight;
-        DataSource m_exposureSource;
 
         float    m_aeTargetIntensity;
         float    m_gain;
@@ -841,26 +819,6 @@ public:
     void setDisparities       (uint32_t d) { m_disparities=d;      };
 
     /**
-     * Set a desired output mode. Only valid for CMV4000 cameras.
-     * 4000 (default) : Set camera to act as a 4MP imager
-     * 2000           : Set camera to act as a 2MP imager
-     *
-     * @param m The new output mask for CMV4000 cameras
-     */
-
-    void setCamMode          (int m) { m_cam_mode=m; };
-
-    /**
-     * Set a desired crop offset between 0 and 960 px.  For the
-     * CMV2000 mode crop, default is 480 which positions the ROI
-     * in the center of the CMV4000's FOV.
-     *
-     * @param o The offset from the bottom of the imager's FOV.
-     */
-
-    void setOffset         (int o) { m_offset=o; };
-
-    /**
      * Set the width of the desired output resolution. Default value:
      * 1024
      *
@@ -904,7 +862,7 @@ public:
      * @param e The output exposure time in microseconds [10, 5000000]
      */
 
-    void setExposure          (uint32_t e) { m_primary_exposure.setExposure(e); };
+    void setExposure          (uint32_t e) { m_exposure.setExposure(e); };
 
     /**
      * Set auto-exposure enable flag. Default value: true
@@ -912,7 +870,7 @@ public:
      * @param e A boolean used to enable or disable auto-exposure
      */
 
-    void setAutoExposure      (bool e)     { m_primary_exposure.setAutoExposure(e); };
+    void setAutoExposure      (bool e)     { m_exposure.setAutoExposure(e); };
 
     /**
      * Set the desired maximum auto-exposure value. Default value: 5000000
@@ -920,7 +878,7 @@ public:
      * @param m The maximum auto-exposure value in microseconds
      */
 
-    void setAutoExposureMax   (uint32_t m) { m_primary_exposure.setAutoExposureMax(m); };
+    void setAutoExposureMax   (uint32_t m) { m_exposure.setAutoExposureMax(m); };
 
     /**
      * Set the desired auto-exposure decay rate. Default value: 7
@@ -928,7 +886,7 @@ public:
      * @param d The auto-exposure decay rate [0, 20]
      */
 
-    void setAutoExposureDecay (uint32_t d) { m_primary_exposure.setAutoExposureDecay(d); };
+    void setAutoExposureDecay (uint32_t d) { m_exposure.setAutoExposureDecay(d); };
 
     /**
      * Set the desired auto-exposure target Intensity. Default value: 0.95
@@ -936,7 +894,7 @@ public:
      * @param d The auto-exposure target intensity [0.0, 1.0]
      */
 
-    void setAutoExposureTargetIntensity (float d) { m_primary_exposure.setAutoExposureTargetIntensity(d); };
+    void setAutoExposureTargetIntensity (float d) { m_exposure.setAutoExposureTargetIntensity(d); };
 
     /**
      * Set the desired auto-exposure threshold. This is the percentage
@@ -945,7 +903,7 @@ public:
      * @param t The desired auto-exposure threshold [0.0, 1.0]
      */
 
-    void setAutoExposureThresh(float t)    { m_primary_exposure.setAutoExposureThresh(t); };
+    void setAutoExposureThresh(float t)    { m_exposure.setAutoExposureThresh(t); };
 
     /**
      * Set the desired image white-balance. Default value: 1.0 for both
@@ -1008,17 +966,6 @@ public:
     void setHdr                     (bool  e)    { m_hdrEnabled  = e;    };
 
     /**
-     * Set the flag to write the image configuration to flash. This will
-     * result in the camera defaulting to these settings on boot.
-     * NOTE: This should be enabled sparingly. The MultiSense flash has a
-     * limited number of writes
-     *
-     * @param e A boolean used to enable or disable writing the camera
-     *          configuration to flash
-     */
-    void setStoreSettingsInFlash    (bool e)     {m_storeSettingsInFlash = e;    };
-
-    /**
      * Set the desired ROI to use when computing the auto-exposure.
      * x axis is horizontal and y axis is vertical.
      * (0,0) coordinate starts in the upper left corner of the image.
@@ -1035,16 +982,8 @@ public:
 
     void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
     {
-        m_primary_exposure.setAutoExposureRoi(start_x, start_y, width, height);
+        m_exposure.setAutoExposureRoi(start_x, start_y, width, height);
     }
-
-    /**
-     * Set the stream source which these exposure parameters should apply to
-     *
-     * @param s The image stream to apply these exposure parameters to
-     */
-
-    void setExposureSource(const DataSource &s)    { m_primary_exposure.setExposureSource(s); };
 
     /**
      * Set the operation profile for the camera to use. Profile settings subsume other user settings.
@@ -1057,25 +996,7 @@ public:
     }
 
     /**
-     * Set the primary exposure configuration
-     *
-     * @param c The primary exposure configuration to set
-     */
-    void setPrimaryExposure (const ExposureConfig &c ) { m_primary_exposure = c; };
-
-    /**
-     * Set the secondary exposures configurations. These are independent exposure configurations which
-     * are used for alternate image streams. Secondary exposure configs will be subsumed
-     * by the primary exposure configuration.
-     *
-     * A example use case includes specifying independent ROI based exposure control for the left and right camera
-     *
-     * @param c The collection of secondary exposure configs to set
-     */
-    void setSecondaryExposures(const std::vector<ExposureConfig> &c) { m_secondary_exposures = c; };
-
-    /**
-     * Set the secondary exposures gamma correction factor.
+     * Set the gamma correction factor.
      *
      * Gamma is a nonlinear operation used to encode and decode luminance.
      * Typical values for gamma range between 1 and 2.2.
@@ -1084,32 +1005,6 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
-
-    /**
-     * Enable sharpening for the aux luma channel.
-     *
-     * @param s Set to the value of true to enable or false to disable aux luma sharpening.
-     */
-
-    void enableAuxSharpening(const bool &s)    { m_sharpeningEnable  = s; };
-
-    /**
-     * Set the sharpening percentage for the aux luma channel.
-     *
-     * @param s The percentage of sharpening to apply. In the range of 0 - 100
-     */
-
-    void setAuxSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
-
-    /**
-     * Set the sharpening limit. The maximum difference in pixels that sharpening is
-     * is allowed to change between neighboring pixels. This is useful for clamping
-     * the sharpening percentage, while still maintaining a large gain.
-     *
-     * @param s The percentage of sharpening to apply. In the range of 0 - 100
-     */
-
-    void setAuxSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
 
     //
     // Query
@@ -1139,22 +1034,6 @@ public:
     uint32_t disparities () const { return m_disparities; };
 
     /**
-     * Query the current image configuration's mode.
-     *
-     * @return The current camera mode
-     */
-
-    int camMode () const { return m_cam_mode; };
-
-    /**
-     * Query the current image configuration's offset
-     *
-     * @return The current offset
-     */
-
-    int offset () const { return m_offset; };
-
-    /**
      * Query the current image configuration's frames-per-second setting
      *
      * @return The current frames per second
@@ -1167,7 +1046,6 @@ public:
      *
      * @return The current image gain setting
      */
-
     float    gain              () const { return m_gain;      };
 
 
@@ -1177,7 +1055,7 @@ public:
      * @return the current image exposure setting in microseconds
      */
 
-    uint32_t exposure          () const { return m_primary_exposure.exposure();  };
+    uint32_t exposure          () const { return m_exposure.exposure();  };
 
     /**
      * Query the current image configuration's auto-exposure enable setting
@@ -1185,7 +1063,7 @@ public:
      * @return The current image configuration's auto-exposure enable flag
      */
 
-    bool     autoExposure      () const { return m_primary_exposure.autoExposure(); };
+    bool     autoExposure      () const { return m_exposure.autoExposure(); };
 
     /**
      * Query the current image configuration's maximum auto-exposure value
@@ -1193,7 +1071,7 @@ public:
      * @return The current image configuration's maximum auto-exposure value
      */
 
-    uint32_t autoExposureMax   () const { return m_primary_exposure.autoExposureMax();     };
+    uint32_t autoExposureMax   () const { return m_exposure.autoExposureMax();     };
 
     /**
      * Query the current image configuration's auto-exposure decay rate
@@ -1201,7 +1079,7 @@ public:
      * @return The current configuration's auto-exposure decay rate
      */
 
-    uint32_t autoExposureDecay () const { return m_primary_exposure.autoExposureDecay();   };
+    uint32_t autoExposureDecay () const { return m_exposure.autoExposureDecay();   };
 
     /**
      * Query the current image configuration's auto-exposure target intensity
@@ -1209,7 +1087,7 @@ public:
      * @return The current image configuration's auto-exposure target intensity
      */
 
-    float autoExposureTargetIntensity () const { return m_primary_exposure.autoExposureTargetIntensity();   };
+    float autoExposureTargetIntensity () const { return m_exposure.autoExposureTargetIntensity();   };
 
     /**
      * Query the current image configuration's auto-exposure threshold
@@ -1217,7 +1095,7 @@ public:
      * @return The current image configuration's auto-exposure threshold
      */
 
-    float    autoExposureThresh() const { return m_primary_exposure.autoExposureThresh();  };
+    float    autoExposureThresh() const { return m_exposure.autoExposureThresh();  };
 
     /**
      * Query the current image configuration's red white-balance setting
@@ -1275,25 +1153,18 @@ public:
     bool     hdrEnabled              () const { return m_hdrEnabled;  };
 
     /**
-     * Query the current image configuration's flag to write parameters to flash
-     *
-     * @return The current image configuration's write to flash flag
-     */
-    bool     storeSettingsInFlash    () const { return m_storeSettingsInFlash; };
-
-    /**
      * Query the current image configuration's auto-exposure ROI X value
      *
      * @return The current image configuration's auto-exposure ROI X value
      */
-    uint16_t autoExposureRoiX        () const { return m_primary_exposure.autoExposureRoiX(); };
+    uint16_t autoExposureRoiX        () const { return m_exposure.autoExposureRoiX(); };
 
     /**
      * Query the current image configuration's auto-exposure ROI Y value
      *
      * @return The current image configuration's auto-exposure ROI Y value
      */
-    uint16_t autoExposureRoiY        () const { return m_primary_exposure.autoExposureRoiY(); };
+    uint16_t autoExposureRoiY        () const { return m_exposure.autoExposureRoiY(); };
 
     /**
      * Query the current image configuration's auto-exposure ROI width value
@@ -1302,7 +1173,7 @@ public:
      *
      * @return The current image configuration's auto-exposure ROI width value
      */
-    uint16_t autoExposureRoiWidth    () const { return m_primary_exposure.autoExposureRoiWidth(); };
+    uint16_t autoExposureRoiWidth    () const { return m_exposure.autoExposureRoiWidth(); };
 
     /**
      * Query the current image configuration's auto-exposure ROI height value
@@ -1311,14 +1182,7 @@ public:
      *
      * @return The current image configuration's auto-exposure ROI height value
      */
-    uint16_t autoExposureRoiHeight   () const { return m_primary_exposure.autoExposureRoiHeight(); };
-
-    /**
-     * Query the image source which the exposure parameters correspond with
-     *
-     * @return Return the image source associated with the exposure parameters
-     */
-    DataSource exposureSource() const { return m_primary_exposure.exposureSource(); };
+    uint16_t autoExposureRoiHeight   () const { return m_exposure.autoExposureRoiHeight(); };
 
     /**
      * Query the current image configurations camera profile
@@ -1326,22 +1190,6 @@ public:
      * @return The current image configurations camera profile
      */
     CameraProfile cameraProfile () const { return m_profile; };
-
-    /**
-     * Query the primary exposure config
-     *
-     * @return Return the primary exposure config
-     */
-    ExposureConfig primaryExposure() const { return m_primary_exposure; };
-
-    /**
-     * Query the collection of secondary exposures. These are independent exposure configurations which
-     * are used for alternate image streams. Secondary exposure configs will be subsumed
-     * by the primary exposure configuration
-     *
-     * @return Return the collection of secondary exposure configurations
-     */
-    std::vector<ExposureConfig> secondaryExposures() const { return m_secondary_exposures; };
 
     /**
      * Query the gamma correction factor. Gamma correction factor will be applied
@@ -1465,45 +1313,22 @@ public:
     float yaw()   const { return m_yaw;   };
 
     /**
-     * Query whether sharpening is enabled or not on the aux camera.
-     *
-     * @return Return true if sharpening is enabled, false if sharpening is disabled.
-     */
-    bool enableAuxSharpening() const { return m_sharpeningEnable; };
-
-    /**
-     * Query the percentage of sharpening applied to the aux luma image.
-     *
-     * @return A value within the range of 0 - 100
-     */
-    float auxSharpeningPercentage() const { return m_sharpeningPercentage; };
-
-    /**
-     * Query the limit of sharpening applied to the aux luma image.
-     *
-     * @return A value within the range of 0 - 255 in
-     */
-    uint8_t auxSharpeningLimit() const { return m_sharpeningLimit; };
-
-    /**
      * Default constructor for a image configuration. Initializes all image
      * configuration members to their default values
      */
     Config() : m_fps(5.0f), m_gain(1.0f),
-               m_primary_exposure(),
+               m_exposure(),
                m_wbBlue(1.0f), m_wbRed(1.0f), m_wbEnabled(true), m_wbDecay(3), m_wbThresh(0.5f),
-               m_width(1024), m_height(544), m_disparities(128), m_cam_mode(0), m_offset(-1), m_spfStrength(0.5f),
-               m_hdrEnabled(false), m_storeSettingsInFlash(false),
+               m_width(1024), m_height(544), m_disparities(128), m_spfStrength(0.5f),
+               m_hdrEnabled(false),
                m_profile(User_Control),
-               m_secondary_exposures(),
                m_gamma(2.0),
-               m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
 
     float    m_fps, m_gain;
-    ExposureConfig m_primary_exposure;
+    ExposureConfig m_exposure;
     float    m_wbBlue;
     float    m_wbRed;
     bool     m_wbEnabled;
@@ -1511,13 +1336,445 @@ private:
     float    m_wbThresh;
     uint32_t m_width, m_height;
     uint32_t m_disparities;
-    int      m_cam_mode;
-    int      m_offset;
     float    m_spfStrength;
     bool     m_hdrEnabled;
-    bool     m_storeSettingsInFlash;
     CameraProfile m_profile;
-    std::vector<ExposureConfig> m_secondary_exposures;
+    float    m_gamma;
+
+protected:
+
+    float    m_fx, m_fy, m_cx, m_cy;
+    float    m_tx, m_ty, m_tz;
+    float    m_roll, m_pitch, m_yaw;
+};
+
+class MULTISENSE_API AuxConfig {
+public:
+
+    //
+    // User configurable member functions
+
+
+    /**
+     * Set the desired output image's gain. Default value: 1
+     *
+     * @param g The output image gain
+     */
+
+    void setGain              (float g)    { m_gain      = g; };
+
+    /**
+     * Set the exposure time used to capture images. Note auto exposure
+     * must be disabled for this to take effect. Default value: 10000
+     *
+     * @param e The output exposure time in microseconds [10, 5000000]
+     */
+
+    void setExposure          (uint32_t e) { m_exposure.setExposure(e); };
+
+    /**
+     * Set auto-exposure enable flag. Default value: true
+     *
+     * @param e A boolean used to enable or disable auto-exposure
+     */
+
+    void setAutoExposure      (bool e)     { m_exposure.setAutoExposure(e); };
+
+    /**
+     * Set the desired maximum auto-exposure value. Default value: 5000000
+     *
+     * @param m The maximum auto-exposure value in microseconds
+     */
+
+    void setAutoExposureMax   (uint32_t m) { m_exposure.setAutoExposureMax(m); };
+
+    /**
+     * Set the desired auto-exposure decay rate. Default value: 7
+     *
+     * @param d The auto-exposure decay rate [0, 20]
+     */
+
+    void setAutoExposureDecay (uint32_t d) { m_exposure.setAutoExposureDecay(d); };
+
+    /**
+     * Set the desired auto-exposure target Intensity. Default value: 0.95
+     *
+     * @param d The auto-exposure target intensity [0.0, 1.0]
+     */
+
+    void setAutoExposureTargetIntensity (float d) { m_exposure.setAutoExposureTargetIntensity(d); };
+
+    /**
+     * Set the desired auto-exposure threshold. This is the percentage
+     * of the image that should be white. Default value: 0.75
+     *
+     * @param t The desired auto-exposure threshold [0.0, 1.0]
+     */
+
+    void setAutoExposureThresh(float t)    { m_exposure.setAutoExposureThresh(t); };
+
+    /**
+     * Set the desired image white-balance. Default value: 1.0 for both
+     * r and b
+     *
+     * @param r The input read white-balance value [0.25, 4.0]
+     *
+     * @param b The input blue white-balance value [0.25, 4.0]
+     */
+
+    void setWhiteBalance            (float r,
+                                     float b)    { m_wbRed=r;m_wbBlue=b; };
+
+    /**
+     * Set the white-balance enable flag. Default value: true
+     *
+     * @param e A boolean used to enable or disable white-balance
+     */
+
+    void setAutoWhiteBalance        (bool e)     { m_wbEnabled   = e;    };
+
+    /**
+     * Set the white-balance decay rate. Default value: 3
+     *
+     * @param d The white-balance decay rate [0, 20]
+     */
+
+    void setAutoWhiteBalanceDecay   (uint32_t d) { m_wbDecay     = d;    };
+
+    /**
+     * Set the white-balance threshold. Default value: 0.5
+     *
+     * @param t The desired white-balance threshold [0.0, 1.0]
+     */
+
+    void setAutoWhiteBalanceThresh  (float t)    { m_wbThresh    = t;    };
+
+    /**
+     * Set the HDR enable flag. This feature is only available in sensor
+     * firmware version greater than 3.1.  Default value: false. Note
+     * enabling HDR will disable image white balance. It may also degrade the
+     * stereo performance. It is advised to manually tune exposure and gain
+     * settings to achieve desired performance.
+     *
+     * @param e A boolean used to enable or disable HDR on the camera imagers
+     */
+
+    void setHdr                     (bool  e)    { m_hdrEnabled  = e;    };
+
+    /**
+     * Set the desired ROI to use when computing the auto-exposure.
+     * x axis is horizontal and y axis is vertical.
+     * (0,0) coordinate starts in the upper left corner of the image.
+     * If (x + w > image width) or (y + h > image height) the sensor will return an error
+     * Setting to default:(0,0,crl::multisense::Roi_Full_Image,crl::multisense::Roi_Full_Image)
+     * will use the entire image for the ROI regardless of the current resolution
+     * This feature is only available in sensor firmware version 4.3 and greater
+     *
+     * @param start_x The X coordinate where the ROI starts
+     * @param start_y The Y coordinate where the ROI starts
+     * @param width The width of the ROI
+     * @param height The height of the ROI
+     */
+
+    void setAutoExposureRoi(uint16_t start_x, uint16_t start_y, uint16_t width, uint16_t height)
+    {
+        m_exposure.setAutoExposureRoi(start_x, start_y, width, height);
+    }
+
+    /**
+     * Set the operation profile for the camera to use. Profile settings subsume other user settings.
+     *
+     * @param profile The operation profile to use on the camera
+     */
+    void setCameraProfile(const CameraProfile &profile)
+    {
+        m_profile = profile;
+    }
+
+    /**
+     * Set the gamma correction factor.
+     *
+     * Gamma is a nonlinear operation used to encode and decode luminance.
+     * Typical values for gamma range between 1 and 2.2.
+     *
+     * @param g the gamma constant applied to the camera sources
+     */
+    void setGamma(const float g) { m_gamma = g; };
+
+
+    /**
+     * Enable sharpening for the aux luma channel.
+     *
+     * @param s Set to the value of true to enable or false to disable aux luma sharpening.
+     */
+
+    void enableSharpening(const bool &s)    { m_sharpeningEnable  = s; };
+
+    /**
+     * Set the sharpening percentage for the aux luma channel.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setSharpeningPercentage(const float &s)    { m_sharpeningPercentage  = s; };
+
+    /**
+     * Set the sharpening limit. The maximum difference in pixels that sharpening is
+     * is allowed to change between neighboring pixels. This is useful for clamping
+     * the sharpening percentage, while still maintaining a large gain.
+     *
+     * @param s The percentage of sharpening to apply. In the range of 0 - 100
+     */
+
+    void setSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
+
+    //
+    // Query
+    //
+    //
+    // Query camera calibration (read-only)
+    //
+    // These parameters are adjusted for the current operating resolution of the device.
+
+    /**
+     * Query the current aux camera calibration rectified projection focal length
+     * in the x dimension.
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibrations focal length in the x dimension
+     */
+
+    float fx()    const { return m_fx;    };
+
+    /**
+     * Query the current aux camera calibration rectified projection focal length
+     * in the y dimension.
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibrations focal length in the y dimension
+     */
+
+    float fy()    const { return m_fy;    };
+
+    /**
+     * Query the current aux camera calibration aux rectified image center in the
+     * x dimension
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibrations rectified image center in the
+     * x dimension
+     */
+
+    float cx()    const { return m_cx;    };
+
+    /**
+     * Query the current aux camera calibration aux rectified image center in the
+     * y dimension
+     *
+     * Note this value is scaled based on the current image resolution
+     *
+     * @return The current aux camera calibration rectified image center in the
+     * y dimension
+     */
+
+    float cy()    const { return m_cy;    };
+
+    /**
+     * Query the current image configuration's gain setting
+     *
+     * @return The current image gain setting
+     */
+    float    gain              () const { return m_gain;      };
+
+    /**
+     * Query the current image configuration's exposure setting
+     *
+     * @return the current image exposure setting in microseconds
+     */
+
+    uint32_t exposure          () const { return m_exposure.exposure();  };
+
+    /**
+     * Query the current image configuration's auto-exposure enable setting
+     *
+     * @return The current image configuration's auto-exposure enable flag
+     */
+
+    bool     autoExposure      () const { return m_exposure.autoExposure(); };
+
+    /**
+     * Query the current image configuration's maximum auto-exposure value
+     *
+     * @return The current image configuration's maximum auto-exposure value
+     */
+
+    uint32_t autoExposureMax   () const { return m_exposure.autoExposureMax();     };
+
+    /**
+     * Query the current image configuration's auto-exposure decay rate
+     *
+     * @return The current configuration's auto-exposure decay rate
+     */
+
+    uint32_t autoExposureDecay () const { return m_exposure.autoExposureDecay();   };
+
+    /**
+     * Query the current image configuration's auto-exposure target intensity
+     *
+     * @return The current image configuration's auto-exposure target intensity
+     */
+
+    float autoExposureTargetIntensity () const { return m_exposure.autoExposureTargetIntensity();   };
+
+    /**
+     * Query the current image configuration's auto-exposure threshold
+     *
+     * @return The current image configuration's auto-exposure threshold
+     */
+
+    float    autoExposureThresh() const { return m_exposure.autoExposureThresh();  };
+
+    /**
+     * Query the current image configuration's red white-balance setting
+     *
+     * @return The current image configuration's red white-balance setting
+     */
+
+    float    whiteBalanceRed         () const { return m_wbRed;       };
+
+    /**
+     * Query the current image configuration's blue white-balance setting
+     *
+     * @return The current image configuration's blue white-balance setting
+     */
+
+    float    whiteBalanceBlue        () const { return m_wbBlue;      };
+
+    /**
+     * Query the current image configuration's white-balance enable setting
+     *
+     * @return The current image configuration's white-balance enable flag
+     */
+
+    bool     autoWhiteBalance        () const { return m_wbEnabled;   };
+
+    /**
+     * Query the current image configuration's white-balance decay rate
+     *
+     * @return The current image configuration's white-balance decay rate
+     */
+
+    uint32_t autoWhiteBalanceDecay   () const { return m_wbDecay;     };
+
+    /**
+     * Query the current image configuration's white-balance threshold
+     *
+     * @return The current image configuration's white-balance threshold
+     */
+
+    float    autoWhiteBalanceThresh  () const { return m_wbThresh;    };
+
+    /**
+     * Query the current image configuration's HDR enable flag
+     *
+     * @return The current image configuration's HDR enable flag
+     */
+    bool     hdrEnabled              () const { return m_hdrEnabled;  };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI X value
+     *
+     * @return The current image configuration's auto-exposure ROI X value
+     */
+    uint16_t autoExposureRoiX        () const { return m_exposure.autoExposureRoiX(); };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI Y value
+     *
+     * @return The current image configuration's auto-exposure ROI Y value
+     */
+    uint16_t autoExposureRoiY        () const { return m_exposure.autoExposureRoiY(); };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI width value
+     * Will return crl::multisense::Roi_Full_Image for the default setting,
+     * when the ROI covers the entire image regardless of current resolution
+     *
+     * @return The current image configuration's auto-exposure ROI width value
+     */
+    uint16_t autoExposureRoiWidth    () const { return m_exposure.autoExposureRoiWidth(); };
+
+    /**
+     * Query the current image configuration's auto-exposure ROI height value
+     * Will return crl::multisense::Roi_Full_Image for the default setting,
+     * when the ROI covers the entire image regardless of current resolution
+     *
+     * @return The current image configuration's auto-exposure ROI height value
+     */
+    uint16_t autoExposureRoiHeight   () const { return m_exposure.autoExposureRoiHeight(); };
+
+    /**
+     * Query the current image configurations camera profile
+     *
+     * @return The current image configurations camera profile
+     */
+    CameraProfile cameraProfile () const { return m_profile; };
+
+    /**
+     * Query the gamma correction factor. Gamma correction factor will be applied
+     * to all images.
+     *
+     * @return Return the gamma factor applied to images
+     */
+    float gamma() const { return m_gamma; };
+
+    /**
+     * Query whether sharpening is enabled or not on the aux camera.
+     *
+     * @return Return true if sharpening is enabled, false if sharpening is disabled.
+     */
+    bool enableSharpening() const { return m_sharpeningEnable; };
+
+    /**
+     * Query the percentage of sharpening applied to the aux luma image.
+     *
+     * @return A value within the range of 0 - 100
+     */
+    float sharpeningPercentage() const { return m_sharpeningPercentage; };
+
+    /**
+     * Query the limit of sharpening applied to the aux luma image.
+     *
+     * @return A value within the range of 0 - 255 in
+     */
+    uint8_t sharpeningLimit() const { return m_sharpeningLimit; };
+
+    /**
+     * Default constructor for a image configuration. Initializes all image
+     * configuration members to their default values
+     */
+    AuxConfig() : m_gain(1.0f),
+               m_exposure(),
+               m_wbBlue(1.0f), m_wbRed(1.0f), m_wbEnabled(true), m_wbDecay(3), m_wbThresh(0.5f),
+               m_hdrEnabled(false),
+               m_profile(User_Control),
+               m_gamma(2.0),
+               m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
+               m_fx(0), m_fy(0), m_cx(0), m_cy(0) {};
+private:
+
+    float    m_gain;
+    ExposureConfig m_exposure;
+    float    m_wbBlue;
+    float    m_wbRed;
+    bool     m_wbEnabled;
+    uint32_t m_wbDecay;
+    float    m_wbThresh;
+    bool     m_hdrEnabled;
+    CameraProfile m_profile;
     float    m_gamma;
     bool     m_sharpeningEnable;
     float    m_sharpeningPercentage;
@@ -1526,8 +1783,6 @@ private:
 protected:
 
     float    m_fx, m_fy, m_cx, m_cy;
-    float    m_tx, m_ty, m_tz;
-    float    m_roll, m_pitch, m_yaw;
 };
 
 /**
@@ -1640,104 +1895,6 @@ public:
     Data aux;
 };
 
-/**
- * Class to store sensor gains used to perform a DC level adjustment to calibrate
- * the left imager to the right imager. For more information on the specific
- * applications please email support@carnegierobotics.com
- *
- * Example code to query a devices's imager calibration:
- * \code{.cpp}
- *     //
- *     // Instantiate a channel connecting to a sensor at the factory default
- *     // IP address
- *     crl::multisense::Channel* channel;
- *     channel = crl::multisense::Channel::Create("10.66.171.21");
- *
- *     channel->setMtu(7200);
- *
- *     //
- *     // Create a instance of SensorCalibration to store the device's imager
- *     // calibration
- *     crl::multisense::image::SensorCalibration sensorCalibration;
- *
- *     //
- *     // Query the imager calibration from the Channel instance
- *     crl::multisense::Status status = channel->getSensorCalibration(sensorCalibration));
- *
- *     //
- *     // Check to see if the network configuration query succeeded
- *     if(crl::multisense::Status_Ok != status) {
- *          throw std::runtime_error("Unable to query device's imager calibration");
- *     }
- *
- *     //
- *     // Use the image calibration...
- *
- *     //
- *     // Destroy the channel instance
- *     crl::multisense::Channel::Destroy(channel);
- * \endcode
- *
- * Example code to set a devices imager calibration:
- ** \code{.cpp}
- *     //
- *     // Instantiate a channel connecting to a sensor at the factory default
- *     // IP address
- *     crl::multisense::Channel* channel;
- *     channel = crl::multisense::Channel::Create("10.66.171.21");
- *
- *     channel->setMtu(7200);
- *
- *     //
- *     // Create a instance of SensorCalibration to store the device's imager
- *     // calibration
- *     crl::multisense::image::SensorCalibration sensorCalibration;
- *
- *     //
- *     // Query the imager calibration from the Channel instance
- *     crl::multisense::Status status = channel->getSensorCalibration(sensorCalibration));
- *
- *     //
- *     // Modify the imager calibration gains based on the pre-existing default
- *     // values
- *     sensorCalibration.adc_gain[0] += 1;
- *     sensorCalibration.adc_gain[1] += 1;
- *     sensorCalibration.bl_offset[0] += 1;
- *     sensorCalibration.bl_offset[1] += 1;
- *
- *
- *     //
- *     // Send the new imager calibration to the device
- *     crl::multisense::Status status = channel->setSensorCalibration(sensorCalibration));
- *
- *     //
- *     // Check to see if the new network configuration was received
- *     if(crl::multisense::Status_Ok != status) {
- *          throw std::runtime_error("Unable to set the devices's imager calibration");
- *     }
- *
- *     //
- *     // Destroy the channel instance
- *     crl::multisense::Channel::Destroy(channel);
- * \endcode
- */
-class MULTISENSE_API SensorCalibration {
-public:
-
-    /** The CMV2000/CMV4000 ADC gain applied to each pixel value. Index 0
-     * corresponds to the left imager, index 1 corresponds to the right imager */
-    uint8_t adc_gain[2];
-
-    /** The imager black level offset for each imager. Index 0 corresponds
-     * to the left imager, index 1 corresponds to the right imager */
-    int16_t bl_offset[2];
-
-    /** The imager vramp pair for each imager. Index 0 corresponds
-    * to the left imager, index 1 corresponds to the right imager */
-    uint8_t vramp[2];
-
-};
-
 class MULTISENSE_API TransmitDelay {
 public:
 
@@ -1802,6 +1959,45 @@ public:
      * data is equal to channels * bins */
     std::vector<uint32_t> data;
 };
+
+class MULTISENSE_API RemoteHeadConfig {
+public:
+
+    /**
+     * Default constructor with no sync groups
+     */
+    RemoteHeadConfig() : m_syncGroups({})
+    {};
+
+    /**
+     * Constructor allowing definition of sync groups
+     *
+     * @param sync_groups A vector of remote head syncronization groups
+     */
+    RemoteHeadConfig(const std::vector<RemoteHeadSyncGroup> &sync_groups) :
+        m_syncGroups(sync_groups)
+    {}
+
+    /**
+     * Set the groups of remote head cameras to be synchronized
+     *
+     * @param sync_groups A vector of remote head synchronization groups to set
+     */
+    void setSyncGroups(const std::vector<RemoteHeadSyncGroup> &sync_groups) { m_syncGroups = sync_groups; }
+
+    /**
+     * Query the groups of remote head cameras to be synchronized
+     *
+     * @return The current remote head synchronization groups
+     */
+    std::vector<RemoteHeadSyncGroup> syncGroups() const { return m_syncGroups; }
+
+private:
+
+    /**The groups of remote head cameras to be synchronized */
+    std::vector<RemoteHeadSyncGroup> m_syncGroups = {};
+};
+
 
 } // namespace image
 
@@ -3018,6 +3214,7 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV2000_COLOR  = 2;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_GREY   = 3;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_CMV4000_COLOR  = 4;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_FLIR_TAU2      = 7;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_IMX104_COLOR   = 100;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0234_GREY    = 200;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0239_COLOR   = 202;

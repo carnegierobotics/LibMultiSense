@@ -84,6 +84,9 @@ set(WIRE_HEADERS
   include/MultiSense/details/wire/ImuGetInfoMessage.hh
   include/MultiSense/details/wire/AckMessage.hh
   include/MultiSense/details/wire/ApriltagDetections.hh
+  include/MultiSense/details/wire/RemoteHeadControlMessage.hh
+  include/MultiSense/details/wire/RemoteHeadConfigMessage.hh
+  include/MultiSense/details/wire/RemoteHeadGetConfigMessage.hh
 )
 set(UTILITY_HEADERS
   include/MultiSense/details/utility/Portability.hh
@@ -133,7 +136,7 @@ endif()
 #
 # Versioning...someday lets automate this somehow
 #
-set(version "4.2.0")
+set(version "6.1.0")
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
 
 target_include_directories(MultiSense PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>)
