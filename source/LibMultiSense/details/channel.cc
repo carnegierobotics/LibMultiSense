@@ -707,7 +707,7 @@ void *impl::statusThread(void *userDataP)
                 //
                 // If it took less than 5ms each direction for transmission consider this for a valid time offset
 
-                if (latency.getNanoSeconds() < 5'000'000) {
+                if (latency.getNanoSeconds() < 5000000) {
 
                     //
                     // Compute and apply the estimated time offset
