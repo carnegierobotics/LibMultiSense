@@ -1018,23 +1018,27 @@ Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
         return status;
     }
 
-    std::vector<::crl::multisense::RemoteHeadSyncGroup> grp{};
+    std::vector<RemoteHeadSyncGroup> grp;
     grp.reserve(r.syncGroups.size());
 
-    for (const auto& wire_sg : r.syncGroups)
+    for (uint32_t i = 0 ; i < r.syncGroups.size() ; ++i)
     {
-        std::vector<::crl::multisense::RemoteHeadChannel> responders{};
+        const wire::RemoteHeadSyncGroup &wire_sg = r.syncGroups[i];
+
+        std::vector<RemoteHeadChannel> responders;
         responders.reserve(wire_sg.responders.size());
 
-        for (const auto& resp : wire_sg.responders)
+        for (uint32_t j = 0 ; j < wire_sg.responders.size() ; ++j)
         {
-            responders.emplace_back(resp.channel);
+            const wire::RemoteHeadChannel &resp = wire_sg.responders[j];
+
+            responders.push_back(resp.channel);
         }
 
-        grp.emplace_back(wire_sg.controller.channel, std::move(responders));
+        grp.push_back(RemoteHeadSyncGroup(wire_sg.controller.channel, responders));
     }
 
-    c.setSyncGroups(std::move(grp));
+    c.setSyncGroups(grp);
 
     return status;
 }
@@ -1045,20 +1049,32 @@ Status impl::setRemoteHeadConfig(const image::RemoteHeadConfig& c)
 {
     wire::RemoteHeadControl r;
 
-    const auto c_sync_groups = c.syncGroups();
+    const std::vector<RemoteHeadSyncGroup> c_sync_groups = c.syncGroups();
     r.syncGroups.reserve(c_sync_groups.size());
 
-    for (const auto& c_sg : c_sync_groups)
+    for (uint32_t i = 0 ; i < c_sync_groups.size() ; ++i)
     {
+        const RemoteHeadSyncGroup &c_sg = c_sync_groups[i];
+
         std::vector<wire::RemoteHeadChannel> r_responders;
         r_responders.reserve(c_sg.responders.size());
 
-        for (const auto& c_resp : c_sg.responders)
+        for (uint32_t j = 0 ; j < c_sg.responders.size() ; ++j)
         {
-            r_responders.emplace_back(wire::RemoteHeadChannel{c_resp});
+            wire::RemoteHeadChannel wire_channel;
+            wire_channel.channel = c_sg.responders[j];
+
+            r_responders.push_back(wire_channel);
         }
 
-        r.syncGroups.emplace_back(wire::RemoteHeadSyncGroup{wire::RemoteHeadChannel{c_sg.controller}, r_responders});
+        wire::RemoteHeadChannel controller;
+        controller.channel = c_sg.controller;
+
+        wire::RemoteHeadSyncGroup sync_group;
+        sync_group.controller = controller;
+        sync_group.responders = r_responders;
+
+        r.syncGroups.push_back(sync_group);
     }
 
     return waitAck(r);

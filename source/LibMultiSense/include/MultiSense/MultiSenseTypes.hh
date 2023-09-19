@@ -1963,7 +1963,7 @@ public:
     /**
      * Default constructor with no sync groups
      */
-    RemoteHeadConfig() : m_syncGroups({})
+    RemoteHeadConfig() : m_syncGroups()
     {};
 
     /**
@@ -1992,7 +1992,7 @@ public:
 private:
 
     /**The groups of remote head cameras to be synchronized */
-    std::vector<RemoteHeadSyncGroup> m_syncGroups = {};
+    std::vector<RemoteHeadSyncGroup> m_syncGroups;
 };
 
 
