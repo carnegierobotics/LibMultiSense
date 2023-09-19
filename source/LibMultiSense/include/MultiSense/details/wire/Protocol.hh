@@ -190,6 +190,8 @@ static CRL_CONSTEXPR IdType ID_CMD_CAM_AUX_CONTROL          = 0x002a;
 static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_AUX_CONFIG       = 0x002b;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_GET_CONFIG   = 0x002c;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONTROL      = 0x002d;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_CONTROL    = 0x002e;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_GET_CONFIG = 0x002f;
 
 //
 // Data
@@ -228,6 +230,8 @@ static CRL_CONSTEXPR IdType ID_DATA_APRILTAG_DETECTIONS_MESSAGE        = 0x0122;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_APRILTAG_PARAM                 = 0x0123;
 static CRL_CONSTEXPR IdType ID_DATA_CAM_AUX_CONFIG                     = 0x0124;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONFIG                  = 0x0125;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP                      = 0x0126;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_CONFIG               = 0x0127;
 
 //
 // Data sources
@@ -268,6 +272,7 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1U<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1U<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1U<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1U<<17); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA          = (1U<<18); // same as SOURCE_RGB_LEFT
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |

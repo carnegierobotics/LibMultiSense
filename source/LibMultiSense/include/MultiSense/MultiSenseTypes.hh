@@ -147,6 +147,7 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1U<<14);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data            = (1U<<18);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -2976,6 +2977,57 @@ typedef void (*Callback)(const Header& header,
 } // namespace apriltag
 
 
+namespace secondary_app {
+
+/**
+ * Class containing Header information for a secondary_app callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+
+    /** DataSource corresponding to secondaryAppDataP*/
+    DataSource  source;
+    /** Bits per pixel in the secondaryAppData */
+    uint32_t    bitsPerPixel;
+    /** Width of the secondaryAppData */
+    uint32_t    width;
+    /** Height of the secondaryAppData*/
+    uint32_t    height;
+    /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** The time seconds value corresponding to when  the secondaryAppData was captured*/
+    uint32_t    timeSeconds;
+    /** The time microseconds value corresponding to when the secondaryAppData was captured*/
+    uint32_t    timeMicroSeconds;
+    /** The number of frames per second currently streaming from the device */
+    float       framesPerSecond;
+    /** The length of the secondaryAppData data stored in secondaryAppDataDataP */
+    uint32_t    secondaryAppDataLength;
+    /** A pointer to the secondaryAppData data */
+    const void *secondaryAppDataP;
+
+    /**
+     * Default Constructor
+     */
+    Header()
+        : source(Source_Unknown) {};
+
+    /**
+     * Member function used to determine if the data contained in the header
+     * is contained in a specific image mask
+     */
+    virtual bool inMask(DataSource mask) { return (mask & source) != 0;};
+
+};
+    /**
+     * Function pointer for receiving callbacks for apriltag data
+     */
+    typedef void (*Callback)(const Header& header,
+                             void         *userDataP);
+} // namespace secondary_app
+
 namespace system {
 
 /**
@@ -3848,6 +3900,15 @@ class MULTISENSE_API ApriltagParams {
  * PTP status data associated with a specific stamped MultiSense message
  */
 class MULTISENSE_API PtpStatus {
+};
+
+class MULTISENSE_API SecondaryAppConfig {
+public:
+    float framesPerSecond;
+
+    SecondaryAppConfig():
+        framesPerSecond(5.0f)
+        {};
 };
 
 } // namespace system

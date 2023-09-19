@@ -120,6 +120,9 @@ public:
     virtual Status addIsolatedCallback   (apriltag::Callback callback,
                                           void         *userDataP);
 
+    virtual Status addIsolatedCallback   (secondary_app::Callback callback,
+                                          void         *userDataP);
+
     virtual Status removeIsolatedCallback(image::Callback callback);
     virtual Status removeIsolatedCallback(lidar::Callback callback);
     virtual Status removeIsolatedCallback(pps::Callback   callback);
@@ -127,7 +130,7 @@ public:
     virtual Status removeIsolatedCallback(compressed_image::Callback   callback);
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
     virtual Status removeIsolatedCallback(apriltag::Callback   callback);
-
+    virtual Status removeIsolatedCallback(secondary_app::Callback   callback);
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
 
@@ -214,6 +217,10 @@ public:
     virtual Status setLargeBuffers       (const std::vector<uint8_t*>& buffers,
                                           uint32_t                     bufferSize);
     virtual Status getLocalUdpPort       (uint16_t& port);
+
+
+    virtual Status getSecondaryAppConfig (system::SecondaryAppConfig & c);
+    virtual Status setSecondaryAppConfig (const system::SecondaryAppConfig & c);
 
 private:
 
@@ -320,6 +327,7 @@ private:
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 64;
     static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE = 8;
     static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_SECONDARY_APP_QUEUE_SIZE = 8;
 
     //
     // The maximum number of directed streams
@@ -462,6 +470,7 @@ private:
     std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
+    std::list<SecondaryAppListener*>            m_secondaryAppListeners;
 
     //
     // A message signal interface
@@ -536,6 +545,7 @@ private:
                                                          compressed_image::Header& header);
     void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
     void                         dispatchAprilTagDetections(apriltag::Header& header);
+    void                         dispatchSecondaryApplication(secondary_app::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);
