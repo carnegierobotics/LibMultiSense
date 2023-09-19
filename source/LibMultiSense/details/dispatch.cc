@@ -81,6 +81,9 @@
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
+#include "MultiSense/details/wire/SecondaryAppMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
 
 #include <limits>
 
@@ -206,6 +209,21 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 
     for(it  = m_aprilTagDetectionListeners.begin();
         it != m_aprilTagDetectionListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+}
+
+//
+// Publish Secondary App Data
+
+void impl::dispatchSecondaryApplication(secondary_app::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<SecondaryAppListener*>::const_iterator it;
+
+    for(it  = m_secondaryAppListeners.begin();
+        it != m_secondaryAppListeners.end();
         it ++)
         (*it)->dispatch(header);
 }
@@ -542,6 +560,16 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         dispatchAprilTagDetections(header);
         break;
     }
+    case MSG_ID(wire::SecondaryAppData::ID):
+    {
+        wire::SecondaryAppData SecondaryApp(stream, version);
+
+        secondary_app::Header header;
+
+        //TODO: add header stuff
+        dispatchSecondaryApplication(header);
+        break;
+    }
     case MSG_ID(wire::Ack::ID):
         break; // handle below
     case MSG_ID(wire::CamConfig::ID):
@@ -609,6 +637,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));
+        break;
+    case MSG_ID(wire::SecondaryAppConfig::ID):
+        m_messages.store(wire::SecondaryAppConfig(stream, version));
         break;
     default:
 

@@ -230,6 +230,7 @@ typedef Listener<imu::Header,              imu::Callback>              ImuListen
 typedef Listener<compressed_image::Header, compressed_image::Callback> CompressedImageListener;
 typedef Listener<ground_surface::Header,   ground_surface::Callback>   GroundSurfaceSplineListener;
 typedef Listener<apriltag::Header,         apriltag::Callback>         AprilTagDetectionListener;
+typedef Listener<secondary_app::Header,    secondary_app::Callback>    SecondaryAppListener;
 
 } // namespace details
 } // namespace multisense
