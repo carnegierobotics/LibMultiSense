@@ -3850,6 +3850,54 @@ class MULTISENSE_API ApriltagParams {
 class MULTISENSE_API PtpStatus {
 };
 
+/**
+ * A struct for storing statistics for a channel object
+ */
+struct ChannelStatistics
+{
+    //
+    // The total number of sequence ids observed where headers appeared to have
+    // been missed
+    std::size_t numMissedHeaders = 0;
+
+    //
+    // The number of UDP assemblers that were dropped from the depth cache
+    // while awaiting assembly
+    std::size_t numDroppedAssemblers = 0;
+
+    //
+    // The number of image metadata messages that were received
+    std::size_t numImageMetaData = 0;
+
+    //
+    // The number of images that were dispatched
+    std::size_t numDispatchedImage = 0;
+
+    //
+    // The number of lidar scans that were dispatched
+    std::size_t numDispatchedLidar = 0;
+
+    //
+    // The number of dispatched PPS messages
+    std::size_t numDispatchedPps = 0;
+
+    //
+    // The number of dispatched IMU messages
+    std::size_t numDispatchedImu = 0;
+
+    //
+    // The number of dispatched compressed images
+    std::size_t numDispatchedCompressedImage = 0;
+
+    //
+    // The number of dispatched ground surface spline events
+    std::size_t numDispatchedGroundSurfaceSpline = 0;
+
+    //
+    // The number of dispatched AprilTag detection events
+    std::size_t numDispatchedAprilTagDetections = 0;
+};
+
 } // namespace system
 } // namespace multisense
 } // namespace crl

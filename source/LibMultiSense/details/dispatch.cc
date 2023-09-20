@@ -121,6 +121,9 @@ void impl::dispatchImage(utility::BufferStream& buffer,
         it != m_imageListeners.end();
         it ++)
         (*it)->dispatch(buffer, header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedImage += 1;
 }
 
 //
@@ -137,6 +140,9 @@ void impl::dispatchLidar(utility::BufferStream& buffer,
         it != m_lidarListeners.end();
         it ++)
         (*it)->dispatch(buffer, header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedLidar += 1;
 }
 //
 // Publish a PPS event
@@ -151,6 +157,9 @@ void impl::dispatchPps(pps::Header& header)
         it != m_ppsListeners.end();
         it ++)
         (*it)->dispatch(header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedPps += 1;
 }
 
 //
@@ -166,6 +175,9 @@ void impl::dispatchImu(imu::Header& header)
         it != m_imuListeners.end();
         it ++)
         (*it)->dispatch(header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedImu += 1;
 }
 
 //
@@ -182,6 +194,9 @@ void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
         it != m_compressedImageListeners.end();
         it ++)
         (*it)->dispatch(buffer, header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedCompressedImage += 1;
 }
 
 //
@@ -197,6 +212,9 @@ void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
         it != m_groundSurfaceSplineListeners.end();
         it ++)
         (*it)->dispatch(header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedGroundSurfaceSpline += 1;
 }
 
 //
@@ -212,6 +230,9 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
         it != m_aprilTagDetectionListeners.end();
         it ++)
         (*it)->dispatch(header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedGroundSurfaceSpline += 1;
 }
 
 
@@ -288,6 +309,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             CRL_EXCEPTION_RAW("unable to allocate metadata");
 
         m_imageMetaCache.insert(metaP->frameId, metaP); // destroys oldest
+
+        utility::ScopedLock lock(m_statisticsLock);
+        m_channelStatistics.numImageMetaData += 1;
 
         break;
     }
@@ -810,13 +834,15 @@ void impl::handle()
             // TODO: re-think this.
 
             if (0 != header.byteOffset) {
+                if (m_lastUnexpectedSequenceId != sequence) {
 #ifdef UDP_ASSEMBLER_DEBUG
-                if (m_lastUnexpectedSequenceId != sequence)
-                {
                     CRL_DEBUG("Unexpected packet without header: sequence=%" PRId64 " byteOffset=%u\n", sequence, header.byteOffset);
-                    m_lastUnexpectedSequenceId = sequence;
-                }
 #endif
+                    m_lastUnexpectedSequenceId = sequence;
+
+                    utility::ScopedLock lock(m_statisticsLock);
+                    m_channelStatistics.numDroppedAssemblers += 1;
+                }
                 continue;
             }
             else {
@@ -857,13 +883,15 @@ void impl::handle()
             // Cache the tracker, as more UDP packets are
             // forthcoming for this message.
 
-#ifdef UDP_ASSEMBLER_DEBUG
             const std::pair<bool, int64_t> willBeDropped = m_udpTrackerCache.will_drop();
             if (willBeDropped.first)
             {
+#ifdef UDP_ASSEMBLER_DEBUG
                 CRL_DEBUG("UDP Assembler dropping sequence=%" PRId64 "\n", willBeDropped.second);
-            }
 #endif
+                utility::ScopedLock lock(m_statisticsLock);
+                m_channelStatistics.numDroppedAssemblers += 1;
+            }
             m_udpTrackerCache.insert(sequence, trP);
         }
     }

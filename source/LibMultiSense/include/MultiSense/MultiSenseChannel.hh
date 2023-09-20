@@ -1204,6 +1204,14 @@ public:
      */
 
     virtual Status getLocalUdpPort(uint16_t& port) = 0;
+
+    /**
+     * Query the statistics of the channel object.
+     *
+     * @return A crl::multisense::system::ChannelStatistics object that
+     * contains various metrics of this channel object
+     */
+    virtual system::ChannelStatistics getStats() = 0;
 };
 
 
