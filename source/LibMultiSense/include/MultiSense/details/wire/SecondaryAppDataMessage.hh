@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/ImageMessage.hh
+ * @file LibMultiSense/SecondarryAppDataMessage.hh
  *
  * Copyright 2013-2022
  * Carnegie Robotics, LLC
@@ -34,8 +34,8 @@
  *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, created file.
  **/
 
-#ifndef LibMultiSense_SecondaryApp
-#define LibMultiSense_SecondaryApp
+#ifndef LibMultiSense_SecondaryAppData
+#define LibMultiSense_SecondaryAppData
 
 #include <typeinfo>
 #include <cmath>
@@ -47,7 +47,7 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ SecondaryApp {
+class WIRE_HEADER_ATTRIBS_ SecondaryAppHeader {
 public:
 
 static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP;
@@ -64,7 +64,7 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     int64_t  frameId;
     uint32_t timeSeconds;
     uint32_t timeMicroSeconds;
-    SecondaryApp()
+    SecondaryAppHeader()
         :
 #ifdef SENSORDPOD_FIRMWARE
         id(ID),
@@ -81,7 +81,7 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
 
 #ifndef SENSORPOD_FIRMWARE
 
-class SecondaryAppData : public SecondaryApp {
+class SecondaryAppData : public SecondaryAppHeader {
 public:
 
     void *dataP;

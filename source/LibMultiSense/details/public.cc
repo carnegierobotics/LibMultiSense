@@ -108,7 +108,7 @@
 #include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppGetConfigMessage.hh"
-#include "MultiSense/details/wire/SecondaryAppMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
 
 namespace crl {
 namespace multisense {

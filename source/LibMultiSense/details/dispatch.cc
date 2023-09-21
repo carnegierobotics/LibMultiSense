@@ -81,7 +81,7 @@
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
-#include "MultiSense/details/wire/SecondaryAppMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
 
@@ -566,7 +566,13 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         secondary_app::Header header;
 
-        //TODO: add header stuff
+        header.frameId = SecondaryApp.frameId;
+        header.source = SecondaryApp.source;
+        header.bitsPerPixel = SecondaryApp.bitsPerPixel;
+        header.timeSeconds = SecondaryApp.timeSeconds;
+        header.timeMicroSeconds = SecondaryApp.timeMicroSeconds;
+        header.length = SecondaryApp.length;
+
         dispatchSecondaryApplication(header);
         break;
     }

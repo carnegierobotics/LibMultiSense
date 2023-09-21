@@ -2991,10 +2991,8 @@ public:
     DataSource  source;
     /** Bits per pixel in the secondaryAppData */
     uint32_t    bitsPerPixel;
-    /** Width of the secondaryAppData */
-    uint32_t    width;
-    /** Height of the secondaryAppData*/
-    uint32_t    height;
+    /** length of the secondaryAppData */
+    uint32_t    length;
     /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */
     int64_t     frameId;
     /** The time seconds value corresponding to when  the secondaryAppData was captured*/
