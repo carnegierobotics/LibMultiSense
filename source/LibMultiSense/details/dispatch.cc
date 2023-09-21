@@ -216,7 +216,8 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 //
 // Publish Secondary App Data
 
-void impl::dispatchSecondaryApplication(secondary_app::Header& header)
+void impl::dispatchSecondaryApplication(utility::BufferStream& buffer,
+                                        secondary_app::Header& header)
 {
     utility::ScopedLock lock(m_dispatchLock);
 
@@ -225,7 +226,7 @@ void impl::dispatchSecondaryApplication(secondary_app::Header& header)
     for(it  = m_secondaryAppListeners.begin();
         it != m_secondaryAppListeners.end();
         it ++)
-        (*it)->dispatch(header);
+        (*it)->dispatch(buffer, header);
 }
 
 
@@ -572,8 +573,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.timeSeconds = SecondaryApp.timeSeconds;
         header.timeMicroSeconds = SecondaryApp.timeMicroSeconds;
         header.length = SecondaryApp.length;
-
-        dispatchSecondaryApplication(header);
+        header.secondaryAppDataP = SecondaryApp.dataP;
+        dispatchSecondaryApplication(buffer, header);
         break;
     }
     case MSG_ID(wire::Ack::ID):

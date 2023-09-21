@@ -545,7 +545,8 @@ private:
                                                          compressed_image::Header& header);
     void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
     void                         dispatchAprilTagDetections(apriltag::Header& header);
-    void                         dispatchSecondaryApplication(secondary_app::Header& header);
+    void                         dispatchSecondaryApplication(utility::BufferStream& buffer,
+                                                              secondary_app::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

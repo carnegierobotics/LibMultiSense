@@ -3012,12 +3012,6 @@ public:
     Header()
         : source(Source_Unknown) {};
 
-    /**
-     * Member function used to determine if the data contained in the header
-     * is contained in a specific image mask
-     */
-    virtual bool inMask(DataSource mask) { return (mask & source) != 0;};
-
 };
     /**
      * Function pointer for receiving callbacks for apriltag data

@@ -87,6 +87,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_ppsListeners(),
     m_imuListeners(),
     m_compressedImageListeners(),
+    m_secondaryAppListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -258,6 +259,11 @@ void impl::cleanup()
         itc != m_compressedImageListeners.end();
         itc ++)
         delete *itc;
+    std::list<SecondaryAppListener*>::const_iterator its;
+    for(its  = m_secondaryAppListeners.begin();
+        its != m_secondaryAppListeners.end();
+        its ++)
+        delete *its;
 
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();
@@ -273,6 +279,7 @@ void impl::cleanup()
     m_lidarListeners.clear();
     m_ppsListeners.clear();
     m_imuListeners.clear();
+    m_secondaryAppListeners.clear();
     m_compressedImageListeners.clear();
     m_rxLargeBufferPool.clear();
     m_rxSmallBufferPool.clear();
