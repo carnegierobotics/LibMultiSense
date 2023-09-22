@@ -107,7 +107,8 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     uint32_t    mtu            = 7200;
-
+    DataSource streams = Source_Luma_Left;
+    streams |= Source_Secondary_App_Data;
     image::Config cfg;
 
 #if WIN32
@@ -167,7 +168,10 @@ int main(int    argc,
     }
 
     //
-    // Enable apriltag profile
+    // Use standard controls to configure the camera.
+
+    cfg.setResolution(1920,1200);
+    cfg.setFps(5.0);
 
     status = channelP->getImageConfig(cfg);
     if (Status_Ok != status) {
@@ -182,10 +186,11 @@ int main(int    argc,
 
     channelP->addIsolatedCallback(secondaryAppCallback);
 
+
     //
     // Start streaming
 
-    status = channelP->startStreams(Source_Secondary_App_Data);
+    status = channelP->startStreams(streams);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
