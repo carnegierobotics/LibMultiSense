@@ -3855,47 +3855,65 @@ class MULTISENSE_API PtpStatus {
  */
 struct ChannelStatistics
 {
+    ChannelStatistics():
+        numMissedHeaders(0),
+        numDroppedAssemblers(0),
+        numImageMetaData(0),
+        numDispatchedImage(0),
+        numDispatchedLidar(0),
+        numDispatchedPps(0),
+        numDispatchedImu(0),
+        numDispatchedCompressedImage(0),
+        numDispatchedGroundSurfaceSpline(0),
+        numDispatchedAprilTagDetections(0)
+    {
+    };
+
+    ~ChannelStatistics()
+    {
+    };
+
     //
     // The total number of sequence ids observed where headers appeared to have
     // been missed
-    std::size_t numMissedHeaders = 0;
+    std::size_t numMissedHeaders;
 
     //
     // The number of UDP assemblers that were dropped from the depth cache
     // while awaiting assembly
-    std::size_t numDroppedAssemblers = 0;
+    std::size_t numDroppedAssemblers;
 
     //
     // The number of image metadata messages that were received
-    std::size_t numImageMetaData = 0;
+    std::size_t numImageMetaData;
 
     //
     // The number of images that were dispatched
-    std::size_t numDispatchedImage = 0;
+    std::size_t numDispatchedImage;
 
     //
     // The number of lidar scans that were dispatched
-    std::size_t numDispatchedLidar = 0;
+    std::size_t numDispatchedLidar;
 
     //
     // The number of dispatched PPS messages
-    std::size_t numDispatchedPps = 0;
+    std::size_t numDispatchedPps;
 
     //
     // The number of dispatched IMU messages
-    std::size_t numDispatchedImu = 0;
+    std::size_t numDispatchedImu;
 
     //
     // The number of dispatched compressed images
-    std::size_t numDispatchedCompressedImage = 0;
+    std::size_t numDispatchedCompressedImage;
 
     //
     // The number of dispatched ground surface spline events
-    std::size_t numDispatchedGroundSurfaceSpline = 0;
+    std::size_t numDispatchedGroundSurfaceSpline;
 
     //
     // The number of dispatched AprilTag detection events
-    std::size_t numDispatchedAprilTagDetections = 0;
+    std::size_t numDispatchedAprilTagDetections;
 };
 
 } // namespace system
