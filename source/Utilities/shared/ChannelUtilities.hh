@@ -35,6 +35,9 @@
 #ifndef CHANNEL_UTILITIES_HH
 #define CHANNEL_UTILITIES_HH
 
+#include <array>
+#include <memory>
+
 #include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
