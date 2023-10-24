@@ -211,7 +211,6 @@ int main(int    argc,
     // Start streaming
 
     status = channelP->startStreams(Source_Secondary_App_Data);
-    // status = channelP->startStreams(Source_Secondary_App_Data | Source_Luma_Left);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
