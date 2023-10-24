@@ -71,7 +71,7 @@ void usage(const char *programNameP)
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <ip_address>    : IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>           : default=7200" << std::endl;
-    std::cerr << "\t-f <log_file>      : FILE to log IMU data (stdout by default)" << std::endl;
+    std::cerr << "\t-f <fps>           : default=1" << std::endl;
 
     exit(1);
 }
@@ -120,13 +120,26 @@ int main(int    argc,
     // Parse args
 
     int c;
+    float fps = 1.0f;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:m:v")))
+    while(-1 != (c = getopt(argc, argvPP, "a:m:f:"))) {
         switch(c) {
-        case 'a': currentAddress = std::string(optarg);    break;
-        case 'm': mtu            = atoi(optarg);           break;
-        default: usage(*argvPP);                           break;
+        case 'a':
+            currentAddress = std::string(optarg);
+            break;
+        case 'm':
+            mtu = atoi(optarg);
+            break;
+        case 'f':
+            fps = static_cast<float>(atof(optarg));
+            break;
+        default:
+            usage(*argvPP);
+            break;
         }
+    }
+
+    std::cout << "Setting framerate: " << fps << " FPS" << std::endl;
 
     //
     // Initialize communications.
@@ -175,24 +188,38 @@ int main(int    argc,
         goto clean_out;
     }
 
+    //
+    // Change FPS
 
+    cfg.setFps(fps);
+    status = channelP->setImageConfig(cfg);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to configure FPS: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
 
     //
     // Add callbacks
 
-    channelP->addIsolatedCallback(secondaryAppCallback);
+    status = channelP->addIsolatedCallback(secondaryAppCallback);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to add secondary app callback: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
 
     //
     // Start streaming
 
-    status = channelP->startStreams(Source_Secondary_App_Data);
+    // status = channelP->startStreams(Source_Secondary_App_Data);
+    status = channelP->startStreams(Source_Secondary_App_Data | Source_Luma_Left);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 
-    while(!doneG)
+    while(!doneG) {
         usleep(100000);
+    }
 
     //
     // Stop streaming
