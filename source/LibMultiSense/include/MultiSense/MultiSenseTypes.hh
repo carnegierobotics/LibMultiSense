@@ -3073,9 +3073,6 @@ public:
  */
 class MULTISENSE_API VersionInfo {
 public:
-
-    /** The build date of libMultiSense */
-    std::string apiBuildDate;
     /** The version of libMultiSense */
     VersionType apiVersion;
 

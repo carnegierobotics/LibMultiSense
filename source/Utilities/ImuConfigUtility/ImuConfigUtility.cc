@@ -166,7 +166,6 @@ int main(int    argc,
 
     if (query) {
 		std::cout << "Version information:\n";
-		std::cout << "\tAPI build date      :  " << v.apiBuildDate << "\n";
         std::cout << "\tAPI version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
 		std::cout << "\tFirmware build date :  " << v.sensorFirmwareBuildDate << "\n";
 		std::cout << "\tFirmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
