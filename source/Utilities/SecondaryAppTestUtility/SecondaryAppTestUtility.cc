@@ -95,16 +95,17 @@ void signalHandler(int sig)
 
 void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
 {
-    std::cerr << "userDataP: " << userDataP << std::endl;
-    uint8_t* u8_user_data_ptr = (uint8_t*)userDataP;
-    std::cerr << "----------------------------" << std::endl;
+    (void) userDataP;
+    std::cerr << "userDataP: " << header.secondaryAppDataP << std::endl;
+    uint8_t* u8_secondary_data_ptr = (uint8_t*)header.secondaryAppDataP;
     std::cerr << "frameId: " << header.frameId << std::endl;
     std::cerr << "length:  " << header.length << std::endl;
-    std::cerr << "userDataP: ";
+    std::cerr << "secondaryAppDataP: ";
     for (int i = 0; i < 10; i++) {
-        std::cerr << static_cast<uint8_t>(u8_user_data_ptr[i]);
+        std::cerr << static_cast<uint32_t>(u8_secondary_data_ptr[i]);
     }
     std::cerr << std::endl;
+    std::cerr << "----------------------------" << std::endl;
 }
 
 } // anonymous
