@@ -533,6 +533,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM: return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM;
     case system::DeviceInfo::HARDWARE_REV_BCAM:                           return wire::SysDeviceInfo::HARDWARE_REV_BCAM;
     case system::DeviceInfo::HARDWARE_REV_MONO:                           return wire::SysDeviceInfo::HARDWARE_REV_MONO;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -557,6 +558,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM: return system::DeviceInfo::HARDWARE_REV_MULTISENSE_REMOTE_HEAD_MONOCAM;
     case wire::SysDeviceInfo::HARDWARE_REV_BCAM:                           return system::DeviceInfo::HARDWARE_REV_BCAM;
     case wire::SysDeviceInfo::HARDWARE_REV_MONO:                           return system::DeviceInfo::HARDWARE_REV_MONO;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
