@@ -58,6 +58,7 @@
 #include <string>
 
 #include <Utilities/portability/getopt/getopt.h>
+#include <Utilities/shared/Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
@@ -225,57 +226,6 @@ std::string assembledInfoString(const image::Header&       header,
     return ss.str();
 }
 
-bool savePgm(const std::string& fileName,
-             uint32_t           width,
-             uint32_t           height,
-             uint32_t           bitsPerPixel,
-             const std::string& comment,
-             const void         *dataP)
-{
-    std::ofstream outputStream(fileName.c_str(), std::ios::binary | std::ios::out);
-
-    if (false == outputStream.good()) {
-		std::cerr << "Failed to open \"" << fileName << "\"" << std::endl;
-        return false;
-    }
-
-    const uint32_t imageSize = height * width;
-
-    switch(bitsPerPixel) {
-    case 8:
-    {
-
-        outputStream << "P5\n"
-                     << "#" << comment << "\n"
-                     << width << " " << height << "\n"
-                     << 0xFF << "\n";
-
-        outputStream.write(reinterpret_cast<const char*>(dataP), imageSize);
-
-        break;
-    }
-    case 16:
-    {
-        outputStream << "P5\n"
-                     << "#" << comment << "\n"
-                     << width << " " << height << "\n"
-                     << 0xFFFF << "\n";
-
-        const uint16_t *imageP = reinterpret_cast<const uint16_t*>(dataP);
-
-        for (uint32_t i=0; i<imageSize; ++i) {
-            uint16_t o = htons(imageP[i]);
-            outputStream.write(reinterpret_cast<const char*>(&o), sizeof(uint16_t));
-        }
-
-        break;
-    }
-    }
-
-    outputStream.close();
-    return true;
-}
-
 bool savePgm(const std::string&         fileName,
              const image::Header&       header,
              const system::DeviceInfo&  info,
@@ -284,12 +234,12 @@ bool savePgm(const std::string&         fileName,
 {
     const std::string comment = assembledInfoString(header, info, version, calibration);
 
-    return savePgm(fileName,
-                   header.width,
-                   header.height,
-                   header.bitsPerPixel,
-                   comment,
-                   header.imageDataP);
+    return io::savePgm(fileName,
+                       header.width,
+                       header.height,
+                       header.bitsPerPixel,
+                       comment,
+                       header.imageDataP);
 }
 
 void ppsCallback(const pps::Header& header,

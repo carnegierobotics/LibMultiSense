@@ -59,6 +59,8 @@
 #include <array>
 
 #include <Utilities/portability/getopt/getopt.h>
+#include <Utilities/shared/ChannelUtilities.hh>
+#include <Utilities/shared/Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
@@ -95,75 +97,6 @@ void signalHandler(int sig)
 }
 #endif
 
-//
-// Wrapper around a Channel pointer to make cleanup easier
-
-class ChannelWrapper
-{
-    public:
-
-        ChannelWrapper(const std::string& ipAddress) :
-            channelPtr_(Channel::Create(ipAddress))
-    {
-    }
-
-        ~ChannelWrapper()
-        {
-            if (channelPtr_) {
-                Channel::Destroy(channelPtr_);
-            }
-        }
-
-        Channel* ptr() noexcept
-        {
-            return channelPtr_;
-        }
-
-    private:
-
-        ChannelWrapper(const ChannelWrapper&) = delete;
-        ChannelWrapper operator=(const ChannelWrapper&) = delete;
-
-        Channel* channelPtr_ = nullptr;
-};
-
-//
-// Wrapper to preserve image data outside of the image callback
-
-class ImageBufferWrapper
-{
-    public:
-        ImageBufferWrapper(crl::multisense::Channel* driver,
-                const crl::multisense::image::Header& data) :
-            driver_(driver),
-            callbackBuffer_(driver->reserveCallbackBuffer()),
-            data_(data)
-    {
-    }
-
-        ~ImageBufferWrapper()
-        {
-            if (driver_) {
-                driver_->releaseCallbackBuffer(callbackBuffer_);
-            }
-        }
-
-        const image::Header& data() const noexcept
-        {
-            return data_;
-        }
-
-    private:
-
-        ImageBufferWrapper(const ImageBufferWrapper&) = delete;
-        ImageBufferWrapper operator=(const ImageBufferWrapper&) = delete;
-
-        crl::multisense::Channel* driver_ = nullptr;
-        void* callbackBuffer_;
-        const image::Header data_;
-
-};
-
 struct UserData
 {
     Channel* driver = nullptr;
@@ -174,92 +107,14 @@ struct UserData
     std::pair<DataSource, DataSource> colorSource;
 };
 
-template<typename T>
-constexpr std::array<uint8_t, 3> ycbcrToBgr(const crl::multisense::image::Header& luma,
-                                            const crl::multisense::image::Header& chroma,
-                                            const size_t u,
-                                            const size_t v)
-{
-    const uint8_t* lumaP = reinterpret_cast<const uint8_t*>(luma.imageDataP);
-    const uint8_t* chromaP = reinterpret_cast<const uint8_t*>(chroma.imageDataP);
-
-    const size_t luma_offset = (v * luma.width) + u;
-    const size_t chroma_offset = 2 * (((v / 2) * (luma.width / 2)) + (u / 2));
-
-    const float px_y = static_cast<float>(lumaP[luma_offset]);
-    const float px_cb = static_cast<float>(chromaP[chroma_offset + 0]) - 128.0f;
-    const float px_cr = static_cast<float>(chromaP[chroma_offset + 1]) - 128.0f;
-
-    float px_r = px_y + 1.13983f * px_cr;
-    float px_g = px_y - 0.39465f * px_cb - 0.58060f * px_cr;
-    float px_b = px_y + 2.03211f * px_cb;
-
-    if (px_r < 0.0f)        px_r = 0.0f;
-    else if (px_r > 255.0f) px_r = 255.0f;
-    if (px_g < 0.0f)        px_g = 0.0f;
-    else if (px_g > 255.0f) px_g = 255.0f;
-    if (px_b < 0.0f)        px_b = 0.0f;
-    else if (px_b > 255.0f) px_b = 255.0f;
-
-    return { {static_cast<uint8_t>(px_r), static_cast<uint8_t>(px_g), static_cast<uint8_t>(px_b)} };
-}
-
-void ycbcrToBgr(const crl::multisense::image::Header& luma,
-                const crl::multisense::image::Header& chroma,
-                uint8_t* output)
-{
-    if (luma.bitsPerPixel != 8 || chroma.bitsPerPixel != 16)
-    {
-        throw std::runtime_error("Only 8-bit luma and 16-bit chroma images are supported by the \
-                                  ycbcrToBgr conversion function");
-    }
-
-    const size_t rgb_stride = luma.width * 3;
-
-    for (uint32_t y = 0; y < luma.height; ++y)
-    {
-        const size_t row_offset = y * rgb_stride;
-
-        for (uint32_t x = 0; x < luma.width; ++x)
-        {
-            memcpy(output + row_offset + (3 * x), ycbcrToBgr<uint8_t>(luma, chroma, x, y).data(), 3);
-        }
-    }
-}
-
-bool savePpm(const std::string& fileName,
-        uint32_t           width,
-        uint32_t           height,
-        const void* dataP)
-{
-    std::ofstream outputStream(fileName.c_str(), std::ios::out | std::ios::binary);
-
-    if (false == outputStream.good()) {
-        std::cerr << "Failed to open \"" << fileName << "\"" << std::endl;
-        return false;
-    }
-
-    const uint32_t imageSize = height * width * 3;
-
-
-    outputStream << "P6\n"
-        << width << " " << height << "\n"
-        << 0xFF << "\n";
-
-    outputStream.write(reinterpret_cast<const char*>(dataP), imageSize);
-
-    outputStream.close();
-    return true;
-}
-
 bool saveColor(const std::string& fileName,
-        std::shared_ptr<const ImageBufferWrapper> leftRect,
-        std::shared_ptr<const ImageBufferWrapper> leftChromaRect)
+               std::shared_ptr<const ImageBufferWrapper> leftRect,
+               std::shared_ptr<const ImageBufferWrapper> leftChromaRect)
 {
     std::vector<uint8_t> output(leftRect->data().width * leftRect->data().height * 3);
     ycbcrToBgr(leftRect->data(), leftChromaRect->data(), output.data());
-    // something like this
-    savePpm(fileName, leftRect->data().width, leftRect->data().height, output.data());
+
+    io::savePpm(fileName, leftRect->data().width, leftRect->data().height, output.data());
     return true;
 }
 
