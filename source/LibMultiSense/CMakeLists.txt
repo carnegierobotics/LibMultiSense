@@ -10,8 +10,8 @@ include(CheckFunctionExists)
 
 check_function_exists(vasprintf HAVE_VASPRINTF)
 
-option (MULTISENSE_USE_MONOTONIC_CLOCK "Build LibMultiSense to use CLOCK_MONOTONIC for network time sync. Defaults to OFF." OFF)
-option (MULTISENSE_UDP_ASSEMBLER_DEBUG "Build LibMultiSense to print any failures to assemble a message. Defaults to OFF." OFF)
+option(MULTISENSE_USE_MONOTONIC_CLOCK "Build LibMultiSense to use CLOCK_MONOTONIC for network time sync. Defaults to OFF." OFF)
+option(MULTISENSE_UDP_ASSEMBLER_DEBUG "Build LibMultiSense to print any failures to assemble a message. Defaults to OFF." OFF)
 option(MULTISENSE_INSTALL_WIRE_PROTOCOL "Install low level wire headers, for integration with external event systems" OFF)
 
 #
@@ -164,6 +164,10 @@ include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiSenseConfig.cmake.in
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
   INSTALL_DESTINATION lib/cmake/MultiSense)
+
+if (BUILD_TESTS)
+    add_subdirectory(test)
+endif()
 
 # create install targets
 install(TARGETS MultiSense

@@ -52,62 +52,6 @@ namespace multisense {
 namespace details {
 namespace utility {
 
-
-#if defined (WIN32)
-
-// Windows probably doesn't provider timeradd or timersub macros, so provide
-// a definition here
-#ifndef timeradd
-#define timeradd(a, b, result)                     \
-do                                                 \
-{                                                  \
-  (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;    \
-  (result)->tv_usec = (a)->tv_usec + (b)->tv_usec; \
-  if ((result)->tv_usec >= 1000000)                \
-  {                                                \
-    (result)->tv_sec++;                            \
-    (result)->tv_usec -= 1000000;                  \
-  }                                                \
-} while (0)
-#endif
-
-#ifndef timersub
-#define timersub(a, b, result)                     \
-do                                                 \
-{                                                  \
-  (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;    \
-  (result)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
-  if ((result)->tv_usec < 0)                       \
-  {                                                \
-    (result)->tv_sec--;                            \
-    (result)->tv_usec += 1000000;                  \
-  }                                                \
-} while (0)
-#endif
-
-//
-// The FILETIME structure in Windows measures time in 100-nanosecond intervals
-// since 1601-Jan-01. The timeval structure measures time in second intervals
-// since 1970-Jan-01. This function computes the number of seconds (as a double)
-// that we need to apply as an offset to ensure that clock times are all tracked
-// from the same epoch.
-static ULARGE_INTEGER initOffsetSecondsSince1970 ()
-{
-    SYSTEMTIME epochTimeAsSystemTime = { 1970, 1, 0, 1, 0, 0, 0, 0 };
-    FILETIME epochTimeAsFileTime;
-    SystemTimeToFileTime (&epochTimeAsSystemTime, &epochTimeAsFileTime);
-
-    ULARGE_INTEGER epochTime;
-    epochTime.LowPart = epochTimeAsFileTime.dwLowDateTime;
-    epochTime.HighPart = epochTimeAsFileTime.dwHighDateTime;
-
-    return epochTime;
-}
-
-ULARGE_INTEGER TimeStamp::offsetSecondsSince1970 = initOffsetSecondsSince1970 ();
-
-#endif
-
 /*
  * Constructor. Empty. We rely on the getter methods to do
  * things that are more useful.
@@ -134,8 +78,10 @@ TimeStamp::TimeStamp(int64_t nanoseconds)
 {
     this->time.tv_sec = (long)(nanoseconds / 1000000000);
 
-    int64_t usec = (nanoseconds - (static_cast<int64_t>(this->time.tv_sec) * 1000000000)) / 1000;
-    this->time.tv_usec = static_cast<int32_t>(usec);
+    const int32_t usec_sign = (this->time.tv_sec == 0 && nanoseconds < 0) ? -1 : 1;
+
+    int64_t usec = abs(nanoseconds - (static_cast<int64_t>(this->time.tv_sec) * 1000000000)) / 1000;
+    this->time.tv_usec = usec_sign * static_cast<int32_t>(usec);
 }
 
 /*
@@ -240,25 +186,19 @@ int32_t TimeStamp::getMicroSeconds() const
 
 int64_t TimeStamp::getNanoSeconds() const
 {
-    return static_cast<int64_t>(this->time.tv_sec) * 1000000000 + static_cast<int64_t>(this->time.tv_usec) * 1000;
+    const int64_t sign = this->time.tv_sec < 0 ? -1 : 1;
+
+    return sign * (static_cast<int64_t>(abs(this->time.tv_sec)) * 1000000000 + static_cast<int64_t>(this->time.tv_usec) * 1000);
 }
 
 TimeStamp TimeStamp::operator+(TimeStamp const& other) const
 {
-    struct timeval tmp_time;
-    tmp_time.tv_sec = 0;
-    tmp_time.tv_usec = 0;
-    timeradd(&this->time, &other.time, &tmp_time);
-    return tmp_time;
+    return TimeStamp(getNanoSeconds() + other.getNanoSeconds());
 }
 
 TimeStamp TimeStamp::operator-(TimeStamp const& other) const
 {
-    struct timeval tmp_time;
-    tmp_time.tv_sec = 0;
-    tmp_time.tv_usec = 0;
-    timersub(&this->time, &other.time, &tmp_time);
-    return tmp_time;
+    return TimeStamp(getNanoSeconds() - other.getNanoSeconds());
 }
 
 TimeStamp& TimeStamp::operator+=(TimeStamp const& other)
