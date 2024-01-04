@@ -160,6 +160,9 @@ public:
     virtual Status getRemoteHeadConfig   (image::RemoteHeadConfig& c);
     virtual Status setRemoteHeadConfig   (const image::RemoteHeadConfig& c);
 
+    virtual Status startRecalibration    (void);
+    virtual Status getRecalibrationStatus(uint32_t & status, float & progress);
+
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 

@@ -44,6 +44,8 @@
 #include "MultiSense/details/wire/AuxCamConfigMessage.hh"
 #include "MultiSense/details/wire/CamConfigMessage.hh"
 #include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
+#include "MultiSense/details/wire/RecalibrationControlMessage.hh"
+#include "MultiSense/details/wire/RecalibrationGetStatusMessage.hh"
 #include "MultiSense/details/wire/CompressedImageMessage.hh"
 #include "MultiSense/details/wire/DisparityMessage.hh"
 #include "MultiSense/details/wire/ImageMessage.hh"

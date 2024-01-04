@@ -47,9 +47,6 @@
 #include <MultiSense/details/wire/AuxCamConfigMessage.hh>
 #include <MultiSense/details/wire/AuxCamControlMessage.hh>
 #include <MultiSense/details/wire/AuxCamGetConfigMessage.hh>
-#include <MultiSense/details/wire/RemoteHeadConfigMessage.hh>
-#include <MultiSense/details/wire/RemoteHeadControlMessage.hh>
-#include <MultiSense/details/wire/RemoteHeadGetConfigMessage.hh>
 #include <MultiSense/details/wire/CamGetHistoryMessage.hh>
 #include <MultiSense/details/wire/CamHistoryMessage.hh>
 #include <MultiSense/details/wire/CamSetResolutionMessage.hh>
@@ -74,6 +71,13 @@
 #include <MultiSense/details/wire/LidarPollMotorMessage.hh>
 #include <MultiSense/details/wire/LidarSetMotorMessage.hh>
 #include <MultiSense/details/wire/PollMotorInfoMessage.hh>
+#include <MultiSense/details/wire/RecalibrationControlMessage.hh>
+#include <MultiSense/details/wire/RecalibrationGetStatusMessage.hh>
+#include <MultiSense/details/wire/RecalibrationStatusMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadGetConfigMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadConfigMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadControlMessage.hh>
+#include <MultiSense/details/wire/RemoteHeadGetConfigMessage.hh>
 #include <MultiSense/details/wire/StatusRequestMessage.hh>
 #include <MultiSense/details/wire/StatusResponseMessage.hh>
 #include <MultiSense/details/wire/StreamControlMessage.hh>

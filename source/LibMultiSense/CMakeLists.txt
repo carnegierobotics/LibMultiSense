@@ -88,6 +88,9 @@ set(WIRE_HEADERS
   include/MultiSense/details/wire/RemoteHeadControlMessage.hh
   include/MultiSense/details/wire/RemoteHeadConfigMessage.hh
   include/MultiSense/details/wire/RemoteHeadGetConfigMessage.hh
+  include/MultiSense/details/wire/RecalibrationControlMessage.hh
+  include/MultiSense/details/wire/RecalibrationGetStatusMessage.hh
+  include/MultiSense/details/wire/RecalibrationStatusMessage.hh
 )
 set(UTILITY_HEADERS
   include/MultiSense/details/utility/Portability.hh
