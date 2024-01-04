@@ -105,6 +105,10 @@
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
 
+#include "MultiSense/details/wire/RecalibrationControlMessage.hh"
+#include "MultiSense/details/wire/RecalibrationGetStatusMessage.hh"
+#include "MultiSense/details/wire/RecalibrationStatusMessage.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -1080,7 +1084,28 @@ Status impl::setRemoteHeadConfig(const image::RemoteHeadConfig& c)
     return waitAck(r);
 }
 
+Status impl::getRecalibrationStatus(uint32_t & status, float & progress)
+{
+  wire::RecalibrationStatus r;
 
+  Status returnStatus = waitData(wire::RecalibrationGetStatus(), r);
+  if (Status_Ok != returnStatus)
+    return returnStatus;
+
+  status   = r.status;
+  progress = r.progress;
+
+  return Status_Ok;
+}
+
+Status impl::startRecalibration(void)
+{
+  wire::RecalibrationControl r;
+
+  r.enable = true;
+
+  return waitAck(r);
+}
 
 //
 // Get camera calibration
