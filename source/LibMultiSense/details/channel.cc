@@ -76,6 +76,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_rxLargeBufferPool(),
     m_rxSmallBufferPool(),
     m_imageMetaCache(IMAGE_META_CACHE_DEPTH),
+    m_featureDetectorMetaCache(FEATURE_DETECTOR_META_CACHE_DEPTH),
     m_udpAssemblerMap(),
     m_dispatchLock(),
     m_streamLock(),
@@ -88,6 +89,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_ppsListeners(),
     m_imuListeners(),
     m_compressedImageListeners(),
+    m_featureDetectorListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -259,6 +261,11 @@ void impl::cleanup()
         itc != m_compressedImageListeners.end();
         itc ++)
         delete *itc;
+    std::list<FeatureDetectorListener*>::const_iterator itf;
+    for(itf  = m_featureDetectorListeners.begin();
+        itf != m_featureDetectorListeners.end();
+        itf ++)
+        delete *itf;
 
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();
@@ -275,6 +282,7 @@ void impl::cleanup()
     m_ppsListeners.clear();
     m_imuListeners.clear();
     m_compressedImageListeners.clear();
+    m_featureDetectorListeners.clear();
     m_rxLargeBufferPool.clear();
     m_rxSmallBufferPool.clear();
 
@@ -459,6 +467,8 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Disparity_Cost)         wire_mask |= wire::SOURCE_DISPARITY_COST;
     if (mask & Source_Jpeg_Left)              wire_mask |= wire::SOURCE_JPEG_LEFT;
     if (mask & Source_Rgb_Left)               wire_mask |= wire::SOURCE_RGB_LEFT;
+    if (mask & Source_Feature_Left)           wire_mask |= wire::SOURCE_FEATURE_LEFT;
+    if (mask & Source_Feature_Right)          wire_mask |= wire::SOURCE_FEATURE_RIGHT;
     if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
     if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
     if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
@@ -498,6 +508,8 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_DISPARITY_COST)    api_mask |= Source_Disparity_Cost;
     if (mask & wire::SOURCE_JPEG_LEFT)         api_mask |= Source_Jpeg_Left;
     if (mask & wire::SOURCE_RGB_LEFT)          api_mask |= Source_Rgb_Left;
+    if (mask & wire::SOURCE_FEATURE_LEFT)      api_mask |= Source_Feature_Left;
+    if (mask & wire::SOURCE_FEATURE_RIGHT)     api_mask |= Source_Feature_Left;
     if (mask & wire::SOURCE_LIDAR_SCAN)        api_mask |= Source_Lidar_Scan;
     if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu;
     if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;

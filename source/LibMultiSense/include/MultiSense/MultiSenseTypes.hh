@@ -130,6 +130,8 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1U<<11);
 static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1U<<12);
 static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_Feature_Left                  = (1U<<18);
+static CRL_CONSTEXPR DataSource Source_Feature_Right                 = (1U<<19);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
 static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1U<<23);
@@ -2975,6 +2977,46 @@ typedef void (*Callback)(const Header& header,
 
 } // namespace apriltag
 
+namespace feature_detector {
+
+  struct Feature {
+    uint16_t x;
+    uint16_t y;
+    uint8_t angle;
+    uint8_t resp;
+    uint8_t octave;
+    uint8_t descriptor;
+  };
+
+  class MULTISENSE_API Header : public HeaderBase {
+  public:
+
+      uint32_t source;
+      int64_t  frameId;
+      uint32_t timeSeconds;
+      uint32_t timeNanoSeconds;
+      int64_t  ptpNanoSeconds;
+      uint16_t octaveWidth;
+      uint16_t octaveHeight;
+      uint16_t numOctaves;
+      uint16_t scaleFactor;
+      uint16_t motionStatus;
+      uint16_t averageXMotion;
+      uint16_t averageYMotion;
+      uint16_t numFeatures;
+      uint16_t numDescriptors;
+      std::vector<Feature> features;
+      std::vector<uint32_t> descriptors;
+  };
+
+  /**
+   * Function pointer for receiving callbacks for apriltag data
+   */
+  typedef void (*Callback)(const Header& header,
+                           void         *userDataP);
+
+} // namespace feature_detector
+
 
 namespace system {
 
@@ -3847,6 +3889,69 @@ class MULTISENSE_API ApriltagParams {
 };
 
 /**
+ * Class containing parameters for the camera features
+ * application which may be running on the specifically commissioned MultiSenses.
+ *
+ * Example code to set a device's apriltag parameters:
+ ** \code{.cpp}
+ *     //
+ *     // Instantiate a channel connecting to a sensor at the factory default
+ *     // IP address
+ *     crl::multisense::Channel* channel;
+ *     channel = crl::multisense::Channel::Create("10.66.171.21");
+ *
+ *     channel->setMtu(7200);
+ *
+ *     //TODO: improve example
+ *     FeatureDetectorConfig params;
+ *
+ *     //
+ *     // Send the new external calibration to the device
+ *     crl::multisense::Status status = channel->setFeatureDetectorConfig(params));
+ *
+ *     //
+ *     // Check to see if the new network configuration was received
+ *     if(crl::multisense::Status_Ok != status) {
+ *          throw std::runtime_error("Unable to set the devices's apriltag params");
+ *     }
+ *
+ *     //
+ *     // Destroy the channel instance
+ *     crl::multisense::Channel::Destroy(channel);
+ * \endcode
+ */
+class MULTISENSE_API FeatureDetectorConfig {
+    public:
+
+        /**
+         * numberOfFeatures
+         * The maximum features to be searched for in one image.
+         */
+        uint32_t numberOfFeatures;
+
+        /**
+         * grouping
+         * Enable/Disable the grouping feature in feaure detection.
+         * TODO: improve description
+         */
+        uint32_t grouping;
+
+        /**
+         * motion
+         * Enable / disable motion detection in the image.
+         * TODO: improve description
+         */
+        uint32_t motion;
+
+        /** Default constructor */
+        FeatureDetectorConfig():
+          numberOfFeatures(10000),
+          grouping(1),
+          motion(0)
+        {};
+};
+
+/**
  * PTP status data associated with a specific stamped MultiSense message
  */
 class MULTISENSE_API PtpStatus {
@@ -3916,6 +4021,10 @@ struct ChannelStatistics
     //
     // The number of dispatched AprilTag detection events
     std::size_t numDispatchedAprilTagDetections;
+
+    //
+    // The number of dispatached feature detections
+    std::size_t numDispatchedFeatureDetections;
 };
 
 } // namespace system

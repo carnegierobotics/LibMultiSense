@@ -82,6 +82,12 @@
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
 
+#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
+
 #include <limits>
 
 #define __STDC_FORMAT_MACROS
@@ -233,6 +239,24 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 
     utility::ScopedLock statsLock(m_statisticsLock);
     m_channelStatistics.numDispatchedGroundSurfaceSpline += 1;
+}
+
+//
+// Publish an AprilTag detection event
+
+void impl::dispatchFeatureDetections(feature_detector::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<FeatureDetectorListener*>::const_iterator it;
+
+    for(it  = m_featureDetectorListeners.begin();
+        it != m_featureDetectorListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedFeatureDetections++;
 }
 
 
@@ -568,6 +592,43 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         }
 
         dispatchAprilTagDetections(header);
+        break;
+    }
+    case MSG_ID(wire::FeatureDetector::ID):
+    {
+        wire::FeatureDetector featureDetector(stream, version);
+
+        const wire::FeatureDetectorMeta * metaP = m_featureDetectorMetaCache.find(featureDetector.frameId);
+        if (NULL == metaP)
+          break;
+
+        feature_detector::Header header;
+        header.timeSeconds    =metaP->timeSeconds;
+        header.timeNanoSeconds=metaP->timeNanoSeconds;
+        header.ptpNanoSeconds =metaP->ptpNanoSeconds;
+        header.octaveWidth    =metaP->octaveWidth;
+        header.octaveHeight   =metaP->octaveHeight;
+        header.numOctaves     =metaP->numOctaves;
+        header.scaleFactor    =metaP->scaleFactor;
+        header.motionStatus   =metaP->motionStatus;
+        header.averageXMotion =metaP->averageXMotion;
+        header.averageYMotion =metaP->averageYMotion;
+        header.numFeatures    =metaP->numFeatures;
+        header.numDescriptors =metaP->numDescriptors;
+        size_t i = 0;
+        uint8_t * dataP = (uint8_t *)featureDetector.dataP;
+
+        for (i = 0; i < featureDetector.numFeatures; i+=sizeof(wire::Feature)) {
+          feature_detector::Feature f = *(feature_detector::Feature *)&dataP[i];
+          header.features.push_back(f);
+        }
+
+        for ( /*i=startDescriptor*/;i < featureDetector.numDescriptors; i+=sizeof(uint32_t)) {
+          uint32_t d = *(uint32_t *)&dataP[i];
+          header.descriptors.push_back(d);
+        }
+
+        dispatchFeatureDetections(header);
         break;
     }
     case MSG_ID(wire::Ack::ID):
