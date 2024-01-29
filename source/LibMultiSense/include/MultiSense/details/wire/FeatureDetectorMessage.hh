@@ -76,8 +76,13 @@ public:
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
+    static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
     static CRL_CONSTEXPR VersionType VERSION    = 1;
 
+#ifdef SENSORPOD_FIRMWARE
+    IdType                 id;
+    VersionType            version;
+#endif // SENSORPOD_FIRMWARE
     uint32_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
@@ -88,7 +93,7 @@ public:
 #ifdef SENSORPOD_FIRMWARE
         id(ID),
         version(VERSION),
-#endif
+#endif // SENSORPOD_FIRMWARE
         source(0),
         frameId(0),
         numFeatures(0),

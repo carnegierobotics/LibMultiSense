@@ -48,10 +48,12 @@ namespace wire {
 
   class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
-  #ifdef SENSORPOD_FIRMWARE
       static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR_META;
       static CRL_CONSTEXPR VersionType VERSION    = 1;
-  #endif
+#ifdef SENSORPOD_FIRMWARE
+      IdType                 id;
+      VersionType            version;
+#endif // SENSORPOD_FIRMWARE
       uint32_t               length;
       uint32_t               source;
       int64_t                frameId;
@@ -72,7 +74,7 @@ namespace wire {
   #ifdef SENSORPOD_FIRMWARE
           id(ID),
           version(VERSION),
-  #endif
+  #endif // SENSORPOD_FIRMWARE
           length(0),
           source(0),
           frameId(0),
