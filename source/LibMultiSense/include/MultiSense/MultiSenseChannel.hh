@@ -1044,6 +1044,26 @@ public:
     virtual Status setApriltagParams (const system::ApriltagParams& params) = 0;
 
     /**
+     * Set the feature detector config associated with the MultiSense device
+     *
+     * @param params The feature detector parameters to send to the on-camera feature detector
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status setFeatureDetectorConfig (const system::FeatureDetectorConfig& params) = 0;
+
+    /**
+     * Get the feature detector parameters associated with the MultiSense device
+     *
+     * @param params The feature detector parameters to send to the on-camera feature detector
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig& params) = 0;
+
+    /**
      * Flash a new FPGA bitstream file to the sensor.
      *
      * WARNING: This member should not be used directly. Improper usage can
