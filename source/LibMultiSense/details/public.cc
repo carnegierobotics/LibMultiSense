@@ -1522,7 +1522,7 @@ Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
 }
 Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
 {
-    wire::FeatureDetectorConfig f;
+    wire::FeatureDetectorControl f;
 
     f.numberOfFeatures = c.numberOfFeatures;
     f.grouping = c.grouping;
