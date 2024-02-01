@@ -631,6 +631,16 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         dispatchFeatureDetections(header);
         break;
     }
+    case MSG_ID(wire::FeatureDetectorMeta::ID):
+    {
+        wire::FeatureDetectorMeta *metaP = new (std::nothrow) wire::FeatureDetectorMeta(stream, version);
+
+        if (NULL == metaP)
+            CRL_EXCEPTION_RAW("unable to allocate metadata");
+
+        m_featureDetectorMetaCache.insert(metaP->frameId, metaP); // destroys oldest
+        break;
+    }
     case MSG_ID(wire::Ack::ID):
         break; // handle below
     case MSG_ID(wire::CamConfig::ID):
