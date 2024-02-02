@@ -385,14 +385,14 @@ int main(int    argc,
         goto clean_out;
     }
 
-	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
+    std::cout << "API build date      :  " << v.apiBuildDate << "\n";
     std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
-	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
-	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
-	std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
-	std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
-	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
-	std::cout << std::dec;
+    std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
+    std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
+    std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
+    std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
+    std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
+    std::cout << std::dec;
 
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
@@ -407,6 +407,7 @@ int main(int    argc,
 
     {
         image::Config cfg;
+        bool quarter_res = false;
 
         status = channelP->getImageConfig(cfg);
         if (Status_Ok != status) {
@@ -420,7 +421,14 @@ int main(int    argc,
 
             cfg.setResolution(operatingMode.width, operatingMode.height);
             cfg.setDisparities(operatingMode.disparities);
-            cfg.setFps(30.0);
+            if (operatingMode.width == 960) {
+              quarter_res = true;
+              cfg.setFps(20.0);
+            }
+            else
+            {
+              cfg.setFps(5.0);
+            }
 
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
@@ -442,7 +450,10 @@ int main(int    argc,
         std::cout << "Current feature detector settings: " << fcfg.numberOfFeatures << " : " <<
           fcfg.grouping << " : " << fcfg.motion << "\n";
 
-        fcfg.numberOfFeatures=1500;
+        if (quarter_res)
+            fcfg.numberOfFeatures=1500;
+        else
+            fcfg.numberOfFeatures=6000;
         fcfg.grouping=1;
         fcfg.motion=1;
 
