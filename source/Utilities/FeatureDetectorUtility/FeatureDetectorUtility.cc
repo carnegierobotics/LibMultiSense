@@ -442,7 +442,7 @@ int main(int    argc,
         std::cout << "Current feature detector settings: " << fcfg.numberOfFeatures << " : " <<
           fcfg.grouping << " : " << fcfg.motion << "\n";
 
-        fcfg.numberOfFeatures=6000;
+        fcfg.numberOfFeatures=1500;
         fcfg.grouping=1;
         fcfg.motion=1;
 
@@ -505,7 +505,7 @@ int main(int    argc,
     // Start streaming
 
     status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
-                                    Source_Feature_Left);
+                                    Source_Feature_Left|Source_Feature_Right);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;

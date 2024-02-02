@@ -603,6 +603,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
           break;
 
         feature_detector::Header header;
+        header.source         =featureDetector.source;
+        header.frameId        =metaP->frameId;
         header.timeSeconds    =metaP->timeSeconds;
         header.timeNanoSeconds=metaP->timeNanoSeconds;
         header.ptpNanoSeconds =metaP->ptpNanoSeconds;
@@ -613,8 +615,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.motionStatus   =metaP->motionStatus;
         header.averageXMotion =metaP->averageXMotion;
         header.averageYMotion =metaP->averageYMotion;
-        header.numFeatures    =metaP->numFeatures;
-        header.numDescriptors =metaP->numDescriptors;
+        header.numFeatures    =featureDetector.numFeatures;
+        header.numDescriptors =featureDetector.numDescriptors;
         size_t i = 0;
         uint8_t * dataP = (uint8_t *)featureDetector.dataP;
 
