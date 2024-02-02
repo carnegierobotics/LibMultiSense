@@ -56,6 +56,9 @@
 #include <signal.h>
 #include <string.h>
 #include <string>
+#include <map>
+#include <chrono>
+#include <ctime>
 
 #include <Utilities/portability/getopt/getopt.h>
 
@@ -68,12 +71,19 @@ namespace {  // anonymous
 
 volatile bool doneG = false;
 
+struct featureDetectionTime
+{
+  std::chrono::time_point<std::chrono::system_clock> imageTime;
+  std::chrono::time_point<std::chrono::system_clock> featureTime;
+};
+
 struct UserData
 {
     Channel *channelP;
     system::VersionInfo version;
     system::DeviceInfo deviceInfo;
     image::Calibration calibration;
+    std::map<int64_t, featureDetectionTime> elapsedTime;
 };
 
 void usage(const char *programNameP)
@@ -308,20 +318,56 @@ void imageCallback(const image::Header& header,
                 userData->calibration);
     }
 
+    if (header.source == Source_Luma_Left) {
+
+        auto it = userData->elapsedTime.find(header.frameId);
+        if (it == userData->elapsedTime.end()) {
+          featureDetectionTime t;
+          t.imageTime = std::chrono::system_clock::now();
+          userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(header.frameId, t));
+        }
+        else
+        {
+          it->second.imageTime = std::chrono::system_clock::now();
+          std::cout <<" Image received after feature: " << header.frameId
+                    <<" Delta: "
+                    << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+                    << "ms\n";
+        }
+
+    }
     lastFrameId = header.frameId;
 
     image::Histogram histogram;
 
-	if (Status_Ok != userData->channelP->getImageHistogram(header.frameId, histogram))
-		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
+    if (Status_Ok != userData->channelP->getImageHistogram(header.frameId, histogram))
+        std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
 void featureDetectorCallback(const feature_detector::Header& header,
                    void                *userDataP)
 {
-    (void)userDataP;
 
-    //TODO: do more with data
+    UserData *userData = reinterpret_cast<UserData*>(userDataP);
+
+    if (header.source == Source_Feature_Left) {
+
+        auto it = userData->elapsedTime.find(header.frameId);
+        if (it == userData->elapsedTime.end()) {
+            std::cout << "Unexpected result, image not yet received for frame: " << header.frameId << "\n";
+            featureDetectionTime t;
+            t.featureTime = std::chrono::system_clock::now();
+            userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(header.frameId, t));
+        }
+        else
+        {
+            it->second.featureTime = std::chrono::system_clock::now();
+            std::cout << "Feature received after image " << header.frameId
+            << " Delta: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+            << "ms\n";
+        }
+    }
     std::cout << "Source: " << header.source << "\n";
     std::cout << "Frame:  " << header.frameId << "\n";
     std::cout << "Number of features:     " << header.numFeatures    << "\n";
@@ -376,6 +422,8 @@ int main(int    argc,
     image::Calibration calibration;
     system::DeviceInfo info;
     UserData userData;
+    bool quarter_res = false;
+
 
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
@@ -407,7 +455,6 @@ int main(int    argc,
 
     {
         image::Config cfg;
-        bool quarter_res = false;
 
         status = channelP->getImageConfig(cfg);
         if (Status_Ok != status) {
@@ -508,14 +555,13 @@ int main(int    argc,
     // Add callbacks
 
     channelP->addIsolatedCallback(imageCallback, Source_All, &userData);
-    // channelP->addIsolatedCallback(laserCallback, channelP);
-    channelP->addIsolatedCallback(featureDetectorCallback, channelP);
-    // channelP->addIsolatedCallback(ppsCallback, channelP);
+    channelP->addIsolatedCallback(featureDetectorCallback, &userData);
 
     //
     // Start streaming
 
-    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
+    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
+                                    (operatingMode.supportedDataSources & Source_Luma_Right) |
                                     Source_Feature_Left|Source_Feature_Right);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
