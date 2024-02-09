@@ -80,7 +80,6 @@
 namespace crl {
 namespace multisense {
 
-
 /**
  * Sensor version typedef used to store a given version number
  */
@@ -181,7 +180,6 @@ static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 /** User would like to run apriltag detector on the camera*/
 static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
 
-
 /**
  * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
  * Compression is only supported on newer S27/S30 MultiSense variants.
@@ -270,8 +268,6 @@ static CRL_CONSTEXPR TriggerSource Trigger_External    = 1;
 static CRL_CONSTEXPR TriggerSource Trigger_External_Inverted    = 2;
 /** Syncronize cameras on integer timestamps when using PTP */
 static CRL_CONSTEXPR TriggerSource Trigger_PTP    = 3;
-
-
 
 /**
  * Base Header class for sensor callbacks
@@ -1998,9 +1994,6 @@ private:
 
 } // namespace image
 
-
-
-
 namespace lidar {
 
 /** The type of a single laser range measurement  */
@@ -2156,7 +2149,6 @@ public:
 };
 
 } // namespace lidar
-
 
 namespace lighting {
 
@@ -2499,9 +2491,6 @@ public:
 
 } // namespace lighting
 
-
-
-
 namespace pps {
 
 /**
@@ -2532,7 +2521,6 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace pps
-
 
 namespace imu {
 
@@ -2974,7 +2962,6 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace apriltag
-
 
 namespace system {
 
@@ -3850,6 +3837,7 @@ class MULTISENSE_API ApriltagParams {
  * PTP status data associated with a specific stamped MultiSense message
  */
 class MULTISENSE_API PtpStatus {
+    
 };
 
 /**

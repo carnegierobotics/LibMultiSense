@@ -190,6 +190,7 @@ static CRL_CONSTEXPR IdType ID_CMD_CAM_AUX_CONTROL          = 0x002a;
 static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_AUX_CONFIG       = 0x002b;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_GET_CONFIG   = 0x002c;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONTROL      = 0x002d;
+static CRL_CONSTEXPR IdType ID_CMD_GET_PTP_STATUS           = 0x002e;
 
 //
 // Data
@@ -228,6 +229,7 @@ static CRL_CONSTEXPR IdType ID_DATA_APRILTAG_DETECTIONS_MESSAGE        = 0x0122;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_APRILTAG_PARAM                 = 0x0123;
 static CRL_CONSTEXPR IdType ID_DATA_CAM_AUX_CONFIG                     = 0x0124;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONFIG                  = 0x0125;
+static CRL_CONSTEXPR IdType ID_DATA_PTP_STATUS                         = 0x0126;
 
 //
 // Data sources
