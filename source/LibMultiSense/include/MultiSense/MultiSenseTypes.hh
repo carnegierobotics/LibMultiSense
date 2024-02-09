@@ -3837,7 +3837,29 @@ class MULTISENSE_API ApriltagParams {
  * PTP status data associated with a specific stamped MultiSense message
  */
 class MULTISENSE_API PtpStatus {
-    
+    public:
+        /** Status of grandmaster clock. True if synchronized to nonlocal GM*/
+        bool gm_present;
+
+        // TODO: Grandmaster identity string (8 bytes?)
+
+        /** Offset of camera PHC to PTP grandmaster clock in nanosec */
+        int master_offset;
+
+        /** Estimated delay of syncronization messages from master in nanosec */
+        int path_delay;
+
+        /** Number of network hops from GM to local clock */    
+        int steps_removed;
+
+
+
+        /** Default constructor for a single PtpStatus object */
+        PtpStatus():
+            gm_present(false),
+            master_offset(0),
+            path_delay(0),
+            steps_removed(0) {};
 };
 
 /**

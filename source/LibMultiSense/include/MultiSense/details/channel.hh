@@ -172,7 +172,7 @@ public:
 
     virtual Status getImageHistogram     (int64_t frameId, image::Histogram& histogram);
 
-    virtual Status getPtpStatus          (int64_t frameId, system::PtpStatus& ptpStatus);
+    virtual Status getPtpStatus          (system::PtpStatus& ptpStatus);
 
     virtual Status getDeviceModes        (std::vector<system::DeviceMode>& modes);
 

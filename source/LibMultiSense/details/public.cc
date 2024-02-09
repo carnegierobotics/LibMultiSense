@@ -558,34 +558,41 @@ Status impl::getImageHistogram(int64_t           frameId,
     return Status_Error;
 }
 
-Status impl::getPtpStatus(int64_t frameId,
-                          system::PtpStatus &ptpStatus)
+Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
 {
-    try {
-
-        utility::ScopedLock lock(m_imageMetaCache.mutex());
-
-        const wire::ImageMeta *metaP = m_imageMetaCache.find_nolock(frameId);
-        if (NULL == metaP) {
-            CRL_DEBUG("no meta cached for frameId %ld",
-                      static_cast<long int>(frameId));
-            return Status_Failed;
-        }
-
-        ptpStatus = system::PtpStatus();
-
-        return Status_Ok;
-
-    }
-    catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
-        return Status_Exception;
-    }
-    catch (...) {
-        CRL_DEBUG ("%s\n", "unknown exception");
+    if (m_getStatusReturnStatus != Status_Ok){
+        return m_getStatusReturnStatus;
     }
 
-    return Status_Error;
+    status.uptime = static_cast<double>(m_statusResponseMessage.uptime.getNanoSeconds()) * 1e-9;
+
+    status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==
+        wire::StatusResponse::STATUS_GENERAL_OK;
+    status.laserOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_OK) ==
+        wire::StatusResponse::STATUS_LASER_OK;
+    status.laserMotorOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_MOTOR_OK) ==
+        wire::StatusResponse::STATUS_LASER_MOTOR_OK;
+    status.camerasOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CAMERAS_OK) ==
+        wire::StatusResponse::STATUS_CAMERAS_OK;
+    status.imuOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_IMU_OK) ==
+        wire::StatusResponse::STATUS_IMU_OK;
+    status.externalLedsOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_EXTERNAL_LED_OK) ==
+        wire::StatusResponse::STATUS_EXTERNAL_LED_OK;
+    status.processingPipelineOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_PIPELINE_OK) ==
+        wire::StatusResponse::STATUS_PIPELINE_OK;
+
+    status.powerSupplyTemperature = m_statusResponseMessage.temperature0;
+    status.fpgaTemperature = m_statusResponseMessage.temperature1;
+    status.leftImagerTemperature = m_statusResponseMessage.temperature2;
+    status.rightImagerTemperature = m_statusResponseMessage.temperature3;
+
+    status.inputVoltage = m_statusResponseMessage.inputVolts;
+    status.inputCurrent = m_statusResponseMessage.inputCurrent;
+    status.fpgaPower = m_statusResponseMessage.fpgaPower;
+    status.logicPower = m_statusResponseMessage.logicPower;
+    status.imagerPower = m_statusResponseMessage.imagerPower;
+
+    return Status_Ok;
 }
 
 //
