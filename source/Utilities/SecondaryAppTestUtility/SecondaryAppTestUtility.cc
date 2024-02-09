@@ -55,6 +55,10 @@
 #include <iomanip>
 #include <algorithm>
 
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
@@ -93,18 +97,29 @@ void signalHandler(int sig)
 }
 #endif
 
+void imageCallback(const image::Header& header, void *userDataP) 
+{
+    std::cerr << "Got image!" << std::endl;
+    (void) userDataP;
+
+    std::cerr << "Image frameId: " << header.frameId << std::endl;
+    std::cerr << "Image height: " << header.height << std::endl;
+    std::cerr << "Image width: " << header.width << std::endl;
+    cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
+    cv::imwrite("image.png", luma);
+    std::cerr << "****************************" << std::endl;
+}
+
 void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
 {
+    std::cerr << "Got mask!" << std::endl;
     (void) userDataP;
-    std::cerr << "userDataP: " << header.secondaryAppDataP << std::endl;
     uint8_t* u8_secondary_data_ptr = (uint8_t*)header.secondaryAppDataP;
     std::cerr << "frameId: " << header.frameId << std::endl;
     std::cerr << "length:  " << header.length << std::endl;
-    std::cerr << "secondaryAppDataP: ";
-    for (int i = 0; i < 10; i++) {
-        std::cerr << static_cast<uint32_t>(u8_secondary_data_ptr[i]);
-    }
-    std::cerr << std::endl;
+    cv::Mat data = cv::Mat(160, 256, CV_8UC1, u8_secondary_data_ptr);
+    data *= 100;
+    cv::imwrite("data.png", data);
     std::cerr << "----------------------------" << std::endl;
 }
 
@@ -215,12 +230,18 @@ int main(int    argc,
         goto clean_out;
     }
 
+    status = channelP->addIsolatedCallback(imageCallback, Source_Luma_Rectified_Aux);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to add image callback: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
     //
     // Start streaming
 
-    std::cout << "Subscription Flags: " << std::bitset<32>(Source_Secondary_App_Data) << std::endl;
+    std::cout << "Subscription Flags: " << std::bitset<32>(Source_Secondary_App_Data | Source_Luma_Rectified_Aux) << std::endl;
 
-    status = channelP->startStreams(Source_Secondary_App_Data);
+    status = channelP->startStreams(Source_Secondary_App_Data | Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;

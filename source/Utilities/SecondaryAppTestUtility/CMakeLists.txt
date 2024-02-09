@@ -15,9 +15,8 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
 
     set(CMAKE_CXX_STANDARD 14)
 
-    #
-    # Setup the executable that we will use.
-    #
+    find_package(OpenCV REQUIRED)
+    include_directories(${OpenCV_INCLUDE_DIRS})
 
     #
     # Setup the executable that we will use.
@@ -29,7 +28,7 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
     # Specify libraries against which to link.
     #
 
-    target_link_libraries (SecondaryAppTestUtility ${MULTISENSE_UTILITY_LIBS})
+    target_link_libraries (SecondaryAppTestUtility ${MULTISENSE_UTILITY_LIBS} ${OpenCV_LIBS})
 
     #
     # Specify the install location
