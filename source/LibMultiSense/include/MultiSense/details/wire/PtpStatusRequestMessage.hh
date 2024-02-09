@@ -3,7 +3,7 @@
  *
  * This message contains a request for status information.
  *
- * Copyright 2013-2022
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,12 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-05-08, ekratzer@carnegierobotics.com, PR1044, Significant rewrite.
- *   2012-04-12, dtascione@carnegierobotics.com, RD1020, Created file.
+ *   2024-02-09, dbalish@carnegierobotics.com, IRAD2033, Create file from status message header
  **/
 
-#ifndef LibMultiSense_StatusRequestMessage
-#define LibMultiSense_StatusRequestMessage
+#ifndef LibMultiSense_PtpStatusRequestMessage
+#define LibMultiSense_PtpStatusRequestMessage
 
 #include "MultiSense/details/utility/Portability.hh"
 
@@ -47,16 +46,16 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class StatusRequest {
+class PtpStatusRequest {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_GET_STATUS;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_GET_PTP_STATUS;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
     // Constructors
 
-    StatusRequest(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    StatusRequest() {};
+    PtpStatusRequest(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    PtpStatusRequest() {};
 
     //
     // Serialization routine

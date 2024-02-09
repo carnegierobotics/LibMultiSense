@@ -48,6 +48,7 @@
 #include "MultiSense/details/wire/Protocol.hh"
 #include "MultiSense/details/wire/ImageMetaMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 
 #ifdef WIN32

@@ -1,9 +1,9 @@
 /**
- * @file LibMultiSense/StatusResponseMessage.hh
+ * @file LibMultiSense/PtpStatusResponseMessage.hh
  *
  * This message contains status information.
  *
- * Copyright 2013-2022
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,12 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-05-08, ekratzer@carnegierobotics.com, PR1044, Significant rewrite.
- *   2012-04-12, dtascione@carnegierobotics.com, RD1020, Created file.
+ *   2024-02-09, dbalish@carnegierobotics.com, IRAD2033, Create file from status message header
  **/
 
-#ifndef LibMultiSense_StatusResponseMessage
-#define LibMultiSense_StatusResponseMessage
+#ifndef LibMultiSense_PtpStatusResponseMessage
+#define LibMultiSense_PtpStatusResponseMessage
 
 #include "MultiSense/details/utility/Portability.hh"
 
@@ -47,9 +46,9 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class StatusResponse {
+class PtpStatusResponse {
 public:
-    static CRL_CONSTEXPR IdType      ID                  = ID_DATA_STATUS;
+    static CRL_CONSTEXPR IdType      ID                  = ID_DATA_PTP_STATUS;
     static CRL_CONSTEXPR VersionType VERSION             = 3;
 	static float INVALID_TEMPERATURE() { return -99999.0f; };
 
@@ -88,8 +87,8 @@ public:
     //
     // Constructors
 
-    StatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    StatusResponse() : uptime(),
+    PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    PtpStatusResponse() : uptime(),
                        status(0),
                        temperature0(INVALID_TEMPERATURE()),
                        temperature1(INVALID_TEMPERATURE()),

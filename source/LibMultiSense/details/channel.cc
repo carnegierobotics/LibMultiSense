@@ -42,6 +42,8 @@
 #include "MultiSense/details/wire/SysGetMtuMessage.hh"
 #include "MultiSense/details/wire/StatusRequestMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusRequestMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionRequestMessage.hh"
 #include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
 
@@ -673,6 +675,8 @@ void *impl::statusThread(void *userDataP)
 
     while(selfP->m_threadsRunning) {
 
+        //
+        // Try to get device status message
         try {
 
             //
@@ -721,6 +725,50 @@ void *impl::statusThread(void *userDataP)
 
                     selfP->applySensorTimeOffset(offset);
                 }
+
+                //
+                // Cache the status message
+
+                selfP->m_statusResponseMessage = msg;
+                selfP->m_getStatusReturnStatus = Status_Ok;
+            } else {
+                selfP->m_getStatusReturnStatus = Status_TimedOut;
+            }
+
+        } catch (const std::exception& e) {
+
+            CRL_DEBUG("exception: %s\n", e.what());
+
+        } catch (...) {
+
+            CRL_DEBUG_RAW("unknown exception\n");
+        }
+
+        //
+        // Try to get device PTP status 
+        try {
+
+            //
+            // Setup handler for the status response
+
+            ScopedWatch ack(wire::PtpStatusResponse::ID, selfP->m_watch);
+
+            //
+            // Send the status request
+            
+            selfP->publish(wire::PtpStatusRequest());
+
+            //
+            // Wait for the response
+
+            Status status;
+            if (ack.wait(status, DEFAULT_ACK_TIMEOUT())) {
+
+                //
+                // Extract the response payload
+
+                wire::StatusResponse msg;
+                selfP->m_messages.extract(msg);
 
                 //
                 // Cache the status message

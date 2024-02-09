@@ -40,6 +40,7 @@
 
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 
 #include "MultiSense/details/wire/AuxCamConfigMessage.hh"
 #include "MultiSense/details/wire/CamConfigMessage.hh"
