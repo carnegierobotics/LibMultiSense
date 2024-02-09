@@ -617,17 +617,17 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.averageYMotion =metaP->averageYMotion;
         header.numFeatures    =featureDetector.numFeatures;
         header.numDescriptors =featureDetector.numDescriptors;
-        size_t i = 0;
-        uint8_t * dataP = (uint8_t *)featureDetector.dataP;
 
-        for (i = 0; i < featureDetector.numFeatures; i+=sizeof(wire::Feature)) {
-          feature_detector::Feature f = *(feature_detector::Feature *)&dataP[i];
-          header.features.push_back(f);
+        size_t i = 0, buf_off = 0;
+        uint8_t * dataP = (uint8_t *)featureDetector.dataP;
+        for (i = 0; i < featureDetector.numFeatures; i++, buf_off+=sizeof(wire::Feature)) {
+            feature_detector::Feature f = *(feature_detector::Feature *)&dataP[buf_off];
+            header.features.push_back(f);
         }
 
-        for ( /*i=startDescriptor*/;i < featureDetector.numDescriptors; i+=sizeof(uint32_t)) {
-          uint32_t d = *(uint32_t *)&dataP[i];
-          header.descriptors.push_back(d);
+        for ( /*i=startDescriptor*/;i < featureDetector.numFeatures+featureDetector.numDescriptors; i++, buf_off+=sizeof(uint32_t)) {
+            uint32_t d = *(uint32_t *)&dataP[buf_off];
+            header.descriptors.push_back(d);
         }
 
         dispatchFeatureDetections(header);

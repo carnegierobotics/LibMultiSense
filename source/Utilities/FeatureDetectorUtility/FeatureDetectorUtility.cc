@@ -370,6 +370,8 @@ void featureDetectorCallback(const feature_detector::Header& header,
     }
     std::cout << "Source: " << header.source << "\n";
     std::cout << "Frame:  " << header.frameId << "\n";
+    std::cout << "Motion X: " << header.averageXMotion << "\n";
+    std::cout << "Motion Y: " << header.averageYMotion << "\n";
     std::cout << "Number of features:     " << header.numFeatures    << "\n";
     std::cout << "Number of descriptors:  " << header.numDescriptors << "\n";
 }
