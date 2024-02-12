@@ -40,6 +40,7 @@
 #define LibMultiSense_PtpStatusResponseMessage
 
 #include "MultiSense/details/utility/Portability.hh"
+#include <iostream>
 
 namespace crl {
 namespace multisense {
@@ -50,55 +51,27 @@ class PtpStatusResponse {
 public:
     static CRL_CONSTEXPR IdType      ID                  = ID_DATA_PTP_STATUS;
     static CRL_CONSTEXPR VersionType VERSION             = 3;
-	static float INVALID_TEMPERATURE() { return -99999.0f; };
 
     //
-    // Subsytem status
+    // Camera PTP status parameters
+    
+    bool gm_present;
+    int64_t master_offset;
 
-    static CRL_CONSTEXPR uint32_t STATUS_GENERAL_OK      = (1<<0);
-    static CRL_CONSTEXPR uint32_t STATUS_LASER_OK        = (1<<1);
-    static CRL_CONSTEXPR uint32_t STATUS_LASER_MOTOR_OK  = (1<<2);
-    static CRL_CONSTEXPR uint32_t STATUS_CAMERAS_OK      = (1<<3);
-    static CRL_CONSTEXPR uint32_t STATUS_IMU_OK          = (1<<4);
-    static CRL_CONSTEXPR uint32_t STATUS_EXTERNAL_LED_OK = (1<<5);
-    static CRL_CONSTEXPR uint32_t STATUS_PIPELINE_OK     = (1<<6);
+    /** Estimated delay of syncronization messages from master in nanosec */
+    int64_t path_delay;
 
-    //
-    // The reported uptime for the system
-    //
-
-    utility::TimeStamp uptime;
-    uint32_t           status;
-    float              temperature0; // celsius
-    float              temperature1;
-
-    //
-    // Version 2 additions
-
-    float              temperature2; // celsius
-    float              temperature3;
-
-    float              inputVolts;    // volts
-    float              inputCurrent;  // amps
-    float              fpgaPower;     // watts
-    float              logicPower;
-    float              imagerPower;
+    /** Number of network hops from GM to local clock */    
+    uint16_t steps_removed;
 
     //
     // Constructors
 
     PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    PtpStatusResponse() : uptime(),
-                       status(0),
-                       temperature0(INVALID_TEMPERATURE()),
-                       temperature1(INVALID_TEMPERATURE()),
-                       temperature2(INVALID_TEMPERATURE()),
-                       temperature3(INVALID_TEMPERATURE()),
-                       inputVolts(-1.0),
-                       inputCurrent(-1.0),
-                       fpgaPower(-1.0),
-                       logicPower(-1.0),
-                       imagerPower(-1.0) {};
+    PtpStatusResponse() : gm_present(false), 
+                          master_offset(0), 
+                          path_delay(0), 
+                          steps_removed(0) {};
 
     //
     // Serialization routine
@@ -107,27 +80,18 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & uptime;
-        message & status;
-        message & temperature0;
-        message & temperature1;
-
-        if (version >= 2) {
-            message & temperature2;
-            message & temperature3;
-            message & inputVolts;
-            message & inputCurrent;
-            message & fpgaPower;
-            message & logicPower;
-            message & imagerPower;
-        }
-
-        //
-        // Enable the LED OK and pipeline OK status for older messages
-        if (version < 3) {
-            status |= STATUS_EXTERNAL_LED_OK;
-            status |= STATUS_PIPELINE_OK;
-        }
+        (void) version;
+        (void) message;
+        std::cout << "PtpStatusResponse::serialize" << std::endl;
+        // if (version >= 2) {
+        //     message & temperature2;
+        //     message & temperature3;
+        //     message & inputVolts;
+        //     message & inputCurrent;
+        //     message & fpgaPower;
+        //     message & logicPower;
+        //     message & imagerPower;
+        // }
     }
 };
 

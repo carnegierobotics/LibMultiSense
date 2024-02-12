@@ -767,16 +767,18 @@ void *impl::statusThread(void *userDataP)
                 //
                 // Extract the response payload
 
-                wire::StatusResponse msg;
+                wire::PtpStatusResponse msg;
                 selfP->m_messages.extract(msg);
 
                 //
                 // Cache the status message
 
-                selfP->m_statusResponseMessage = msg;
-                selfP->m_getStatusReturnStatus = Status_Ok;
+                selfP->m_ptpStatusResponseMessage = msg;
+                selfP->m_getPtpStatusReturnStatus = Status_Ok;
+                CRL_DEBUG("Good PTP status response: %d", status);
             } else {
-                selfP->m_getStatusReturnStatus = Status_TimedOut;
+                selfP->m_getPtpStatusReturnStatus = Status_TimedOut;
+                CRL_DEBUG("PTP status response timed out\n");
             }
 
         } catch (const std::exception& e) {

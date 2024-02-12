@@ -560,37 +560,16 @@ Status impl::getImageHistogram(int64_t           frameId,
 
 Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
 {
-    if (m_getStatusReturnStatus != Status_Ok){
-        return m_getStatusReturnStatus;
+    if (m_getPtpStatusReturnStatus != Status_Ok){
+        return m_getPtpStatusReturnStatus;
     }
 
-    status.uptime = static_cast<double>(m_statusResponseMessage.uptime.getNanoSeconds()) * 1e-9;
+    ptpStatus.gm_present = m_ptpStatusResponseMessage.gm_present;
+    ptpStatus.master_offset = m_ptpStatusResponseMessage.master_offset;
+    ptpStatus.path_delay = m_ptpStatusResponseMessage.path_delay;
+    ptpStatus.steps_removed = m_ptpStatusResponseMessage.steps_removed;
 
-    status.systemOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_GENERAL_OK) ==
-        wire::StatusResponse::STATUS_GENERAL_OK;
-    status.laserOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_OK) ==
-        wire::StatusResponse::STATUS_LASER_OK;
-    status.laserMotorOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_LASER_MOTOR_OK) ==
-        wire::StatusResponse::STATUS_LASER_MOTOR_OK;
-    status.camerasOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CAMERAS_OK) ==
-        wire::StatusResponse::STATUS_CAMERAS_OK;
-    status.imuOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_IMU_OK) ==
-        wire::StatusResponse::STATUS_IMU_OK;
-    status.externalLedsOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_EXTERNAL_LED_OK) ==
-        wire::StatusResponse::STATUS_EXTERNAL_LED_OK;
-    status.processingPipelineOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_PIPELINE_OK) ==
-        wire::StatusResponse::STATUS_PIPELINE_OK;
 
-    status.powerSupplyTemperature = m_statusResponseMessage.temperature0;
-    status.fpgaTemperature = m_statusResponseMessage.temperature1;
-    status.leftImagerTemperature = m_statusResponseMessage.temperature2;
-    status.rightImagerTemperature = m_statusResponseMessage.temperature3;
-
-    status.inputVoltage = m_statusResponseMessage.inputVolts;
-    status.inputCurrent = m_statusResponseMessage.inputCurrent;
-    status.fpgaPower = m_statusResponseMessage.fpgaPower;
-    status.logicPower = m_statusResponseMessage.logicPower;
-    status.imagerPower = m_statusResponseMessage.imagerPower;
 
     return Status_Ok;
 }

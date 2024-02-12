@@ -506,8 +506,17 @@ private:
     wire::StatusResponse m_statusResponseMessage;
 
     //
+    // Cached PtpStatusResponseMessage from the MultiSense
+
+    wire::PtpStatusResponse m_ptpStatusResponseMessage;
+
+    //
     // Status set in statusThread indicating if the request for status msg timed out
     Status               m_getStatusReturnStatus;
+
+    //
+    // Status set in statusThread indicating if if there is a valid ptp status message
+    Status               m_getPtpStatusReturnStatus;
 
     //
     // Channel statistics and corresponding mutex
