@@ -49,7 +49,7 @@ namespace wire {
 class PtpStatusRequest {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_GET_PTP_STATUS;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 3;
 
     //
     // Constructors
