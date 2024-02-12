@@ -747,38 +747,24 @@ void *impl::statusThread(void *userDataP)
         //
         // Try to get device PTP status 
         try {
+            wire::PtpStatusResponse ptpStatusResponse;
+            Status status = selfP->waitData(wire::PtpStatusRequest(), ptpStatusResponse, DEFAULT_ACK_TIMEOUT(), 1);
 
-            //
-            // Setup handler for the status response
-
-            ScopedWatch ack(wire::PtpStatusResponse::ID, selfP->m_watch);
-
-            //
-            // Send the status request
-            
-            selfP->publish(wire::PtpStatusRequest());
-
-            //
-            // Wait for the response
-
-            Status status;
-            if (ack.wait(status, DEFAULT_ACK_TIMEOUT())) {
-
-                //
-                // Extract the response payload
-
-                wire::PtpStatusResponse msg;
-                selfP->m_messages.extract(msg);
-
-                //
-                // Cache the status message
-
-                selfP->m_ptpStatusResponseMessage = msg;
+            if (status == Status_Ok) {
+                selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
                 selfP->m_getPtpStatusReturnStatus = Status_Ok;
-                CRL_DEBUG("Good PTP status response: %d", status);
+                CRL_DEBUG("PTP message received!\n");
+                CRL_DEBUG("Grandmaster present: %d\t Path delay: %ld\t Offset: %ld\t Steps removed: %d\n", 
+                ptpStatusResponse.gm_present, 
+                ptpStatusResponse.path_delay, 
+                ptpStatusResponse.master_offset, 
+                ptpStatusResponse.steps_removed);
+            } else if (status == Status_Unknown){
+                selfP->m_getPtpStatusReturnStatus = Status_Unsupported;
+                CRL_DEBUG("PTP status message unsupported!\n");
             } else {
-                selfP->m_getPtpStatusReturnStatus = Status_TimedOut;
-                CRL_DEBUG("PTP status response timed out\n");
+                selfP->m_getPtpStatusReturnStatus = status;
+                CRL_DEBUG("PTP message error: %d\n", status);
             }
 
         } catch (const std::exception& e) {

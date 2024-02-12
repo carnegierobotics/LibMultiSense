@@ -480,32 +480,18 @@ int main(int    argc,
     channelP->addIsolatedCallback(laserCallback, channelP);
     channelP->addIsolatedCallback(ppsCallback, channelP);
 
-    //
-    // Start streaming
-
-    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
-                                    (operatingMode.supportedDataSources & Source_Lidar_Scan));
-    if (Status_Ok != status) {
-		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
-        goto clean_out;
-    }
 
     while(!doneG)
     {
-        system::StatusMessage statusMessage;
-        status = channelP->getDeviceStatus(statusMessage);
+        system::PtpStatus ptpStatus;
+        status = channelP->getPtpStatus(ptpStatus);
+
 
         if (Status_Ok == status) {
-            std::cout << "Uptime: " << statusMessage.uptime << ", " <<
-            "SystemOk: " << statusMessage.systemOk << ", " <<
-            "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
-            "Left Imager Temp: " << statusMessage.leftImagerTemperature << ", " <<
-            "Right Imager Temp: " << statusMessage.rightImagerTemperature << ", " <<
-            "Input Voltage: " << statusMessage.inputVoltage << ", " <<
-            "Input Current: " << statusMessage.inputCurrent << ", " <<
-            "FPGA Power: " << statusMessage.fpgaPower << ", " <<
-            "Logic Power: " << statusMessage.logicPower << ", " <<
-            "Imager Power: " << statusMessage.imagerPower << std::endl;
+            printf("GM present: %d\tSteps Removed: %d\tOffset: %ld\tPath Delay%ld\n",
+            ptpStatus.gm_present, ptpStatus.steps_removed, ptpStatus.master_offset, ptpStatus.path_delay);
+        } else {
+            std::cerr << "Failed to get PTP status: " << Channel::statusString(status) << std::endl;
         }
 
 

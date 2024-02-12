@@ -69,7 +69,7 @@ public:
 
     PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     PtpStatusResponse() : gm_present(0), 
-                          master_offset(0), 
+                          master_offset(0),  
                           path_delay(0), 
                           steps_removed(0) {};
 
@@ -81,17 +81,17 @@ public:
                        const VersionType version)
     {
         (void) version;
-        (void) message;
         std::cout << "PtpStatusResponse::serialize" << std::endl;
-        // if (version >= 2) {
-        //     message & temperature2;
-        //     message & temperature3;
-        //     message & inputVolts;
-        //     message & inputCurrent;
-        //     message & fpgaPower;
-        //     message & logicPower;
-        //     message & imagerPower;
-        // }
+        message & gm_present;
+        message & master_offset;
+        message & path_delay;
+        message & steps_removed;
+        // Print the values of the fields
+        std::cout << "gm_present: " << gm_present << std::endl;
+        std::cout << "master_offset: " << master_offset << std::endl;
+        std::cout << "path_delay: " << path_delay << std::endl;
+        std::cout << "steps_removed: " << steps_removed << std::endl;
+        
     }
 };
 

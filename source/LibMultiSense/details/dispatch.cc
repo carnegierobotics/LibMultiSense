@@ -639,6 +639,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));
         break;
+    case MSG_ID(wire::PtpStatusResponse::ID):
+        m_messages.store(wire::PtpStatusResponse(stream, version));
+        break;
     default:
 
         CRL_DEBUG("unknown message received: id=%d, version=%d\n",

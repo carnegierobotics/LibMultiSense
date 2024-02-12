@@ -569,8 +569,6 @@ Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
     ptpStatus.path_delay = m_ptpStatusResponseMessage.path_delay;
     ptpStatus.steps_removed = m_ptpStatusResponseMessage.steps_removed;
 
-
-
     return Status_Ok;
 }
 
