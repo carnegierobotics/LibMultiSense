@@ -46,6 +46,7 @@
 #endif
 
 #include <bitset>
+#include <chrono>
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -54,6 +55,7 @@
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
+#include <vector>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -69,6 +71,8 @@ using namespace crl::multisense;
 namespace {  // anonymous
 
 volatile bool doneG         = false;
+
+volatile uint64_t callback_counter = 0;
 
 void usage(const char *programNameP)
 {
@@ -99,28 +103,21 @@ void signalHandler(int sig)
 
 void imageCallback(const image::Header& header, void *userDataP) 
 {
-    std::cerr << "Got image!" << std::endl;
     (void) userDataP;
 
-    std::cerr << "Image frameId: " << header.frameId << std::endl;
-    std::cerr << "Image height: " << header.height << std::endl;
-    std::cerr << "Image width: " << header.width << std::endl;
     cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
     cv::imwrite("image.png", luma);
-    std::cerr << "****************************" << std::endl;
 }
 
 void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
 {
-    std::cerr << "Got mask!" << std::endl;
     (void) userDataP;
     uint8_t* u8_secondary_data_ptr = (uint8_t*)header.secondaryAppDataP;
-    std::cerr << "frameId: " << header.frameId << std::endl;
-    std::cerr << "length:  " << header.length << std::endl;
     cv::Mat data = cv::Mat(160, 256, CV_8UC1, u8_secondary_data_ptr);
     data *= 100;
     cv::imwrite("data.png", data);
-    std::cerr << "----------------------------" << std::endl;
+
+    callback_counter++;
 }
 
 } // anonymous
@@ -143,7 +140,7 @@ int main(int    argc,
     // Parse args
 
     int c;
-    float fps = 1.0f;
+    float fps = 30.0f;
 
     while(-1 != (c = getopt(argc, argvPP, "a:m:f:"))) {
         switch(c) {
@@ -247,9 +244,11 @@ int main(int    argc,
         goto clean_out;
     }
 
+    auto start = std::chrono::high_resolution_clock::now();
     while(!doneG) {
-        usleep(100000);
+        // usleep(100000);
     }
+    auto end = std::chrono::high_resolution_clock::now();
 
     //
     // Stop streaming
@@ -261,7 +260,11 @@ int main(int    argc,
 
     //
     // Report simple stats
-
+    std::chrono::duration<float_t> inference_runtime = end - start;
+    std::cout << "Iteration Count: " << callback_counter << " iter" << std::endl;
+    std::cout << "Per-Iteration Inference Runtime: " << inference_runtime.count() / callback_counter << " s/iter" << std::endl;
+    std::cout << "Total Inference Runtime: " << inference_runtime.count() << " s" << std::endl;
+    std::cout << "FPS: " << callback_counter / inference_runtime.count() << std::endl;
 
 clean_out:
 
