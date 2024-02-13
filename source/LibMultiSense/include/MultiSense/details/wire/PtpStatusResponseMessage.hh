@@ -65,13 +65,18 @@ public:
     uint16_t steps_removed;
 
     //
+    // GM Clock identity (8 bytes, 0xXXXXXX.XXXX.XXXXXX)
+    uint8_t gm_identity[8];
+
+    //
     // Constructors
 
     PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     PtpStatusResponse() : gm_present(0), 
                           master_offset(0),  
                           path_delay(0), 
-                          steps_removed(0) {};
+                          steps_removed(0),
+                          gm_identity{0,0,0,0,0,0,0,0} {};
 
     //
     // Serialization routine
@@ -81,17 +86,11 @@ public:
                        const VersionType version)
     {
         (void) version;
-        std::cout << "PtpStatusResponse::serialize" << std::endl;
         message & gm_present;
         message & master_offset;
         message & path_delay;
         message & steps_removed;
-        // Print the values of the fields
-        std::cout << "gm_present: " << gm_present << std::endl;
-        std::cout << "master_offset: " << master_offset << std::endl;
-        std::cout << "path_delay: " << path_delay << std::endl;
-        std::cout << "steps_removed: " << steps_removed << std::endl;
-        
+        message & gm_identity;
     }
 };
 
