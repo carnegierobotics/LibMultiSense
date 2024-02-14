@@ -745,36 +745,37 @@ void *impl::statusThread(void *userDataP)
         }
 
         //
-        // Try to get device PTP status 
-        try {
+        // Try to get device PTP status if FW supports it
+        if (selfP->m_sensorVersion.firmwareVersion >= 0x60A /*FW release v6.10*/ ){
+            try {
 
-            //
-            // Setup handler for the PTP status response
+                //
+                // Setup handler for the PTP status response
 
-            wire::PtpStatusResponse ptpStatusResponse;
-            Status status = selfP->waitData(wire::PtpStatusRequest(), ptpStatusResponse, DEFAULT_ACK_TIMEOUT(), 1);
+                wire::PtpStatusResponse ptpStatusResponse;
+                Status status = selfP->waitData(wire::PtpStatusRequest(), ptpStatusResponse, DEFAULT_ACK_TIMEOUT(), 1);
 
-            //
-            // Cache the PTP status message
-            
-            if (status == Status_Ok) {
-                selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
-                selfP->m_getPtpStatusReturnStatus = Status_Ok;
-            } else if (status == Status_Unknown){
-                selfP->m_getPtpStatusReturnStatus = Status_Unsupported;
-            } else {
-                selfP->m_getPtpStatusReturnStatus = status;
+                //
+                // Cache the PTP status message
+                
+                if (status == Status_Ok) {
+                    selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
+                    selfP->m_getPtpStatusReturnStatus = Status_Ok;
+                } else if (status == Status_Unknown){
+                    selfP->m_getPtpStatusReturnStatus = Status_Unsupported;
+                } else {
+                    selfP->m_getPtpStatusReturnStatus = status;
+                }
+
+            } catch (const std::exception& e) {
+
+                CRL_DEBUG("exception: %s\n", e.what());
+
+            } catch (...) {
+
+                CRL_DEBUG_RAW("unknown exception\n");
             }
-
-        } catch (const std::exception& e) {
-
-            CRL_DEBUG("exception: %s\n", e.what());
-
-        } catch (...) {
-
-            CRL_DEBUG_RAW("unknown exception\n");
         }
-
         //
         // Recompute offset at ~1Hz
 
