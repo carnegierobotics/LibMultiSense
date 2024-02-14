@@ -488,8 +488,13 @@ int main(int    argc,
 
 
         if (Status_Ok == status) {
-            printf("GM present: %d\tSteps Removed: %d\tOffset: %ld\tPath Delay%ld\n",
+            printf("GM present: %d\tSteps Removed: %d\tOffset: %ld\tPath Delay: %ld\n",
             ptpStatus.gm_present, ptpStatus.steps_removed, ptpStatus.gm_offset, ptpStatus.path_delay);
+            printf("GM ID: %02x%02x%02x.%02x%02x.%02x%02x%02x\n", 
+            ptpStatus.gm_id[0], ptpStatus.gm_id[1], 
+            ptpStatus.gm_id[2], ptpStatus.gm_id[3], 
+            ptpStatus.gm_id[4], ptpStatus.gm_id[5], 
+            ptpStatus.gm_id[6], ptpStatus.gm_id[7]);
         } else {
             std::cerr << "Failed to get PTP status: " << Channel::statusString(status) << std::endl;
         }

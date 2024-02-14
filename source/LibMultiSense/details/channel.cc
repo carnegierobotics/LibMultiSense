@@ -747,24 +747,23 @@ void *impl::statusThread(void *userDataP)
         //
         // Try to get device PTP status 
         try {
+
+            //
+            // Setup handler for the PTP status response
+
             wire::PtpStatusResponse ptpStatusResponse;
             Status status = selfP->waitData(wire::PtpStatusRequest(), ptpStatusResponse, DEFAULT_ACK_TIMEOUT(), 1);
 
+            //
+            // Cache the PTP status message
+            
             if (status == Status_Ok) {
                 selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
                 selfP->m_getPtpStatusReturnStatus = Status_Ok;
-                CRL_DEBUG("PTP message received!\n");
-                CRL_DEBUG("Grandmaster present: %d\t Path delay: %ld\t Offset: %ld\t Steps removed: %d\n", 
-                ptpStatusResponse.gm_present, 
-                ptpStatusResponse.path_delay, 
-                ptpStatusResponse.gm_offset, 
-                ptpStatusResponse.steps_removed);
             } else if (status == Status_Unknown){
                 selfP->m_getPtpStatusReturnStatus = Status_Unsupported;
-                CRL_DEBUG("PTP status message unsupported!\n");
             } else {
                 selfP->m_getPtpStatusReturnStatus = status;
-                CRL_DEBUG("PTP message error: %d\n", status);
             }
 
         } catch (const std::exception& e) {

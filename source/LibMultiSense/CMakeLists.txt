@@ -91,7 +91,6 @@ set(WIRE_HEADERS
   include/MultiSense/details/wire/PtpStatusRequestMessage.hh
   include/MultiSense/details/wire/PtpStatusResponseMessage.hh
 )
-
 set(UTILITY_HEADERS
   include/MultiSense/details/utility/Portability.hh
   include/MultiSense/details/utility/BufferStream.hh
