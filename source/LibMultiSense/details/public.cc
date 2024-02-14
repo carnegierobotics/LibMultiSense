@@ -563,6 +563,9 @@ Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
     if (m_getPtpStatusReturnStatus != Status_Ok){
         return m_getPtpStatusReturnStatus;
     }
+    if (m_sensorVersion.firmwareVersion < 0x60A) {
+        return Status_Unsupported;
+    }
 
     ptpStatus.gm_present = m_ptpStatusResponseMessage.gm_present;
     ptpStatus.gm_offset = m_ptpStatusResponseMessage.gm_offset;
