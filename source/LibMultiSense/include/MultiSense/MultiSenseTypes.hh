@@ -3839,7 +3839,7 @@ class MULTISENSE_API ApriltagParams {
 class MULTISENSE_API PtpStatus {
     public:
         /** Status of grandmaster clock. True if synchronized to nonlocal GM
-         * True if nonlocal GM was present any time during current boot */
+         * OR if nonlocal GM was present any time during current boot */
         uint8_t gm_present;
 
         /** Hex ID of grandmaster clock. */
