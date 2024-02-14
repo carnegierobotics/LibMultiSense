@@ -56,7 +56,7 @@ public:
     // Camera PTP status parameters
     
     uint8_t gm_present;
-    int64_t master_offset;
+    int64_t gm_offset;
 
     /** Estimated delay of syncronization messages from master in nanosec */
     int64_t path_delay;
@@ -73,7 +73,7 @@ public:
 
     PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     PtpStatusResponse() : gm_present(0), 
-                          master_offset(0),  
+                          gm_offset(0),  
                           path_delay(0), 
                           steps_removed(0),
                           gm_identity{0,0,0,0,0,0,0,0} {};
@@ -87,7 +87,7 @@ public:
     {
         (void) version;
         message & gm_present;
-        message & master_offset;
+        message & gm_offset;
         message & path_delay;
         message & steps_removed;
         message & gm_identity;

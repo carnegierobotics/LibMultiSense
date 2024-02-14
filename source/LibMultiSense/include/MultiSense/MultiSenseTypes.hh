@@ -3844,7 +3844,7 @@ class MULTISENSE_API PtpStatus {
         // TODO: Grandmaster identity string (8 bytes?)
 
         /** Offset of camera PHC to PTP grandmaster clock in nanosec */
-        int64_t master_offset;
+        int64_t gm_offset;
 
         /** Estimated delay of syncronization messages from master in nanosec */
         int64_t path_delay;
@@ -3857,7 +3857,7 @@ class MULTISENSE_API PtpStatus {
         /** Default constructor for a single PtpStatus object */
         PtpStatus():
             gm_present(0),
-            master_offset(0),
+            gm_offset(0),
             path_delay(0),
             steps_removed(0) {};
 };

@@ -565,7 +565,7 @@ Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
     }
 
     ptpStatus.gm_present = m_ptpStatusResponseMessage.gm_present;
-    ptpStatus.master_offset = m_ptpStatusResponseMessage.master_offset;
+    ptpStatus.gm_offset = m_ptpStatusResponseMessage.gm_offset;
     ptpStatus.path_delay = m_ptpStatusResponseMessage.path_delay;
     ptpStatus.steps_removed = m_ptpStatusResponseMessage.steps_removed;
 

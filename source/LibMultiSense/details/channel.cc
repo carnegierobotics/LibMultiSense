@@ -757,7 +757,7 @@ void *impl::statusThread(void *userDataP)
                 CRL_DEBUG("Grandmaster present: %d\t Path delay: %ld\t Offset: %ld\t Steps removed: %d\n", 
                 ptpStatusResponse.gm_present, 
                 ptpStatusResponse.path_delay, 
-                ptpStatusResponse.master_offset, 
+                ptpStatusResponse.gm_offset, 
                 ptpStatusResponse.steps_removed);
             } else if (status == Status_Unknown){
                 selfP->m_getPtpStatusReturnStatus = Status_Unsupported;
