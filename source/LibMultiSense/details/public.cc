@@ -568,6 +568,7 @@ Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
     ptpStatus.gm_offset = m_ptpStatusResponseMessage.gm_offset;
     ptpStatus.path_delay = m_ptpStatusResponseMessage.path_delay;
     ptpStatus.steps_removed = m_ptpStatusResponseMessage.steps_removed;
+    memcpy(ptpStatus.gm_id, m_ptpStatusResponseMessage.gm_id, 8);
 
     return Status_Ok;
 }

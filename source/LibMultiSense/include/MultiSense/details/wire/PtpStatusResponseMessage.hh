@@ -58,15 +58,20 @@ public:
     uint8_t gm_present;
     int64_t gm_offset;
 
-    /** Estimated delay of syncronization messages from master in nanosec */
+    //
+    // Estimated delay of syncronization messages from master in nanosec
+
     int64_t path_delay;
 
-    /** Number of network hops from GM to local clock */    
+    //
+    // Number of network hops from GM to local clock
+
     uint16_t steps_removed;
 
     //
     // GM Clock identity (8 bytes, 0xXXXXXX.XXXX.XXXXXX)
-    uint8_t gm_identity[8];
+    
+    uint8_t gm_id[8] = {0};
 
     //
     // Constructors
@@ -75,8 +80,7 @@ public:
     PtpStatusResponse() : gm_present(0), 
                           gm_offset(0),  
                           path_delay(0), 
-                          steps_removed(0),
-                          gm_identity{0,0,0,0,0,0,0,0} {};
+                          steps_removed(0) {};
 
     //
     // Serialization routine
@@ -90,7 +94,7 @@ public:
         message & gm_offset;
         message & path_delay;
         message & steps_removed;
-        message & gm_identity;
+        message & gm_id;
     }
 };
 
