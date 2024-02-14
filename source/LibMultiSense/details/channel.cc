@@ -42,6 +42,8 @@
 #include "MultiSense/details/wire/SysGetMtuMessage.hh"
 #include "MultiSense/details/wire/StatusRequestMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusRequestMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionRequestMessage.hh"
 #include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
 
@@ -673,6 +675,8 @@ void *impl::statusThread(void *userDataP)
 
     while(selfP->m_threadsRunning) {
 
+        //
+        // Try to get device status message
         try {
 
             //
@@ -740,6 +744,38 @@ void *impl::statusThread(void *userDataP)
             CRL_DEBUG_RAW("unknown exception\n");
         }
 
+        //
+        // Try to get device PTP status if FW supports it
+        if (selfP->m_sensorVersion.firmwareVersion >= 0x60A /*FW release v6.10*/ ){
+            try {
+
+                //
+                // Setup handler for the PTP status response
+
+                wire::PtpStatusResponse ptpStatusResponse;
+                Status status = selfP->waitData(wire::PtpStatusRequest(), ptpStatusResponse, DEFAULT_ACK_TIMEOUT(), 1);
+
+                //
+                // Cache the PTP status message
+                
+                if (status == Status_Ok) {
+                    selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
+                    selfP->m_getPtpStatusReturnStatus = Status_Ok;
+                } else if (status == Status_Unknown){
+                    selfP->m_getPtpStatusReturnStatus = Status_Unsupported;
+                } else {
+                    selfP->m_getPtpStatusReturnStatus = status;
+                }
+
+            } catch (const std::exception& e) {
+
+                CRL_DEBUG("exception: %s\n", e.what());
+
+            } catch (...) {
+
+                CRL_DEBUG_RAW("unknown exception\n");
+            }
+        }
         //
         // Recompute offset at ~1Hz
 

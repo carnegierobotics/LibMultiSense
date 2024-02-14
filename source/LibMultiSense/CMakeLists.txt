@@ -88,6 +88,8 @@ set(WIRE_HEADERS
   include/MultiSense/details/wire/RemoteHeadControlMessage.hh
   include/MultiSense/details/wire/RemoteHeadConfigMessage.hh
   include/MultiSense/details/wire/RemoteHeadGetConfigMessage.hh
+  include/MultiSense/details/wire/PtpStatusRequestMessage.hh
+  include/MultiSense/details/wire/PtpStatusResponseMessage.hh
 )
 set(UTILITY_HEADERS
   include/MultiSense/details/utility/Portability.hh
