@@ -113,7 +113,7 @@ void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
 {
     (void) userDataP;
     uint8_t* u8_secondary_data_ptr = (uint8_t*)header.secondaryAppDataP;
-    cv::Mat data = cv::Mat(160, 256, CV_8UC1, u8_secondary_data_ptr);
+    cv::Mat data = cv::Mat(600, 960, CV_8UC1, u8_secondary_data_ptr);
     data *= 100;
     cv::imwrite("data.png", data);
 
