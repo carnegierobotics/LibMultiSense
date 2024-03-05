@@ -2988,6 +2988,10 @@ namespace feature_detector {
     uint8_t descriptor;
   };
 
+  struct Descriptor {
+    uint32_t d[8]; //Descriptor is 32 bytes
+  };
+
   class MULTISENSE_API Header : public HeaderBase {
   public:
 
@@ -3006,7 +3010,7 @@ namespace feature_detector {
       uint16_t numFeatures;
       uint16_t numDescriptors;
       std::vector<Feature> features;
-      std::vector<uint32_t> descriptors;
+      std::vector<Descriptor> descriptors;
   };
 
   /**

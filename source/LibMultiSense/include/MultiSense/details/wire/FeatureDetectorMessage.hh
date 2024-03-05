@@ -74,6 +74,25 @@ public:
 #endif // !SENSORPOD_FIRMWARE
 };
 
+class Descriptor {
+public:
+
+    uint32_t d[8];
+
+#ifndef SENSORPOD_FIRMWARE
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
+        for (size_t i = 0; i < 8; i++)
+        {
+            message & d[i];
+        }
+    }
+#endif // !SENSORPOD_FIRMWARE
+};
+
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
@@ -131,7 +150,7 @@ public:
         message & numFeatures;
         message & numDescriptors;
 
-        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures * numDescriptors));
+        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
 

@@ -485,7 +485,7 @@ private:
     std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
-    std::list<FeatureDetectorListener*>       m_featureDetectorListeners;
+    std::list<FeatureDetectorListener*>         m_featureDetectorListeners;
 
     //
     // A message signal interface

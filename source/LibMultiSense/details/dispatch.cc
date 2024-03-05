@@ -618,15 +618,16 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.numFeatures    =featureDetector.numFeatures;
         header.numDescriptors =featureDetector.numDescriptors;
 
-        size_t i = 0, buf_off = 0;
+        const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
+
         uint8_t * dataP = (uint8_t *)featureDetector.dataP;
-        for (i = 0; i < featureDetector.numFeatures; i++, buf_off+=sizeof(wire::Feature)) {
-            feature_detector::Feature f = *(feature_detector::Feature *)&dataP[buf_off];
+        for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+            feature_detector::Feature f = *(feature_detector::Feature *)(dataP+i*sizeof(wire::Feature));
             header.features.push_back(f);
         }
 
-        for ( /*i=startDescriptor*/;i < featureDetector.numFeatures+featureDetector.numDescriptors; i++, buf_off+=sizeof(uint32_t)) {
-            uint32_t d = *(uint32_t *)&dataP[buf_off];
+        for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
+            feature_detector::Descriptor d = *(feature_detector::Descriptor *)(dataP+(startDescriptor+j*sizeof(wire::Descriptor)));
             header.descriptors.push_back(d);
         }
 
