@@ -40,6 +40,7 @@
 
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 
 #include "MultiSense/details/wire/AuxCamConfigMessage.hh"
 #include "MultiSense/details/wire/CamConfigMessage.hh"
@@ -637,6 +638,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));
+        break;
+    case MSG_ID(wire::PtpStatusResponse::ID):
+        m_messages.store(wire::PtpStatusResponse(stream, version));
         break;
     default:
 
