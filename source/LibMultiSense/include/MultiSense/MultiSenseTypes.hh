@@ -2980,6 +2980,13 @@ typedef void (*Callback)(const Header& header,
 
 namespace feature_detector {
 
+
+  /** The recommended maximum number of features for full resolution camera operation */
+  static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_FULL_RES    = 5000;
+  /** The recommended maximum number of features for quarter resolution camera operation */
+  static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_QUARTER_RES = 1500;
+
+
   struct Feature {
     uint16_t x;
     uint16_t y;
@@ -3894,10 +3901,10 @@ class MULTISENSE_API ApriltagParams {
 };
 
 /**
- * Class containing parameters for the camera features
- * application which may be running on the specifically commissioned MultiSenses.
+ * Example code showing usage of the onboard feature detector.
+ * Can also reference FeatureDetectorUtility.cc
  *
- * Example code to set a device's apriltag parameters:
+ * Example code to set a device's feature detection parameters:
  ** \code{.cpp}
  *     //
  *     // Instantiate a channel connecting to a sensor at the factory default
@@ -3907,43 +3914,86 @@ class MULTISENSE_API ApriltagParams {
  *
  *     channel->setMtu(7200);
  *
- *     FeatureDetectorConfig params;
+ *     FeatureDetectorConfig fcfg;
  *
- *     //
- *     // Send the new external calibration to the device
- *     crl::multisense::Status status = channel->setFeatureDetectorConfig(params));
- *
- *     //
- *     // Check to see if the new network configuration was received
- *     if(crl::multisense::Status_Ok != status) {
- *          throw std::runtime_error("Unable to set the devices's apriltag params");
+ *     status = channelP->getFeatureDetectorConfig(fcfg);
+ *     if (Status_Ok != status) {
+ *           std::cerr << "Failed to get feature detector config: " << Channel::statusString(status) << std::endl;
+ *             goto clean_out;
  *     }
  *
+ *     if (quarter_res)
+ *         fcfg.setNumberOfFeatures(1500);
+ *     else
+ *         fcfg.setNumberOfFeatures(5000);
+ *
+ *     fcfg.setGrouping(true);
+ *     fcfg.setMotion(1);
+ *
+ *     status = channelP->setFeatureDetectorConfig(fcfg);
+ *     if (Status_Ok != status) {
+ *       std::cerr << "Failed to set feature detector config\n";
+ *     }
+ *
+ *     //
+ *     // Add Image Callback
+ *     channelP->addIsolatedCallback(imageCallback, Source_Luma_Left|Source_Luma_Right, &userData);
+ *     //
+ *     // Add Feature Callback
+ *     channelP->addIsolatedCallback(featureDetectorCallback, &userData);
+ *
+ *     //
+ *     // Start streaming
+ *     status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
+ *                                     (operatingMode.supportedDataSources & Source_Luma_Right) |
+ *                                     (operatingMode.supportedDataSources & Source_Feature_Left)|
+ *                                     (operatingMode.supportedDataSources & Source_Feature_Right));
+ *     if (Status_Ok != status) {
+ *         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
+ *         goto clean_out;
+ *     } *
  *     //
  *     // Destroy the channel instance
  *     crl::multisense::Channel::Destroy(channel);
  * \endcode
  */
+
 class MULTISENSE_API FeatureDetectorConfig {
+
     private:
 
         /**
          * numberOfFeatures
          * The maximum features to be searched for in one image.
+         *
+         * Current recommended settings.
+         * Full    Resolution: 5000 Features @5FPS
+         * Quarter Resolution: 1500 Features @15FPS
          */
         uint32_t m_numberOfFeatures;
 
         /**
          * grouping
          * Enable/Disable the grouping feature in feaure detection.
-         * TODO: improve description
+         * Grouping adds scale invariance to ORB features, by detecting the same
+         * feature in multiple octaves, and grouping the feature.
+         * Grouping reduces redundant features and eliminates the need to keep
+         * track of features referencing  the same corner.
+         * When grouping is enabled, the user should expect less features than
+         * descriptors, which should result in computationally easier feature matching,
+         * between consecutive frames.
+         * Although grouping does come at a slightly reduced framerate, it is
+         * recommended and verified at the recommended settings.
          */
         bool m_grouping;
 
         /**
          * motion
-         * Enable / disable motion detection in the image.
-         * TODO: improve description
+         * Enable / disable motion detection in the feature detector.
+         * When enabled, you can check the averageXMotion, averageYMotion and
+         * motionStatus of the feaure_detector::header.
+         * averageXMotion and averageYMotion == 65535 corresponds to a failed,
+         * motion detection for that feature frame.
          */
         uint32_t m_motion;
 
@@ -3980,7 +4030,7 @@ class MULTISENSE_API FeatureDetectorConfig {
 
         void setNumberOfFeatures(const uint32_t &numberOfFeatures)    {
 
-            if (numberOfFeatures > 5000)
+            if (numberOfFeatures > feature_detector::RECOMMENDED_MAX_FEATURES_FULL_RES)
             {
                 std::cout << "WARNING: The number of features requested is above recommended level!" << '\n';
                 std::cout << "If a performance impact is noticed reduce number of features and/or framerate of camera" << '\n';
@@ -4015,7 +4065,7 @@ class MULTISENSE_API FeatureDetectorConfig {
 
         /** Default constructor */
         FeatureDetectorConfig():
-            m_numberOfFeatures(1500),
+            m_numberOfFeatures(feature_detector::RECOMMENDED_MAX_FEATURES_QUARTER_RES),
             m_grouping(true),
             m_motion(1)
         {};
