@@ -357,7 +357,7 @@ public:
      * Each callback will create a unique internal thread
      * dedicated to servicing the callback.
      *
-     * @param callback A user defined featureDetector::Callback to send Ground
+     * @param callback A user defined feature_detector::Callback to send Ground
      * Surface data to
      *
      * @param userDataP A pointer to arbitrary user data.

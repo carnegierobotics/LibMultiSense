@@ -3022,7 +3022,7 @@ namespace feature_detector {
   };
 
   /**
-   * Function pointer for receiving callbacks for apriltag data
+   * Function pointer for receiving callbacks for feature_detector data
    */
   typedef void (*Callback)(const Header& header,
                            void         *userDataP);
@@ -3933,6 +3933,7 @@ class MULTISENSE_API ApriltagParams {
  *     status = channelP->setFeatureDetectorConfig(fcfg);
  *     if (Status_Ok != status) {
  *       std::cerr << "Failed to set feature detector config\n";
+ *         goto clean_out;
  *     }
  *
  *     //
