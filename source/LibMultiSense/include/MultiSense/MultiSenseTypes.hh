@@ -3015,7 +3015,7 @@ namespace feature_detector {
   };
 
   /**
-   * Function pointer for receiving callbacks for apriltag data
+   * Function pointer for receiving callbacks for feature_detector data
    */
   typedef void (*Callback)(const Header& header,
                            void         *userDataP);
@@ -3910,11 +3910,11 @@ class MULTISENSE_API ApriltagParams {
  *     FeatureDetectorConfig params;
  *
  *     //
- *     // Send the new external calibration to the device
+ *     // Send the new feature_detector config to the device
  *     crl::multisense::Status status = channel->setFeatureDetectorConfig(params));
  *
  *     //
- *     // Check to see if the new network configuration was received
+ *     // Check to see if the new feature_detector config was received
  *     if(crl::multisense::Status_Ok != status) {
  *          throw std::runtime_error("Unable to set the devices's apriltag params");
  *     }
