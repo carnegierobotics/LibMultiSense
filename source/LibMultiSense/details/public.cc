@@ -1514,9 +1514,9 @@ Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
     if (Status_Ok != status)
         return status;
 
-    c.numberOfFeatures = f.numberOfFeatures;
-    c.grouping = f.grouping;
-    c.motion = f.motion;
+    c.setNumberOfFeatures(f.numberOfFeatures);
+    c.setGrouping(f.grouping);
+    c.setMotion(f.motion);
 
     return Status_Ok;
 }
@@ -1524,9 +1524,9 @@ Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
 {
     wire::FeatureDetectorControl f;
 
-    f.numberOfFeatures = c.numberOfFeatures;
-    f.grouping = c.grouping;
-    f.motion = c.motion;
+    f.numberOfFeatures = c.numberOfFeatures();
+    f.grouping = c.grouping();
+    f.motion = c.motion();
 
     return waitAck(f);
 }

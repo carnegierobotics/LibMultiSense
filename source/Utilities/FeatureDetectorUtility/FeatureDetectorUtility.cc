@@ -31,7 +31,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-14, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
 #ifdef WIN32
@@ -333,6 +333,7 @@ void imageCallback(const image::Header& header,
                     <<" Delta: "
                     << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
                     << "ms\n";
+          userData->elapsedTime.erase(it);
         }
 
     }
@@ -366,6 +367,7 @@ void featureDetectorCallback(const feature_detector::Header& header,
             << " Delta: "
             << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
             << "ms\n";
+            userData->elapsedTime.erase(it);
         }
     }
     std::cout << "Source: " << header.source << "\n";
@@ -374,6 +376,11 @@ void featureDetectorCallback(const feature_detector::Header& header,
     std::cout << "Motion Y: " << header.averageYMotion << "\n";
     std::cout << "Number of features:     " << header.numFeatures    << "\n";
     std::cout << "Number of descriptors:  " << header.numDescriptors << "\n";
+    std::cout << "Octave Width:    " << header.octaveWidth << "\n";
+    std::cout << "Octave Height:   " << header.octaveHeight << "\n";
+    std::cout << "timeSeconds:     " << header.timeSeconds << "\n";
+    std::cout << "timeNanoSeconds: " << header.timeNanoSeconds << "\n";
+    std::cout << "ptpNanoSeconds:  " << header.ptpNanoSeconds << "\n";
 }
 
 } // anonymous
@@ -460,7 +467,7 @@ int main(int    argc,
 
         status = channelP->getImageConfig(cfg);
         if (Status_Ok != status) {
-			std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+            std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
             goto clean_out;
         } else {
 
@@ -471,17 +478,17 @@ int main(int    argc,
             cfg.setResolution(operatingMode.width, operatingMode.height);
             cfg.setDisparities(operatingMode.disparities);
             if (operatingMode.width == 960) {
-              quarter_res = true;
-              cfg.setFps(20.0);
+                quarter_res = true;
+                cfg.setFps(15.0);
             }
             else
             {
-              cfg.setFps(5.0);
+                cfg.setFps(5.0);
             }
 
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
-				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
+                std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
                 goto clean_out;
             }
         }
@@ -496,15 +503,17 @@ int main(int    argc,
                 goto clean_out;
         }
 
-        std::cout << "Current feature detector settings: " << fcfg.numberOfFeatures << " : " <<
-          fcfg.grouping << " : " << fcfg.motion << "\n";
+        std::cout << "Current feature detector settings: "
+          << fcfg.numberOfFeatures() << " : "
+          << fcfg.grouping() << " : "
+          << fcfg.motion() << "\n";
 
         if (quarter_res)
-            fcfg.numberOfFeatures=1500;
+            fcfg.setNumberOfFeatures(1500);
         else
-            fcfg.numberOfFeatures=6000;
-        fcfg.grouping=1;
-        fcfg.motion=1;
+            fcfg.setNumberOfFeatures(5000);
+        fcfg.setGrouping(true);
+        fcfg.setMotion(1);
 
         status = channelP->setFeatureDetectorConfig(fcfg);
         if (Status_Ok != status) {

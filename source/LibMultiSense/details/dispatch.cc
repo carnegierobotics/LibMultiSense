@@ -242,7 +242,7 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 }
 
 //
-// Publish an AprilTag detection event
+// Publish a feature detection event
 
 void impl::dispatchFeatureDetections(feature_detector::Header& header)
 {
@@ -620,14 +620,14 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
 
-        uint8_t * dataP = (uint8_t *)featureDetector.dataP;
+        uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
         for (size_t i = 0; i < featureDetector.numFeatures; i++) {
-            feature_detector::Feature f = *(feature_detector::Feature *)(dataP+i*sizeof(wire::Feature));
+            feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
             header.features.push_back(f);
         }
 
         for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
-            feature_detector::Descriptor d = *(feature_detector::Descriptor *)(dataP+(startDescriptor+j*sizeof(wire::Descriptor)));
+            feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
             header.descriptors.push_back(d);
         }
 

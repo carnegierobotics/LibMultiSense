@@ -41,6 +41,7 @@
 #include <climits>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -3906,7 +3907,6 @@ class MULTISENSE_API ApriltagParams {
  *
  *     channel->setMtu(7200);
  *
- *     //TODO: improve example
  *     FeatureDetectorConfig params;
  *
  *     //
@@ -3925,33 +3925,99 @@ class MULTISENSE_API ApriltagParams {
  * \endcode
  */
 class MULTISENSE_API FeatureDetectorConfig {
-    public:
+    private:
 
         /**
          * numberOfFeatures
          * The maximum features to be searched for in one image.
          */
-        uint32_t numberOfFeatures;
+        uint32_t m_numberOfFeatures;
 
         /**
          * grouping
          * Enable/Disable the grouping feature in feaure detection.
          * TODO: improve description
          */
-        uint32_t grouping;
+        bool m_grouping;
 
         /**
          * motion
          * Enable / disable motion detection in the image.
          * TODO: improve description
          */
-        uint32_t motion;
+        uint32_t m_motion;
+
+    public:
+        /**
+         * Query the maximum number of features applied to the camera feature detector
+         *
+         * @return Return the current maximum number of features
+         */
+        uint32_t numberOfFeatures() const { return m_numberOfFeatures; };
+
+        /**
+         * Query the status of the feature detector feature grouping
+         *
+         * @return Return the current feature grouping status
+         */
+        bool grouping() const { return m_grouping; };
+
+        /**
+         * Query the status of the feature detector motion detection
+         *
+         * @return Return the current feature detector motion detection status
+         */
+        bool motion() const { return m_motion; };
+
+        /**
+         * Set the maximum number of features applied to the camera feature detector.
+         * Current recommended settings.
+         * Full    Resolution: 5000 Features @5FPS
+         * Quarter Resolution: 1500 Features @15FPS
+         *
+         * @param numberOfFeatures The maximum number of features.
+         */
+
+        void setNumberOfFeatures(const uint32_t &numberOfFeatures)    {
+
+            if (numberOfFeatures > 5000)
+            {
+                std::cout << "WARNING: The number of features requested is above recommended level!" << '\n';
+                std::cout << "If a performance impact is noticed reduce number of features and/or framerate of camera" << '\n';
+                std::cout << "The recommended maximum camera settings when using the feature detector is:" << '\n';
+                std::cout << "Quarter Res: 15FPS and 1500 Features" << '\n';
+                std::cout << "Full    Res:  5FPS and 5000 Features" << '\n';
+            }
+
+            m_numberOfFeatures = numberOfFeatures;
+
+        };
+
+        /**
+         * Set the feature grouping capability the feature detector
+         *
+         * @param g The feature grouping to apply to this camera
+         */
+        void setGrouping(const bool &g)    {
+            m_grouping = g;
+        }
+
+        /**
+         * Set the feature motion detection capability of the feature detector
+         * Functions to enable motion detection on Octave 3
+         *
+         *
+         * @param m The feature detector motion detector.
+         */
+        void setMotion(const uint32_t &m)    {
+            m_motion = m;
+        }
 
         /** Default constructor */
         FeatureDetectorConfig():
-          numberOfFeatures(10000),
-          grouping(1),
-          motion(0)
+            m_numberOfFeatures(1500),
+            m_grouping(true),
+            m_motion(1)
         {};
 };
 

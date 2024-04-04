@@ -55,8 +55,19 @@ public:
     //
     // Parameters representing the current camera configuration
 
+    //
+    // The maximum number of features detected per image
     uint32_t numberOfFeatures;
-    uint32_t grouping;
+
+    //
+    // Enable/Disable feature grouping
+    bool grouping;
+
+    //
+    // Enable motion detection
+    // Currently this functions as enable/disable but could be used to specify
+    // which octave motion detection is performed on.
+    // Current Octave: 3
     uint32_t motion;
 
     //
