@@ -74,6 +74,8 @@
 #include <MultiSense/details/wire/LidarPollMotorMessage.hh>
 #include <MultiSense/details/wire/LidarSetMotorMessage.hh>
 #include <MultiSense/details/wire/PollMotorInfoMessage.hh>
+#include <MultiSense/details/wire/PtpStatusRequestMessage.hh>
+#include <MultiSense/details/wire/PtpStatusResponseMessage.hh>
 #include <MultiSense/details/wire/StatusRequestMessage.hh>
 #include <MultiSense/details/wire/StatusResponseMessage.hh>
 #include <MultiSense/details/wire/StreamControlMessage.hh>

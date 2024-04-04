@@ -80,7 +80,6 @@
 namespace crl {
 namespace multisense {
 
-
 /**
  * Sensor version typedef used to store a given version number
  */
@@ -181,7 +180,6 @@ static CRL_CONSTEXPR CameraProfile Full_Res_Aux_Cam = (1U<<4);
 /** User would like to run apriltag detector on the camera*/
 static CRL_CONSTEXPR CameraProfile AprilTag = (1U<<5);
 
-
 /**
  * Image compression codec typedef indicating the compression scheme which was used on the compressed output streams.
  * Compression is only supported on newer S27/S30 MultiSense variants.
@@ -270,8 +268,6 @@ static CRL_CONSTEXPR TriggerSource Trigger_External    = 1;
 static CRL_CONSTEXPR TriggerSource Trigger_External_Inverted    = 2;
 /** Syncronize cameras on integer timestamps when using PTP */
 static CRL_CONSTEXPR TriggerSource Trigger_PTP    = 3;
-
-
 
 /**
  * Base Header class for sensor callbacks
@@ -2006,9 +2002,6 @@ private:
 
 } // namespace image
 
-
-
-
 namespace lidar {
 
 /** The type of a single laser range measurement  */
@@ -2164,7 +2157,6 @@ public:
 };
 
 } // namespace lidar
-
 
 namespace lighting {
 
@@ -2507,9 +2499,6 @@ public:
 
 } // namespace lighting
 
-
-
-
 namespace pps {
 
 /**
@@ -2540,7 +2529,6 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace pps
-
 
 namespace imu {
 
@@ -2982,7 +2970,6 @@ typedef void (*Callback)(const Header& header,
                          void         *userDataP);
 
 } // namespace apriltag
-
 
 namespace system {
 
@@ -3855,9 +3842,32 @@ class MULTISENSE_API ApriltagParams {
 };
 
 /**
- * PTP status data associated with a specific stamped MultiSense message
+ * PTP status data
  */
 class MULTISENSE_API PtpStatus {
+    public:
+        /** Status of grandmaster clock; 1 if synchronized to nonlocal GM
+         * OR if nonlocal GM was present any time during current boot. 0 Otherwise*/
+        uint8_t gm_present;
+
+        /** Hex ID of grandmaster clock. */
+        uint8_t gm_id[8] = {0};
+
+        /** Offset of camera PHC to PTP grandmaster clock in nanosec */
+        int64_t gm_offset;
+
+        /** Estimated delay of syncronization messages from master in nanosec */
+        int64_t path_delay;
+
+        /** Number of network hops from GM to local clock */    
+        uint16_t steps_removed;
+
+        /** Default constructor for a single PtpStatus object */
+        PtpStatus():
+            gm_present(0),
+            gm_offset(0),
+            path_delay(0),
+            steps_removed(0) {};
 };
 
 /**

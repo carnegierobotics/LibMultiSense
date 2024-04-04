@@ -859,19 +859,14 @@ public:
                                         image::Histogram& histogram)        = 0;
 
     /**
-     * Get PTP status information for a specific image
+     * Get PTP status information (updates at 1Hz)
      *
-     * @param frameId The frameId of the corresponding left image to query a
-     * PTP status info for. Status can only be queried for images with frameIds
-     * fewer than 20 frameIds from the most recent image's frameId.
-     *
-     * @param ptpStatus The PTP status information associated with a image
+     * @param ptpStatus A ptpStatus obj returned by reference from the sensor
      *
      * @return A crl::multisense::Status indicating if the PTP status query
      * was successful
      */
-    virtual Status getPtpStatus(int64_t frameId,
-                                system::PtpStatus &ptpStatus) = 0;
+    virtual Status getPtpStatus(system::PtpStatus &ptpStatus) = 0;
 
 
     /**
