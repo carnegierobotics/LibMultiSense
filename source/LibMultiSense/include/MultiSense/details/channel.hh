@@ -163,8 +163,11 @@ public:
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 
-  	virtual Status getTransmitDelay   (image::TransmitDelay& c);
-  	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
+  	virtual Status getTransmitDelay      (image::TransmitDelay& c);
+  	virtual Status setTransmitDelay      (const image::TransmitDelay& c);
+
+  	virtual Status getPacketDelay        (image::PacketDelay& p);
+  	virtual Status setPacketDelay        (const image::PacketDelay& p);
 
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);

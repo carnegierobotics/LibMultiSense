@@ -96,6 +96,8 @@
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
 #include "MultiSense/details/wire/SysApriltagParamsMessage.hh"
+#include "MultiSense/details/wire/SysGetPacketDelayMessage.hh"
+#include "MultiSense/details/wire/SysPacketDelayMessage.hh"
 
 #include "MultiSense/details/wire/ImuGetInfoMessage.hh"
 #include "MultiSense/details/wire/ImuGetConfigMessage.hh"
@@ -1137,7 +1139,7 @@ Status impl::setImageCalibration(const image::Calibration& c)
 }
 
 //
-// Get sensor calibration
+// Get sensor transmit delay
 
 Status impl::getTransmitDelay(image::TransmitDelay& c)
 {
@@ -1152,13 +1154,40 @@ Status impl::getTransmitDelay(image::TransmitDelay& c)
 }
 
 //
-// Set sensor calibration
+// Set sensor transmit delay
 
 Status impl::setTransmitDelay(const image::TransmitDelay& c)
 {
     wire::SysTransmitDelay d;
 
-    d.delay = c.delay;;
+    d.delay = c.delay;
+
+    return waitAck(d);
+}
+
+//
+// Get sensor packet delay
+
+Status impl::getPacketDelay(image::PacketDelay& p)
+{
+    wire::SysPacketDelay d(0);
+
+    Status status = waitData(wire::SysGetPacketDelay(), d);
+    if (Status_Ok != status)
+        return status;
+    p.enable = d.enable;
+
+    return Status_Ok;
+}
+
+//
+// Set sensor calibration
+
+Status impl::setPacketDelay(const image::PacketDelay& c)
+{
+    wire::SysPacketDelay d;
+
+    d.enable = c.enable;
 
     return waitAck(d);
 }
