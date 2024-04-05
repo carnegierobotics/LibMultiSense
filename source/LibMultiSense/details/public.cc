@@ -106,6 +106,12 @@
 #include "MultiSense/details/wire/ImuInfoMessage.hh"
 #include "MultiSense/details/wire/ImuConfigMessage.hh"
 
+#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
+
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
 
@@ -266,6 +272,27 @@ Status impl::addIsolatedCallback(apriltag::Callback callback,
                                                0,
                                                userDataP,
                                                MAX_USER_APRILTAG_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
+// Adds a new feature detector listener
+
+Status impl::addIsolatedCallback(feature_detector::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_featureDetectorListeners.push_back(new FeatureDetectorListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE));
 
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
@@ -458,6 +485,34 @@ Status impl::removeIsolatedCallback(apriltag::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_aprilTagDetectionListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a feature detector listener
+
+Status impl::removeIsolatedCallback(feature_detector::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<FeatureDetectorListener*>::iterator it;
+        for(it  = m_featureDetectorListeners.begin();
+            it != m_featureDetectorListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_featureDetectorListeners.erase(it);
                 return Status_Ok;
             }
         }
@@ -1469,6 +1524,32 @@ Status impl::setApriltagParams (const system::ApriltagParams& params)
 
     return waitAck(w);
 }
+
+Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
+{
+    wire::FeatureDetectorConfig f;
+
+    Status status = waitData(wire::FeatureDetectorGetConfig(), f);
+    if (Status_Ok != status)
+        return status;
+
+    c.setNumberOfFeatures(f.numberOfFeatures);
+    c.setGrouping(f.grouping);
+    c.setMotion(f.motion);
+
+    return Status_Ok;
+}
+Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
+{
+    wire::FeatureDetectorControl f;
+
+    f.numberOfFeatures = c.numberOfFeatures();
+    f.grouping = c.grouping();
+    f.motion = c.motion();
+
+    return waitAck(f);
+}
+
 //
 // Sets the device info
 

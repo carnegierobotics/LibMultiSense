@@ -193,6 +193,8 @@ static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONTROL      = 0x002d;
 static CRL_CONSTEXPR IdType ID_CMD_GET_PTP_STATUS           = 0x002e;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PACKET_DELAY     = 0x002f;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_PACKET_DELAY     = 0x0030;
+static CRL_CONSTEXPR IdType ID_CMD_FEATURE_DETECTOR_GET_CONFIG  = 0x0031;
+static CRL_CONSTEXPR IdType ID_CMD_FEATURE_DETECTOR_CONTROL     = 0x0032;
 //
 // Data
 
@@ -232,6 +234,9 @@ static CRL_CONSTEXPR IdType ID_DATA_CAM_AUX_CONFIG                     = 0x0124;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONFIG                  = 0x0125;
 static CRL_CONSTEXPR IdType ID_DATA_PTP_STATUS                         = 0x0126;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_PACKET_DELAY                   = 0x0127;
+static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_META              = 0x0128;
+static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR                   = 0x0129;
+static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_CONFIG            = 0x012A;
 
 //
 // Data sources
@@ -254,6 +259,8 @@ static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT             = (1U<<11);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST              = (1U<<12);
 static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT                   = (1U<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1U<<17);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1U<<18);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1U<<19);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1U<<20);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1U<<22);
 static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1U<<21);

@@ -352,6 +352,23 @@ public:
                                        void         *userDataP=NULL) = 0;
 
     /**
+     * Add a user defined callback attached to the feature detector stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * @param callback A user defined feature_detector::Callback to send Ground
+     * Surface data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(feature_detector::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
+    /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
      *
@@ -434,6 +451,18 @@ public:
      */
 
     virtual Status removeIsolatedCallback(apriltag::Callback callback) = 0;
+
+    /**
+     * Unregister a user defined feature_detector::Callback. This stops the callback
+     * from receiving feature data
+     *
+     * @param callback The user defined feature_detector::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(feature_detector::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available
@@ -1032,6 +1061,26 @@ public:
      * @return A crl::multisense::Status indicating if the params were successfully set
      */
     virtual Status setApriltagParams (const system::ApriltagParams& params) = 0;
+
+    /**
+     * Set the feature detector config associated with the MultiSense device
+     *
+     * @param params The feature detector parameters to send to the on-camera feature detector
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status setFeatureDetectorConfig (const system::FeatureDetectorConfig& params) = 0;
+
+    /**
+     * Get the feature detector parameters associated with the MultiSense device
+     *
+     * @param params The feature detector parameters to send to the on-camera feature detector
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig& params) = 0;
 
     /**
      * Flash a new FPGA bitstream file to the sensor.
