@@ -46,6 +46,8 @@
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 #include "MultiSense/details/wire/StatusRequestMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusRequestMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 
 #include "MultiSense/details/wire/StreamControlMessage.hh"
 #include "MultiSense/details/wire/SysSetPtpMessage.hh"
@@ -96,6 +98,8 @@
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
 #include "MultiSense/details/wire/SysApriltagParamsMessage.hh"
+#include "MultiSense/details/wire/SysGetPacketDelayMessage.hh"
+#include "MultiSense/details/wire/SysPacketDelayMessage.hh"
 
 #include "MultiSense/details/wire/ImuGetInfoMessage.hh"
 #include "MultiSense/details/wire/ImuGetConfigMessage.hh"
@@ -611,34 +615,22 @@ Status impl::getImageHistogram(int64_t           frameId,
     return Status_Error;
 }
 
-Status impl::getPtpStatus(int64_t frameId,
-                          system::PtpStatus &ptpStatus)
+Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
 {
-    try {
-
-        utility::ScopedLock lock(m_imageMetaCache.mutex());
-
-        const wire::ImageMeta *metaP = m_imageMetaCache.find_nolock(frameId);
-        if (NULL == metaP) {
-            CRL_DEBUG("no meta cached for frameId %ld",
-                      static_cast<long int>(frameId));
-            return Status_Failed;
-        }
-
-        ptpStatus = system::PtpStatus();
-
-        return Status_Ok;
-
+    if (m_getPtpStatusReturnStatus != Status_Ok){
+        return m_getPtpStatusReturnStatus;
     }
-    catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
-        return Status_Exception;
-    }
-    catch (...) {
-        CRL_DEBUG ("%s\n", "unknown exception");
+    if (m_sensorVersion.firmwareVersion < 0x60A) {
+        return Status_Unsupported;
     }
 
-    return Status_Error;
+    ptpStatus.gm_present = m_ptpStatusResponseMessage.gm_present;
+    ptpStatus.gm_offset = m_ptpStatusResponseMessage.gm_offset;
+    ptpStatus.path_delay = m_ptpStatusResponseMessage.path_delay;
+    ptpStatus.steps_removed = m_ptpStatusResponseMessage.steps_removed;
+    memcpy(ptpStatus.gm_id, m_ptpStatusResponseMessage.gm_id, 8);
+
+    return Status_Ok;
 }
 
 //
@@ -1192,7 +1184,7 @@ Status impl::setImageCalibration(const image::Calibration& c)
 }
 
 //
-// Get sensor calibration
+// Get sensor transmit delay
 
 Status impl::getTransmitDelay(image::TransmitDelay& c)
 {
@@ -1207,13 +1199,40 @@ Status impl::getTransmitDelay(image::TransmitDelay& c)
 }
 
 //
-// Set sensor calibration
+// Set sensor transmit delay
 
 Status impl::setTransmitDelay(const image::TransmitDelay& c)
 {
     wire::SysTransmitDelay d;
 
-    d.delay = c.delay;;
+    d.delay = c.delay;
+
+    return waitAck(d);
+}
+
+//
+// Get sensor packet delay
+
+Status impl::getPacketDelay(image::PacketDelay& p)
+{
+    wire::SysPacketDelay d(0);
+
+    Status status = waitData(wire::SysGetPacketDelay(), d);
+    if (Status_Ok != status)
+        return status;
+    p.enable = d.enable;
+
+    return Status_Ok;
+}
+
+//
+// Set sensor calibration
+
+Status impl::setPacketDelay(const image::PacketDelay& c)
+{
+    wire::SysPacketDelay d;
+
+    d.enable = c.enable;
 
     return waitAck(d);
 }

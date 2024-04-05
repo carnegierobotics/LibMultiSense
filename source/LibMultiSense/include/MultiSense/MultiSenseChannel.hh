@@ -818,6 +818,30 @@ public:
 	virtual Status setTransmitDelay (const image::TransmitDelay& c)        = 0;
 
     /**
+     * Query the current device udp packet delay.
+     *
+     * @param c The udp packet delay instance which will be returned by
+     * reference
+     *
+     * @return A crl::multisense::Status indicating if the udp packet delay
+     * was successfully queried
+     */
+    virtual Status getPacketDelay (image::PacketDelay& c)              = 0;
+
+    /**
+     * Enable the camera udp packet delay. Enables a small delay approx
+     * 65us between udp packets for a large stream object. Recommended for clients
+     * with poor network bandwidth. If in doubt set to false (disable)
+     *
+     * @param c The packet delay enable field which will be returned by
+     * reference
+     *
+     * @return A crl::multisense::Status indicating if the packet delay
+     * was successfully received by the sensor
+     */
+	virtual Status setPacketDelay (const image::PacketDelay& c)        = 0;
+
+    /**
      * Query the current laser calibration.
      *
      * See lidar::Calibration for a usage example
@@ -864,19 +888,14 @@ public:
                                         image::Histogram& histogram)        = 0;
 
     /**
-     * Get PTP status information for a specific image
+     * Get PTP status information (updates at 1Hz)
      *
-     * @param frameId The frameId of the corresponding left image to query a
-     * PTP status info for. Status can only be queried for images with frameIds
-     * fewer than 20 frameIds from the most recent image's frameId.
-     *
-     * @param ptpStatus The PTP status information associated with a image
+     * @param ptpStatus A ptpStatus obj returned by reference from the sensor
      *
      * @return A crl::multisense::Status indicating if the PTP status query
      * was successful
      */
-    virtual Status getPtpStatus(int64_t frameId,
-                                system::PtpStatus &ptpStatus) = 0;
+    virtual Status getPtpStatus(system::PtpStatus &ptpStatus) = 0;
 
 
     /**

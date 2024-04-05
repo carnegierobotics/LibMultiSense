@@ -49,6 +49,7 @@
 #include "MultiSense/details/wire/ImageMetaMessage.hh"
 #include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 
 #ifdef WIN32
@@ -168,15 +169,18 @@ public:
     virtual Status getImageCalibration   (image::Calibration& c);
     virtual Status setImageCalibration   (const image::Calibration& c);
 
-  	virtual Status getTransmitDelay   (image::TransmitDelay& c);
-  	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
+  	virtual Status getTransmitDelay      (image::TransmitDelay& c);
+  	virtual Status setTransmitDelay      (const image::TransmitDelay& c);
+
+  	virtual Status getPacketDelay        (image::PacketDelay& p);
+  	virtual Status setPacketDelay        (const image::PacketDelay& p);
 
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
 
     virtual Status getImageHistogram     (int64_t frameId, image::Histogram& histogram);
 
-    virtual Status getPtpStatus          (int64_t frameId, system::PtpStatus& ptpStatus);
+    virtual Status getPtpStatus          (system::PtpStatus& ptpStatus);
 
     virtual Status getDeviceModes        (std::vector<system::DeviceMode>& modes);
 
@@ -522,8 +526,17 @@ private:
     wire::StatusResponse m_statusResponseMessage;
 
     //
+    // Cached PtpStatusResponseMessage from the MultiSense
+
+    wire::PtpStatusResponse m_ptpStatusResponseMessage;
+
+    //
     // Status set in statusThread indicating if the request for status msg timed out
     Status               m_getStatusReturnStatus;
+
+    //
+    // Status set in statusThread indicating if if there is a valid ptp status message
+    Status               m_getPtpStatusReturnStatus;
 
     //
     // Channel statistics and corresponding mutex
