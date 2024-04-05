@@ -3989,7 +3989,7 @@ class MULTISENSE_API FeatureDetectorConfig {
          * Enable / disable motion detection in the feature detector.
          * When enabled, you can check the averageXMotion, averageYMotion and
          * motionStatus of the feaure_detector::header.
-         * averageXMotion and averageYMotion == 65535 corresponds to a failed,
+         * averageXMotion and averageYMotion == 65535 corresponds to a failed
          * motion detection for that feature frame.
          */
         uint32_t m_motion;
