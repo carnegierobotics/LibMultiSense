@@ -68,6 +68,7 @@
 #include "MultiSense/details/wire/SysCameraCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysSensorCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysTransmitDelayMessage.hh"
+#include "MultiSense/details/wire/SysPacketDelayMessage.hh"
 #include "MultiSense/details/wire/SysLidarCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysDeviceModesMessage.hh"
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
@@ -607,7 +608,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         m_messages.store(wire::SysSensorCalibration(stream, version));
         break;
     case MSG_ID(wire::SysTransmitDelay::ID):
-            m_messages.store(wire::SysTransmitDelay(stream, version));
+        m_messages.store(wire::SysTransmitDelay(stream, version));
+        break;
+    case MSG_ID(wire::SysPacketDelay::ID):
+        m_messages.store(wire::SysPacketDelay(stream, version));
         break;
     case MSG_ID(wire::SysLidarCalibration::ID):
         m_messages.store(wire::SysLidarCalibration(stream, version));

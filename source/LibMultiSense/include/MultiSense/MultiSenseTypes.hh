@@ -1896,6 +1896,14 @@ public:
 
 };
 
+class MULTISENSE_API PacketDelay {
+public:
+
+    /** Enable interpacket delay, should be used when client network cannot handle inbound messages */
+    bool enable;
+
+};
+
 /**
  * Class which stores a image histogram from a camera image. This is used
  * as an input when querying a image histogram.

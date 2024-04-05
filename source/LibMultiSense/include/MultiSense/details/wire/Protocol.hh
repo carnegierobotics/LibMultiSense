@@ -191,7 +191,8 @@ static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_AUX_CONFIG       = 0x002b;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_GET_CONFIG   = 0x002c;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONTROL      = 0x002d;
 static CRL_CONSTEXPR IdType ID_CMD_GET_PTP_STATUS           = 0x002e;
-
+static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PACKET_DELAY     = 0x002f;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_PACKET_DELAY     = 0x0030;
 //
 // Data
 
@@ -230,6 +231,7 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_APRILTAG_PARAM                 = 0x0123;
 static CRL_CONSTEXPR IdType ID_DATA_CAM_AUX_CONFIG                     = 0x0124;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONFIG                  = 0x0125;
 static CRL_CONSTEXPR IdType ID_DATA_PTP_STATUS                         = 0x0126;
+static CRL_CONSTEXPR IdType ID_DATA_SYS_PACKET_DELAY                   = 0x0127;
 
 //
 // Data sources
