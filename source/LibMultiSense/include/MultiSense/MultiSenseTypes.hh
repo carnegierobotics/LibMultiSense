@@ -37,11 +37,12 @@
 #ifndef LibMultiSense_MultiSenseTypes_hh
 #define LibMultiSense_MultiSenseTypes_hh
 
-#include <stdint.h>
 #include <climits>
+#include <cstring>
+#include <iostream>
+#include <stdint.h>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -4078,7 +4079,7 @@ class MULTISENSE_API PtpStatus {
         uint8_t gm_present;
 
         /** Hex ID of grandmaster clock. */
-        uint8_t gm_id[8] = {0};
+        uint8_t gm_id[8];
 
         /** Offset of camera PHC to PTP grandmaster clock in nanosec */
         int64_t gm_offset;
@@ -4094,7 +4095,10 @@ class MULTISENSE_API PtpStatus {
             gm_present(0),
             gm_offset(0),
             path_delay(0),
-            steps_removed(0) {};
+            steps_removed(0)
+        {
+            memset(gm_id, 0, sizeof(gm_id));
+        };
 };
 
 /**
