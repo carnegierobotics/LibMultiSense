@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-05-15, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #include "MultiSense/details/channel.hh"
@@ -857,7 +858,7 @@ void impl::handle()
         // Receive the packet
 
 // disable MSVC warning for narrowing conversion.
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (push)
 #pragma warning (disable : 4267)
 #endif
@@ -865,7 +866,7 @@ void impl::handle()
                                            (char*)m_incomingBuffer.data(),
                                            m_incomingBuffer.size(),
                                            0, NULL, NULL);
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (pop)
 #endif
 
@@ -1036,7 +1037,11 @@ void *impl::rxThread(void *userDataP)
         }
     }
 
+#if defined(__MINGW64__)
+    return 0;
+#else
     return NULL;
+#endif
 }
 
 }}} // namespaces

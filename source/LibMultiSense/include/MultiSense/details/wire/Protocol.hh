@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-05-07, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #ifndef LibMultiSense_details_wire_protocol
@@ -83,7 +84,7 @@ static CRL_CONSTEXPR uint16_t HEADER_GROUP   = 0x0001;
 //
 // The packet header structure
 
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined(__MINGW64__)
 #pragma pack(push, 1)
 typedef struct {
 #else
@@ -125,7 +126,7 @@ typedef struct __attribute__ ((__packed__)) {
     uint32_t byteOffset;
 
 } Header;
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined(__MINGW64__)
 #pragma pack(pop)
 #endif
 

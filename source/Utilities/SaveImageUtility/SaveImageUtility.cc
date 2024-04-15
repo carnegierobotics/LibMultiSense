@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-06-14, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #ifdef WIN32
@@ -488,8 +489,13 @@ int main(int    argc,
 
 
         if (Status_Ok == status) {
+#ifdef __MINGW64__
+            printf("GM present: %d\tSteps Removed: %d\tOffset: %ld\tPath Delay: %ld\n",
+            ptpStatus.gm_present, ptpStatus.steps_removed, (long int)ptpStatus.gm_offset, (long int)ptpStatus.path_delay);
+#else
             printf("GM present: %d\tSteps Removed: %d\tOffset: %ld\tPath Delay: %ld\n",
             ptpStatus.gm_present, ptpStatus.steps_removed, ptpStatus.gm_offset, ptpStatus.path_delay);
+#endif
             printf("GM ID: %02x%02x%02x.%02x%02x.%02x%02x%02x\n", 
             ptpStatus.gm_id[0], ptpStatus.gm_id[1], 
             ptpStatus.gm_id[2], ptpStatus.gm_id[3], 
