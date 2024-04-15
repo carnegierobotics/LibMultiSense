@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-05-07, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #ifndef LibMultiSense_impl_listeners
@@ -205,7 +206,11 @@ private:
             }
         };
 
+#if defined(__MINGW64__)
+        return 0;
+#else
         return NULL;
+#endif
     }
 
     //

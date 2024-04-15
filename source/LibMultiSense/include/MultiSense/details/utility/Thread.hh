@@ -32,10 +32,13 @@
  *
  * Significant history (date, user, job code, action):
  *   2014-11-03, jyakubik@carnegierobotics.com, ????, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(__MINGW64__)
 #include "win32/Thread.hh"
+#elif defined(WIN32) && defined(__MINGW64__)
+#include "mingw/Thread.hh"
 #elif __APPLE__
 #include "macos/Thread.hh"
 #else
