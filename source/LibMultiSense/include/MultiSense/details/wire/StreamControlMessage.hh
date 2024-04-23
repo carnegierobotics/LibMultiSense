@@ -47,7 +47,7 @@ namespace wire {
 class StreamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_STREAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Set modify mask bit high to have the device
@@ -80,9 +80,23 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
-        message & modifyMask;
-        message & controlMask;
+
+        uint32_t modifyMaskLow   = (uint32_t)(modifyMask>>0);
+        uint32_t modifyMaskHigh  = (uint32_t)((modifyMask&0xFFFFFFFF00000000ull)>>32);
+        uint32_t controlMaskLow  = (uint32_t)(controlMask>>0);
+        uint32_t controlMaskHigh = (uint32_t)((controlMask&0xFFFFFFFF00000000ull)>>32);
+
+        message & modifyMaskLow;
+        if (version >= 2)
+        {
+          message & modifyMaskHigh;
+        }
+
+        message & controlMaskLow;
+        if (version >= 2)
+        {
+          message & controlMaskHigh;
+        }
     }
 };
 
