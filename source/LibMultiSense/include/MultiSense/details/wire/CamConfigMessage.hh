@@ -110,7 +110,7 @@ public:
     //
     // Version 7 additions
 
-    SourceType exposureSource;
+    uint32_t exposureSource;
     std::vector<ExposureConfig> secondaryExposureConfigs;
 
     //
