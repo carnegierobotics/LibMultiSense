@@ -81,22 +81,44 @@ public:
                        const VersionType version)
     {
 
-        uint32_t modifyMaskLow   = (uint32_t)(modifyMask>>0);
-        uint32_t modifyMaskHigh  = (uint32_t)((modifyMask&0xFFFFFFFF00000000ull)>>32);
-        uint32_t controlMaskLow  = (uint32_t)(controlMask>>0);
-        uint32_t controlMaskHigh = (uint32_t)((controlMask&0xFFFFFFFF00000000ull)>>32);
+        uint32_t modifyMaskLow = 0;
+        uint32_t modifyMaskHigh = 0;
+        uint32_t controlMaskLow = 0;
+        uint32_t controlMaskHigh = 0;
 
-        message & modifyMaskLow;
-        if (version >= 2)
-        {
-          message & modifyMaskHigh;
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+
+            modifyMaskLow   = (uint32_t)(modifyMask>>0);
+            modifyMaskHigh  = (uint32_t)((modifyMask&0xFFFFFFFF00000000ull)>>32);
+            controlMaskLow  = (uint32_t)(controlMask>>0);
+            controlMaskHigh = (uint32_t)((controlMask&0xFFFFFFFF00000000ull)>>32);
+
+            message & modifyMaskLow;
+            message & controlMaskLow;
+
+            if (version >= 2)
+            {
+                message & modifyMaskHigh;
+                message & controlMaskHigh;
+            }
+
+        } else {
+
+
+            message & modifyMaskLow;
+            message & controlMaskLow;
+
+            if (version >= 2)
+            {
+                message & modifyMaskHigh;
+                message & controlMaskHigh;
+            }
+
+            modifyMask  = ((uint64_t)modifyMaskHigh) << 32 | modifyMaskLow;
+            controlMask = ((uint64_t)controlMaskHigh) << 32 | controlMaskLow;
+
         }
 
-        message & controlMaskLow;
-        if (version >= 2)
-        {
-          message & controlMaskHigh;
-        }
     }
 };
 

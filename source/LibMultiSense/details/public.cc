@@ -1283,10 +1283,10 @@ Status impl::getDeviceModes(std::vector<system::DeviceMode>& modes)
 
         system::DeviceMode&     a = modes[i];
         const wire::DeviceMode& w = d.modes[i];
-
+        const wire::SourceType  s = ((uint64_t)w.extendedDataSources) << 32 | w.supportedDataSources;
         a.width                = w.width;
         a.height               = w.height;
-        a.supportedDataSources = sourceWireToApi(w.supportedDataSources);
+        a.supportedDataSources = sourceWireToApi(s);
         if (m_sensorVersion.firmwareVersion >= 0x0203)
             a.disparities = w.disparities;
         else

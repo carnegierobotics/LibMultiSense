@@ -111,6 +111,10 @@ public:
             {
               message & m.extendedDataSources;
             }
+            else
+            {
+              m.extendedDataSources = 0;
+            }
         }
     }
 };
