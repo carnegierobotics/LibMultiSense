@@ -512,7 +512,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_JPEG_LEFT)         api_mask |= Source_Jpeg_Left;
     if (mask & wire::SOURCE_RGB_LEFT)          api_mask |= Source_Rgb_Left;
     if (mask & wire::SOURCE_FEATURE_LEFT)      api_mask |= Source_Feature_Left;
-    if (mask & wire::SOURCE_FEATURE_RIGHT)     api_mask |= Source_Feature_Left;
+    if (mask & wire::SOURCE_FEATURE_RIGHT)     api_mask |= Source_Feature_Right;
     if (mask & wire::SOURCE_FEATURE_AUX)       api_mask |= Source_Feature_Aux;
     if (mask & wire::SOURCE_LIDAR_SCAN)        api_mask |= Source_Lidar_Scan;
     if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu;
