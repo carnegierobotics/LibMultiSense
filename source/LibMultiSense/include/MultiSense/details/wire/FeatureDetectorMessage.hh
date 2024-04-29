@@ -151,10 +151,6 @@ public:
         message & frameId;
         message & numFeatures;
         message & numDescriptors;
-        if (version >= 2)
-        {
-            message & sourceExtended;
-        }
 
         const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
@@ -166,6 +162,15 @@ public:
 
             dataP = message.peek();
             message.seek(message.tell() + featureDataSize);
+        }
+
+        if (version >= 2)
+        {
+          message & sourceExtended;
+        }
+        else
+        {
+          sourceExtended = 0;
         }
     }
 
