@@ -605,7 +605,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
           break;
 
         feature_detector::Header header;
-        header.source         =featureDetector.source;
+        header.source         =featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
         header.frameId        =metaP->frameId;
         header.timeSeconds    =metaP->timeSeconds;
         header.timeNanoSeconds=metaP->timeNanoSeconds;

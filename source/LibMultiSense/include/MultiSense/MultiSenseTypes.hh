@@ -3000,7 +3000,7 @@ namespace feature_detector {
   class MULTISENSE_API Header : public HeaderBase {
   public:
 
-      uint32_t source;
+      DataSource source;
       int64_t  frameId;
       uint32_t timeSeconds;
       uint32_t timeNanoSeconds;

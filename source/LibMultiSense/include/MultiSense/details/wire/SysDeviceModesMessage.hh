@@ -109,11 +109,11 @@ public:
             message & m.disparities; // was 'flags' in pre v2.3
             if (version >= 3)
             {
-              message & m.extendedDataSources;
+                message & m.extendedDataSources;
             }
             else
             {
-              m.extendedDataSources = 0;
+                m.extendedDataSources = 0;
             }
         }
     }

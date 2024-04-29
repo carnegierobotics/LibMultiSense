@@ -96,7 +96,7 @@ public:
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
-    static CRL_CONSTEXPR VersionType VERSION    = 1;
+    static CRL_CONSTEXPR VersionType VERSION    = 2;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType                 id;
@@ -106,6 +106,7 @@ public:
     int64_t                frameId;
     uint16_t               numFeatures;
     uint16_t               numDescriptors;
+    uint32_t               sourceExtended;
 
 
     FeatureDetectorHeader() :
@@ -116,7 +117,8 @@ public:
         source(0),
         frameId(0),
         numFeatures(0),
-        numDescriptors(0)
+        numDescriptors(0),
+        sourceExtended(0)
      {};
 
 };
@@ -149,6 +151,10 @@ public:
         message & frameId;
         message & numFeatures;
         message & numDescriptors;
+        if (version >= 2)
+        {
+            message & sourceExtended;
+        }
 
         const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
