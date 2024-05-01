@@ -236,7 +236,7 @@ int main(int    argc,
     //
     // Start streaming
 
-    std::cout << "Subscription Flags: " << std::bitset<32>(Source_Secondary_App_Data | Source_Luma_Rectified_Aux) << std::endl;
+    std::cout << "Subscription Flags: " << std::bitset<64>(Source_Secondary_App_Data | Source_Luma_Rectified_Aux) << std::endl;
 
     status = channelP->startStreams(Source_Secondary_App_Data | Source_Luma_Rectified_Aux);
     if (Status_Ok != status) {
