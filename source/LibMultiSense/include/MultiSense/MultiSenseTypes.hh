@@ -150,6 +150,7 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data            = (1ull<<18);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -3027,6 +3028,49 @@ namespace feature_detector {
 } // namespace feature_detector
 
 
+namespace secondary_app {
+
+/**
+ * Class containing Header information for a secondary_app callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+
+    /** DataSource corresponding to secondaryAppDataP*/
+    DataSource  source;
+    /** Bits per pixel in the secondaryAppData */
+    uint32_t    bitsPerPixel;
+    /** length of the secondaryAppData */
+    uint32_t    length;
+    /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** The time seconds value corresponding to when  the secondaryAppData was captured*/
+    uint32_t    timeSeconds;
+    /** The time microseconds value corresponding to when the secondaryAppData was captured*/
+    uint32_t    timeMicroSeconds;
+    /** The number of frames per second currently streaming from the device */
+    float       framesPerSecond;
+    /** The length of the secondaryAppData data stored in secondaryAppDataDataP */
+    uint32_t    secondaryAppDataLength;
+    /** A pointer to the secondaryAppData data */
+    const void *secondaryAppDataP;
+
+    /**
+     * Default Constructor
+     */
+    Header()
+        : source(Source_Unknown) {};
+
+};
+    /**
+     * Function pointer for receiving callbacks for apriltag data
+     */
+    typedef void (*Callback)(const Header& header,
+                             void         *userDataP);
+} // namespace secondary_app
+
 namespace system {
 
 /**
@@ -4166,6 +4210,15 @@ struct ChannelStatistics
     //
     // The number of dispatached feature detections
     std::size_t numDispatchedFeatureDetections;
+};
+
+class MULTISENSE_API SecondaryAppConfig {
+public:
+    float framesPerSecond;
+
+    SecondaryAppConfig():
+        framesPerSecond(5.0f)
+        {};
 };
 
 } // namespace system

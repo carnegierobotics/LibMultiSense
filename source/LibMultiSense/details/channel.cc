@@ -92,6 +92,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_imuListeners(),
     m_compressedImageListeners(),
     m_featureDetectorListeners(),
+    m_secondaryAppListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -268,6 +269,11 @@ void impl::cleanup()
         itf != m_featureDetectorListeners.end();
         itf ++)
         delete *itf;
+    std::list<SecondaryAppListener*>::const_iterator its;
+    for(its  = m_secondaryAppListeners.begin();
+        its != m_secondaryAppListeners.end();
+        its ++)
+        delete *its;
 
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();
@@ -283,6 +289,7 @@ void impl::cleanup()
     m_lidarListeners.clear();
     m_ppsListeners.clear();
     m_imuListeners.clear();
+    m_secondaryAppListeners.clear();
     m_compressedImageListeners.clear();
     m_featureDetectorListeners.clear();
     m_rxLargeBufferPool.clear();
@@ -484,6 +491,7 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
     if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
     if (mask & Source_AprilTag_Detections)              wire_mask |= wire::SOURCE_APRILTAG_DETECTIONS;
+    if (mask & Source_Secondary_App_Data)               wire_mask |= wire::SOURCE_SECONDARY_APP_DATA;
 
     return wire_mask;
 }
@@ -526,6 +534,7 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT)     api_mask |= Source_Compressed_Rectified_Right;
     if (mask & wire::SOURCE_COMPRESSED_AUX)                 api_mask |= Source_Compressed_Aux;
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_AUX)       api_mask |= Source_Compressed_Rectified_Aux;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA)             api_mask |= Source_Secondary_App_Data;
 
     return api_mask;
 }
@@ -771,7 +780,7 @@ void *impl::statusThread(void *userDataP)
 
                 //
                 // Cache the PTP status message
-                
+
                 if (status == Status_Ok) {
                     selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
                     selfP->m_getPtpStatusReturnStatus = Status_Ok;

@@ -83,6 +83,9 @@
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
 
 #include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
 #include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
@@ -259,6 +262,22 @@ void impl::dispatchFeatureDetections(feature_detector::Header& header)
 
     utility::ScopedLock statsLock(m_statisticsLock);
     m_channelStatistics.numDispatchedFeatureDetections++;
+}
+
+//
+// Publish Secondary App Data
+
+void impl::dispatchSecondaryApplication(utility::BufferStream& buffer,
+                                        secondary_app::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<SecondaryAppListener*>::const_iterator it;
+
+    for(it  = m_secondaryAppListeners.begin();
+        it != m_secondaryAppListeners.end();
+        it ++)
+        (*it)->dispatch(buffer, header);
 }
 
 
@@ -646,6 +665,22 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         m_featureDetectorMetaCache.insert(metaP->frameId, metaP); // destroys oldest
         break;
     }
+    case MSG_ID(wire::SecondaryAppData::ID):
+    {
+        wire::SecondaryAppData SecondaryApp(stream, version);
+
+        secondary_app::Header header;
+
+        header.frameId = SecondaryApp.frameId;
+        header.source = SecondaryApp.source;
+        header.bitsPerPixel = SecondaryApp.bitsPerPixel;
+        header.timeSeconds = SecondaryApp.timeSeconds;
+        header.timeMicroSeconds = SecondaryApp.timeMicroSeconds;
+        header.length = SecondaryApp.length;
+        header.secondaryAppDataP = SecondaryApp.dataP;
+        dispatchSecondaryApplication(buffer, header);
+        break;
+    }
     case MSG_ID(wire::Ack::ID):
         break; // handle below
     case MSG_ID(wire::CamConfig::ID):
@@ -716,6 +751,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));
+        break;
+    case MSG_ID(wire::SecondaryAppConfig::ID):
+        m_messages.store(wire::SecondaryAppConfig(stream, version));
         break;
     case MSG_ID(wire::PtpStatusResponse::ID):
         m_messages.store(wire::PtpStatusResponse(stream, version));

@@ -115,6 +115,11 @@
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
 
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -330,6 +335,27 @@ Status impl::removeIsolatedCallback(image::Callback callback)
 }
 
 //
+// Adds a new secondarty app listener
+
+Status impl::addIsolatedCallback(secondary_app::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_secondaryAppListeners.push_back(new SecondaryAppListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_SECONDARY_APP_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
 // Removes a lidar listener
 
 Status impl::removeIsolatedCallback(lidar::Callback callback)
@@ -513,6 +539,34 @@ Status impl::removeIsolatedCallback(feature_detector::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_featureDetectorListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a secondary app listener
+
+Status impl::removeIsolatedCallback(secondary_app::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<SecondaryAppListener*>::iterator it;
+        for(it  = m_secondaryAppListeners.begin();
+            it != m_secondaryAppListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_secondaryAppListeners.erase(it);
                 return Status_Ok;
             }
         }
@@ -1549,6 +1603,39 @@ Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
 
     return waitAck(f);
 }
+
+
+//
+// Query camera configuration
+
+Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
+{
+    Status          status;
+    wire::SecondaryAppConfig d;
+
+    status = waitData(wire::SecondaryAppGetConfig(), d);
+    if (Status_Ok != status)
+        return status;
+
+    config.framesPerSecond = d.framesPerSecond;
+
+    return Status_Ok;
+}
+
+
+//
+// Set camera configuration
+//
+// Currently several sensor messages are combined and presented
+// to the user as one.
+
+Status impl::setSecondaryAppConfig(const system::SecondaryAppConfig& c)
+{
+    wire::SecondaryAppControl cmd;
+    cmd.framesPerSecond = c.framesPerSecond;
+    return waitAck(cmd);
+}
+
 
 //
 // Sets the device info

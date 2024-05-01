@@ -350,6 +350,31 @@ public:
      */
     virtual Status addIsolatedCallback(apriltag::Callback callback,
                                        void         *userDataP=NULL) = 0;
+    /**
+     * Add a user defined callback attached to the Secondary result stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * Secondary data is queued per-callback. For each Secondary
+     * callback the maximum queue depth is 5 Secondary messages.
+     *
+     * Adding multiple callbacks subscribing to the same Secondary data is
+     * allowed.
+     *
+     * Secondary data is stored on the heap and released after returning
+     * from the callback
+     *
+     * @param callback A user defined secondary_App::Callback to send Ground
+     * Surface data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(secondary_app::Callback callback,
+                                       void         *userDataP=NULL) = 0;
 
     /**
      * Add a user defined callback attached to the feature detector stream.
@@ -463,6 +488,18 @@ public:
      */
 
     virtual Status removeIsolatedCallback(feature_detector::Callback callback) = 0;
+
+    /**
+     * Unregister a user defined secondary_app::Callback. This stops the callback
+     * from receiving ground surface data
+     *
+     * @param callback The user defined secondary_app::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(secondary_app::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available
