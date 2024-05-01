@@ -150,7 +150,7 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data            = (1ull<<18);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data            = (1ull<<33);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
