@@ -103,6 +103,7 @@ void signalHandler(int sig)
 
 void imageCallback(const image::Header& header, void *userDataP) 
 {
+    std::cout << "Image Callback" << std::endl;
     (void) userDataP;
 
     cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
@@ -111,6 +112,7 @@ void imageCallback(const image::Header& header, void *userDataP)
 
 void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
 {
+    std::cout << "Mask Callback" << std::endl;
     (void) userDataP;
     uint8_t* u8_secondary_data_ptr = (uint8_t*)header.secondaryAppDataP;
     cv::Mat data = cv::Mat(600, 960, CV_8UC1, u8_secondary_data_ptr);
