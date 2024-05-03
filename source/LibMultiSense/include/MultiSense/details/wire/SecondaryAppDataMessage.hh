@@ -58,7 +58,7 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     VersionType version;
 #endif // SENSORPOD_FIRMWARE
 
-    uint32_t source;
+    uint64_t source;
     uint32_t bitsPerPixel;
     uint32_t length;
     int64_t  frameId;
