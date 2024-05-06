@@ -104,6 +104,7 @@ void signalHandler(int sig)
 void imageCallback(const image::Header& header, void *userDataP) 
 {
     std::cout << "Image Callback" << std::endl;
+    std::cout << "sizeof(header) = " << sizeof(header) << std::endl;
     (void) userDataP;
 
     cv::Mat luma = cv::Mat(header.height, header.width, CV_8UC1, const_cast<void*>(header.imageDataP)).clone();
