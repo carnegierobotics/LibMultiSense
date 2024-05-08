@@ -241,44 +241,45 @@ static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_CONFIG            = 0x012A;
 //
 // Data sources
 
-typedef uint32_t SourceType;
+typedef uint64_t SourceType;
 
 static CRL_CONSTEXPR SourceType SOURCE_UNKNOWN                     = 0;
-static CRL_CONSTEXPR SourceType SOURCE_RAW_LEFT                    = (1U<<0);
-static CRL_CONSTEXPR SourceType SOURCE_RAW_RIGHT                   = (1U<<1);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_LEFT                   = (1U<<2);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RIGHT                  = (1U<<3);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_LEFT              = (1U<<4);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_RIGHT             = (1U<<5);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_LEFT                 = (1U<<6);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RIGHT                = (1U<<7);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RECT_AUX             = (1U<<8);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY                   = (1U<<10);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_LEFT              = (1U<<10); // same as SOURCE_DISPARITY
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT             = (1U<<11);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST              = (1U<<12);
-static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT                   = (1U<<16);
-static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1U<<17);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1U<<18);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1U<<19);
-static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1U<<20);
-static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1U<<22);
-static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1U<<21);
-static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR                   = (1U<<23);
-static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN                  = (1U<<24);
-static CRL_CONSTEXPR SourceType SOURCE_IMU                         = (1U<<25);
-static CRL_CONSTEXPR SourceType SOURCE_PPS                         = (1U<<26);
-static CRL_CONSTEXPR SourceType SOURCE_RAW_AUX                     = (1U<<27);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_AUX                    = (1U<<28);
-static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_AUX               = (1U<<29);
-static CRL_CONSTEXPR SourceType SOURCE_CHROMA_AUX                  = (1U<<30);
-static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_AUX               = (1U<<31);
-static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_LEFT             = (1U<<9);
-static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RIGHT            = (1U<<13);
-static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1U<<14);
-static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1U<<15);
-static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1U<<16); // same as SOURCE_JPEG_LEFT
-static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1U<<17); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_RAW_LEFT                    = (1ull<<0);
+static CRL_CONSTEXPR SourceType SOURCE_RAW_RIGHT                   = (1ull<<1);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_LEFT                   = (1ull<<2);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RIGHT                  = (1ull<<3);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_LEFT              = (1ull<<4);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_RIGHT             = (1ull<<5);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_LEFT                 = (1ull<<6);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RIGHT                = (1ull<<7);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_RECT_AUX             = (1ull<<8);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY                   = (1ull<<10);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_LEFT              = (1ull<<10); // same as SOURCE_DISPARITY
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT             = (1ull<<11);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST              = (1ull<<12);
+static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT                   = (1ull<<16);
+static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1ull<<17);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1ull<<18);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1ull<<19);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_AUX                 = (1ull<<32);
+static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1ull<<20);
+static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1ull<<22);
+static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1ull<<21);
+static CRL_CONSTEXPR SourceType SOURCE_SLB_MOTOR                   = (1ull<<23);
+static CRL_CONSTEXPR SourceType SOURCE_LIDAR_SCAN                  = (1ull<<24);
+static CRL_CONSTEXPR SourceType SOURCE_IMU                         = (1ull<<25);
+static CRL_CONSTEXPR SourceType SOURCE_PPS                         = (1ull<<26);
+static CRL_CONSTEXPR SourceType SOURCE_RAW_AUX                     = (1ull<<27);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_AUX                    = (1ull<<28);
+static CRL_CONSTEXPR SourceType SOURCE_LUMA_RECT_AUX               = (1ull<<29);
+static CRL_CONSTEXPR SourceType SOURCE_CHROMA_AUX                  = (1ull<<30);
+static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_AUX               = (1ull<<31);
+static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_LEFT             = (1ull<<9);
+static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RIGHT            = (1ull<<13);
+static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1ull<<14);
+static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1ull<<15);
+static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1ull<<16); // same as SOURCE_JPEG_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1ull<<17); // same as SOURCE_RGB_LEFT
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |

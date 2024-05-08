@@ -354,7 +354,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = 0;
         header.width            = image.width;
         header.height           = image.height;
@@ -382,7 +382,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = image.bitsPerPixel;
         header.width            = image.width;
         header.height           = image.height;
@@ -500,7 +500,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = image.bitsPerPixel;
         header.codec            = image.codec;
         header.width            = image.width;
@@ -605,20 +605,20 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
           break;
 
         feature_detector::Header header;
-        header.source         =featureDetector.source;
-        header.frameId        =metaP->frameId;
-        header.timeSeconds    =metaP->timeSeconds;
-        header.timeNanoSeconds=metaP->timeNanoSeconds;
-        header.ptpNanoSeconds =metaP->ptpNanoSeconds;
-        header.octaveWidth    =metaP->octaveWidth;
-        header.octaveHeight   =metaP->octaveHeight;
-        header.numOctaves     =metaP->numOctaves;
-        header.scaleFactor    =metaP->scaleFactor;
-        header.motionStatus   =metaP->motionStatus;
-        header.averageXMotion =metaP->averageXMotion;
-        header.averageYMotion =metaP->averageYMotion;
-        header.numFeatures    =featureDetector.numFeatures;
-        header.numDescriptors =featureDetector.numDescriptors;
+        header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
+        header.frameId        = metaP->frameId;
+        header.timeSeconds    = metaP->timeSeconds;
+        header.timeNanoSeconds= metaP->timeNanoSeconds;
+        header.ptpNanoSeconds = metaP->ptpNanoSeconds;
+        header.octaveWidth    = metaP->octaveWidth;
+        header.octaveHeight   = metaP->octaveHeight;
+        header.numOctaves     = metaP->numOctaves;
+        header.scaleFactor    = metaP->scaleFactor;
+        header.motionStatus   = metaP->motionStatus;
+        header.averageXMotion = metaP->averageXMotion;
+        header.averageYMotion = metaP->averageYMotion;
+        header.numFeatures    = featureDetector.numFeatures;
+        header.numDescriptors = featureDetector.numDescriptors;
 
         const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
 

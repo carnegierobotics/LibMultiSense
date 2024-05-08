@@ -111,44 +111,45 @@ static CRL_CONSTEXPR Status Status_Exception   = -6;
  * sensor. DataSource values can be combined using the bitwise OR
  * operator to represent multiple sources.
  */
-typedef uint32_t DataSource;
+typedef uint64_t DataSource;
 
 static CRL_CONSTEXPR DataSource Source_Unknown                       = 0;
-static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffff;
-static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1U<<0);
-static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1U<<1);
-static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1U<<2);
-static CRL_CONSTEXPR DataSource Source_Luma_Right                    = (1U<<3);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left           = (1U<<4);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right          = (1U<<5);
-static CRL_CONSTEXPR DataSource Source_Chroma_Left                   = (1U<<6);
-static CRL_CONSTEXPR DataSource Source_Chroma_Right                  = (1U<<7);
-static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux          = (1U<<8);
-static CRL_CONSTEXPR DataSource Source_Disparity                     = (1U<<10);
-static CRL_CONSTEXPR DataSource Source_Disparity_Left                = (1U<<10); // same as Source_Disparity
-static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1U<<11);
-static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1U<<12);
-static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
-static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
-static CRL_CONSTEXPR DataSource Source_Feature_Left                  = (1U<<18);
-static CRL_CONSTEXPR DataSource Source_Feature_Right                 = (1U<<19);
-static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
-static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
-static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1U<<23);
-static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1U<<24);
-static CRL_CONSTEXPR DataSource Source_Imu                           = (1U<<25);
-static CRL_CONSTEXPR DataSource Source_Pps                           = (1U<<26);
-static CRL_CONSTEXPR DataSource Source_Raw_Aux                       = (1U<<27);
-static CRL_CONSTEXPR DataSource Source_Luma_Aux                      = (1U<<28);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux            = (1U<<29);
-static CRL_CONSTEXPR DataSource Source_Chroma_Aux                    = (1U<<30);
-static CRL_CONSTEXPR DataSource Source_Disparity_Aux                 = (1U<<31);
-static CRL_CONSTEXPR DataSource Source_Compressed_Left               = (1U<<9);
-static CRL_CONSTEXPR DataSource Source_Compressed_Right              = (1U<<13);
-static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1U<<14);
-static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
-static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
-static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffffffffffff;
+static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1ull<<0);
+static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1ull<<1);
+static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1ull<<2);
+static CRL_CONSTEXPR DataSource Source_Luma_Right                    = (1ull<<3);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left           = (1ull<<4);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right          = (1ull<<5);
+static CRL_CONSTEXPR DataSource Source_Chroma_Left                   = (1ull<<6);
+static CRL_CONSTEXPR DataSource Source_Chroma_Right                  = (1ull<<7);
+static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux          = (1ull<<8);
+static CRL_CONSTEXPR DataSource Source_Disparity                     = (1ull<<10);
+static CRL_CONSTEXPR DataSource Source_Disparity_Left                = (1ull<<10); // same as Source_Disparity
+static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1ull<<11);
+static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1ull<<12);
+static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1ull<<16);
+static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1ull<<17);
+static CRL_CONSTEXPR DataSource Source_Feature_Left                  = (1ull<<18);
+static CRL_CONSTEXPR DataSource Source_Feature_Right                 = (1ull<<19);
+static CRL_CONSTEXPR DataSource Source_Feature_Aux                   = (1ull<<32);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1ull<<20);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1ull<<22);
+static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1ull<<23);
+static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1ull<<24);
+static CRL_CONSTEXPR DataSource Source_Imu                           = (1ull<<25);
+static CRL_CONSTEXPR DataSource Source_Pps                           = (1ull<<26);
+static CRL_CONSTEXPR DataSource Source_Raw_Aux                       = (1ull<<27);
+static CRL_CONSTEXPR DataSource Source_Luma_Aux                      = (1ull<<28);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux            = (1ull<<29);
+static CRL_CONSTEXPR DataSource Source_Chroma_Aux                    = (1ull<<30);
+static CRL_CONSTEXPR DataSource Source_Disparity_Aux                 = (1ull<<31);
+static CRL_CONSTEXPR DataSource Source_Compressed_Left               = (1ull<<9);
+static CRL_CONSTEXPR DataSource Source_Compressed_Right              = (1ull<<13);
+static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -2999,7 +3000,7 @@ namespace feature_detector {
   class MULTISENSE_API Header : public HeaderBase {
   public:
 
-      uint32_t source;
+      DataSource source;
       int64_t  frameId;
       uint32_t timeSeconds;
       uint32_t timeNanoSeconds;
