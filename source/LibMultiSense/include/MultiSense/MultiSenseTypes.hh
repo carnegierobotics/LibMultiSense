@@ -114,7 +114,7 @@ static CRL_CONSTEXPR Status Status_Exception   = -6;
 typedef uint64_t DataSource;
 
 static CRL_CONSTEXPR DataSource Source_Unknown                       = 0;
-static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffff;
+static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffffffffffff;
 static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1ull<<0);
 static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1ull<<1);
 static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1ull<<2);
