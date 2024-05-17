@@ -3,19 +3,32 @@
 #
 
 #
-# Setup the executable that we will use.
+# This utility requires c++14
 #
 
-add_executable(FeatureDetectorUtility FeatureDetectorUtility.cc)
+if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.0) OR
+    (CMAKE_CXX_COMPILER_ID MATCHES GNU AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9) OR
+    (CMAKE_CXX_COMPILER_ID MATCHES Clang AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 3.4))
 
-#
-# Specify libraries against which to link.
-#
+    set(CMAKE_CXX_STANDARD 14)
+    #
+    # Setup the executable that we will use.
+    #
 
-target_link_libraries (FeatureDetectorUtility ${MULTISENSE_UTILITY_LIBS})
+    add_executable(FeatureDetectorUtility FeatureDetectorUtility.cc)
 
-#
-# Specify the install location
-#
+    #
+    # Specify libraries against which to link.
+    #
 
-install(TARGETS FeatureDetectorUtility RUNTIME DESTINATION "bin")
+    target_link_libraries (FeatureDetectorUtility ${MULTISENSE_UTILITY_LIBS})
+
+    #
+    # Specify the install location
+    #
+
+    install(TARGETS FeatureDetectorUtility RUNTIME DESTINATION "bin")
+endif()
