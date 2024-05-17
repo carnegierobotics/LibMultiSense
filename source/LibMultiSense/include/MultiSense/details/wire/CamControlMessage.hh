@@ -103,7 +103,7 @@ public:
     //
     // Additions in version 7
 
-    SourceType exposureSource; // Deprecated
+    uint32_t exposureSource; // Deprecated
     std::vector<ExposureConfig> secondaryExposureConfigs; // Deprecated
 
     //

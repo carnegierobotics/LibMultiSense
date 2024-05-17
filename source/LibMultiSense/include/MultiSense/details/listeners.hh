@@ -42,198 +42,204 @@
 #include "MultiSense/details/utility/Thread.hh"
 #include "MultiSense/details/utility/BufferStream.hh"
 
-namespace crl {
-namespace multisense {
-namespace details {
+namespace crl{
+    namespace multisense{
+        namespace details{
 
-//
-// For access to a buffer back-end in a dispatch thread
+            //
+            // For access to a buffer back-end in a dispatch thread
 
-extern CRL_THREAD_LOCAL utility::BufferStream *dispatchBufferReferenceTP;
+            extern CRL_THREAD_LOCAL utility::BufferStream* dispatchBufferReferenceTP;
 
-//
-// The dispatch mechanism. Each instance represents a bound
-// listener to a datum stream.
+            //
+            // The dispatch mechanism. Each instance represents a bound
+            // listener to a datum stream.
 
-template<class THeader, class TCallback>
-class Listener {
-public:
+            template<class THeader, class TCallback>
+            class Listener{
+            public:
 
-    Listener(TCallback   c,
-             DataSource s,
-             void      *d,
-             uint32_t   m=0)
-        : m_callback(c),
-          m_sourceMask(s),
-          m_userDataP(d),
-          m_running(false),
-          m_queue(m),
-          m_dispatchThreadP(NULL) {
+                Listener(TCallback   c,
+                    DataSource s,
+                    void* d,
+                    uint32_t   m = 0)
+                    : m_callback(c),
+                    m_sourceMask(s),
+                    m_userDataP(d),
+                    m_running(false),
+                    m_queue(m),
+                    m_dispatchThreadP(NULL){
 
-        m_running         = true;
-        m_dispatchThreadP = new utility::Thread(dispatchThread, this);
-    };
+                    m_running = true;
+                    m_dispatchThreadP = new utility::Thread(dispatchThread, this);
+                };
 
-    Listener() :
-        m_callback(NULL),
-        m_sourceMask(0),
-        m_userDataP(NULL),
-        m_running(false),
-        m_queue(),
-        m_dispatchThreadP(NULL) {};
+                Listener() :
+                    m_callback(NULL),
+                    m_sourceMask(0),
+                    m_userDataP(NULL),
+                    m_running(false),
+                    m_queue(),
+                    m_dispatchThreadP(NULL){
+                };
 
-    ~Listener() {
-        if (m_running) {
-            m_running = false;
-            m_queue.kick();
-            delete m_dispatchThreadP;
-        }
-    };
+                ~Listener(){
+                    if (m_running){
+                        m_running = false;
+                        m_queue.kick();
+                        delete m_dispatchThreadP;
+                    }
+                };
 
-    #if __cplusplus > 199711L
-        Listener(Listener const&) = default;
-        Listener(Listener &&) = default;
-        Listener& operator=(Listener const&) = default;
-        Listener& operator=(Listener &&) = default;
-    #endif
-
-    void dispatch(THeader& header) {
-
-        if (header.inMask(m_sourceMask))
-            m_queue.post(Dispatch(m_callback,
-                                  header,
-                                  m_userDataP));
-    };
-
-    void dispatch(utility::BufferStream& buffer,
-                  THeader&                header) {
-
-        if (header.inMask(m_sourceMask))
-            m_queue.post(Dispatch(m_callback,
-                                  buffer,
-                                  header,
-                                  m_userDataP));
-    };
-
-    TCallback callback() { return m_callback; };
-
-private:
-
-    //
-    // For thread-safe dispatching
-
-    class Dispatch {
-    public:
-
-        Dispatch(TCallback  c,
-                 THeader&   h,
-                 void     *d) :
-            m_callback(c),
-            m_exposeBuffer(false),
-            m_header(h),
-            m_userDataP(d) {};
-
-        Dispatch(TCallback               c,
-                 utility::BufferStream& b,
-                 THeader&                h,
-                 void                  *d) :
-            m_callback(c),
-            m_buffer(b),
-            m_exposeBuffer(true),
-            m_header(h),
-            m_userDataP(d) {};
-
-        Dispatch() :
-            m_callback(NULL),
-            m_buffer(),
-            m_exposeBuffer(false),
-            m_header(),
-            m_userDataP(NULL) {};
-
-
-        #if __cplusplus > 199711L
-            Dispatch(Dispatch const&) = default;
-            Dispatch(Dispatch &&) = default;
-            Dispatch& operator=(Dispatch const&) = default;
-            Dispatch& operator=(Dispatch &&) = default;
-        #endif
-
-        void operator() (void) {
-
-            if (m_callback) {
-                if (m_exposeBuffer)
-                    dispatchBufferReferenceTP = &m_buffer;
-                m_callback(m_header, m_userDataP);
-            }
-        };
-
-    private:
-
-        TCallback              m_callback;
-        utility::BufferStream m_buffer;
-        bool                  m_exposeBuffer;
-        THeader                m_header;
-        void                 *m_userDataP;
-    };
-
-    //
-    // The dispatch thread
-    //
-    // We are penalized with two memory copies of
-    // HEADER by std::deque, but the image/lidar data
-    // is zero-copy (reference-counted by BufferStream)
-
-#if WIN32
-    static DWORD WINAPI dispatchThread(void *argumentP) {
-#else
-    static void *dispatchThread(void *argumentP) {
+#if __cplusplus > 199711L
+                Listener(Listener const&) = default;
+                Listener(Listener&&) = default;
+                Listener& operator=(Listener const&) = default;
+                Listener& operator=(Listener&&) = default;
 #endif
 
-        Listener<THeader,TCallback> *selfP = reinterpret_cast< Listener<THeader,TCallback> * >(argumentP);
+                void dispatch(THeader& header){
 
-        while(selfP->m_running) {
-            try {
-                Dispatch d;
-                if (false == selfP->m_queue.wait(d))
-                    break;
-                d();
-            } catch (const std::exception& e) {
-                CRL_DEBUG("exception invoking image callback: %s\n",
-                          e.what());
-            } catch ( ... ) {
-                CRL_DEBUG_RAW("unknown exception invoking image callback\n");
-            }
-        };
+                    if (header.inMask(m_sourceMask))
+                        m_queue.post(Dispatch(m_callback,
+                            header,
+                            m_userDataP));
+                };
 
-        return NULL;
-    }
+                void dispatch(utility::BufferStream& buffer,
+                    THeader& header){
 
-    //
-    // Set by user
+                    if (header.inMask(m_sourceMask))
+                        m_queue.post(Dispatch(m_callback,
+                            buffer,
+                            header,
+                            m_userDataP));
+                };
 
-    TCallback   m_callback;
-    DataSource m_sourceMask;
-    void      *m_userDataP;
+                TCallback callback(){ return m_callback; };
 
-    //
-    // Dispatch mechanism
+            private:
 
-    volatile bool                m_running;
-    utility::WaitQueue<Dispatch> m_queue;
-    utility::Thread             *m_dispatchThreadP;
-};
+                //
+                // For thread-safe dispatching
 
-typedef Listener<image::Header,            image::Callback>            ImageListener;
-typedef Listener<lidar::Header,            lidar::Callback>            LidarListener;
-typedef Listener<pps::Header,              pps::Callback>              PpsListener;
-typedef Listener<imu::Header,              imu::Callback>              ImuListener;
-typedef Listener<compressed_image::Header, compressed_image::Callback> CompressedImageListener;
-typedef Listener<ground_surface::Header,   ground_surface::Callback>   GroundSurfaceSplineListener;
-typedef Listener<apriltag::Header,         apriltag::Callback>         AprilTagDetectionListener;
-typedef Listener<secondary_app::Header,    secondary_app::Callback>    SecondaryAppListener;
+                class Dispatch{
+                public:
 
-} // namespace details
-} // namespace multisense
+                    Dispatch(TCallback  c,
+                        THeader& h,
+                        void* d) :
+                        m_callback(c),
+                        m_exposeBuffer(false),
+                        m_header(h),
+                        m_userDataP(d){
+                    };
+
+                    Dispatch(TCallback               c,
+                        utility::BufferStream& b,
+                        THeader& h,
+                        void* d) :
+                        m_callback(c),
+                        m_buffer(b),
+                        m_exposeBuffer(true),
+                        m_header(h),
+                        m_userDataP(d){
+                    };
+
+                    Dispatch() :
+                        m_callback(NULL),
+                        m_buffer(),
+                        m_exposeBuffer(false),
+                        m_header(),
+                        m_userDataP(NULL){
+                    };
+
+
+#if __cplusplus > 199711L
+                    Dispatch(Dispatch const&) = default;
+                    Dispatch(Dispatch&&) = default;
+                    Dispatch& operator=(Dispatch const&) = default;
+                    Dispatch& operator=(Dispatch&&) = default;
+#endif
+
+                    void operator() (void){
+
+                        if (m_callback){
+                            if (m_exposeBuffer)
+                                dispatchBufferReferenceTP = &m_buffer;
+                            m_callback(m_header, m_userDataP);
+                        }
+                    };
+
+                private:
+
+                    TCallback              m_callback;
+                    utility::BufferStream m_buffer;
+                    bool                  m_exposeBuffer;
+                    THeader                m_header;
+                    void* m_userDataP;
+                };
+
+                //
+                // The dispatch thread
+                //
+                // We are penalized with two memory copies of
+                // HEADER by std::deque, but the image/lidar data
+                // is zero-copy (reference-counted by BufferStream)
+
+#if WIN32
+                static DWORD WINAPI dispatchThread(void* argumentP){
+#else
+                static void* dispatchThread(void* argumentP){
+#endif
+
+                    Listener<THeader, TCallback>* selfP = reinterpret_cast<Listener<THeader, TCallback>*>(argumentP);
+
+                    while (selfP->m_running){
+                        try{
+                            Dispatch d;
+                            if (false == selfP->m_queue.wait(d))
+                                break;
+                            d();
+                        }
+                        catch (const std::exception& e){
+                            CRL_DEBUG("exception invoking image callback: %s\n",
+                                e.what());
+                        }
+                        catch (...){
+                            CRL_DEBUG_RAW("unknown exception invoking image callback\n");
+                        }
+                    };
+
+                    return NULL;
+                }
+
+                //
+                // Set by user
+
+                TCallback   m_callback;
+                DataSource m_sourceMask;
+                void* m_userDataP;
+
+                //
+                // Dispatch mechanism
+
+                volatile bool                m_running;
+                utility::WaitQueue<Dispatch> m_queue;
+                utility::Thread* m_dispatchThreadP;
+            };
+
+            typedef Listener<image::Header, image::Callback>            ImageListener;
+            typedef Listener<lidar::Header, lidar::Callback>            LidarListener;
+            typedef Listener<pps::Header, pps::Callback>              PpsListener;
+            typedef Listener<imu::Header, imu::Callback>              ImuListener;
+            typedef Listener<compressed_image::Header, compressed_image::Callback> CompressedImageListener;
+            typedef Listener<ground_surface::Header, ground_surface::Callback>   GroundSurfaceSplineListener;
+            typedef Listener<apriltag::Header, apriltag::Callback>         AprilTagDetectionListener;
+            typedef Listener<secondary_app::Header, secondary_app::Callback>    SecondaryAppListener;
+
+        } // namespace details
+    } // namespace multisense
 } // namespace crl
 
 

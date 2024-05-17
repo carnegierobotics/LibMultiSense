@@ -175,6 +175,15 @@ namespace details {
             remove_(key);
         };
 
+        //
+        // Given that an insertion operation will happen, this function returns whether the
+        // depth cache will drop a key, and if so, what the key that will be dropped is.
+        //
+        std::pair<bool, KEY> will_drop() {
+            utility::ScopedLock lock(m_lock);
+            return will_drop_();
+        };
+
     private:
 
         typedef std::deque<KEY> QueueType;
@@ -239,6 +248,17 @@ namespace details {
                 m_queue.pop_back();
             }
         };
+
+        std::pair<bool, KEY> will_drop_() {
+            const bool will_drop = m_map.size() == m_depth;
+            KEY drop_key; // If will_drop is false, this value is intentionally uninitialized
+
+            if (will_drop)
+            {
+                drop_key = m_queue.back();
+            }
+            return std::pair<bool, KEY>(will_drop, drop_key);
+        }
 
         const std::size_t m_depth;
         MapType           m_map;

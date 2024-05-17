@@ -51,7 +51,7 @@ class WIRE_HEADER_ATTRIBS_ CompressedImageHeader {
 public:
 
 static CRL_CONSTEXPR IdType      ID      = ID_DATA_COMPRESSED_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 0;
+static CRL_CONSTEXPR VersionType VERSION = 1;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
@@ -67,6 +67,7 @@ static CRL_CONSTEXPR VersionType VERSION = 0;
     uint32_t exposure;
     float gain;
     uint32_t compressedDataBufferSize;
+    uint32_t sourceExtended;
 
     CompressedImageHeader()
         :
@@ -82,7 +83,8 @@ static CRL_CONSTEXPR VersionType VERSION = 0;
         height(0),
         exposure(0),
         gain(0.0),
-        compressedDataBufferSize(0)
+        compressedDataBufferSize(0),
+        sourceExtended(0)
         {};
 };
 
@@ -106,7 +108,6 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
         message & source;
         message & bitsPerPixel;
         message & codec;
@@ -125,6 +126,15 @@ public:
 
             dataP = message.peek();
             message.seek(message.tell() + compressedDataBufferSize);
+        }
+
+        if (version >= 1)
+        {
+          message & sourceExtended;
+        }
+        else
+        {
+          sourceExtended = 0;
         }
 
     }

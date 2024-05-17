@@ -62,7 +62,7 @@ public:
     uint16_t autoExposureRoiWidth;
     uint16_t autoExposureRoiHeight;
 
-    SourceType exposureSource;
+    uint32_t exposureSource;
     float      autoExposureTargetIntensity;
     float      gain;
 

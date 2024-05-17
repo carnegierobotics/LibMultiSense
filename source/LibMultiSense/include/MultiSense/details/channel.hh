@@ -49,6 +49,7 @@
 #include "MultiSense/details/wire/ImageMetaMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -169,12 +170,15 @@ public:
   	virtual Status getTransmitDelay   (image::TransmitDelay& c);
   	virtual Status setTransmitDelay   (const image::TransmitDelay& c);
 
+  	virtual Status getPacketDelay        (image::PacketDelay& p);
+  	virtual Status setPacketDelay        (const image::PacketDelay& p);
+
     virtual Status getLidarCalibration   (lidar::Calibration& c);
     virtual Status setLidarCalibration   (const lidar::Calibration& c);
 
     virtual Status getImageHistogram     (int64_t frameId, image::Histogram& histogram);
 
-    virtual Status getPtpStatus          (int64_t frameId, system::PtpStatus& ptpStatus);
+    virtual Status getPtpStatus          (system::PtpStatus& ptpStatus);
 
     virtual Status getDeviceModes        (std::vector<system::DeviceMode>& modes);
 
@@ -221,6 +225,9 @@ public:
 
     virtual Status getSecondaryAppConfig (system::SecondaryAppConfig & c);
     virtual Status setSecondaryAppConfig (const system::SecondaryAppConfig & c);
+
+    virtual system::ChannelStatistics getStats();
+
 
 private:
 
@@ -397,6 +404,7 @@ private:
 
     int32_t m_sensorMtu;
 
+
     //
     // A buffer to receive incoming UDP packets
 
@@ -408,6 +416,12 @@ private:
     uint16_t m_txSeqId;
     int32_t  m_lastRxSeqId;
     int64_t  m_unWrappedRxSeqId;
+
+    //
+    // Sequence ID for tracking lost headers to prevent assembler debug spam
+
+    int64_t m_lastUnexpectedSequenceId;
+
 
     //
     // A cache to track incoming messages by sequence ID
@@ -507,8 +521,23 @@ private:
     wire::StatusResponse m_statusResponseMessage;
 
     //
+    // Cached PtpStatusResponseMessage from the MultiSense
+
+    wire::PtpStatusResponse m_ptpStatusResponseMessage;
+
+
+    //
     // Status set in statusThread indicating if the request for status msg timed out
     Status               m_getStatusReturnStatus;
+
+    //
+    // Status set in statusThread indicating if if there is a valid ptp status message
+    Status               m_getPtpStatusReturnStatus;
+
+    //
+    // Channel statistics and corresponding mutex
+    utility::Mutex m_statisticsLock;
+    system::ChannelStatistics m_channelStatistics;
 
     //
     // Private procedures

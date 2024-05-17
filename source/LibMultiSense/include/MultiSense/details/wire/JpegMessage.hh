@@ -51,7 +51,7 @@ class WIRE_HEADER_ATTRIBS_ JpegImageHeader {
 public:
 
 static CRL_CONSTEXPR IdType      ID      = ID_DATA_JPEG_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 1;
+static CRL_CONSTEXPR VersionType VERSION = 2;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
@@ -64,6 +64,7 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     uint16_t height;
     uint32_t length;
     uint32_t quality;
+    uint32_t sourceExtended;
 
     JpegImageHeader() :
 #ifdef SENSORDPOD_FIRMWARE
@@ -75,7 +76,9 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
         width(0),
         height(0),
         length(0),
-        quality(0) {};
+        quality(0),
+        sourceExtended(0)
+        {};
 };
 
 #ifndef SENSORPOD_FIRMWARE
@@ -98,7 +101,6 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
         message & source;
         message & frameId;
         message & width;
@@ -114,6 +116,15 @@ public:
 
             dataP = message.peek();
             message.seek(message.tell() + length);
+        }
+
+        if (version >= 2)
+        {
+          message & sourceExtended;
+        }
+        else
+        {
+          sourceExtended = 0;
         }
     }
 };

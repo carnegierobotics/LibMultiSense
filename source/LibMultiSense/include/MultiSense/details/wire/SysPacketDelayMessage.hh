@@ -1,10 +1,9 @@
 /**
- * @file LibMultiSense/RemoteHeadConfig.hh
+ * @file LibMultiSense/SysPacketDelayMessage.hh
  *
- * This message contains the current controls to configure a remote head vpb
- * sync pair.
+ * This message contains network delay settings
  *
- * Copyright 2013-2023
+ * Copyright 2017-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,40 +33,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-03-03, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ * 2024-04-04, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-
-#ifndef LibMultiSense_RemoteHeadControlMessage
-#define LibMultiSense_RemoteHeadControlMessage
+#ifndef LibMultiSense_SysPacketDelayMessage
+#define LibMultiSense_SysPacketDelayMessage
 
 #include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
-#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
-// #include "MultiSense/MultisenseTypes.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class RemoteHeadControl {
+class SysPacketDelay {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_REMOTE_HEAD_CONTROL;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_SET_PACKET_DELAY;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    //
-    // Parameters representing the current remote head sync configuration
 
-    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
+    bool enable;
 
     //
     // Constructors
 
-    RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    RemoteHeadControl() :
-        syncGroups()
-        {};
+    SysPacketDelay(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SysPacketDelay() {};
+    SysPacketDelay(bool en): enable(en) {};
 
     //
     // Serialization routine
@@ -76,11 +68,8 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
-
-        message & syncGroups;
-
+        message & enable;
     }
 };
 
