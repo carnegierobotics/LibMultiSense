@@ -1,13 +1,12 @@
 /**
- * @file LibMultiSense/RemoteHeadConfig.hh
+ * @file LibMultiSense/FeatureDetectorConfigMessage.hh
  *
- * This message contains the current controls to configure a remote head vpb
- * sync pair.
+ * This message contains the current feature detector configuration.
  *
- * Copyright 2013-2023
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegierobotics.com
+ * http://www.carnegiearobotics.com
  *
  * All rights reserved.
  *
@@ -34,40 +33,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-03-03, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-
-#ifndef LibMultiSense_RemoteHeadControlMessage
-#define LibMultiSense_RemoteHeadControlMessage
+#ifndef LibMultisense_FeatureDetectorConfigMessage
+#define LibMultisense_FeatureDetectorConfigMessage
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/wire/Protocol.hh"
-#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
-// #include "MultiSense/MultisenseTypes.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class RemoteHeadControl {
+class FeatureDetectorConfig {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_REMOTE_HEAD_CONTROL;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_CONFIG;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // Parameters representing the current remote head sync configuration
+    // Parameters representing the current camera configuration
 
-    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
+    //
+    // The maximum number of features detected per image
+    uint32_t numberOfFeatures;
+
+    //
+    // Enable/Disable feature grouping
+    bool grouping;
+
+    //
+    // Enable motion detection
+    // Currently this functions as enable/disable but could be used to specify
+    // which octave motion detection is performed on.
+    // Current Octave: 3
+    uint32_t motion;
 
     //
     // Constructors
 
-    RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    RemoteHeadControl() :
-        syncGroups()
-        {};
+    FeatureDetectorConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorConfig() {};
 
     //
     // Serialization routine
@@ -79,8 +86,9 @@ public:
 
         (void) version;
 
-        message & syncGroups;
-
+        message & numberOfFeatures;
+        message & grouping;
+        message & motion;
     }
 };
 

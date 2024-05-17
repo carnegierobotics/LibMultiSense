@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/ImageMessage.hh
+ * @file LibMultiSense/FeatureDetectorMetaMessage.hh
  *
  * Copyright 2013-2022
  * Carnegie Robotics, LLC
@@ -31,14 +31,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-12, ekratzer@carnegierobotics.com, PR1044, created file.
+ *   2024-01-25, patrick.smith@carnegierobotics.com, IRAD, created file.
  **/
 
-#ifndef LibMultiSense_ImageMessage
-#define LibMultiSense_ImageMessage
+#ifndef LibMultiSense_FeatureDetectorMetadataMessage
+#define LibMultiSense_FeatureDetectorMetadataMessage
 
 #include <typeinfo>
-#include <cmath>
 
 #include "MultiSense/details/utility/Portability.hh"
 
@@ -47,55 +46,64 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ ImageHeader {
-public:
-
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 3;
-
+  class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
+  public:
+      static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR_META;
+      static CRL_CONSTEXPR VersionType VERSION    = 1;
 #ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
+      IdType                 id;
+      VersionType            version;
 #endif // SENSORPOD_FIRMWARE
+      uint32_t               length;
+      uint32_t               source;
+      int64_t                frameId;
+      uint32_t               timeSeconds;
+      uint32_t               timeNanoSeconds;
+      int64_t                ptpNanoSeconds;
+      uint16_t               octaveWidth;
+      uint16_t               octaveHeight;
+      uint16_t               numOctaves;
+      uint16_t               scaleFactor;
+      uint16_t               motionStatus;
+      uint16_t               averageXMotion;
+      uint16_t               averageYMotion;
+      uint16_t               numFeatures;
+      uint16_t               numDescriptors;
 
-    uint32_t source;
-    uint32_t bitsPerPixel;
-    int64_t  frameId;
-    uint16_t width;
-    uint16_t height;
-    uint32_t exposure;
-    float gain;
-    uint32_t sourceExtended;
+      FeatureDetectorMetaHeader() :
+  #ifdef SENSORPOD_FIRMWARE
+          id(ID),
+          version(VERSION),
+  #endif // SENSORPOD_FIRMWARE
+          length(0),
+          source(0),
+          frameId(0),
+          timeSeconds(0),
+          timeNanoSeconds(0),
+          ptpNanoSeconds(0),
+          octaveWidth(0),
+          octaveHeight(0),
+          numOctaves(0),
+          scaleFactor(0),
+          motionStatus(0),
+          averageXMotion(0),
+          averageYMotion(0),
+          numFeatures(0),
+          numDescriptors(0)
+       {};
 
-    ImageHeader()
-        :
-#ifdef SENSORDPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
-        source(0),
-        bitsPerPixel(0),
-        frameId(0),
-        width(0),
-        height(0),
-        exposure(0),
-        gain(0.0),
-        sourceExtended(0)
-         {};
-};
+  };
 
 #ifndef SENSORPOD_FIRMWARE
 
-class Image : public ImageHeader {
+class FeatureDetectorMeta : public FeatureDetectorMetaHeader {
 public:
-
-    void *dataP;
 
     //
     // Constructors
 
-    Image(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    Image() : dataP(NULL) {};
+    FeatureDetectorMeta(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorMeta() {};
 
     //
     // Serialization routine
@@ -104,43 +112,23 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
+        message & length;
         message & source;
-        message & bitsPerPixel;
         message & frameId;
-        message & width;
-        message & height;
+        message & timeSeconds;
+        message & timeNanoSeconds;
+        message & ptpNanoSeconds;
+        message & octaveWidth;
+        message & octaveHeight;
+        message & numOctaves;
+        message & scaleFactor;
+        message & motionStatus;
+        message & averageXMotion;
+        message & averageYMotion;
+        message & numFeatures;
+        message & numDescriptors;
 
-        const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) bitsPerPixel / 8.0) * width * height));
-
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(dataP, imageSize);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + imageSize);
-        }
-
-        if (version >= 2)
-        {
-            message & exposure;
-            message & gain;
-        }
-        else
-        {
-            exposure = 0;
-            gain = Default_Gain;
-        }
-
-        if (version >= 3)
-        {
-          message & sourceExtended;
-        }
-        else
-        {
-          sourceExtended = 0;
-        }
     }
 };
 

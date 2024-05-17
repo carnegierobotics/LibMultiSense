@@ -46,6 +46,8 @@
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 #include "MultiSense/details/wire/StatusRequestMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusRequestMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 
 #include "MultiSense/details/wire/StreamControlMessage.hh"
 #include "MultiSense/details/wire/SysSetPtpMessage.hh"
@@ -96,11 +98,19 @@
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysGroundSurfaceParamsMessage.hh"
 #include "MultiSense/details/wire/SysApriltagParamsMessage.hh"
+#include "MultiSense/details/wire/SysGetPacketDelayMessage.hh"
+#include "MultiSense/details/wire/SysPacketDelayMessage.hh"
 
 #include "MultiSense/details/wire/ImuGetInfoMessage.hh"
 #include "MultiSense/details/wire/ImuGetConfigMessage.hh"
 #include "MultiSense/details/wire/ImuInfoMessage.hh"
 #include "MultiSense/details/wire/ImuConfigMessage.hh"
+
+#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
 
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
@@ -262,6 +272,27 @@ Status impl::addIsolatedCallback(apriltag::Callback callback,
                                                0,
                                                userDataP,
                                                MAX_USER_APRILTAG_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
+// Adds a new feature detector listener
+
+Status impl::addIsolatedCallback(feature_detector::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_featureDetectorListeners.push_back(new FeatureDetectorListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE));
 
     } catch (const std::exception& e) {
         CRL_DEBUG("exception: %s\n", e.what());
@@ -467,6 +498,34 @@ Status impl::removeIsolatedCallback(apriltag::Callback callback)
 }
 
 //
+// Removes a feature detector listener
+
+Status impl::removeIsolatedCallback(feature_detector::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+
+        std::list<FeatureDetectorListener*>::iterator it;
+        for(it  = m_featureDetectorListeners.begin();
+            it != m_featureDetectorListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_featureDetectorListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
 // Reserve the current callback buffer being used in a dispatch thread
 
 void *impl::reserveCallbackBuffer()
@@ -556,34 +615,22 @@ Status impl::getImageHistogram(int64_t           frameId,
     return Status_Error;
 }
 
-Status impl::getPtpStatus(int64_t frameId,
-                          system::PtpStatus &ptpStatus)
+Status impl::getPtpStatus(system::PtpStatus &ptpStatus)
 {
-    try {
-
-        utility::ScopedLock lock(m_imageMetaCache.mutex());
-
-        const wire::ImageMeta *metaP = m_imageMetaCache.find_nolock(frameId);
-        if (NULL == metaP) {
-            CRL_DEBUG("no meta cached for frameId %ld",
-                      static_cast<long int>(frameId));
-            return Status_Failed;
-        }
-
-        ptpStatus = system::PtpStatus();
-
-        return Status_Ok;
-
+    if (m_getPtpStatusReturnStatus != Status_Ok){
+        return m_getPtpStatusReturnStatus;
     }
-    catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
-        return Status_Exception;
-    }
-    catch (...) {
-        CRL_DEBUG ("%s\n", "unknown exception");
+    if (m_sensorVersion.firmwareVersion < 0x60A) {
+        return Status_Unsupported;
     }
 
-    return Status_Error;
+    ptpStatus.gm_present = m_ptpStatusResponseMessage.gm_present;
+    ptpStatus.gm_offset = m_ptpStatusResponseMessage.gm_offset;
+    ptpStatus.path_delay = m_ptpStatusResponseMessage.path_delay;
+    ptpStatus.steps_removed = m_ptpStatusResponseMessage.steps_removed;
+    memcpy(ptpStatus.gm_id, m_ptpStatusResponseMessage.gm_id, 8);
+
+    return Status_Ok;
 }
 
 //
@@ -1019,13 +1066,31 @@ Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
 
     status = waitData(wire::RemoteHeadGetConfig(), r);
     if (Status_Ok != status)
+    {
         return status;
+    }
 
-    c.m_syncPair1.controller = r.syncPair1.controller;
-    c.m_syncPair1.responder  = r.syncPair1.responder;
+    std::vector<RemoteHeadSyncGroup> grp;
+    grp.reserve(r.syncGroups.size());
 
-    c.m_syncPair2.controller = r.syncPair2.controller;
-    c.m_syncPair2.responder  = r.syncPair2.responder;
+    for (uint32_t i = 0 ; i < r.syncGroups.size() ; ++i)
+    {
+        const wire::RemoteHeadSyncGroup &wire_sg = r.syncGroups[i];
+
+        std::vector<RemoteHeadChannel> responders;
+        responders.reserve(wire_sg.responders.size());
+
+        for (uint32_t j = 0 ; j < wire_sg.responders.size() ; ++j)
+        {
+            const wire::RemoteHeadChannel &resp = wire_sg.responders[j];
+
+            responders.push_back(resp.channel);
+        }
+
+        grp.push_back(RemoteHeadSyncGroup(wire_sg.controller.channel, responders));
+    }
+
+    c.setSyncGroups(grp);
 
     return status;
 }
@@ -1034,14 +1099,37 @@ Status impl::getRemoteHeadConfig(image::RemoteHeadConfig& c)
 // Set Remote Head Configuration
 Status impl::setRemoteHeadConfig(const image::RemoteHeadConfig& c)
 {
-    wire::RemoteHeadControl cmd;
+    wire::RemoteHeadControl r;
 
-    cmd.syncPair1.controller = c.syncPair1Controller();
-    cmd.syncPair1.responder  = c.syncPair1Responder();
-    cmd.syncPair2.controller = c.syncPair2Controller();
-    cmd.syncPair2.responder  = c.syncPair2Responder();
+    const std::vector<RemoteHeadSyncGroup> c_sync_groups = c.syncGroups();
+    r.syncGroups.reserve(c_sync_groups.size());
 
-    return waitAck(cmd);
+    for (uint32_t i = 0 ; i < c_sync_groups.size() ; ++i)
+    {
+        const RemoteHeadSyncGroup &c_sg = c_sync_groups[i];
+
+        std::vector<wire::RemoteHeadChannel> r_responders;
+        r_responders.reserve(c_sg.responders.size());
+
+        for (uint32_t j = 0 ; j < c_sg.responders.size() ; ++j)
+        {
+            wire::RemoteHeadChannel wire_channel;
+            wire_channel.channel = c_sg.responders[j];
+
+            r_responders.push_back(wire_channel);
+        }
+
+        wire::RemoteHeadChannel controller;
+        controller.channel = c_sg.controller;
+
+        wire::RemoteHeadSyncGroup sync_group;
+        sync_group.controller = controller;
+        sync_group.responders = r_responders;
+
+        r.syncGroups.push_back(sync_group);
+    }
+
+    return waitAck(r);
 }
 
 
@@ -1101,7 +1189,7 @@ Status impl::setImageCalibration(const image::Calibration& c)
 }
 
 //
-// Get sensor calibration
+// Get sensor transmit delay
 
 Status impl::getTransmitDelay(image::TransmitDelay& c)
 {
@@ -1116,13 +1204,40 @@ Status impl::getTransmitDelay(image::TransmitDelay& c)
 }
 
 //
-// Set sensor calibration
+// Set sensor transmit delay
 
 Status impl::setTransmitDelay(const image::TransmitDelay& c)
 {
     wire::SysTransmitDelay d;
 
-    d.delay = c.delay;;
+    d.delay = c.delay;
+
+    return waitAck(d);
+}
+
+//
+// Get sensor packet delay
+
+Status impl::getPacketDelay(image::PacketDelay& p)
+{
+    wire::SysPacketDelay d(0);
+
+    Status status = waitData(wire::SysGetPacketDelay(), d);
+    if (Status_Ok != status)
+        return status;
+    p.enable = d.enable;
+
+    return Status_Ok;
+}
+
+//
+// Set sensor calibration
+
+Status impl::setPacketDelay(const image::PacketDelay& c)
+{
+    wire::SysPacketDelay d;
+
+    d.enable = c.enable;
 
     return waitAck(d);
 }
@@ -1173,10 +1288,10 @@ Status impl::getDeviceModes(std::vector<system::DeviceMode>& modes)
 
         system::DeviceMode&     a = modes[i];
         const wire::DeviceMode& w = d.modes[i];
-
+        const wire::SourceType  s = ((uint64_t)w.extendedDataSources) << 32 | w.supportedDataSources;
         a.width                = w.width;
         a.height               = w.height;
-        a.supportedDataSources = sourceWireToApi(w.supportedDataSources);
+        a.supportedDataSources = sourceWireToApi(s);
         if (m_sensorVersion.firmwareVersion >= 0x0203)
             a.disparities = w.disparities;
         else
@@ -1414,6 +1529,32 @@ Status impl::setApriltagParams (const system::ApriltagParams& params)
 
     return waitAck(w);
 }
+
+Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
+{
+    wire::FeatureDetectorConfig f;
+
+    Status status = waitData(wire::FeatureDetectorGetConfig(), f);
+    if (Status_Ok != status)
+        return status;
+
+    c.setNumberOfFeatures(f.numberOfFeatures);
+    c.setGrouping(f.grouping);
+    c.setMotion(f.motion);
+
+    return Status_Ok;
+}
+Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
+{
+    wire::FeatureDetectorControl f;
+
+    f.numberOfFeatures = c.numberOfFeatures();
+    f.grouping = c.grouping();
+    f.motion = c.motion();
+
+    return waitAck(f);
+}
+
 //
 // Sets the device info
 
@@ -1648,4 +1789,11 @@ Status impl::getLocalUdpPort(uint16_t& port)
     port = m_serverSocketPort;
     return Status_Ok;
 }
+
+system::ChannelStatistics impl::getStats()
+{
+    utility::ScopedLock lock(m_statisticsLock);
+    return m_channelStatistics;
+}
+
 }}} // namespaces

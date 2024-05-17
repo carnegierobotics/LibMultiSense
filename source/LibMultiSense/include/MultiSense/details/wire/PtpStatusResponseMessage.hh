@@ -1,10 +1,9 @@
 /**
- * @file LibMultiSense/RemoteHeadConfig.hh
+ * @file LibMultiSense/PtpStatusResponseMessage.hh
  *
- * This message contains the current controls to configure a remote head vpb
- * sync pair.
+ * This message contains status information.
  *
- * Copyright 2013-2023
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -34,40 +33,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-03-03, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-02-09, dbalish@carnegierobotics.com, IRAD2033, Create file from status message header
  **/
 
-
-#ifndef LibMultiSense_RemoteHeadControlMessage
-#define LibMultiSense_RemoteHeadControlMessage
+#ifndef LibMultiSense_PtpStatusResponseMessage
+#define LibMultiSense_PtpStatusResponseMessage
 
 #include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
-#include "MultiSense/details/wire/RemoteHeadConfigMessage.hh"
-// #include "MultiSense/MultisenseTypes.hh"
+#include <iostream>
+#include <cstring>
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class RemoteHeadControl {
+class PtpStatusResponse {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_REMOTE_HEAD_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID                  = ID_DATA_PTP_STATUS;
+    static CRL_CONSTEXPR VersionType VERSION             = 3;
 
     //
-    // Parameters representing the current remote head sync configuration
+    // Camera PTP status parameters
+    //
+    uint8_t gm_present;
+    int64_t gm_offset;
 
-    std::vector<wire::RemoteHeadSyncGroup> syncGroups;
+    //
+    // Estimated delay of syncronization messages from master in nanosec
+
+    int64_t path_delay;
+
+    //
+    // Number of network hops from GM to local clock
+
+    uint16_t steps_removed;
+
+    //
+    // GM Clock identity (8 bytes, 0xXXXXXX.XXXX.XXXXXX)
+    //
+    uint8_t gm_id[8];
 
     //
     // Constructors
 
-    RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    RemoteHeadControl() :
-        syncGroups()
-        {};
+    PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    PtpStatusResponse() : gm_present(0),
+                          gm_offset(0),
+                          path_delay(0),
+                          steps_removed(0)
+    {
+        memset(gm_id, 0, sizeof(gm_id));
+    };
 
     //
     // Serialization routine
@@ -76,11 +93,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
-
-        message & syncGroups;
-
+        message & gm_present;
+        message & gm_offset;
+        message & path_delay;
+        message & steps_removed;
+        message & gm_id;
     }
 };
 
