@@ -39,8 +39,6 @@
  *   2012-08-14, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
-
-
 #include "MultiSense/details/utility/TimeStamp.hh"
 #include "MultiSense/details/utility/Exception.hh"
 
@@ -105,20 +103,25 @@ void TimeStamp::set(const struct timeval& value)
  */
 void TimeStamp::set(int32_t seconds, int32_t microSeconds)
 {
+    const int32_t rollover_sec = microSeconds / 1000000;
+
+    // Convention is for tv_usec to be between 0 and 999999
+    // Handle rollover by moving seconds to the
+    if (rollover_sec != 0)
+    {
+        seconds += rollover_sec;
+        microSeconds %= 1000000;
+    }
+
+    if (microSeconds < 0)
+    {
+        // we know that abs(tv_usec) is less than 1,000,000 at this point
+        seconds -= 1;
+        microSeconds += 1000000;
+    }
+
     this->time.tv_sec = seconds;
     this->time.tv_usec = microSeconds;
-
-    while (this->time.tv_usec > 1000000)
-    {
-        this->time.tv_sec += 1;
-        this->time.tv_usec -= 1000000;
-    }
-
-    while (this->time.tv_usec < 0)
-    {
-        this->time.tv_sec -= 1;
-        this->time.tv_usec += 1000000;
-    }
 }
 
 #ifndef SENSORPOD_FIRMWARE
@@ -152,7 +155,7 @@ TimeStamp TimeStamp::getCurrentTime()
     currentTimeAsLargeInteger.HighPart = currentTimeAsFileTime.dwHighDateTime;
     currentTimeAsLargeInteger.QuadPart -= offsetSecondsSince1970.QuadPart;
 
-    // convert time to nanosecnods
+    // convert time to nanoseconds
     timeStamp = TimeStamp(static_cast<int64_t>(currentTimeAsLargeInteger.QuadPart) * 100);
 
 #else
