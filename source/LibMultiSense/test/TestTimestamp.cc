@@ -34,102 +34,133 @@
  *   2023-12-12, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef CRL_MULTISENSE_TIMESTAMP_TEST_HH
-#define CRL_MULTISENSE_TIMESTAMP_TEST_HH
-
 #include "MultiSense/details/utility/TimeStamp.hh"
 
 #include <gtest/gtest.h>
 
 using namespace crl::multisense::details::utility;
 
-TEST(TimeStamp, nanosecond_construction)
+TEST(Construction, default_)
 {
-    const TimeStamp a(1000);
+    const TimeStamp a;
 
-    EXPECT_EQ(a.getNanoSeconds(), 1000);
     EXPECT_EQ(a.getSeconds(), 0);
-    EXPECT_EQ(a.getMicroSeconds(), 1);
-
-    const TimeStamp b(-1000);
-
-    EXPECT_EQ(b.getNanoSeconds(), -1000);
-    EXPECT_EQ(b.getSeconds(), 0);
-    EXPECT_EQ(b.getMicroSeconds(), -1);
-
-    const TimeStamp c(-1000001000);
-
-    EXPECT_EQ(c.getNanoSeconds(), -1000001000);
-    EXPECT_EQ(c.getSeconds(), -1);
-    EXPECT_EQ(c.getMicroSeconds(), 1);
+    EXPECT_EQ(a.getMicroSeconds(), 0);
 }
 
-TEST(TimeStamp, addition)
+TEST(Construction, second_microsecond)
 {
-    const TimeStamp a(123, 456);
-    const TimeStamp b(567, 789);
+    for (int32_t sec = -1000000; sec <= 1000000; sec += 100000)
+    {
+        for (int32_t usec = -1000000; usec <= 1100000; usec += 10000)
+        {
+            const TimeStamp time(sec, usec);
 
-    const TimeStamp sum = a + b;
+            EXPECT_EQ(time.getSeconds() * 1000000 + time.getMicroSeconds(),
+                      sec * 1000000 + usec);
 
-    EXPECT_EQ(sum.getSeconds(), 123 + 567);
-    EXPECT_EQ(sum.getMicroSeconds(), 456 + 789);
+            if (usec >= 0 && usec < 1000000)
+            {
+                EXPECT_EQ(time.getSeconds(), sec);
+                EXPECT_EQ(time.getMicroSeconds(), usec);
+            }
+        }
+    }
 }
 
-TEST(TimeStamp, addition_negative_time)
+TEST(Construction, timeval)
 {
-    const TimeStamp a(-10000001000);
-    const TimeStamp b(-20000002000);
+    for (int32_t sec = -1000000; sec <= 1000000; sec += 100000)
+    {
+        for (int32_t usec = -1000000; usec <= 1100000; usec += 10000)
+        {
+            struct timeval tv;
+            tv.tv_sec = sec;
+            tv.tv_usec = usec;
 
-    const TimeStamp sum = a + b;
+            const TimeStamp time(tv);
 
-    EXPECT_EQ(sum.getNanoSeconds(), -30000003000);
-    EXPECT_EQ(sum.getSeconds(), -30);
-    EXPECT_EQ(sum.getMicroSeconds(), 3);
+            EXPECT_EQ(time.getSeconds() * 1000000 + time.getMicroSeconds(),
+                      sec * 1000000 + usec);
+
+            if (usec >= 0 && usec < 1000000)
+            {
+                EXPECT_EQ(time.getSeconds(), sec);
+                EXPECT_EQ(time.getMicroSeconds(), usec);
+            }
+        }
+    }
 }
 
-TEST(TimeStamp, addition_rollover)
+TEST(Construction, nanoseconds)
 {
-    const TimeStamp a(123, 999999);
-    const TimeStamp b(567, 2);
+    // numbers are large enough to check for rollover of int32_t when convering seconds to nanoseconds
+    for (int64_t sec = -1000000; sec <= 1000000; sec += 100000)
+    {
+        for (int64_t usec = -1000000; usec <= 1100000; usec += 10000)
+        {
+            const int64_t nsec = sec * 1000000000 + usec * 1000;
 
-    const TimeStamp sum = a + b;
+            const TimeStamp time(nsec);
 
-    EXPECT_EQ(sum.getSeconds(), 123 + 567 + 1);
-    EXPECT_EQ(sum.getMicroSeconds(), 1);
+            EXPECT_EQ(static_cast<int64_t>(time.getSeconds()) * 1000000 + time.getMicroSeconds(),
+                      sec * 1000000 + usec);
+
+            if (usec >= 0 && usec < 1000000)
+            {
+                EXPECT_EQ(time.getSeconds(), sec);
+                EXPECT_EQ(time.getMicroSeconds(), usec);
+            }
+        }
+    }
 }
 
-TEST(TimeStamp, subtraction)
+// set() functions have been implicitly tested via constructors
+
+TEST(GetNanoSeconds, getNanoSeconds)
 {
-    const TimeStamp a(123, 1);
-    const TimeStamp b(567, 2000);
-
-    const TimeStamp sum = b - a;
-
-    EXPECT_EQ(sum.getSeconds(), 567 - 123);
-    EXPECT_EQ(sum.getMicroSeconds(), 2000 - 1);
+    // handle values larger than a uint32_t (2,147,483,647) to check rollover
+    // increment by 0.1 seconds
+    //
+    for (int64_t nsec = -100000000000; nsec <= 100000000000; nsec += 100000000)
+    {
+        const TimeStamp time(nsec);
+        EXPECT_EQ(time.getNanoSeconds(), nsec);
+    }
 }
 
-TEST(TimeStamp, subtraction_negative_time)
+TEST(Operators, add)
 {
-    const TimeStamp a(-10000001000);
-    const TimeStamp b(-20000002000);
+    // handle nsec values larger than a uint32_t (2,147,483,647) to check rollover
+    // increment by 0.1 seconds
+    const int64_t max_nsec = 10000000000;
+    const int64_t step_nsec = 100000000;
+    for (int64_t a_nsec = -max_nsec; a_nsec <= max_nsec; a_nsec += step_nsec)
+    {
+        for (int64_t b_nsec = -max_nsec; b_nsec <= max_nsec; b_nsec += step_nsec)
+        {
+            const TimeStamp a(a_nsec);
+            const TimeStamp b(b_nsec);
 
-    const TimeStamp sum = a - b;
-
-    EXPECT_EQ(sum.getNanoSeconds(), 10000001000);
-    EXPECT_EQ(sum.getSeconds(), 10);
-    EXPECT_EQ(sum.getMicroSeconds(), 1);
+            EXPECT_EQ((a + b).getNanoSeconds(), a_nsec + b_nsec);
+        }
+    }
 }
 
-TEST(TimeStamp, subtraction_rollover)
+TEST(Operators, subtract)
 {
-    const TimeStamp a(123, 2000);
-    const TimeStamp b(567, 1);
+    // handle nsec values larger than a uint32_t (2,147,483,647) to check rollover
+    // increment by 0.1 seconds
+    const int64_t max_nsec = 10000000000;
+    const int64_t step_nsec = 100000000;
+    for (int64_t a_nsec = -max_nsec; a_nsec <= max_nsec; a_nsec += step_nsec)
+    {
+        for (int64_t b_nsec = -max_nsec; b_nsec <= max_nsec; b_nsec += step_nsec)
+        {
+            const TimeStamp a(a_nsec);
+            const TimeStamp b(b_nsec);
 
-    const TimeStamp sum = a - b;
-
-    EXPECT_EQ(sum.getSeconds(), 123 - 567 + 1);
-    EXPECT_EQ(sum.getMicroSeconds(), 1000000 - 2000 + 1);
+            EXPECT_EQ((a - b).getNanoSeconds(), a_nsec - b_nsec);
+        }
+    }
 }
-
-#endif /* #ifndef CRL_MULTISENSE_TIMESTAMP_TEST_HH */

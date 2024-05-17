@@ -39,6 +39,8 @@
  *   2012-08-14, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
+
+
 #include "MultiSense/details/utility/TimeStamp.hh"
 #include "MultiSense/details/utility/Exception.hh"
 
@@ -58,8 +60,7 @@ namespace utility {
  */
 TimeStamp::TimeStamp()
 {
-    this->time.tv_sec = 0;
-    this->time.tv_usec = 0;
+    this->set(0, 0);
 }
 
 /*
@@ -67,8 +68,7 @@ TimeStamp::TimeStamp()
  */
 TimeStamp::TimeStamp(int32_t seconds, int32_t microSeconds)
 {
-    this->time.tv_sec = seconds;
-    this->time.tv_usec = microSeconds;
+    this->set(seconds, microSeconds);
 }
 
 /*
@@ -76,12 +76,12 @@ TimeStamp::TimeStamp(int32_t seconds, int32_t microSeconds)
  */
 TimeStamp::TimeStamp(int64_t nanoseconds)
 {
-    this->time.tv_sec = (long)(nanoseconds / 1000000000);
+    const int64_t totalMicroSeconds = nanoseconds / 1000;
 
-    const int32_t usec_sign = (this->time.tv_sec == 0 && nanoseconds < 0) ? -1 : 1;
+    const int64_t seconds = totalMicroSeconds / 1000000;
+    const int64_t microSeconds = totalMicroSeconds - (seconds * 1000000);
 
-    int64_t usec = abs(nanoseconds - (static_cast<int64_t>(this->time.tv_sec) * 1000000000)) / 1000;
-    this->time.tv_usec = usec_sign * static_cast<int32_t>(usec);
+    this->set(static_cast<int32_t>(seconds), static_cast<int32_t>(microSeconds));
 }
 
 /*
@@ -97,8 +97,7 @@ TimeStamp::TimeStamp(const struct timeval& value)
  */
 void TimeStamp::set(const struct timeval& value)
 {
-    this->time.tv_sec = value.tv_sec;
-    this->time.tv_usec = value.tv_usec;
+    set(value.tv_sec, value.tv_usec);
 }
 
 /*
@@ -108,6 +107,18 @@ void TimeStamp::set(int32_t seconds, int32_t microSeconds)
 {
     this->time.tv_sec = seconds;
     this->time.tv_usec = microSeconds;
+
+    while (this->time.tv_usec > 1000000)
+    {
+        this->time.tv_sec += 1;
+        this->time.tv_usec -= 1000000;
+    }
+
+    while (this->time.tv_usec < 0)
+    {
+        this->time.tv_sec -= 1;
+        this->time.tv_usec += 1000000;
+    }
 }
 
 #ifndef SENSORPOD_FIRMWARE
@@ -141,8 +152,8 @@ TimeStamp TimeStamp::getCurrentTime()
     currentTimeAsLargeInteger.HighPart = currentTimeAsFileTime.dwHighDateTime;
     currentTimeAsLargeInteger.QuadPart -= offsetSecondsSince1970.QuadPart;
 
-    timeStamp.time.tv_sec = static_cast<long> (currentTimeAsLargeInteger.QuadPart / 10000000);
-    timeStamp.time.tv_usec = static_cast<long> ((currentTimeAsLargeInteger.QuadPart - static_cast<int64_t>(timeStamp.time.tv_sec) * 10000000) / 10);
+    // convert time to nanosecnods
+    timeStamp = TimeStamp(static_cast<int64_t>(currentTimeAsLargeInteger.QuadPart) * 100);
 
 #else
 
@@ -184,21 +195,26 @@ int32_t TimeStamp::getMicroSeconds() const
     return this->time.tv_usec;
 }
 
+/*
+ * Returns the total time as nanoseconds, aggregates seconds and microseconds
+ */
 int64_t TimeStamp::getNanoSeconds() const
 {
-    const int64_t sign = this->time.tv_sec < 0 ? -1 : 1;
-
-    return sign * (static_cast<int64_t>(abs(this->time.tv_sec)) * 1000000000 + static_cast<int64_t>(this->time.tv_usec) * 1000);
+    return static_cast<int64_t>(this->time.tv_sec) * 1000000000 + static_cast<int64_t>(this->time.tv_usec) * 1000;
 }
 
 TimeStamp TimeStamp::operator+(TimeStamp const& other) const
 {
-    return TimeStamp(getNanoSeconds() + other.getNanoSeconds());
+    // newly constructed TimeStamp handles usec rollover
+    return {static_cast<int32_t>(this->time.tv_sec + other.time.tv_sec),
+            static_cast<int32_t>(this->time.tv_usec + other.time.tv_usec)};
 }
 
 TimeStamp TimeStamp::operator-(TimeStamp const& other) const
 {
-    return TimeStamp(getNanoSeconds() - other.getNanoSeconds());
+    // newly constructed TimeStamp handles usec rollover
+    return {static_cast<int32_t>(this->time.tv_sec - other.time.tv_sec),
+            static_cast<int32_t>(this->time.tv_usec - other.time.tv_usec)};
 }
 
 TimeStamp& TimeStamp::operator+=(TimeStamp const& other)
