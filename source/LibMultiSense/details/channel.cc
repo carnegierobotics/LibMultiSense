@@ -646,10 +646,7 @@ void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 
     const double newOffset = utility::decayedAverage(currentOffset, samples, measuredOffset);
 
-    const int32_t newOffsetSeconds = static_cast<int32_t>(newOffset);
-    const int32_t newOffsetMicroSeconds = static_cast<int32_t>((newOffset - newOffsetSeconds) * 1e6);
-
-    m_timeOffset = utility::TimeStamp(newOffsetSeconds, newOffsetMicroSeconds);
+    m_timeOffset = utility::TimeStamp(static_cast<int64_t>(newOffset * 1e9));
 }
 
 //
