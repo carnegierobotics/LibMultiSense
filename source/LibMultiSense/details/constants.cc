@@ -74,6 +74,8 @@
 #include <MultiSense/details/wire/LidarPollMotorMessage.hh>
 #include <MultiSense/details/wire/LidarSetMotorMessage.hh>
 #include <MultiSense/details/wire/PollMotorInfoMessage.hh>
+#include <MultiSense/details/wire/PtpStatusRequestMessage.hh>
+#include <MultiSense/details/wire/PtpStatusResponseMessage.hh>
 #include <MultiSense/details/wire/StatusRequestMessage.hh>
 #include <MultiSense/details/wire/StatusResponseMessage.hh>
 #include <MultiSense/details/wire/StreamControlMessage.hh>
@@ -94,6 +96,7 @@
 #include <MultiSense/details/wire/SysGetNetworkMessage.hh>
 #include <MultiSense/details/wire/SysGetSensorCalibrationMessage.hh>
 #include <MultiSense/details/wire/SysGetTransmitDelayMessage.hh>
+#include <MultiSense/details/wire/SysGetPacketDelayMessage.hh>
 #include <MultiSense/details/wire/SysLidarCalibrationMessage.hh>
 #include <MultiSense/details/wire/SysMtuMessage.hh>
 #include <MultiSense/details/wire/SysNetworkMessage.hh>
@@ -103,6 +106,7 @@
 #include <MultiSense/details/wire/SysTestMtuMessage.hh>
 #include <MultiSense/details/wire/SysTestMtuResponseMessage.hh>
 #include <MultiSense/details/wire/SysTransmitDelayMessage.hh>
+#include <MultiSense/details/wire/SysPacketDelayMessage.hh>
 #include <MultiSense/details/wire/VersionRequestMessage.hh>
 #include <MultiSense/details/wire/VersionResponseMessage.hh>
 
@@ -165,6 +169,7 @@ namespace wire {
     CRL_CONSTEXPR IdType SysGetNetwork::ID;
     CRL_CONSTEXPR IdType SysGetSensorCalibration::ID;
     CRL_CONSTEXPR IdType SysGetTransmitDelay::ID;
+    CRL_CONSTEXPR IdType SysGetPacketDelay::ID;
     CRL_CONSTEXPR IdType SysLidarCalibration::ID;
     CRL_CONSTEXPR IdType SysMtu::ID;
     CRL_CONSTEXPR IdType SysNetwork::ID;
@@ -174,6 +179,7 @@ namespace wire {
     CRL_CONSTEXPR IdType SysTestMtu::ID;
     CRL_CONSTEXPR IdType SysTestMtuResponse::ID;
     CRL_CONSTEXPR IdType SysTransmitDelay::ID;
+    CRL_CONSTEXPR IdType SysPacketDelay::ID;
     CRL_CONSTEXPR IdType VersionRequest::ID;
     CRL_CONSTEXPR IdType VersionResponse::ID;
 
@@ -225,6 +231,7 @@ namespace wire {
     CRL_CONSTEXPR VersionType SysGetNetwork::VERSION;
     CRL_CONSTEXPR VersionType SysGetSensorCalibration::VERSION;
     CRL_CONSTEXPR VersionType SysGetTransmitDelay::VERSION;
+    CRL_CONSTEXPR VersionType SysGetPacketDelay::VERSION;
     CRL_CONSTEXPR VersionType SysLidarCalibration::VERSION;
     CRL_CONSTEXPR VersionType SysMtu::VERSION;
     CRL_CONSTEXPR VersionType SysNetwork::VERSION;
@@ -234,6 +241,7 @@ namespace wire {
     CRL_CONSTEXPR VersionType SysTestMtu::VERSION;
     CRL_CONSTEXPR VersionType SysTestMtuResponse::VERSION;
     CRL_CONSTEXPR VersionType SysTransmitDelay::VERSION;
+    CRL_CONSTEXPR VersionType SysPacketDelay::VERSION;
     CRL_CONSTEXPR VersionType VersionRequest::VERSION;
     CRL_CONSTEXPR VersionType VersionResponse::VERSION;
 }}}}

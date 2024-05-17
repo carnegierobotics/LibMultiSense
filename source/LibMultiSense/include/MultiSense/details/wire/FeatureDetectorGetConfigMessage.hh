@@ -1,10 +1,13 @@
 /**
- * @file LibMultiSense/JpegMessage.hh
+ * @file LibMultiSense/FeatureDetectorGetConfigMessage.hh
  *
- * Copyright 2013-2022
+ * This message contains the request to get the current feature detector
+ * configuration.
+ *
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegierobotics.com
+ * http://www.carnegiearobotics.com
  *
  * All rights reserved.
  *
@@ -31,68 +34,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-12, ekratzer@carnegierobotics.com, PR1044, created file.
+ *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_JpegMessage
-#define LibMultiSense_JpegMessage
-
-#include <typeinfo>
-#include <cmath>
+#ifndef LibMultisense_FeatureDetectorGetConfigMessage
+#define LibMultisense_FeatureDetectorGetConfigMessage
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ JpegImageHeader {
+class FeatureDetectorGetConfig {
 public:
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_GET_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_JPEG_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 2;
-
-#ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
-#endif // SENSORPOD_FIRMWARE
-
-    uint32_t source;
-    int64_t  frameId;
-    uint16_t width;
-    uint16_t height;
-    uint32_t length;
-    uint32_t quality;
-    uint32_t sourceExtended;
-
-    JpegImageHeader() :
-#ifdef SENSORDPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
-        source(0),
-        frameId(0),
-        width(0),
-        height(0),
-        length(0),
-        quality(0),
-        sourceExtended(0)
-        {};
-};
-
-#ifndef SENSORPOD_FIRMWARE
-
-class JpegImage : public JpegImageHeader {
-public:
-
-    void *dataP;
+    //
+    // Parameters representing the current camera configuration
 
     //
     // Constructors
 
-    JpegImage(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    JpegImage() : dataP(NULL) {};
+    FeatureDetectorGetConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorGetConfig() {};
 
     //
     // Serialization routine
@@ -101,35 +69,10 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & source;
-        message & frameId;
-        message & width;
-        message & height;
-        message & length;
-        message & quality;
-
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(dataP, length);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + length);
-        }
-
-        if (version >= 2)
-        {
-          message & sourceExtended;
-        }
-        else
-        {
-          sourceExtended = 0;
-        }
+        (void) message;
+        (void) version;
     }
 };
-
-#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

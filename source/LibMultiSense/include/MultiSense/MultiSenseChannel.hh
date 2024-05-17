@@ -352,6 +352,23 @@ public:
                                        void         *userDataP=NULL) = 0;
 
     /**
+     * Add a user defined callback attached to the feature detector stream.
+     *
+     * Each callback will create a unique internal thread
+     * dedicated to servicing the callback.
+     *
+     * @param callback A user defined feature_detector::Callback to send Ground
+     * Surface data to
+     *
+     * @param userDataP A pointer to arbitrary user data.
+     *
+     * @return A crl::multisense::Status indicating if the callback registration
+     * succeeded or failed
+     */
+    virtual Status addIsolatedCallback(feature_detector::Callback callback,
+                                       void         *userDataP=NULL) = 0;
+
+    /**
      * Unregister a user defined image::Callback. This stops the callback
      * from receiving image data.
      *
@@ -434,6 +451,18 @@ public:
      */
 
     virtual Status removeIsolatedCallback(apriltag::Callback callback) = 0;
+
+    /**
+     * Unregister a user defined feature_detector::Callback. This stops the callback
+     * from receiving feature data
+     *
+     * @param callback The user defined feature_detector::Callback to unregister
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+
+    virtual Status removeIsolatedCallback(feature_detector::Callback callback) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available
@@ -789,6 +818,30 @@ public:
 	virtual Status setTransmitDelay (const image::TransmitDelay& c)        = 0;
 
     /**
+     * Query the current device udp packet delay.
+     *
+     * @param c The udp packet delay instance which will be returned by
+     * reference
+     *
+     * @return A crl::multisense::Status indicating if the udp packet delay
+     * was successfully queried
+     */
+    virtual Status getPacketDelay (image::PacketDelay& c)              = 0;
+
+    /**
+     * Enable the camera udp packet delay. Enables a small delay approx
+     * 65us between udp packets for a large stream object. Recommended for clients
+     * with poor network bandwidth. If in doubt set to false (disable)
+     *
+     * @param c The packet delay enable field which will be returned by
+     * reference
+     *
+     * @return A crl::multisense::Status indicating if the packet delay
+     * was successfully received by the sensor
+     */
+	virtual Status setPacketDelay (const image::PacketDelay& c)        = 0;
+
+    /**
      * Query the current laser calibration.
      *
      * See lidar::Calibration for a usage example
@@ -835,19 +888,14 @@ public:
                                         image::Histogram& histogram)        = 0;
 
     /**
-     * Get PTP status information for a specific image
+     * Get PTP status information (updates at 1Hz)
      *
-     * @param frameId The frameId of the corresponding left image to query a
-     * PTP status info for. Status can only be queried for images with frameIds
-     * fewer than 20 frameIds from the most recent image's frameId.
-     *
-     * @param ptpStatus The PTP status information associated with a image
+     * @param ptpStatus A ptpStatus obj returned by reference from the sensor
      *
      * @return A crl::multisense::Status indicating if the PTP status query
      * was successful
      */
-    virtual Status getPtpStatus(int64_t frameId,
-                                system::PtpStatus &ptpStatus) = 0;
+    virtual Status getPtpStatus(system::PtpStatus &ptpStatus) = 0;
 
 
     /**
@@ -1013,6 +1061,26 @@ public:
      * @return A crl::multisense::Status indicating if the params were successfully set
      */
     virtual Status setApriltagParams (const system::ApriltagParams& params) = 0;
+
+    /**
+     * Set the feature detector config associated with the MultiSense device
+     *
+     * @param params The feature detector parameters to send to the on-camera feature detector
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status setFeatureDetectorConfig (const system::FeatureDetectorConfig& params) = 0;
+
+    /**
+     * Get the feature detector parameters associated with the MultiSense device
+     *
+     * @param params The feature detector parameters to send to the on-camera feature detector
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig& params) = 0;
 
     /**
      * Flash a new FPGA bitstream file to the sensor.

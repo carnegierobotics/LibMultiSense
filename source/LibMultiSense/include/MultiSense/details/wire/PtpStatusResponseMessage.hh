@@ -1,7 +1,9 @@
 /**
- * @file LibMultiSense/ImageMessage.hh
+ * @file LibMultiSense/PtpStatusResponseMessage.hh
  *
- * Copyright 2013-2022
+ * This message contains status information.
+ *
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,71 +33,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-12, ekratzer@carnegierobotics.com, PR1044, created file.
+ *   2024-02-09, dbalish@carnegierobotics.com, IRAD2033, Create file from status message header
  **/
 
-#ifndef LibMultiSense_ImageMessage
-#define LibMultiSense_ImageMessage
-
-#include <typeinfo>
-#include <cmath>
+#ifndef LibMultiSense_PtpStatusResponseMessage
+#define LibMultiSense_PtpStatusResponseMessage
 
 #include "MultiSense/details/utility/Portability.hh"
+#include <iostream>
+#include <cstring>
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ ImageHeader {
+class PtpStatusResponse {
 public:
+    static CRL_CONSTEXPR IdType      ID                  = ID_DATA_PTP_STATUS;
+    static CRL_CONSTEXPR VersionType VERSION             = 3;
 
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 3;
+    //
+    // Camera PTP status parameters
+    //
+    uint8_t gm_present;
+    int64_t gm_offset;
 
-#ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
-#endif // SENSORPOD_FIRMWARE
+    //
+    // Estimated delay of syncronization messages from master in nanosec
 
-    uint32_t source;
-    uint32_t bitsPerPixel;
-    int64_t  frameId;
-    uint16_t width;
-    uint16_t height;
-    uint32_t exposure;
-    float gain;
-    uint32_t sourceExtended;
+    int64_t path_delay;
 
-    ImageHeader()
-        :
-#ifdef SENSORDPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
-        source(0),
-        bitsPerPixel(0),
-        frameId(0),
-        width(0),
-        height(0),
-        exposure(0),
-        gain(0.0),
-        sourceExtended(0)
-         {};
-};
+    //
+    // Number of network hops from GM to local clock
 
-#ifndef SENSORPOD_FIRMWARE
+    uint16_t steps_removed;
 
-class Image : public ImageHeader {
-public:
-
-    void *dataP;
+    //
+    // GM Clock identity (8 bytes, 0xXXXXXX.XXXX.XXXXXX)
+    //
+    uint8_t gm_id[8];
 
     //
     // Constructors
 
-    Image(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    Image() : dataP(NULL) {};
+    PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    PtpStatusResponse() : gm_present(0),
+                          gm_offset(0),
+                          path_delay(0),
+                          steps_removed(0)
+    {
+        memset(gm_id, 0, sizeof(gm_id));
+    };
 
     //
     // Serialization routine
@@ -104,47 +93,14 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & source;
-        message & bitsPerPixel;
-        message & frameId;
-        message & width;
-        message & height;
-
-        const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) bitsPerPixel / 8.0) * width * height));
-
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(dataP, imageSize);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + imageSize);
-        }
-
-        if (version >= 2)
-        {
-            message & exposure;
-            message & gain;
-        }
-        else
-        {
-            exposure = 0;
-            gain = Default_Gain;
-        }
-
-        if (version >= 3)
-        {
-          message & sourceExtended;
-        }
-        else
-        {
-          sourceExtended = 0;
-        }
+        (void) version;
+        message & gm_present;
+        message & gm_offset;
+        message & path_delay;
+        message & steps_removed;
+        message & gm_id;
     }
 };
-
-#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

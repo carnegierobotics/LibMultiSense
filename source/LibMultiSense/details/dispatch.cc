@@ -40,6 +40,7 @@
 
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
+#include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 
 #include "MultiSense/details/wire/AuxCamConfigMessage.hh"
 #include "MultiSense/details/wire/CamConfigMessage.hh"
@@ -67,6 +68,7 @@
 #include "MultiSense/details/wire/SysCameraCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysSensorCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysTransmitDelayMessage.hh"
+#include "MultiSense/details/wire/SysPacketDelayMessage.hh"
 #include "MultiSense/details/wire/SysLidarCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysDeviceModesMessage.hh"
 #include "MultiSense/details/wire/SysExternalCalibrationMessage.hh"
@@ -81,6 +83,12 @@
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
+
+#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
 
 #include <limits>
 
@@ -235,6 +243,24 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
     m_channelStatistics.numDispatchedGroundSurfaceSpline += 1;
 }
 
+//
+// Publish a feature detection event
+
+void impl::dispatchFeatureDetections(feature_detector::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<FeatureDetectorListener*>::const_iterator it;
+
+    for(it  = m_featureDetectorListeners.begin();
+        it != m_featureDetectorListeners.end();
+        it ++)
+        (*it)->dispatch(header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedFeatureDetections++;
+}
+
 
 //
 // Dispatch incoming messages
@@ -328,7 +354,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = 0;
         header.width            = image.width;
         header.height           = image.height;
@@ -356,7 +382,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = image.bitsPerPixel;
         header.width            = image.width;
         header.height           = image.height;
@@ -474,7 +500,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = image.bitsPerPixel;
         header.codec            = image.codec;
         header.width            = image.width;
@@ -570,6 +596,56 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         dispatchAprilTagDetections(header);
         break;
     }
+    case MSG_ID(wire::FeatureDetector::ID):
+    {
+        wire::FeatureDetector featureDetector(stream, version);
+
+        const wire::FeatureDetectorMeta * metaP = m_featureDetectorMetaCache.find(featureDetector.frameId);
+        if (NULL == metaP)
+          break;
+
+        feature_detector::Header header;
+        header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
+        header.frameId        = metaP->frameId;
+        header.timeSeconds    = metaP->timeSeconds;
+        header.timeNanoSeconds= metaP->timeNanoSeconds;
+        header.ptpNanoSeconds = metaP->ptpNanoSeconds;
+        header.octaveWidth    = metaP->octaveWidth;
+        header.octaveHeight   = metaP->octaveHeight;
+        header.numOctaves     = metaP->numOctaves;
+        header.scaleFactor    = metaP->scaleFactor;
+        header.motionStatus   = metaP->motionStatus;
+        header.averageXMotion = metaP->averageXMotion;
+        header.averageYMotion = metaP->averageYMotion;
+        header.numFeatures    = featureDetector.numFeatures;
+        header.numDescriptors = featureDetector.numDescriptors;
+
+        const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
+
+        uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+        for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+            feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
+            header.features.push_back(f);
+        }
+
+        for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
+            feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
+            header.descriptors.push_back(d);
+        }
+
+        dispatchFeatureDetections(header);
+        break;
+    }
+    case MSG_ID(wire::FeatureDetectorMeta::ID):
+    {
+        wire::FeatureDetectorMeta *metaP = new (std::nothrow) wire::FeatureDetectorMeta(stream, version);
+
+        if (NULL == metaP)
+            CRL_EXCEPTION_RAW("unable to allocate metadata");
+
+        m_featureDetectorMetaCache.insert(metaP->frameId, metaP); // destroys oldest
+        break;
+    }
     case MSG_ID(wire::Ack::ID):
         break; // handle below
     case MSG_ID(wire::CamConfig::ID):
@@ -606,7 +682,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         m_messages.store(wire::SysSensorCalibration(stream, version));
         break;
     case MSG_ID(wire::SysTransmitDelay::ID):
-            m_messages.store(wire::SysTransmitDelay(stream, version));
+        m_messages.store(wire::SysTransmitDelay(stream, version));
+        break;
+    case MSG_ID(wire::SysPacketDelay::ID):
+        m_messages.store(wire::SysPacketDelay(stream, version));
         break;
     case MSG_ID(wire::SysLidarCalibration::ID):
         m_messages.store(wire::SysLidarCalibration(stream, version));
@@ -637,6 +716,12 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));
+        break;
+    case MSG_ID(wire::PtpStatusResponse::ID):
+        m_messages.store(wire::PtpStatusResponse(stream, version));
+        break;
+    case MSG_ID(wire::FeatureDetectorConfig::ID):
+        m_messages.store(wire::FeatureDetectorConfig(stream, version));
         break;
     default:
 

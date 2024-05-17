@@ -1,7 +1,9 @@
 /**
- * @file LibMultiSense/ImageMessage.hh
+ * @file LibMultiSense/SysPacketDelayMessage.hh
  *
- * Copyright 2013-2022
+ * This message contains network delay settings
+ *
+ * Copyright 2017-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,14 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-12, ekratzer@carnegierobotics.com, PR1044, created file.
+ * 2024-04-04, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_ImageMessage
-#define LibMultiSense_ImageMessage
-
-#include <typeinfo>
-#include <cmath>
+#ifndef LibMultiSense_SysPacketDelayMessage
+#define LibMultiSense_SysPacketDelayMessage
 
 #include "MultiSense/details/utility/Portability.hh"
 
@@ -47,55 +46,20 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ ImageHeader {
+class SysPacketDelay {
 public:
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_SET_PACKET_DELAY;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 3;
 
-#ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
-#endif // SENSORPOD_FIRMWARE
-
-    uint32_t source;
-    uint32_t bitsPerPixel;
-    int64_t  frameId;
-    uint16_t width;
-    uint16_t height;
-    uint32_t exposure;
-    float gain;
-    uint32_t sourceExtended;
-
-    ImageHeader()
-        :
-#ifdef SENSORDPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
-        source(0),
-        bitsPerPixel(0),
-        frameId(0),
-        width(0),
-        height(0),
-        exposure(0),
-        gain(0.0),
-        sourceExtended(0)
-         {};
-};
-
-#ifndef SENSORPOD_FIRMWARE
-
-class Image : public ImageHeader {
-public:
-
-    void *dataP;
+    bool enable;
 
     //
     // Constructors
 
-    Image(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    Image() : dataP(NULL) {};
+    SysPacketDelay(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SysPacketDelay() {};
+    SysPacketDelay(bool en): enable(en) {};
 
     //
     // Serialization routine
@@ -104,47 +68,10 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        message & source;
-        message & bitsPerPixel;
-        message & frameId;
-        message & width;
-        message & height;
-
-        const uint32_t imageSize = static_cast<uint32_t> (std::ceil(((double) bitsPerPixel / 8.0) * width * height));
-
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(dataP, imageSize);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + imageSize);
-        }
-
-        if (version >= 2)
-        {
-            message & exposure;
-            message & gain;
-        }
-        else
-        {
-            exposure = 0;
-            gain = Default_Gain;
-        }
-
-        if (version >= 3)
-        {
-          message & sourceExtended;
-        }
-        else
-        {
-          sourceExtended = 0;
-        }
+        (void) version;
+        message & enable;
     }
 };
-
-#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 
