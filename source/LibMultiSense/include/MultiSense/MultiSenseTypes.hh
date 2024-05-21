@@ -43,6 +43,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include <limits>
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -1003,6 +1004,16 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
+    /**
+     * Set the auto exposure gain max.
+     *
+     * This can be used to add an additional clamp to auto exposure which
+     * would limit the maximum analog gain set by the auto exposure algorithm.
+     *
+     * @param g the max gain constant applied to the camera sources
+     */
+    void setGainMax(const float g) { m_gainMax = g; };
+
 
     //
     // Query
@@ -1197,6 +1208,13 @@ public:
      */
     float gamma() const { return m_gamma; };
 
+    /**
+     * Query the gain maximum allowed in the camera.
+     *
+     * @return A value within the range of 1.0 - Max Gain of the imager
+     */
+    float gainMax() const { return m_gainMax; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -1338,6 +1356,7 @@ private:
     bool     m_hdrEnabled;
     CameraProfile m_profile;
     float    m_gamma;
+    float    m_gainMax;
 
 protected:
 
@@ -1499,7 +1518,6 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
-
     /**
      * Enable sharpening for the aux luma channel.
      *
@@ -1525,6 +1543,17 @@ public:
      */
 
     void setSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
+
+    /**
+     * Set the auto exposure gain max.
+     *
+     * This can be used to add an additional clamp to auto exposure which
+     * would limit the maximum analog gain set by the auto exposure algorithm.
+     *
+     * @param g the max gain constant applied to the camera sources
+     */
+    void setGainMax(const float g) { m_gainMax = g; };
+
 
     //
     // Query
@@ -1751,6 +1780,13 @@ public:
     uint8_t sharpeningLimit() const { return m_sharpeningLimit; };
 
     /**
+     * Query the gain maximum allowed in the camera.
+     *
+     * @return A value within the range of 1.0 - Max Gain of the imager
+     */
+    float gainMax() const { return m_gainMax; };
+
+    /**
      * Default constructor for a image configuration. Initializes all image
      * configuration members to their default values
      */
@@ -1761,6 +1797,7 @@ public:
                m_profile(User_Control),
                m_gamma(2.0),
                m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
+               m_gainMax(std::numeric_limits<float>::max()),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0) {};
 private:
 
@@ -1777,7 +1814,7 @@ private:
     bool     m_sharpeningEnable;
     float    m_sharpeningPercentage;
     uint8_t  m_sharpeningLimit;
-
+    float    m_gainMax;
 protected:
 
     float    m_fx, m_fy, m_cx, m_cy;

@@ -52,7 +52,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 9;
+    static CRL_CONSTEXPR VersionType VERSION = 10;
 
     //
     // Parameters representing the current camera configuration
@@ -127,6 +127,10 @@ public:
     uint8_t sharpeningLimit;
 
     //
+    // Version 10 additions
+    float gainMax;
+
+    //
     // Constructors
 
     CamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
@@ -169,7 +173,8 @@ public:
         gamma(Default_Gamma),
         sharpeningEnable(false),
         sharpeningPercentage(0.0f),
-        sharpeningLimit(0)
+        sharpeningLimit(0),
+        gainMax(std::numeric_limits<float>::max())
         {};
 
     //
@@ -273,15 +278,24 @@ public:
 
         if (version >= 9)
         {
-          message & sharpeningEnable;
-          message & sharpeningPercentage;
-          message & sharpeningLimit;
+            message & sharpeningEnable;
+            message & sharpeningPercentage;
+            message & sharpeningLimit;
         }
         else
         {
-          sharpeningEnable = false;
-          sharpeningPercentage = 0.0f;
-          sharpeningLimit = 0;
+            sharpeningEnable = false;
+            sharpeningPercentage = 0.0f;
+            sharpeningLimit = 0;
+        }
+
+        if (version >= 10)
+        {
+            message & gainMax;
+        }
+        else
+        {
+            gainMax = std::numeric_limits<float>::max();
         }
 
     }
