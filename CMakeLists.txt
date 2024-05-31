@@ -35,12 +35,20 @@ else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     #
     # Fix warnings with __VA__OPT__ when we port to c++2a
     # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
     #
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    set(CMAKE_CXX_STANDARD "14")
+
+    add_compile_options(-Wno-missing-field-initializers)
+    add_compile_options(-Wno-unused-parameter)
+    add_compile_options(-Wno-deprecated-declarations)
 endif()
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
