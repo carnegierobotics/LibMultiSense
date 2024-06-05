@@ -125,7 +125,7 @@ public:
         sharpeningEnable(false),
         sharpeningPercentage(0.0f),
         sharpeningLimit(0),
-        gainMax(std::numeric_limits<float>::max())
+        gainMax(ImagerGainMax)
         {};
 
     //
@@ -180,7 +180,7 @@ public:
         }
         else
         {
-            gainMax = std::numeric_limits<float>::max();
+            gainMax = ImagerGainMax;
         }
 
     }

@@ -142,7 +142,7 @@ public:
         }
         else
         {
-            gainMax = std::numeric_limits<float>::max();
+            gainMax = ImagerGainMax;
         }
 
     }

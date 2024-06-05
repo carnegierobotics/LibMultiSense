@@ -43,7 +43,6 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include <limits>
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -218,6 +217,9 @@ static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2           = 2;
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3           = 3;
 /** Invalid Remote Head position*/
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
+
+/** The maximum gain supported*/
+static CRL_CONSTEXPR float ImagerGainMax = 1000.0f;
 
 /**
  * Remote head sync group defines a group of remote heads which will have their
@@ -1797,7 +1799,7 @@ public:
                m_profile(User_Control),
                m_gamma(2.0),
                m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
-               m_gainMax(std::numeric_limits<float>::max()),
+               m_gainMax(ImagerGainMax),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0) {};
 private:
 
