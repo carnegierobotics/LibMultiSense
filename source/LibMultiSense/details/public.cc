@@ -971,6 +971,7 @@ Status impl::getImageConfig(image::Config& config)
     a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
     a.setGamma(d.gamma);
+    a.setGainMax(d.gainMax);
 
     return Status_Ok;
 }
@@ -1024,6 +1025,7 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
     a.enableSharpening(d.sharpeningEnable);
     a.setSharpeningPercentage(d.sharpeningPercentage);
     a.setSharpeningLimit(d.sharpeningLimit);
+    a.setGainMax(d.gainMax);
 
     return Status_Ok;
 }
@@ -1072,6 +1074,7 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
     cmd.gamma = c.gamma();
+    cmd.gainMax = c.gainMax();
 
     return waitAck(cmd);
 }
@@ -1107,6 +1110,7 @@ Status impl::setAuxImageConfig(const image::AuxConfig& c)
     cmd.sharpeningEnable = c.enableSharpening();
     cmd.sharpeningPercentage = c.sharpeningPercentage();
     cmd.sharpeningLimit = c.sharpeningLimit();
+    cmd.gainMax = c.gainMax();
 
     return waitAck(cmd);
 }
