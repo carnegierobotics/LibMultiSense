@@ -58,6 +58,7 @@
 #include <string>
 
 #include <Utilities/portability/getopt/getopt.h>
+#include <Utilities/shared/Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
@@ -225,57 +226,6 @@ std::string assembledInfoString(const image::Header&       header,
     return ss.str();
 }
 
-bool savePgm(const std::string& fileName,
-             uint32_t           width,
-             uint32_t           height,
-             uint32_t           bitsPerPixel,
-             const std::string& comment,
-             const void         *dataP)
-{
-    std::ofstream outputStream(fileName.c_str(), std::ios::binary | std::ios::out);
-
-    if (false == outputStream.good()) {
-		std::cerr << "Failed to open \"" << fileName << "\"" << std::endl;
-        return false;
-    }
-
-    const uint32_t imageSize = height * width;
-
-    switch(bitsPerPixel) {
-    case 8:
-    {
-
-        outputStream << "P5\n"
-                     << "#" << comment << "\n"
-                     << width << " " << height << "\n"
-                     << 0xFF << "\n";
-
-        outputStream.write(reinterpret_cast<const char*>(dataP), imageSize);
-
-        break;
-    }
-    case 16:
-    {
-        outputStream << "P5\n"
-                     << "#" << comment << "\n"
-                     << width << " " << height << "\n"
-                     << 0xFFFF << "\n";
-
-        const uint16_t *imageP = reinterpret_cast<const uint16_t*>(dataP);
-
-        for (uint32_t i=0; i<imageSize; ++i) {
-            uint16_t o = htons(imageP[i]);
-            outputStream.write(reinterpret_cast<const char*>(&o), sizeof(uint16_t));
-        }
-
-        break;
-    }
-    }
-
-    outputStream.close();
-    return true;
-}
-
 bool savePgm(const std::string&         fileName,
              const image::Header&       header,
              const system::DeviceInfo&  info,
@@ -284,12 +234,12 @@ bool savePgm(const std::string&         fileName,
 {
     const std::string comment = assembledInfoString(header, info, version, calibration);
 
-    return savePgm(fileName,
-                   header.width,
-                   header.height,
-                   header.bitsPerPixel,
-                   comment,
-                   header.imageDataP);
+    return io::savePgm(fileName,
+                       header.width,
+                       header.height,
+                       header.bitsPerPixel,
+                       comment,
+                       header.imageDataP);
 }
 
 void ppsCallback(const pps::Header& header,
@@ -480,23 +430,32 @@ int main(int    argc,
     channelP->addIsolatedCallback(laserCallback, channelP);
     channelP->addIsolatedCallback(ppsCallback, channelP);
 
+    //
+    // Start streaming
+
+    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
+                                    (operatingMode.supportedDataSources & Source_Lidar_Scan));
+    if (Status_Ok != status) {
+		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
 
     while(!doneG)
     {
-        system::PtpStatus ptpStatus;
-        status = channelP->getPtpStatus(ptpStatus);
-
+        system::StatusMessage statusMessage;
+        status = channelP->getDeviceStatus(statusMessage);
 
         if (Status_Ok == status) {
-            printf("GM present: %d\tSteps Removed: %d\tOffset: %ld\tPath Delay: %ld\n",
-            ptpStatus.gm_present, ptpStatus.steps_removed, ptpStatus.gm_offset, ptpStatus.path_delay);
-            printf("GM ID: %02x%02x%02x.%02x%02x.%02x%02x%02x\n", 
-            ptpStatus.gm_id[0], ptpStatus.gm_id[1], 
-            ptpStatus.gm_id[2], ptpStatus.gm_id[3], 
-            ptpStatus.gm_id[4], ptpStatus.gm_id[5], 
-            ptpStatus.gm_id[6], ptpStatus.gm_id[7]);
-        } else {
-            std::cerr << "Failed to get PTP status: " << Channel::statusString(status) << std::endl;
+            std::cout << "Uptime: " << statusMessage.uptime << ", " <<
+            "SystemOk: " << statusMessage.systemOk << ", " <<
+            "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
+            "Left Imager Temp: " << statusMessage.leftImagerTemperature << ", " <<
+            "Right Imager Temp: " << statusMessage.rightImagerTemperature << ", " <<
+            "Input Voltage: " << statusMessage.inputVoltage << ", " <<
+            "Input Current: " << statusMessage.inputCurrent << ", " <<
+            "FPGA Power: " << statusMessage.fpgaPower << ", " <<
+            "Logic Power: " << statusMessage.logicPower << ", " <<
+            "Imager Power: " << statusMessage.imagerPower << std::endl;
         }
 
 

@@ -37,11 +37,12 @@
 #ifndef LibMultiSense_MultiSenseTypes_hh
 #define LibMultiSense_MultiSenseTypes_hh
 
-#include <stdint.h>
 #include <climits>
+#include <cstring>
+#include <iostream>
+#include <stdint.h>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -114,7 +115,7 @@ static CRL_CONSTEXPR Status Status_Exception   = -6;
 typedef uint64_t DataSource;
 
 static CRL_CONSTEXPR DataSource Source_Unknown                       = 0;
-static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffff;
+static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffffffffffff;
 static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1ull<<0);
 static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1ull<<1);
 static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1ull<<2);
@@ -4123,7 +4124,7 @@ class MULTISENSE_API PtpStatus {
         uint8_t gm_present;
 
         /** Hex ID of grandmaster clock. */
-        uint8_t gm_id[8] = {0};
+        uint8_t gm_id[8];
 
         /** Offset of camera PHC to PTP grandmaster clock in nanosec */
         int64_t gm_offset;
@@ -4139,7 +4140,10 @@ class MULTISENSE_API PtpStatus {
             gm_present(0),
             gm_offset(0),
             path_delay(0),
-            steps_removed(0) {};
+            steps_removed(0)
+        {
+            memset(gm_id, 0, sizeof(gm_id));
+        };
 };
 
 /**
