@@ -239,9 +239,10 @@ int main(int    argc,
     //
     // Start streaming
 
-    std::cout << "Subscription Flags: " << std::bitset<64>(Source_Secondary_App_Data | Source_Luma_Rectified_Aux) << std::endl;
+    uint64_t topics = Source_Secondary_App_Data | Source_Luma_Rectified_Aux;
+    std::cout << "Subscription Flags: " << std::bitset<64>(topics) << std::endl;
 
-    status = channelP->startStreams(Source_Secondary_App_Data | Source_Luma_Rectified_Aux);
+    status = channelP->startStreams(topics);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
