@@ -3091,9 +3091,9 @@ public:
     /** The time microseconds value corresponding to when the secondaryAppData was captured*/
     uint32_t    timeMicroSeconds;
     /** The number of frames per second currently streaming from the device */
-    float       framesPerSecond;
+    // float       framesPerSecond;
     /** The length of the secondaryAppData data stored in secondaryAppDataDataP */
-    uint32_t    secondaryAppDataLength;
+    // uint32_t    secondaryAppDataLength;
     /** A pointer to the secondaryAppData data */
     const void *secondaryAppDataP;
 
