@@ -64,7 +64,6 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     int64_t  frameId;
     uint32_t timeSeconds;
     uint32_t timeMicroSeconds;
-    // void* buffer;
     SecondaryAppHeader()
         :
 #ifdef SENSORPOD_FIRMWARE
@@ -77,7 +76,6 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
         frameId(0),
         timeSeconds(0),
         timeMicroSeconds(0)
-        // buffer(nullptr)
          {};
 };
 
