@@ -90,7 +90,6 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
         uint32_t length = static_cast<uint32_t> (modes.size());
         message & length;
         modes.resize(length);
@@ -107,6 +106,10 @@ public:
             message & m.height;
             message & m.supportedDataSources;
             message & m.disparities; // was 'flags' in pre v2.3
+        }
+
+        for(uint32_t i=0; i<length; i++) {
+            DeviceMode& m = modes[i];
             if (version >= 3)
             {
                 message & m.extendedDataSources;
