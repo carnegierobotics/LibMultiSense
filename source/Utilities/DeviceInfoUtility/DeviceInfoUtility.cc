@@ -183,7 +183,7 @@ bool parseFile(const std::string& fileName,
 
 #define CASE_STR(str_,x_)                                               \
             if (0 == strncasecmp(s, str_, strlen(str_))) {              \
-                if (1 != sscanf(s, str_"%[^\n]", tempP)) {              \
+                if (1 != sscanf(s, str_"%512[^\n]", tempP)) {              \
                     fprintf(stderr, "malformed " str_ " %s\n",s);       \
                     return false;                                       \
                 } else {                                                \
@@ -213,7 +213,7 @@ bool parseFile(const std::string& fileName,
 
 #define CASE_PCB(str_)                                                  \
         if (0 == strncasecmp(s, str_, strlen(str_))) {                  \
-            if (2 != sscanf(s, str_"%d %[^\n]", &tempi, tempP)) {       \
+            if (2 != sscanf(s, str_"%d %512[^\n]", &tempi, tempP)) {       \
                 fprintf(stderr, "malformed " str_ " %s\n",s);           \
                 return false;                                           \
             } else                                                      \
