@@ -145,10 +145,12 @@ system::DeviceMode getOperatingMode(const std::vector<system::DeviceMode> &modes
     for (size_t i = 0 ; i < modes.size() ; ++i)
     {
         const system::DeviceMode &mode = modes[i];
+        fprintf(stderr, "[%s] mode: %zu %dx%dx%d 0x%lX\n", __func__, i,  mode.width, mode.height, mode.disparities, mode.supportedDataSources);
         if (mode.width >= best_mode.width && mode.height >= best_mode.height && mode.disparities >= best_mode.disparities) {
             best_mode = mode;
         }
     }
+    fprintf(stderr, "[%s] best mode: %dx%dx%d 0x%lX\n", __func__, best_mode.width, best_mode.height, best_mode.disparities, best_mode.supportedDataSources);
 
     //
     // Target 1/4 of the full res setting. Check to see if there is a setting with a larger number of disparities
@@ -336,16 +338,17 @@ int main(int    argc,
 		std::cerr << "Failed to query sensor version: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
+    // #error psmith
+
 
 	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
-    std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
+  std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
 	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
 	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
 	std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
 	std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
 	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
 	std::cout << std::dec;
-
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;

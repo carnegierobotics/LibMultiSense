@@ -241,32 +241,32 @@ void impl::cleanup()
     std::list<ImageListener*>::const_iterator iti;
     for(iti  = m_imageListeners.begin();
         iti != m_imageListeners.end();
-        iti ++)
+        ++ iti)
         delete *iti;
     std::list<LidarListener*>::const_iterator itl;
     for(itl  = m_lidarListeners.begin();
         itl != m_lidarListeners.end();
-        itl ++)
+        ++ itl)
         delete *itl;
     std::list<PpsListener*>::const_iterator itp;
     for(itp  = m_ppsListeners.begin();
         itp != m_ppsListeners.end();
-        itp ++)
+        ++ itp)
         delete *itp;
     std::list<ImuListener*>::const_iterator itm;
     for(itm  = m_imuListeners.begin();
         itm != m_imuListeners.end();
-        itm ++)
+        ++ itm)
         delete *itm;
     std::list<CompressedImageListener*>::const_iterator itc;
     for(itc  = m_compressedImageListeners.begin();
         itc != m_compressedImageListeners.end();
-        itc ++)
+        ++ itc)
         delete *itc;
     std::list<FeatureDetectorListener*>::const_iterator itf;
     for(itf  = m_featureDetectorListeners.begin();
         itf != m_featureDetectorListeners.end();
-        itf ++)
+        ++ itf)
         delete *itf;
 
     BufferPool::const_iterator it;
@@ -768,7 +768,7 @@ void *impl::statusThread(void *userDataP)
 
                 //
                 // Cache the PTP status message
-                
+
                 if (status == Status_Ok) {
                     selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
                     selfP->m_getPtpStatusReturnStatus = Status_Ok;

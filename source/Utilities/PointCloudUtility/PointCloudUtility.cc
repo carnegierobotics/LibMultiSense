@@ -113,8 +113,8 @@ struct UserData
     double minDisparity = 0.0;
 };
 
-std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBufferWrapper> disparity,
-                                           const std::shared_ptr<const ImageBufferWrapper> leftRectified,
+std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBufferWrapper> &disparity,
+                                           const std::shared_ptr<const ImageBufferWrapper> &leftRectified,
                                            const image::Calibration &calibration,
                                            const system::DeviceInfo &deviceInfo,
                                            double minDisparity)
