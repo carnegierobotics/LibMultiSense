@@ -1100,6 +1100,16 @@ public:
     virtual Status setApriltagParams (const system::ApriltagParams& params) = 0;
 
     /**
+     * Get the secondary application parameters associated with the MultiSense device
+     *
+     * @param params The secondary application parameters to send to the on-camera
+     *               deep learning application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully received
+     */
+    virtual Status getSecondaryAppConfig(system::SecondaryAppConfig& params) = 0;
+
+    /**
      * Set the feature detector config associated with the MultiSense device
      *
      * @param params The feature detector parameters to send to the on-camera feature detector

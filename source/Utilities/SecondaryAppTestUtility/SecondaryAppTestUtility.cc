@@ -208,6 +208,13 @@ int main(int    argc,
         goto clean_out;
     }
 
+    system::SecondaryAppConfig sa_cfg;
+    status = channelP->getSecondaryAppConfig(sa_cfg);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to get secondary app config: " << Channel::statusString(status) << std::endl;
+        goto clean_out;
+    }
+
     //
     // Change FPS
 
