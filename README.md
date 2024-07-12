@@ -37,6 +37,39 @@ clone the LibMultiSense repository into the existing project's source tree.
      add_subdirectory(LibMultiSense/source/LibMultiSense)
 
 
+### MacOS
+
+LibMultiSense uses CMake for its build system.
+
+To build the standalone LibMultiSense library and demonstration applications 
+for using MacOS Sonoma 14.5:
+
+From a terminal, install the Xcode Command Line Tools:
+
+```commandline
+xcode-select --install
+```
+
+This will install Git as well as Apple's Clang compiler without needing to install the
+full Xcode application from the App Store.
+
+Download the relevant CMake distribution for MacOS (https://cmake.org/download/). This
+will install a CMake GUI application. The `cmake` binary should be found at 
+`/Applications/CMake.app/Contents/bin/cmake`. Within the GUI, 
+**Tools > How to Install For Command Line Use** gives instructions for adding `cmake`
+to your path.
+
+Clone LibMultiSense using Git.
+
+From a terminal, build LibMultiSense:
+
+    > cd <LibMultiSense_directory>
+    > mkdir build
+    > cd build
+    > /Applications/CMake.app/Contents/bin/cmake -DCMAKE_INSTALL_PREFIX=../install  ..
+    > make install
+
+
 #### Windows
 
 LibMultiSense uses CMake to create a Microsoft Visual Studio project file used
