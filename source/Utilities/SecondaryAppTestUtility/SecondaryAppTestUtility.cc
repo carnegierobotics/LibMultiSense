@@ -254,9 +254,10 @@ int main(int    argc,
         goto clean_out;
     }
 
+    bool update_done = false;
     auto start = std::chrono::high_resolution_clock::now();
     while(!doneG) {
-        if (callback_counter == 100) {
+        if (!update_done && (callback_counter == 100)) {
             std::cout << "Updating Secondary Application parameters!" << std::endl;
             system::SecondaryAppConfig new_cfg;
             new_cfg.exampleConfigParam1 = 3.14;
@@ -267,6 +268,7 @@ int main(int    argc,
             } else {
                 std::cout << "Secondary Application parameters updated successfully!" << std::endl;
             }
+            update_done = true;
         }
     }
     auto end = std::chrono::high_resolution_clock::now();
