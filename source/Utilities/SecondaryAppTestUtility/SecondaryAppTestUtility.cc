@@ -112,10 +112,12 @@ void imageCallback(const image::Header& header, void *userDataP)
 void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
 {
     (void) userDataP;
-    uint8_t* u8_secondary_data_ptr = (uint8_t*)header.secondaryAppDataP;
-    cv::Mat data = cv::Mat(160, 256, CV_8UC1, u8_secondary_data_ptr);
-    data *= 100;
-    cv::imwrite("data.png", data);
+    const char* u8_secondary_data_ptr = static_cast<const char*>(header.secondaryAppDataP);
+    uint32_t length = header.length;
+    std::string data(u8_secondary_data_ptr, length);
+    std::cout << "Data from camera:" << std::endl;
+    std::cout << data;
+    std::cout << "***********************************" << std::endl;
 
     callback_counter++;
 }
