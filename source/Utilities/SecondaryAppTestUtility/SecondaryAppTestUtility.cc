@@ -117,7 +117,7 @@ void secondaryAppCallback(const secondary_app::Header& header, void* userDataP)
     std::string data(u8_secondary_data_ptr, length);
     std::cout << "Data from camera:" << std::endl;
     std::cout << data;
-    std::cout << "***********************************" << std::endl;
+    std::cout << "*************************************" << std::endl;
 
     callback_counter++;
 }
