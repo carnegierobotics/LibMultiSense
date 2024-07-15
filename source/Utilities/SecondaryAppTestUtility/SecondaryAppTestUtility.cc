@@ -256,7 +256,18 @@ int main(int    argc,
 
     auto start = std::chrono::high_resolution_clock::now();
     while(!doneG) {
-        // usleep(100000);
+        if (callback_counter == 100) {
+            std::cout << "Updating Secondary Application parameters!" << std::endl;
+            system::SecondaryAppConfig new_cfg;
+            new_cfg.exampleConfigParam1 = 3.14;
+            new_cfg.exampleConfigParam2 = 42;
+            status = channelP->setSecondaryAppConfig(new_cfg);
+            if (Status_Ok != status) {
+                std::cerr << "Failed to send Secondary Application configuration!" << std::endl;
+            } else {
+                std::cout << "Secondary Application parameters updated successfully!" << std::endl;
+            }
+        }
     }
     auto end = std::chrono::high_resolution_clock::now();
 
