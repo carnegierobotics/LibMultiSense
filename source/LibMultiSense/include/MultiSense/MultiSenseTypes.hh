@@ -3090,8 +3090,9 @@ public:
     uint32_t    timeSeconds;
     /** The time microseconds value corresponding to when the secondaryAppData was captured*/
     uint32_t    timeMicroSeconds;
-    /** The number of frames per second currently streaming from the device */
-    float       framesPerSecond;
+    /** Example configuration parameters for secondary application */
+    float       exampleConfigParam1;
+    int32_t     exampleConfigParam2;
     /** The length of the secondaryAppData data stored in secondaryAppDataDataP */
     uint32_t    secondaryAppDataLength;
     /** A pointer to the secondaryAppData data */
@@ -4257,10 +4258,12 @@ struct ChannelStatistics
 
 class MULTISENSE_API SecondaryAppConfig {
 public:
-    float framesPerSecond;
+    float exampleConfigParam1;
+    int32_t exampleConfigParam2;
 
     SecondaryAppConfig():
-        framesPerSecond(5.0f)
+        exampleConfigParam1(3.14f),
+        exampleConfigParam2(42)
         {};
 };
 

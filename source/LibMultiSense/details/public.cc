@@ -1626,7 +1626,8 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
     if (Status_Ok != status)
         return status;
 
-    config.framesPerSecond = d.framesPerSecond;
+    config.exampleConfigParam1 = d.exampleConfigParam1;
+    config.exampleConfigParam2 = d.exampleConfigParam2;
 
     return Status_Ok;
 }
@@ -1641,7 +1642,8 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
 Status impl::setSecondaryAppConfig(const system::SecondaryAppConfig& c)
 {
     wire::SecondaryAppControl cmd;
-    cmd.framesPerSecond = c.framesPerSecond;
+    cmd.exampleConfigParam1 = c.exampleConfigParam1;
+    cmd.exampleConfigParam2 = c.exampleConfigParam2;
     return waitAck(cmd);
 }
 

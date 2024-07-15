@@ -54,7 +54,8 @@ public:
 
     //
     // Parameters representing the current camera configuration
-    float    framesPerSecond;
+    float exampleConfigParam1;
+    int32_t exampleConfigParam2;
 
 
     //
@@ -62,7 +63,8 @@ public:
 
     SecondaryAppControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     SecondaryAppControl():
-        framesPerSecond(0.0f)
+            exampleConfigParam1(3.14f),
+            exampleConfigParam2(42)
         {};
 
     //
@@ -73,7 +75,8 @@ public:
                        const VersionType version)
     {
         (void) version;
-        message & framesPerSecond;
+        message & exampleConfigParam1;
+        message & exampleConfigParam2;
 
     }
 };
