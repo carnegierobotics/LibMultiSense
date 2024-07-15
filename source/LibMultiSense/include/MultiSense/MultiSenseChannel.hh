@@ -1102,12 +1102,20 @@ public:
     /**
      * Get the secondary application parameters associated with the MultiSense device
      *
-     * @param params The secondary application parameters to send to the on-camera
-     *               deep learning application
+     * @param params The secondary application parameters to get from the camera.
      *
      * @return A crl::multisense::Status indicating if the params were successfully received
      */
     virtual Status getSecondaryAppConfig(system::SecondaryAppConfig& params) = 0;
+
+    /**
+     * Set the secondary application parameters associated with the MultiSense device
+     *
+     * @param params The secondary application parameters to send to the camera.
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully received
+     */
+    virtual Status setSecondaryAppConfig(const system::SecondaryAppConfig& params) = 0;
 
     /**
      * Set the feature detector config associated with the MultiSense device
