@@ -313,6 +313,13 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_RECTIFIED_AUX
                                                           );
 
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_DETECTOR = (SOURCE_FEATURE_LEFT |
+                                                           SOURCE_FEATURE_RIGHT|
+                                                           SOURCE_FEATURE_AUX  |
+                                                           SOURCE_FEATURE_RECTIFIED_LEFT  |
+                                                           SOURCE_FEATURE_RECTIFIED_RIGHT  |
+                                                           SOURCE_FEATURE_RECTIFIED_AUX
+                                                          );
 //
 // Exposure config
 
