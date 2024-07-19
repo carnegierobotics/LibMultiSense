@@ -1,4 +1,4 @@
-/**
+ status/**
  * @file FeatureDetectorUtility/FeatureDetectorUtility.cc
  *
  * Copyright 2013-2024
@@ -351,7 +351,8 @@ void featureDetectorCallback(const feature_detector::Header& header,
 
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
 
-    if (header.source == Source_Feature_Left) {
+    if ((header.source == Source_Feature_Left)
+        || (header.source == Source_Feature_Rectified_Left)) {
 
         auto it = userData->elapsedTime.find(header.frameId);
         if (it == userData->elapsedTime.end()) {
@@ -553,7 +554,7 @@ int main(int    argc,
 
     status = channelP->getDeviceInfo(info);
     if (Status_Ok != status) {
-		std::cerr << "Failed to get device info: " << Channel::statusString(status) << std::endl;
+		std::cerr << "Failed to get device info: " << Channel::statusString(status) << s`td::endl;
         goto clean_out;
     }
 
