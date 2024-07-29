@@ -267,6 +267,9 @@ static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1ull<<17);
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1ull<<18);
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1ull<<19);
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_AUX                 = (1ull<<32);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_LEFT      = (1ull<<33);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_RIGHT     = (1ull<<34);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_AUX       = (1ull<<35);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1ull<<20);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1ull<<22);
 static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1ull<<21);
@@ -317,6 +320,13 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_SECONDARY_APP_DATA
                                                           );
 
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_DETECTOR = (SOURCE_FEATURE_LEFT |
+                                                           SOURCE_FEATURE_RIGHT|
+                                                           SOURCE_FEATURE_AUX  |
+                                                           SOURCE_FEATURE_RECTIFIED_LEFT  |
+                                                           SOURCE_FEATURE_RECTIFIED_RIGHT  |
+                                                           SOURCE_FEATURE_RECTIFIED_AUX
+                                                          );
 //
 // Exposure config
 
