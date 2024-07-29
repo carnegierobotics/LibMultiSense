@@ -130,7 +130,7 @@ void impl::dispatchImage(utility::BufferStream& buffer,
 
     for(it  = m_imageListeners.begin();
         it != m_imageListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -149,7 +149,7 @@ void impl::dispatchLidar(utility::BufferStream& buffer,
 
     for(it  = m_lidarListeners.begin();
         it != m_lidarListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -166,7 +166,7 @@ void impl::dispatchPps(pps::Header& header)
 
     for(it  = m_ppsListeners.begin();
         it != m_ppsListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -184,7 +184,7 @@ void impl::dispatchImu(imu::Header& header)
 
     for(it  = m_imuListeners.begin();
         it != m_imuListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -203,7 +203,7 @@ void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
 
     for(it  = m_compressedImageListeners.begin();
         it != m_compressedImageListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -221,7 +221,7 @@ void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
 
     for(it  = m_groundSurfaceSplineListeners.begin();
         it != m_groundSurfaceSplineListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -239,7 +239,7 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 
     for(it  = m_aprilTagDetectionListeners.begin();
         it != m_aprilTagDetectionListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -257,7 +257,7 @@ void impl::dispatchFeatureDetections(feature_detector::Header& header)
 
     for(it  = m_featureDetectorListeners.begin();
         it != m_featureDetectorListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);

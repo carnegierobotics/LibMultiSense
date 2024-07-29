@@ -317,7 +317,7 @@ Status impl::removeIsolatedCallback(image::Callback callback)
         std::list<ImageListener*>::iterator it;
         for(it  = m_imageListeners.begin();
             it != m_imageListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -366,7 +366,7 @@ Status impl::removeIsolatedCallback(lidar::Callback callback)
         std::list<LidarListener*>::iterator it;
         for(it  = m_lidarListeners.begin();
             it != m_lidarListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -394,7 +394,7 @@ Status impl::removeIsolatedCallback(pps::Callback callback)
         std::list<PpsListener*>::iterator it;
         for(it  = m_ppsListeners.begin();
             it != m_ppsListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -422,7 +422,7 @@ Status impl::removeIsolatedCallback(imu::Callback callback)
         std::list<ImuListener*>::iterator it;
         for(it  = m_imuListeners.begin();
             it != m_imuListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -450,7 +450,7 @@ Status impl::removeIsolatedCallback(compressed_image::Callback callback)
         std::list<CompressedImageListener*>::iterator it;
         for(it  = m_compressedImageListeners.begin();
             it != m_compressedImageListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -478,7 +478,7 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
         std::list<GroundSurfaceSplineListener*>::iterator it;
         for(it  = m_groundSurfaceSplineListeners.begin();
             it != m_groundSurfaceSplineListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -506,7 +506,7 @@ Status impl::removeIsolatedCallback(apriltag::Callback callback)
         std::list<AprilTagDetectionListener*>::iterator it;
         for(it  = m_aprilTagDetectionListeners.begin();
             it != m_aprilTagDetectionListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -534,7 +534,7 @@ Status impl::removeIsolatedCallback(feature_detector::Callback callback)
         std::list<FeatureDetectorListener*>::iterator it;
         for(it  = m_featureDetectorListeners.begin();
             it != m_featureDetectorListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;

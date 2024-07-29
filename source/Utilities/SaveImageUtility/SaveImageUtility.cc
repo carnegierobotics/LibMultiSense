@@ -338,14 +338,13 @@ int main(int    argc,
     }
 
 	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
-    std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
+	std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
 	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
 	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
 	std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
 	std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
 	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
 	std::cout << std::dec;
-
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
