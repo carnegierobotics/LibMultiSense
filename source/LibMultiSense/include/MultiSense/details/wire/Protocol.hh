@@ -288,7 +288,7 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1ull<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1ull<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1ull<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1ull<<17); // same as SOURCE_RGB_LEFT
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA          = (1ull<<33); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA          = (1ull<<36); // same as SOURCE_RGB_LEFT
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
