@@ -246,7 +246,8 @@ int main(int    argc,
     // Start streaming
 
     uint64_t topics = Source_Secondary_App_Data | Source_Luma_Rectified_Aux;
-    std::cout << "Subscription Flags: " << std::bitset<64>(topics) << std::endl;
+    std::cout << "Subscription Flags: 0b" << std::bitset<64>(topics) << std::endl;
+    std::cout << "Subscription Flags: 0x" << std::hex << topics << std::dec << std::endl;
 
     status = channelP->startStreams(topics);
     if (Status_Ok != status) {
