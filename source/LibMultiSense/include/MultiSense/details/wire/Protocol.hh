@@ -195,6 +195,9 @@ static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PACKET_DELAY     = 0x002f;
 static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_PACKET_DELAY     = 0x0030;
 static CRL_CONSTEXPR IdType ID_CMD_FEATURE_DETECTOR_GET_CONFIG  = 0x0031;
 static CRL_CONSTEXPR IdType ID_CMD_FEATURE_DETECTOR_CONTROL     = 0x0032;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_CONTROL    = 0x0033;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_GET_CONFIG = 0x0034;
+
 //
 // Data
 
@@ -237,6 +240,8 @@ static CRL_CONSTEXPR IdType ID_DATA_SYS_PACKET_DELAY                   = 0x0127;
 static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_META              = 0x0128;
 static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR                   = 0x0129;
 static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_CONFIG            = 0x012A;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP                      = 0x012B;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_CONFIG               = 0x012C;
 
 //
 // Data sources
@@ -283,6 +288,7 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1ull<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1ull<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1ull<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1ull<<17); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA          = (1ull<<36); // same as SOURCE_RGB_LEFT
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
@@ -310,7 +316,8 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_AUX            |
                                                             SOURCE_COMPRESSED_RECTIFIED_LEFT |
                                                             SOURCE_COMPRESSED_RECTIFIED_RIGHT|
-                                                            SOURCE_COMPRESSED_RECTIFIED_AUX
+                                                            SOURCE_COMPRESSED_RECTIFIED_AUX  |
+                                                            SOURCE_SECONDARY_APP_DATA
                                                           );
 
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_DETECTOR = (SOURCE_FEATURE_LEFT |

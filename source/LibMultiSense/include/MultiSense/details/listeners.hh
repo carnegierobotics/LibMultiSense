@@ -231,6 +231,7 @@ typedef Listener<compressed_image::Header, compressed_image::Callback> Compresse
 typedef Listener<ground_surface::Header,   ground_surface::Callback>   GroundSurfaceSplineListener;
 typedef Listener<apriltag::Header,         apriltag::Callback>         AprilTagDetectionListener;
 typedef Listener<feature_detector::Header, feature_detector::Callback> FeatureDetectorListener;
+typedef Listener<secondary_app::Header,    secondary_app::Callback>    SecondaryAppListener;
 
 } // namespace details
 } // namespace multisense
