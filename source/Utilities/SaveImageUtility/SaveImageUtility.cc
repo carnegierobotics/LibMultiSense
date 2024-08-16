@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-06-14, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #ifdef WIN32
@@ -445,6 +446,7 @@ int main(int    argc,
         status = channelP->getDeviceStatus(statusMessage);
 
         if (Status_Ok == status) {
+
             std::cout << "Uptime: " << statusMessage.uptime << ", " <<
             "SystemOk: " << statusMessage.systemOk << ", " <<
             "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
@@ -455,6 +457,7 @@ int main(int    argc,
             "FPGA Power: " << statusMessage.fpgaPower << ", " <<
             "Logic Power: " << statusMessage.logicPower << ", " <<
             "Imager Power: " << statusMessage.imagerPower << std::endl;
+
         }
 
 
