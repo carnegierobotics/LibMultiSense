@@ -52,7 +52,7 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 9;
+    static CRL_CONSTEXPR VersionType VERSION = 10;
 
     //
     // Parameters representing the current camera configuration
@@ -103,7 +103,7 @@ public:
     //
     // Additions in version 7
 
-    SourceType exposureSource; // Deprecated
+    uint32_t exposureSource; // Deprecated
     std::vector<ExposureConfig> secondaryExposureConfigs; // Deprecated
 
     //
@@ -118,6 +118,10 @@ public:
     bool  sharpeningEnable; // Deprecated
     float sharpeningPercentage; // Deprecated
     uint8_t sharpeningLimit; // Deprecated
+
+    //
+    // Additions in version 10
+    float gainMax;
 
 
     //
@@ -220,6 +224,15 @@ public:
             sharpeningEnable = false;
             sharpeningPercentage = 0.0f;
             sharpeningLimit = 0;
+        }
+
+        if (version >= 10)
+        {
+            message & gainMax;
+        }
+        else
+        {
+            gainMax = ImagerGainMax;
         }
 
     }

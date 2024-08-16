@@ -50,21 +50,26 @@ public:
     uint32_t height;
     uint32_t supportedDataSources;
     uint32_t disparities;
+    uint32_t extendedDataSources;
 
     DeviceMode(uint32_t w=0,
                uint32_t h=0,
-               uint32_t s=0,
+               uint64_t s=0,
                uint32_t d=0) :
         width(w),
         height(h),
-        supportedDataSources(s),
-        disparities(d) {};
+        disparities(d)
+        {
+            supportedDataSources = (uint32_t) (s & 0xFFFFFFFFull);
+            extendedDataSources =  (uint32_t) ((s & 0xFFFFFFFF00000000ull) >> 32);
+        };
+
 };
 
 class SysDeviceModes {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_MODES;
-    static CRL_CONSTEXPR VersionType VERSION = 2;
+    static CRL_CONSTEXPR VersionType VERSION = 3;
 
     //
     // Available formats
@@ -85,7 +90,6 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
         uint32_t length = static_cast<uint32_t> (modes.size());
         message & length;
         modes.resize(length);
@@ -102,6 +106,18 @@ public:
             message & m.height;
             message & m.supportedDataSources;
             message & m.disparities; // was 'flags' in pre v2.3
+        }
+
+        for(uint32_t i=0; i<length; i++) {
+            DeviceMode& m = modes[i];
+            if (version >= 3)
+            {
+                message & m.extendedDataSources;
+            }
+            else
+            {
+                m.extendedDataSources = 0;
+            }
         }
     }
 };

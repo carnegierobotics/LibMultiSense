@@ -51,7 +51,7 @@ class WIRE_HEADER_ATTRIBS_ ImageHeader {
 public:
 
 static CRL_CONSTEXPR IdType      ID      = ID_DATA_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 2;
+static CRL_CONSTEXPR VersionType VERSION = 3;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
@@ -65,6 +65,7 @@ static CRL_CONSTEXPR VersionType VERSION = 2;
     uint16_t height;
     uint32_t exposure;
     float gain;
+    uint32_t sourceExtended;
 
     ImageHeader()
         :
@@ -78,7 +79,8 @@ static CRL_CONSTEXPR VersionType VERSION = 2;
         width(0),
         height(0),
         exposure(0),
-        gain(0.0)
+        gain(0.0),
+        sourceExtended(0)
          {};
 };
 
@@ -102,7 +104,6 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
         message & source;
         message & bitsPerPixel;
         message & frameId;
@@ -130,6 +131,15 @@ public:
         {
             exposure = 0;
             gain = Default_Gain;
+        }
+
+        if (version >= 3)
+        {
+          message & sourceExtended;
+        }
+        else
+        {
+          sourceExtended = 0;
         }
     }
 };

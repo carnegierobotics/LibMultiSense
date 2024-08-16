@@ -52,7 +52,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 9;
+    static CRL_CONSTEXPR VersionType VERSION = 10;
 
     //
     // Parameters representing the current camera configuration
@@ -110,7 +110,7 @@ public:
     //
     // Version 7 additions
 
-    SourceType exposureSource;
+    uint32_t exposureSource;
     std::vector<ExposureConfig> secondaryExposureConfigs;
 
     //
@@ -125,6 +125,10 @@ public:
     bool sharpeningEnable;
     float sharpeningPercentage;
     uint8_t sharpeningLimit;
+
+    //
+    // Version 10 additions
+    float gainMax;
 
     //
     // Constructors
@@ -169,7 +173,8 @@ public:
         gamma(Default_Gamma),
         sharpeningEnable(false),
         sharpeningPercentage(0.0f),
-        sharpeningLimit(0)
+        sharpeningLimit(0),
+        gainMax(ImagerGainMax)
         {};
 
     //
@@ -273,15 +278,24 @@ public:
 
         if (version >= 9)
         {
-          message & sharpeningEnable;
-          message & sharpeningPercentage;
-          message & sharpeningLimit;
+            message & sharpeningEnable;
+            message & sharpeningPercentage;
+            message & sharpeningLimit;
         }
         else
         {
-          sharpeningEnable = false;
-          sharpeningPercentage = 0.0f;
-          sharpeningLimit = 0;
+            sharpeningEnable = false;
+            sharpeningPercentage = 0.0f;
+            sharpeningLimit = 0;
+        }
+
+        if (version >= 10)
+        {
+            message & gainMax;
+        }
+        else
+        {
+            gainMax = ImagerGainMax;
         }
 
     }

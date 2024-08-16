@@ -8,13 +8,13 @@ Code given out at the 1985 UNIFORUM conference in Dallas.
 Signficant updates:
     2014-12-12: Updated to use CRL_HAVE_GETOPT preprocessor definition
 */
+#ifndef GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27
+#define GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27
 
 #ifdef CRL_HAVE_GETOPT
 #include <getopt.h>
 #else
 
-#ifndef GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27
-#define GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27
 
 #ifdef __cplusplus
 extern "C"
@@ -32,6 +32,7 @@ extern int getopt (int argc, char** argv, char* opts);
 }
 #endif
 
-#endif // GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27
 
 #endif // CRL_HAVE_GETOPT
+
+#endif // GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27

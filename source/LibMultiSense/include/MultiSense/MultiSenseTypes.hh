@@ -37,11 +37,12 @@
 #ifndef LibMultiSense_MultiSenseTypes_hh
 #define LibMultiSense_MultiSenseTypes_hh
 
-#include <stdint.h>
 #include <climits>
+#include <cstring>
+#include <iostream>
+#include <stdint.h>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -111,44 +112,48 @@ static CRL_CONSTEXPR Status Status_Exception   = -6;
  * sensor. DataSource values can be combined using the bitwise OR
  * operator to represent multiple sources.
  */
-typedef uint32_t DataSource;
+typedef uint64_t DataSource;
 
 static CRL_CONSTEXPR DataSource Source_Unknown                       = 0;
-static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffff;
-static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1U<<0);
-static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1U<<1);
-static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1U<<2);
-static CRL_CONSTEXPR DataSource Source_Luma_Right                    = (1U<<3);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left           = (1U<<4);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right          = (1U<<5);
-static CRL_CONSTEXPR DataSource Source_Chroma_Left                   = (1U<<6);
-static CRL_CONSTEXPR DataSource Source_Chroma_Right                  = (1U<<7);
-static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux          = (1U<<8);
-static CRL_CONSTEXPR DataSource Source_Disparity                     = (1U<<10);
-static CRL_CONSTEXPR DataSource Source_Disparity_Left                = (1U<<10); // same as Source_Disparity
-static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1U<<11);
-static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1U<<12);
-static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1U<<16);
-static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1U<<17);
-static CRL_CONSTEXPR DataSource Source_Feature_Left                  = (1U<<18);
-static CRL_CONSTEXPR DataSource Source_Feature_Right                 = (1U<<19);
-static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1U<<20);
-static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1U<<22);
-static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1U<<23);
-static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1U<<24);
-static CRL_CONSTEXPR DataSource Source_Imu                           = (1U<<25);
-static CRL_CONSTEXPR DataSource Source_Pps                           = (1U<<26);
-static CRL_CONSTEXPR DataSource Source_Raw_Aux                       = (1U<<27);
-static CRL_CONSTEXPR DataSource Source_Luma_Aux                      = (1U<<28);
-static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux            = (1U<<29);
-static CRL_CONSTEXPR DataSource Source_Chroma_Aux                    = (1U<<30);
-static CRL_CONSTEXPR DataSource Source_Disparity_Aux                 = (1U<<31);
-static CRL_CONSTEXPR DataSource Source_Compressed_Left               = (1U<<9);
-static CRL_CONSTEXPR DataSource Source_Compressed_Right              = (1U<<13);
-static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1U<<14);
-static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1U<<15);
-static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1U<<16);
-static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1U<<17);
+static CRL_CONSTEXPR DataSource Source_All                           = 0xffffffffffffffff;
+static CRL_CONSTEXPR DataSource Source_Raw_Left                      = (1ull<<0);
+static CRL_CONSTEXPR DataSource Source_Raw_Right                     = (1ull<<1);
+static CRL_CONSTEXPR DataSource Source_Luma_Left                     = (1ull<<2);
+static CRL_CONSTEXPR DataSource Source_Luma_Right                    = (1ull<<3);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Left           = (1ull<<4);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Right          = (1ull<<5);
+static CRL_CONSTEXPR DataSource Source_Chroma_Left                   = (1ull<<6);
+static CRL_CONSTEXPR DataSource Source_Chroma_Right                  = (1ull<<7);
+static CRL_CONSTEXPR DataSource Source_Chroma_Rectified_Aux          = (1ull<<8);
+static CRL_CONSTEXPR DataSource Source_Disparity                     = (1ull<<10);
+static CRL_CONSTEXPR DataSource Source_Disparity_Left                = (1ull<<10); // same as Source_Disparity
+static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1ull<<11);
+static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1ull<<12);
+static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1ull<<16);
+static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1ull<<17);
+static CRL_CONSTEXPR DataSource Source_Feature_Left                  = (1ull<<18);
+static CRL_CONSTEXPR DataSource Source_Feature_Right                 = (1ull<<19);
+static CRL_CONSTEXPR DataSource Source_Feature_Aux                   = (1ull<<32);
+static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Left        = (1ull<<33);
+static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Right       = (1ull<<34);
+static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Aux         = (1ull<<35);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1ull<<20);
+static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1ull<<22);
+static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1ull<<23);
+static CRL_CONSTEXPR DataSource Source_Lidar_Scan                    = (1ull<<24);
+static CRL_CONSTEXPR DataSource Source_Imu                           = (1ull<<25);
+static CRL_CONSTEXPR DataSource Source_Pps                           = (1ull<<26);
+static CRL_CONSTEXPR DataSource Source_Raw_Aux                       = (1ull<<27);
+static CRL_CONSTEXPR DataSource Source_Luma_Aux                      = (1ull<<28);
+static CRL_CONSTEXPR DataSource Source_Luma_Rectified_Aux            = (1ull<<29);
+static CRL_CONSTEXPR DataSource Source_Chroma_Aux                    = (1ull<<30);
+static CRL_CONSTEXPR DataSource Source_Disparity_Aux                 = (1ull<<31);
+static CRL_CONSTEXPR DataSource Source_Compressed_Left               = (1ull<<9);
+static CRL_CONSTEXPR DataSource Source_Compressed_Right              = (1ull<<13);
+static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
+static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -215,6 +220,9 @@ static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_2           = 2;
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_3           = 3;
 /** Invalid Remote Head position*/
 static CRL_CONSTEXPR RemoteHeadChannel Remote_Head_Invalid     = SHRT_MAX;
+
+/** The maximum gain supported*/
+static CRL_CONSTEXPR float ImagerGainMax = 1000.0f;
 
 /**
  * Remote head sync group defines a group of remote heads which will have their
@@ -1001,6 +1009,16 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
+    /**
+     * Set the auto exposure gain max.
+     *
+     * This can be used to add an additional clamp to auto exposure which
+     * would limit the maximum analog gain set by the auto exposure algorithm.
+     *
+     * @param g the max gain constant applied to the camera sources
+     */
+    void setGainMax(const float g) { m_gainMax = g; };
+
 
     //
     // Query
@@ -1195,6 +1213,13 @@ public:
      */
     float gamma() const { return m_gamma; };
 
+    /**
+     * Query the gain maximum allowed in the camera.
+     *
+     * @return A value within the range of 1.0 - Max Gain of the imager
+     */
+    float gainMax() const { return m_gainMax; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -1336,6 +1361,7 @@ private:
     bool     m_hdrEnabled;
     CameraProfile m_profile;
     float    m_gamma;
+    float    m_gainMax;
 
 protected:
 
@@ -1497,7 +1523,6 @@ public:
      */
     void setGamma(const float g) { m_gamma = g; };
 
-
     /**
      * Enable sharpening for the aux luma channel.
      *
@@ -1523,6 +1548,17 @@ public:
      */
 
     void setSharpeningLimit(const uint8_t &s)    { m_sharpeningLimit  = s; };
+
+    /**
+     * Set the auto exposure gain max.
+     *
+     * This can be used to add an additional clamp to auto exposure which
+     * would limit the maximum analog gain set by the auto exposure algorithm.
+     *
+     * @param g the max gain constant applied to the camera sources
+     */
+    void setGainMax(const float g) { m_gainMax = g; };
+
 
     //
     // Query
@@ -1749,6 +1785,13 @@ public:
     uint8_t sharpeningLimit() const { return m_sharpeningLimit; };
 
     /**
+     * Query the gain maximum allowed in the camera.
+     *
+     * @return A value within the range of 1.0 - Max Gain of the imager
+     */
+    float gainMax() const { return m_gainMax; };
+
+    /**
      * Default constructor for a image configuration. Initializes all image
      * configuration members to their default values
      */
@@ -1759,6 +1802,7 @@ public:
                m_profile(User_Control),
                m_gamma(2.0),
                m_sharpeningEnable(false), m_sharpeningPercentage(0.0f), m_sharpeningLimit(0),
+               m_gainMax(ImagerGainMax),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0) {};
 private:
 
@@ -1775,7 +1819,7 @@ private:
     bool     m_sharpeningEnable;
     float    m_sharpeningPercentage;
     uint8_t  m_sharpeningLimit;
-
+    float    m_gainMax;
 protected:
 
     float    m_fx, m_fy, m_cx, m_cy;
@@ -2999,7 +3043,7 @@ namespace feature_detector {
   class MULTISENSE_API Header : public HeaderBase {
   public:
 
-      uint32_t source;
+      DataSource source;
       int64_t  frameId;
       uint32_t timeSeconds;
       uint32_t timeNanoSeconds;
@@ -4078,7 +4122,7 @@ class MULTISENSE_API PtpStatus {
         uint8_t gm_present;
 
         /** Hex ID of grandmaster clock. */
-        uint8_t gm_id[8] = {0};
+        uint8_t gm_id[8];
 
         /** Offset of camera PHC to PTP grandmaster clock in nanosec */
         int64_t gm_offset;
@@ -4094,7 +4138,10 @@ class MULTISENSE_API PtpStatus {
             gm_present(0),
             gm_offset(0),
             path_delay(0),
-            steps_removed(0) {};
+            steps_removed(0)
+        {
+            memset(gm_id, 0, sizeof(gm_id));
+        };
 };
 
 /**

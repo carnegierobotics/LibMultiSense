@@ -128,7 +128,7 @@ void impl::dispatchImage(utility::BufferStream& buffer,
 
     for(it  = m_imageListeners.begin();
         it != m_imageListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -147,7 +147,7 @@ void impl::dispatchLidar(utility::BufferStream& buffer,
 
     for(it  = m_lidarListeners.begin();
         it != m_lidarListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -164,7 +164,7 @@ void impl::dispatchPps(pps::Header& header)
 
     for(it  = m_ppsListeners.begin();
         it != m_ppsListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -182,7 +182,7 @@ void impl::dispatchImu(imu::Header& header)
 
     for(it  = m_imuListeners.begin();
         it != m_imuListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -201,7 +201,7 @@ void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
 
     for(it  = m_compressedImageListeners.begin();
         it != m_compressedImageListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -219,7 +219,7 @@ void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
 
     for(it  = m_groundSurfaceSplineListeners.begin();
         it != m_groundSurfaceSplineListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -237,7 +237,7 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 
     for(it  = m_aprilTagDetectionListeners.begin();
         it != m_aprilTagDetectionListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -255,7 +255,7 @@ void impl::dispatchFeatureDetections(feature_detector::Header& header)
 
     for(it  = m_featureDetectorListeners.begin();
         it != m_featureDetectorListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -355,7 +355,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = 0;
         header.width            = image.width;
         header.height           = image.height;
@@ -383,7 +383,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = image.bitsPerPixel;
         header.width            = image.width;
         header.height           = image.height;
@@ -501,7 +501,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         getImageTime(metaP, header.timeSeconds, header.timeMicroSeconds);
 
-        header.source           = sourceWireToApi(image.source);
+        header.source           = image.source | ((uint64_t)image.sourceExtended << 32);
         header.bitsPerPixel     = image.bitsPerPixel;
         header.codec            = image.codec;
         header.width            = image.width;
@@ -606,20 +606,20 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
           break;
 
         feature_detector::Header header;
-        header.source         =featureDetector.source;
-        header.frameId        =metaP->frameId;
-        header.timeSeconds    =metaP->timeSeconds;
-        header.timeNanoSeconds=metaP->timeNanoSeconds;
-        header.ptpNanoSeconds =metaP->ptpNanoSeconds;
-        header.octaveWidth    =metaP->octaveWidth;
-        header.octaveHeight   =metaP->octaveHeight;
-        header.numOctaves     =metaP->numOctaves;
-        header.scaleFactor    =metaP->scaleFactor;
-        header.motionStatus   =metaP->motionStatus;
-        header.averageXMotion =metaP->averageXMotion;
-        header.averageYMotion =metaP->averageYMotion;
-        header.numFeatures    =featureDetector.numFeatures;
-        header.numDescriptors =featureDetector.numDescriptors;
+        header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
+        header.frameId        = metaP->frameId;
+        header.timeSeconds    = metaP->timeSeconds;
+        header.timeNanoSeconds= metaP->timeNanoSeconds;
+        header.ptpNanoSeconds = metaP->ptpNanoSeconds;
+        header.octaveWidth    = metaP->octaveWidth;
+        header.octaveHeight   = metaP->octaveHeight;
+        header.numOctaves     = metaP->numOctaves;
+        header.scaleFactor    = metaP->scaleFactor;
+        header.motionStatus   = metaP->motionStatus;
+        header.averageXMotion = metaP->averageXMotion;
+        header.averageYMotion = metaP->averageYMotion;
+        header.numFeatures    = featureDetector.numFeatures;
+        header.numDescriptors = featureDetector.numDescriptors;
 
         const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
 
