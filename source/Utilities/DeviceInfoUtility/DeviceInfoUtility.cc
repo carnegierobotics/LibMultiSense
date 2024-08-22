@@ -165,8 +165,8 @@ bool parseFile(const std::string& fileName,
 
     while (!feof(fP)) {
 
-        char  lineP[512] = {0};
-        char  tempP[512] = {0};
+        char  lineP[513] = {0};
+        char  tempP[513] = {0};
         int   tempi;
         float tempf;
 
