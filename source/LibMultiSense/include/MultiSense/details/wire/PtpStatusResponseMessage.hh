@@ -41,6 +41,7 @@
 
 #include "MultiSense/details/utility/Portability.hh"
 #include <iostream>
+#include <cstring>
 
 namespace crl {
 namespace multisense {
@@ -54,7 +55,7 @@ public:
 
     //
     // Camera PTP status parameters
-    
+    //
     uint8_t gm_present;
     int64_t gm_offset;
 
@@ -70,17 +71,20 @@ public:
 
     //
     // GM Clock identity (8 bytes, 0xXXXXXX.XXXX.XXXXXX)
-    
-    uint8_t gm_id[8] = {0};
+    //
+    uint8_t gm_id[8];
 
     //
     // Constructors
 
     PtpStatusResponse(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    PtpStatusResponse() : gm_present(0), 
-                          gm_offset(0),  
-                          path_delay(0), 
-                          steps_removed(0) {};
+    PtpStatusResponse() : gm_present(0),
+                          gm_offset(0),
+                          path_delay(0),
+                          steps_removed(0)
+    {
+        memset(gm_id, 0, sizeof(gm_id));
+    };
 
     //
     // Serialization routine

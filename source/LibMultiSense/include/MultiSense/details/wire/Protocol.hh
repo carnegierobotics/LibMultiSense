@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-05-07, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #ifndef LibMultiSense_details_wire_protocol
@@ -83,7 +84,7 @@ static CRL_CONSTEXPR uint16_t HEADER_GROUP   = 0x0001;
 //
 // The packet header structure
 
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined(__MINGW64__)
 #pragma pack(push, 1)
 typedef struct {
 #else
@@ -125,7 +126,7 @@ typedef struct __attribute__ ((__packed__)) {
     uint32_t byteOffset;
 
 } Header;
-#if defined (_MSC_VER)
+#if defined (_MSC_VER) || defined(__MINGW64__)
 #pragma pack(pop)
 #endif
 
@@ -262,6 +263,9 @@ static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1ull<<17);
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1ull<<18);
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1ull<<19);
 static CRL_CONSTEXPR SourceType SOURCE_FEATURE_AUX                 = (1ull<<32);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_LEFT      = (1ull<<33);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_RIGHT     = (1ull<<34);
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_AUX       = (1ull<<35);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1ull<<20);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1ull<<22);
 static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1ull<<21);
@@ -310,6 +314,13 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_RECTIFIED_AUX
                                                           );
 
+static CRL_CONSTEXPR SourceType SOURCE_FEATURE_DETECTOR = (SOURCE_FEATURE_LEFT |
+                                                           SOURCE_FEATURE_RIGHT|
+                                                           SOURCE_FEATURE_AUX  |
+                                                           SOURCE_FEATURE_RECTIFIED_LEFT  |
+                                                           SOURCE_FEATURE_RECTIFIED_RIGHT  |
+                                                           SOURCE_FEATURE_RECTIFIED_AUX
+                                                          );
 //
 // Exposure config
 

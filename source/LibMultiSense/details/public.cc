@@ -312,7 +312,7 @@ Status impl::removeIsolatedCallback(image::Callback callback)
         std::list<ImageListener*>::iterator it;
         for(it  = m_imageListeners.begin();
             it != m_imageListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -340,7 +340,7 @@ Status impl::removeIsolatedCallback(lidar::Callback callback)
         std::list<LidarListener*>::iterator it;
         for(it  = m_lidarListeners.begin();
             it != m_lidarListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -368,7 +368,7 @@ Status impl::removeIsolatedCallback(pps::Callback callback)
         std::list<PpsListener*>::iterator it;
         for(it  = m_ppsListeners.begin();
             it != m_ppsListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -396,7 +396,7 @@ Status impl::removeIsolatedCallback(imu::Callback callback)
         std::list<ImuListener*>::iterator it;
         for(it  = m_imuListeners.begin();
             it != m_imuListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -424,7 +424,7 @@ Status impl::removeIsolatedCallback(compressed_image::Callback callback)
         std::list<CompressedImageListener*>::iterator it;
         for(it  = m_compressedImageListeners.begin();
             it != m_compressedImageListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -452,7 +452,7 @@ Status impl::removeIsolatedCallback(ground_surface::Callback callback)
         std::list<GroundSurfaceSplineListener*>::iterator it;
         for(it  = m_groundSurfaceSplineListeners.begin();
             it != m_groundSurfaceSplineListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -480,7 +480,7 @@ Status impl::removeIsolatedCallback(apriltag::Callback callback)
         std::list<AprilTagDetectionListener*>::iterator it;
         for(it  = m_aprilTagDetectionListeners.begin();
             it != m_aprilTagDetectionListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -508,7 +508,7 @@ Status impl::removeIsolatedCallback(feature_detector::Callback callback)
         std::list<FeatureDetectorListener*>::iterator it;
         for(it  = m_featureDetectorListeners.begin();
             it != m_featureDetectorListeners.end();
-            it ++) {
+            ++ it) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
@@ -838,7 +838,12 @@ Status impl::getApiVersion(VersionType& version)
 
 Status impl::getVersionInfo(system::VersionInfo& v)
 {
+#ifdef BUILD_API_DATE
     v.apiBuildDate            = std::string(__DATE__ ", " __TIME__);
+#else
+    v.apiBuildDate            = std::string("??? ?? ????, ??:??:??");
+#endif // BUILD_API_DATE
+
     v.apiVersion              = API_VERSION;
     v.sensorFirmwareBuildDate = m_sensorVersion.firmwareBuildDate;
     v.sensorFirmwareVersion   = m_sensorVersion.firmwareVersion;
@@ -912,6 +917,7 @@ Status impl::getImageConfig(image::Config& config)
     a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
 
     a.setGamma(d.gamma);
+    a.setGainMax(d.gainMax);
 
     return Status_Ok;
 }
@@ -965,6 +971,7 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
     a.enableSharpening(d.sharpeningEnable);
     a.setSharpeningPercentage(d.sharpeningPercentage);
     a.setSharpeningLimit(d.sharpeningLimit);
+    a.setGainMax(d.gainMax);
 
     return Status_Ok;
 }
@@ -1013,6 +1020,7 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
 
     cmd.gamma = c.gamma();
+    cmd.gainMax = c.gainMax();
 
     return waitAck(cmd);
 }
@@ -1048,6 +1056,7 @@ Status impl::setAuxImageConfig(const image::AuxConfig& c)
     cmd.sharpeningEnable = c.enableSharpening();
     cmd.sharpeningPercentage = c.sharpeningPercentage();
     cmd.sharpeningLimit = c.sharpeningLimit();
+    cmd.gainMax = c.gainMax();
 
     return waitAck(cmd);
 }

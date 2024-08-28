@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-05-15, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #include "MultiSense/details/channel.hh"
@@ -127,7 +128,7 @@ void impl::dispatchImage(utility::BufferStream& buffer,
 
     for(it  = m_imageListeners.begin();
         it != m_imageListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -146,7 +147,7 @@ void impl::dispatchLidar(utility::BufferStream& buffer,
 
     for(it  = m_lidarListeners.begin();
         it != m_lidarListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -163,7 +164,7 @@ void impl::dispatchPps(pps::Header& header)
 
     for(it  = m_ppsListeners.begin();
         it != m_ppsListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -181,7 +182,7 @@ void impl::dispatchImu(imu::Header& header)
 
     for(it  = m_imuListeners.begin();
         it != m_imuListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -200,7 +201,7 @@ void impl::dispatchCompressedImage(utility::BufferStream&    buffer,
 
     for(it  = m_compressedImageListeners.begin();
         it != m_compressedImageListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(buffer, header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -218,7 +219,7 @@ void impl::dispatchGroundSurfaceSpline(ground_surface::Header& header)
 
     for(it  = m_groundSurfaceSplineListeners.begin();
         it != m_groundSurfaceSplineListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -236,7 +237,7 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 
     for(it  = m_aprilTagDetectionListeners.begin();
         it != m_aprilTagDetectionListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -254,7 +255,7 @@ void impl::dispatchFeatureDetections(feature_detector::Header& header)
 
     for(it  = m_featureDetectorListeners.begin();
         it != m_featureDetectorListeners.end();
-        it ++)
+        ++ it)
         (*it)->dispatch(header);
 
     utility::ScopedLock statsLock(m_statisticsLock);
@@ -857,7 +858,7 @@ void impl::handle()
         // Receive the packet
 
 // disable MSVC warning for narrowing conversion.
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (push)
 #pragma warning (disable : 4267)
 #endif
@@ -865,7 +866,7 @@ void impl::handle()
                                            (char*)m_incomingBuffer.data(),
                                            m_incomingBuffer.size(),
                                            0, NULL, NULL);
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (pop)
 #endif
 
@@ -1036,7 +1037,11 @@ void *impl::rxThread(void *userDataP)
         }
     }
 
+#if defined(__MINGW64__)
+    return 0;
+#else
     return NULL;
+#endif
 }
 
 }}} // namespaces

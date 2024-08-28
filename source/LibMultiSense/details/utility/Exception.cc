@@ -36,6 +36,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2012-05-07, dlr@carnegierobotics.com, IRAD, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #include "MultiSense/details/utility/Exception.hh"
@@ -92,7 +93,11 @@ Exception::Exception(const char *failureReason, ...)
     int returnValue;
 
     va_start(ap, failureReason);
-    returnValue = vasprintf(&stringP, failureReason, ap);
+    #if defined(__MINGW64__)
+        returnValue = __mingw_vasprintf(&stringP, failureReason, ap);
+    #else
+        returnValue = vasprintf(&stringP, failureReason, ap);
+    #endif
     va_end(ap);
     
     if ((NULL != stringP) && (returnValue != -1)) {

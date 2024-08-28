@@ -1,5 +1,5 @@
 #
-# FeatureDetectorUtility - Makefile
+# DepthImageUtility - Makefile
 #
 
 #
@@ -14,21 +14,23 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
     CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 3.4))
 
     set(CMAKE_CXX_STANDARD 14)
+
     #
     # Setup the executable that we will use.
     #
 
-    add_executable(FeatureDetectorUtility FeatureDetectorUtility.cc)
+    add_executable(DepthImageUtility DepthImageUtility.cc)
 
     #
     # Specify libraries against which to link.
     #
 
-    target_link_libraries (FeatureDetectorUtility ${MULTISENSE_UTILITY_LIBS})
+    target_link_libraries (DepthImageUtility ${MULTISENSE_UTILITY_LIBS})
 
     #
     # Specify the install location
     #
 
-    install(TARGETS FeatureDetectorUtility RUNTIME DESTINATION "bin")
+    install(TARGETS DepthImageUtility RUNTIME DESTINATION "bin")
+
 endif()

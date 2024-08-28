@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-04-25, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #include "MultiSense/details/channel.hh"
@@ -241,32 +242,32 @@ void impl::cleanup()
     std::list<ImageListener*>::const_iterator iti;
     for(iti  = m_imageListeners.begin();
         iti != m_imageListeners.end();
-        iti ++)
+        ++ iti)
         delete *iti;
     std::list<LidarListener*>::const_iterator itl;
     for(itl  = m_lidarListeners.begin();
         itl != m_lidarListeners.end();
-        itl ++)
+        ++ itl)
         delete *itl;
     std::list<PpsListener*>::const_iterator itp;
     for(itp  = m_ppsListeners.begin();
         itp != m_ppsListeners.end();
-        itp ++)
+        ++ itp)
         delete *itp;
     std::list<ImuListener*>::const_iterator itm;
     for(itm  = m_imuListeners.begin();
         itm != m_imuListeners.end();
-        itm ++)
+        ++ itm)
         delete *itm;
     std::list<CompressedImageListener*>::const_iterator itc;
     for(itc  = m_compressedImageListeners.begin();
         itc != m_compressedImageListeners.end();
-        itc ++)
+        ++ itc)
         delete *itc;
     std::list<FeatureDetectorListener*>::const_iterator itf;
     for(itf  = m_featureDetectorListeners.begin();
         itf != m_featureDetectorListeners.end();
-        itf ++)
+        ++ itf)
         delete *itf;
 
     BufferPool::const_iterator it;
@@ -314,7 +315,11 @@ void impl::bind(const std::string& ifName)
     // Create the socket.
 
     m_serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+#if defined(__MINGW64__)
+    if (m_serverSocket == INVALID_SOCKET)
+#else
     if (m_serverSocket < 0)
+#endif
         CRL_EXCEPTION("failed to create the UDP socket: %s",
                       strerror(errno));
 
@@ -426,14 +431,14 @@ void impl::publish(const utility::BufferStreamWriter& stream)
     // Send the packet along
 
 // disable MSVC warning for narrowing conversion.
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (push)
 #pragma warning (disable : 4267)
 #endif
     const int32_t ret = sendto(m_serverSocket, (char*)stream.data(), stream.tell(), 0,
                                (struct sockaddr *) &m_sensorAddress,
                                sizeof(m_sensorAddress));
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (pop)
 #endif
 
@@ -472,6 +477,9 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Feature_Left)           wire_mask |= wire::SOURCE_FEATURE_LEFT;
     if (mask & Source_Feature_Right)          wire_mask |= wire::SOURCE_FEATURE_RIGHT;
     if (mask & Source_Feature_Aux)            wire_mask |= wire::SOURCE_FEATURE_AUX;
+    if (mask & Source_Feature_Rectified_Left) wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_LEFT;
+    if (mask & Source_Feature_Rectified_Right)wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_RIGHT;
+    if (mask & Source_Feature_Rectified_Aux)  wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_AUX;
     if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
     if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
     if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
@@ -492,31 +500,34 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
 {
     DataSource api_mask = 0;
 
-    if (mask & wire::SOURCE_RAW_LEFT)          api_mask |= Source_Raw_Left;
-    if (mask & wire::SOURCE_RAW_RIGHT)         api_mask |= Source_Raw_Right;
-    if (mask & wire::SOURCE_RAW_AUX)           api_mask |= Source_Raw_Aux;
-    if (mask & wire::SOURCE_LUMA_LEFT)         api_mask |= Source_Luma_Left;
-    if (mask & wire::SOURCE_LUMA_RIGHT)        api_mask |= Source_Luma_Right;
-    if (mask & wire::SOURCE_LUMA_AUX)          api_mask |= Source_Luma_Aux;
-    if (mask & wire::SOURCE_LUMA_RECT_LEFT)    api_mask |= Source_Luma_Rectified_Left;
-    if (mask & wire::SOURCE_LUMA_RECT_RIGHT)   api_mask |= Source_Luma_Rectified_Right;
-    if (mask & wire::SOURCE_LUMA_RECT_AUX)     api_mask |= Source_Luma_Rectified_Aux;
-    if (mask & wire::SOURCE_CHROMA_LEFT)       api_mask |= Source_Chroma_Left;
-    if (mask & wire::SOURCE_CHROMA_RIGHT)      api_mask |= Source_Chroma_Right;
-    if (mask & wire::SOURCE_CHROMA_AUX)        api_mask |= Source_Chroma_Aux;
-    if (mask & wire::SOURCE_CHROMA_RECT_AUX)   api_mask |= Source_Chroma_Rectified_Aux;
-    if (mask & wire::SOURCE_DISPARITY)         api_mask |= Source_Disparity;
-    if (mask & wire::SOURCE_DISPARITY_RIGHT)   api_mask |= Source_Disparity_Right;
-    if (mask & wire::SOURCE_DISPARITY_AUX)     api_mask |= Source_Disparity_Aux;
-    if (mask & wire::SOURCE_DISPARITY_COST)    api_mask |= Source_Disparity_Cost;
-    if (mask & wire::SOURCE_JPEG_LEFT)         api_mask |= Source_Jpeg_Left;
-    if (mask & wire::SOURCE_RGB_LEFT)          api_mask |= Source_Rgb_Left;
-    if (mask & wire::SOURCE_FEATURE_LEFT)      api_mask |= Source_Feature_Left;
-    if (mask & wire::SOURCE_FEATURE_RIGHT)     api_mask |= Source_Feature_Right;
-    if (mask & wire::SOURCE_FEATURE_AUX)       api_mask |= Source_Feature_Aux;
-    if (mask & wire::SOURCE_LIDAR_SCAN)        api_mask |= Source_Lidar_Scan;
-    if (mask & wire::SOURCE_IMU)               api_mask |= Source_Imu;
-    if (mask & wire::SOURCE_PPS)               api_mask |= Source_Pps;
+    if (mask & wire::SOURCE_RAW_LEFT)                       api_mask |= Source_Raw_Left;
+    if (mask & wire::SOURCE_RAW_RIGHT)                      api_mask |= Source_Raw_Right;
+    if (mask & wire::SOURCE_RAW_AUX)                        api_mask |= Source_Raw_Aux;
+    if (mask & wire::SOURCE_LUMA_LEFT)                      api_mask |= Source_Luma_Left;
+    if (mask & wire::SOURCE_LUMA_RIGHT)                     api_mask |= Source_Luma_Right;
+    if (mask & wire::SOURCE_LUMA_AUX)                       api_mask |= Source_Luma_Aux;
+    if (mask & wire::SOURCE_LUMA_RECT_LEFT)                 api_mask |= Source_Luma_Rectified_Left;
+    if (mask & wire::SOURCE_LUMA_RECT_RIGHT)                api_mask |= Source_Luma_Rectified_Right;
+    if (mask & wire::SOURCE_LUMA_RECT_AUX)                  api_mask |= Source_Luma_Rectified_Aux;
+    if (mask & wire::SOURCE_CHROMA_LEFT)                    api_mask |= Source_Chroma_Left;
+    if (mask & wire::SOURCE_CHROMA_RIGHT)                   api_mask |= Source_Chroma_Right;
+    if (mask & wire::SOURCE_CHROMA_AUX)                     api_mask |= Source_Chroma_Aux;
+    if (mask & wire::SOURCE_CHROMA_RECT_AUX)                api_mask |= Source_Chroma_Rectified_Aux;
+    if (mask & wire::SOURCE_DISPARITY)                      api_mask |= Source_Disparity;
+    if (mask & wire::SOURCE_DISPARITY_RIGHT)                api_mask |= Source_Disparity_Right;
+    if (mask & wire::SOURCE_DISPARITY_AUX)                  api_mask |= Source_Disparity_Aux;
+    if (mask & wire::SOURCE_DISPARITY_COST)                 api_mask |= Source_Disparity_Cost;
+    if (mask & wire::SOURCE_JPEG_LEFT)                      api_mask |= Source_Jpeg_Left;
+    if (mask & wire::SOURCE_RGB_LEFT)                       api_mask |= Source_Rgb_Left;
+    if (mask & wire::SOURCE_FEATURE_LEFT)                   api_mask |= Source_Feature_Left;
+    if (mask & wire::SOURCE_FEATURE_RIGHT)                  api_mask |= Source_Feature_Right;
+    if (mask & wire::SOURCE_FEATURE_AUX)                    api_mask |= Source_Feature_Aux;
+    if (mask & wire::SOURCE_FEATURE_RECTIFIED_LEFT)         api_mask |= Source_Feature_Rectified_Left;
+    if (mask & wire::SOURCE_FEATURE_RECTIFIED_RIGHT)        api_mask |= Source_Feature_Rectified_Right;
+    if (mask & wire::SOURCE_FEATURE_RECTIFIED_AUX)          api_mask |= Source_Feature_Rectified_Aux;
+    if (mask & wire::SOURCE_LIDAR_SCAN)                     api_mask |= Source_Lidar_Scan;
+    if (mask & wire::SOURCE_IMU)                            api_mask |= Source_Imu;
+    if (mask & wire::SOURCE_PPS)                            api_mask |= Source_Pps;
     if (mask & wire::SOURCE_GROUND_SURFACE_SPLINE_DATA)     api_mask |= Source_Ground_Surface_Spline_Data;
     if (mask & wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE)     api_mask |= Source_Ground_Surface_Class_Image;
     if (mask & wire::SOURCE_APRILTAG_DETECTIONS)            api_mask |= Source_AprilTag_Detections;
@@ -551,6 +562,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MONO:                           return wire::SysDeviceInfo::HARDWARE_REV_MONO;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -577,6 +589,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MONO:                           return system::DeviceInfo::HARDWARE_REV_MONO;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
@@ -646,10 +659,7 @@ void impl::applySensorTimeOffset(const utility::TimeStamp& offset)
 
     const double newOffset = utility::decayedAverage(currentOffset, samples, measuredOffset);
 
-    const int32_t newOffsetSeconds = static_cast<int32_t>(newOffset);
-    const int32_t newOffsetMicroSeconds = static_cast<int32_t>((newOffset - newOffsetSeconds) * 1e6);
-
-    m_timeOffset = utility::TimeStamp(newOffsetSeconds, newOffsetMicroSeconds);
+    m_timeOffset = utility::TimeStamp(static_cast<int64_t>(newOffset * 1e9));
 }
 
 //
@@ -771,7 +781,7 @@ void *impl::statusThread(void *userDataP)
 
                 //
                 // Cache the PTP status message
-                
+
                 if (status == Status_Ok) {
                     selfP->m_ptpStatusResponseMessage = ptpStatusResponse;
                     selfP->m_getPtpStatusReturnStatus = Status_Ok;
@@ -796,7 +806,11 @@ void *impl::statusThread(void *userDataP)
         usleep(static_cast<unsigned int> (1e6));
     }
 
+#if defined(__MINGW64__)
+    return 0;
+#else
     return NULL;
+#endif
 }
 
 } // namespace details
