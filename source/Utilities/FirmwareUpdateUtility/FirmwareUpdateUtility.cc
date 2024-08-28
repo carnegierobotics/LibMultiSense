@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
           return -1;
       }
 
-      if (UpdateStatus.Status & Messages::Status_Error)
+      if (UpdateStatus.State & Messages::Status_Error)
       {
           std::cerr << "Error: Received an error from Camera\n";
       }
