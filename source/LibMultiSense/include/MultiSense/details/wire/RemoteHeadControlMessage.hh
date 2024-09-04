@@ -66,7 +66,7 @@ public:
 
     RemoteHeadControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     RemoteHeadControl() :
-        syncGroups({})
+        syncGroups()
         {};
 
     //

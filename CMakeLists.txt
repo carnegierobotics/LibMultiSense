@@ -45,6 +45,11 @@ endif()
 
 option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
 option (BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
+option (BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
+
+if (BUILD_TESTS)
+    enable_testing()
+endif()
 
 #
 # We want to build "Release" by default
@@ -82,19 +87,6 @@ set (CMAKE_SKIP_BUILD_RPATH FALSE)
 set (CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-#
-# Write target outputs to bin and lib directories
-#
-if (NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-endif ()
-if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-endif ()
-if (NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-endif ()
 
 #
 # Dispatch to subordinate CMakeList.txt files.

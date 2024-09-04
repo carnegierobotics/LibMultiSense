@@ -1,7 +1,9 @@
 /**
- * @file LibMultiSense/SysDeviceModesMessage.hh
+ * @file LibMultiSense/StatusRequestMessage.hh
  *
- * Copyright 2013-2022
+ * This message contains a request for status information.
+ *
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,11 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-17, ekratzer@carnegierobotics.com, PR1044, created file.
+ *   2024-02-09, dbalish@carnegierobotics.com, IRAD2033, Create file from status message header
  **/
 
-#ifndef LibMultiSense_SysDeviceModesMessage
-#define LibMultiSense_SysDeviceModesMessage
+#ifndef LibMultiSense_PtpStatusRequestMessage
+#define LibMultiSense_PtpStatusRequestMessage
 
 #include "MultiSense/details/utility/Portability.hh"
 
@@ -44,44 +46,16 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class DeviceMode {
+class PtpStatusRequest {
 public:
-    uint32_t width;
-    uint32_t height;
-    uint32_t supportedDataSources;
-    uint32_t disparities;
-    uint32_t extendedDataSources;
-
-    DeviceMode(uint32_t w=0,
-               uint32_t h=0,
-               uint64_t s=0,
-               uint32_t d=0) :
-        width(w),
-        height(h),
-        disparities(d)
-        {
-            supportedDataSources = (uint32_t) (s & 0xFFFFFFFFull);
-            extendedDataSources =  (uint32_t) ((s & 0xFFFFFFFF00000000ull) >> 32);
-        };
-
-};
-
-class SysDeviceModes {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_MODES;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_GET_PTP_STATUS;
     static CRL_CONSTEXPR VersionType VERSION = 3;
-
-    //
-    // Available formats
-
-    std::vector<DeviceMode> modes;
 
     //
     // Constructors
 
-    SysDeviceModes(utility::BufferStreamReader& r,
-                   VersionType                  v) {serialize(r,v);};
-    SysDeviceModes() {};
+    PtpStatusRequest(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    PtpStatusRequest() {};
 
     //
     // Serialization routine
@@ -90,35 +64,9 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        uint32_t length = static_cast<uint32_t> (modes.size());
-        message & length;
-        modes.resize(length);
-
-        //
-        // Serialize by hand here to maintain backwards compatibility with
-        // pre-v2.3 firmware.
-
-        for(uint32_t i=0; i<length; i++) {
-
-            DeviceMode& m = modes[i];
-
-            message & m.width;
-            message & m.height;
-            message & m.supportedDataSources;
-            message & m.disparities; // was 'flags' in pre v2.3
-        }
-
-        for(uint32_t i=0; i<length; i++) {
-            DeviceMode& m = modes[i];
-            if (version >= 3)
-            {
-                message & m.extendedDataSources;
-            }
-            else
-            {
-                m.extendedDataSources = 0;
-            }
-        }
+        (void) message;
+        (void) version;
+        // nothing yet
     }
 };
 

@@ -101,7 +101,7 @@ public:
     // Constructors
 
     RemoteHeadConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    RemoteHeadConfig() : syncGroups({}) {};
+    RemoteHeadConfig() : syncGroups() {};
 
     //
     // Serialization routine

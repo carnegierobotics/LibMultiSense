@@ -1,10 +1,12 @@
 /**
- * @file LibMultiSense/CompressedImageMessage.hh
+ * @file LibMultiSense/FeatureDetectorMessage.hh
  *
- * Copyright 2021-2022
+ * This message contains first class feature data.
+ *
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * https://www.carnegierobotics.com
+ * http://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -31,13 +33,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2021-08-24, malvarado@carnegierobotics.com, PR1044, created file.
+ *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, created file.
  **/
 
-#ifndef LibMultiSense_CompressedImageMessage
-#define LibMultiSense_CompressedImageMessage
+#ifndef LibMultiSense_FeatureDetectorMessage
+#define LibMultiSense_FeatureDetectorMessage
 
-#include <typeinfo>
 #include <cmath>
 
 #include "MultiSense/details/utility/Portability.hh"
@@ -47,88 +48,123 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ CompressedImageHeader {
+class Feature {
 public:
 
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_COMPRESSED_IMAGE;
-static CRL_CONSTEXPR VersionType VERSION = 1;
+    uint16_t x;
+    uint16_t y;
+    uint8_t angle;
+    uint8_t resp;
+    uint8_t octave;
+    uint8_t descriptor;
+
+#ifndef SENSORPOD_FIRMWARE
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
+        message & x;
+        message & y;
+        message & angle;
+        message & resp;
+        message & octave;
+        message & descriptor;
+    }
+#endif // !SENSORPOD_FIRMWARE
+};
+
+class Descriptor {
+public:
+
+    uint32_t d[8];
+
+#ifndef SENSORPOD_FIRMWARE
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
+        for (size_t i = 0; i < 8; i++)
+        {
+            message & d[i];
+        }
+    }
+#endif // !SENSORPOD_FIRMWARE
+};
+
+class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
+public:
+    static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
+    static CRL_CONSTEXPR VersionType VERSION    = 2;
 
 #ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
+    IdType                 id;
+    VersionType            version;
 #endif // SENSORPOD_FIRMWARE
+    uint32_t               source;
+    int64_t                frameId;
+    uint16_t               numFeatures;
+    uint16_t               numDescriptors;
+    uint32_t               sourceExtended;
 
-    uint32_t source;
-    uint32_t bitsPerPixel;
-    uint32_t codec;
-    int64_t  frameId;
-    uint16_t width;
-    uint16_t height;
-    uint32_t exposure;
-    float gain;
-    uint32_t compressedDataBufferSize;
-    uint32_t sourceExtended;
 
-    CompressedImageHeader()
-        :
-#ifdef SENSORDPOD_FIRMWARE
+    FeatureDetectorHeader() :
+#ifdef SENSORPOD_FIRMWARE
         id(ID),
         version(VERSION),
 #endif // SENSORPOD_FIRMWARE
         source(0),
-        bitsPerPixel(0),
-        codec(0),
         frameId(0),
-        width(0),
-        height(0),
-        exposure(0),
-        gain(0.0),
-        compressedDataBufferSize(0),
+        numFeatures(0),
+        numDescriptors(0),
         sourceExtended(0)
-        {};
+     {};
+
 };
 
 #ifndef SENSORPOD_FIRMWARE
 
-class CompressedImage : public CompressedImageHeader {
+class FeatureDetector : public FeatureDetectorHeader {
 public:
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_LEFT  = 1;
+    static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_RIGHT = 2;
 
-    void *dataP;
+    void * dataP;
 
     //
     // Constructors
 
-    CompressedImage(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    CompressedImage() : dataP(NULL) {};
+    FeatureDetector(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetector() {};
 
-    //
-    // Serialization routine
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) version;
+
         message & source;
-        message & bitsPerPixel;
-        message & codec;
         message & frameId;
-        message & width;
-        message & height;
-        message & exposure;
-        message & gain;
-        message & compressedDataBufferSize;
+        message & numFeatures;
+        message & numDescriptors;
+
+        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
         if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
 
-            message.write(dataP, compressedDataBufferSize);
+            message.write(dataP, featureDataSize);
 
         } else {
 
             dataP = message.peek();
-            message.seek(message.tell() + compressedDataBufferSize);
+            message.seek(message.tell() + featureDataSize);
         }
 
-        if (version >= 1)
+        if (version >= 2)
         {
           message & sourceExtended;
         }
@@ -136,8 +172,8 @@ public:
         {
           sourceExtended = 0;
         }
-
     }
+
 };
 
 #endif // !SENSORPOD_FIRMWARE

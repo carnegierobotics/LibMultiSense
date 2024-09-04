@@ -51,7 +51,7 @@ namespace wire {
 class AuxCamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_AUX_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Parameters representing the current camera configuration
@@ -85,6 +85,8 @@ public:
     bool  sharpeningEnable;
     float sharpeningPercentage;
     uint8_t sharpeningLimit;
+
+    float gainMax;
 
 
     //
@@ -131,6 +133,17 @@ public:
         message & sharpeningEnable;
         message & sharpeningPercentage;
         message & sharpeningLimit;
+
+        //
+        // version 2 additions
+        if (version >= 2)
+        {
+            message & gainMax;
+        }
+        else
+        {
+            gainMax = ImagerGainMax;
+        }
 
     }
 };

@@ -1,10 +1,12 @@
 /**
- * @file LibMultiSense/SysDeviceModesMessage.hh
+ * @file LibMultiSense/FeatureDetectorConfigMessage.hh
  *
- * Copyright 2013-2022
+ * This message contains the current feature detector configuration.
+ *
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegierobotics.com
+ * http://www.carnegiearobotics.com
  *
  * All rights reserved.
  *
@@ -31,57 +33,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-17, ekratzer@carnegierobotics.com, PR1044, created file.
+ *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_SysDeviceModesMessage
-#define LibMultiSense_SysDeviceModesMessage
+#ifndef LibMultisense_FeatureDetectorConfigMessage
+#define LibMultisense_FeatureDetectorConfigMessage
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class DeviceMode {
+class FeatureDetectorConfig {
 public:
-    uint32_t width;
-    uint32_t height;
-    uint32_t supportedDataSources;
-    uint32_t disparities;
-    uint32_t extendedDataSources;
-
-    DeviceMode(uint32_t w=0,
-               uint32_t h=0,
-               uint64_t s=0,
-               uint32_t d=0) :
-        width(w),
-        height(h),
-        disparities(d)
-        {
-            supportedDataSources = (uint32_t) (s & 0xFFFFFFFFull);
-            extendedDataSources =  (uint32_t) ((s & 0xFFFFFFFF00000000ull) >> 32);
-        };
-
-};
-
-class SysDeviceModes {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SYS_DEVICE_MODES;
-    static CRL_CONSTEXPR VersionType VERSION = 3;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // Available formats
+    // Parameters representing the current camera configuration
 
-    std::vector<DeviceMode> modes;
+    //
+    // The maximum number of features detected per image
+    uint32_t numberOfFeatures;
+
+    //
+    // Enable/Disable feature grouping
+    bool grouping;
+
+    //
+    // Enable motion detection
+    // Currently this functions as enable/disable but could be used to specify
+    // which octave motion detection is performed on.
+    // Current Octave: 3
+    uint32_t motion;
 
     //
     // Constructors
 
-    SysDeviceModes(utility::BufferStreamReader& r,
-                   VersionType                  v) {serialize(r,v);};
-    SysDeviceModes() {};
+    FeatureDetectorConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorConfig() {};
 
     //
     // Serialization routine
@@ -90,35 +83,12 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        uint32_t length = static_cast<uint32_t> (modes.size());
-        message & length;
-        modes.resize(length);
 
-        //
-        // Serialize by hand here to maintain backwards compatibility with
-        // pre-v2.3 firmware.
+        (void) version;
 
-        for(uint32_t i=0; i<length; i++) {
-
-            DeviceMode& m = modes[i];
-
-            message & m.width;
-            message & m.height;
-            message & m.supportedDataSources;
-            message & m.disparities; // was 'flags' in pre v2.3
-        }
-
-        for(uint32_t i=0; i<length; i++) {
-            DeviceMode& m = modes[i];
-            if (version >= 3)
-            {
-                message & m.extendedDataSources;
-            }
-            else
-            {
-                m.extendedDataSources = 0;
-            }
-        }
+        message & numberOfFeatures;
+        message & grouping;
+        message & motion;
     }
 };
 

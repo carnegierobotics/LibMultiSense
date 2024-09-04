@@ -1,7 +1,7 @@
-/**
- * @file SaveImageUtility/SaveImageUtility.cc
+ /**
+ * @file FeatureDetectorUtility/FeatureDetectorUtility.cc
  *
- * Copyright 2013-2022
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,8 +31,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-06-14, ekratzer@carnegierobotics.com, PR1044, Created file.
- *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
+ *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
 #ifdef WIN32
@@ -57,9 +56,11 @@
 #include <signal.h>
 #include <string.h>
 #include <string>
+#include <map>
+#include <chrono>
+#include <ctime>
 
 #include <Utilities/portability/getopt/getopt.h>
-#include <Utilities/shared/Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
@@ -70,12 +71,19 @@ namespace {  // anonymous
 
 volatile bool doneG = false;
 
+struct featureDetectionTime
+{
+  std::chrono::time_point<std::chrono::system_clock> imageTime;
+  std::chrono::time_point<std::chrono::system_clock> featureTime;
+};
+
 struct UserData
 {
     Channel *channelP;
     system::VersionInfo version;
     system::DeviceInfo deviceInfo;
     image::Calibration calibration;
+    std::map<int64_t, featureDetectionTime> elapsedTime;
 };
 
 void usage(const char *programNameP)
@@ -227,6 +235,57 @@ std::string assembledInfoString(const image::Header&       header,
     return ss.str();
 }
 
+bool savePgm(const std::string& fileName,
+             uint32_t           width,
+             uint32_t           height,
+             uint32_t           bitsPerPixel,
+             const std::string& comment,
+             const void         *dataP)
+{
+    std::ofstream outputStream(fileName.c_str(), std::ios::binary | std::ios::out);
+
+    if (false == outputStream.good()) {
+		std::cerr << "Failed to open \"" << fileName << "\"" << std::endl;
+        return false;
+    }
+
+    const uint32_t imageSize = height * width;
+
+    switch(bitsPerPixel) {
+    case 8:
+    {
+
+        outputStream << "P5\n"
+                     << "#" << comment << "\n"
+                     << width << " " << height << "\n"
+                     << 0xFF << "\n";
+
+        outputStream.write(reinterpret_cast<const char*>(dataP), imageSize);
+
+        break;
+    }
+    case 16:
+    {
+        outputStream << "P5\n"
+                     << "#" << comment << "\n"
+                     << width << " " << height << "\n"
+                     << 0xFFFF << "\n";
+
+        const uint16_t *imageP = reinterpret_cast<const uint16_t*>(dataP);
+
+        for (uint32_t i=0; i<imageSize; ++i) {
+            uint16_t o = htons(imageP[i]);
+            outputStream.write(reinterpret_cast<const char*>(&o), sizeof(uint16_t));
+        }
+
+        break;
+    }
+    }
+
+    outputStream.close();
+    return true;
+}
+
 bool savePgm(const std::string&         fileName,
              const image::Header&       header,
              const system::DeviceInfo&  info,
@@ -235,26 +294,12 @@ bool savePgm(const std::string&         fileName,
 {
     const std::string comment = assembledInfoString(header, info, version, calibration);
 
-    return io::savePgm(fileName,
-                       header.width,
-                       header.height,
-                       header.bitsPerPixel,
-                       comment,
-                       header.imageDataP);
-}
-
-void ppsCallback(const pps::Header& header,
-                 void              *userDataP)
-{
-    (void) userDataP;
-	std::cerr << "PPS: " << header.sensorTime << " ns" << std::endl;
-}
-
-void laserCallback(const lidar::Header& header,
-                   void                *userDataP)
-{
-    (void) userDataP;
-    std::cerr << "lidar: " << header.pointCount << std::endl;
+    return savePgm(fileName,
+                   header.width,
+                   header.height,
+                   header.bitsPerPixel,
+                   comment,
+                   header.imageDataP);
 }
 
 void imageCallback(const image::Header& header,
@@ -273,12 +318,70 @@ void imageCallback(const image::Header& header,
                 userData->calibration);
     }
 
+    if (header.source == Source_Luma_Left) {
+
+        auto it = userData->elapsedTime.find(header.frameId);
+        if (it == userData->elapsedTime.end()) {
+          featureDetectionTime t;
+          t.imageTime = std::chrono::system_clock::now();
+          userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(header.frameId, t));
+        }
+        else
+        {
+          it->second.imageTime = std::chrono::system_clock::now();
+          std::cout <<" Image received after feature: " << header.frameId
+                    <<" Delta: "
+                    << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+                    << "ms\n";
+          userData->elapsedTime.erase(it);
+        }
+
+    }
     lastFrameId = header.frameId;
 
     image::Histogram histogram;
 
-	if (Status_Ok != userData->channelP->getImageHistogram(header.frameId, histogram))
-		std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
+    if (Status_Ok != userData->channelP->getImageHistogram(header.frameId, histogram))
+        std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
+}
+
+void featureDetectorCallback(const feature_detector::Header& header,
+                   void                *userDataP)
+{
+
+    UserData *userData = reinterpret_cast<UserData*>(userDataP);
+
+    if ((header.source == Source_Feature_Left)
+        || (header.source == Source_Feature_Rectified_Left)) {
+
+        auto it = userData->elapsedTime.find(header.frameId);
+        if (it == userData->elapsedTime.end()) {
+            std::cout << "Unexpected result, image not yet received for frame: " << header.frameId << "\n";
+            featureDetectionTime t;
+            t.featureTime = std::chrono::system_clock::now();
+            userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(header.frameId, t));
+        }
+        else
+        {
+            it->second.featureTime = std::chrono::system_clock::now();
+            std::cout << "Feature received after image " << header.frameId
+            << " Delta: "
+            << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+            << "ms\n";
+            userData->elapsedTime.erase(it);
+        }
+    }
+    std::cout << "Source: " << header.source << "\n";
+    std::cout << "Frame:  " << header.frameId << "\n";
+    std::cout << "Motion X: " << header.averageXMotion << "\n";
+    std::cout << "Motion Y: " << header.averageYMotion << "\n";
+    std::cout << "Number of features:     " << header.numFeatures    << "\n";
+    std::cout << "Number of descriptors:  " << header.numDescriptors << "\n";
+    std::cout << "Octave Width:    " << header.octaveWidth << "\n";
+    std::cout << "Octave Height:   " << header.octaveHeight << "\n";
+    std::cout << "timeSeconds:     " << header.timeSeconds << "\n";
+    std::cout << "timeNanoSeconds: " << header.timeNanoSeconds << "\n";
+    std::cout << "ptpNanoSeconds:  " << header.ptpNanoSeconds << "\n";
 }
 
 } // anonymous
@@ -329,6 +432,8 @@ int main(int    argc,
     image::Calibration calibration;
     system::DeviceInfo info;
     UserData userData;
+    bool quarter_res = false;
+
 
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
@@ -338,14 +443,15 @@ int main(int    argc,
         goto clean_out;
     }
 
-	std::cout << "API build date      :  " << v.apiBuildDate << "\n";
-	std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
-	std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
-	std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
-	std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
-	std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
-	std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
-	std::cout << std::dec;
+    std::cout << "API build date      :  " << v.apiBuildDate << "\n";
+    std::cout << "API version         :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.apiVersion << "\n";
+    std::cout << "Firmware build date :  " << v.sensorFirmwareBuildDate << "\n";
+    std::cout << "Firmware version    :  0x" << std::hex << std::setw(4) << std::setfill('0') << v.sensorFirmwareVersion << "\n";
+    std::cout << "Hardware version    :  0x" << std::hex << v.sensorHardwareVersion << "\n";
+    std::cout << "Hardware magic      :  0x" << std::hex << v.sensorHardwareMagic << "\n";
+    std::cout << "FPGA DNA            :  0x" << std::hex << v.sensorFpgaDna << "\n";
+    std::cout << std::dec;
+
     status = channelP->getDeviceModes(deviceModes);
     if (Status_Ok != status) {
         std::cerr << "Failed to get device modes: " << Channel::statusString(status) << std::endl;
@@ -362,7 +468,7 @@ int main(int    argc,
 
         status = channelP->getImageConfig(cfg);
         if (Status_Ok != status) {
-			std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+            std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
             goto clean_out;
         } else {
 
@@ -372,13 +478,47 @@ int main(int    argc,
 
             cfg.setResolution(operatingMode.width, operatingMode.height);
             cfg.setDisparities(operatingMode.disparities);
-            cfg.setFps(30.0);
+            if (operatingMode.width == 960) {
+                quarter_res = true;
+                cfg.setFps(15.0);
+            }
+            else
+            {
+                cfg.setFps(5.0);
+            }
 
             status = channelP->setImageConfig(cfg);
             if (Status_Ok != status) {
-				std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
+                std::cerr << "Failed to configure sensor: " << Channel::statusString(status) << std::endl;
                 goto clean_out;
             }
+        }
+    }
+
+    {
+        system::FeatureDetectorConfig fcfg;
+
+        status = channelP->getFeatureDetectorConfig(fcfg);
+        if (Status_Ok != status) {
+          std::cerr << "Failed to get feature detector config: " << Channel::statusString(status) << std::endl;
+                goto clean_out;
+        }
+
+        std::cout << "Current feature detector settings: "
+          << fcfg.numberOfFeatures() << " : "
+          << fcfg.grouping() << " : "
+          << fcfg.motion() << "\n";
+
+        if (quarter_res)
+            fcfg.setNumberOfFeatures(1500);
+        else
+            fcfg.setNumberOfFeatures(5000);
+        fcfg.setGrouping(true);
+        fcfg.setMotion(1);
+
+        status = channelP->setFeatureDetectorConfig(fcfg);
+        if (Status_Ok != status) {
+          std::cerr << "Failed to set feature detector config\n";
         }
     }
 
@@ -427,14 +567,14 @@ int main(int    argc,
     // Add callbacks
 
     channelP->addIsolatedCallback(imageCallback, Source_All, &userData);
-    channelP->addIsolatedCallback(laserCallback, channelP);
-    channelP->addIsolatedCallback(ppsCallback, channelP);
+    channelP->addIsolatedCallback(featureDetectorCallback, &userData);
 
     //
     // Start streaming
 
-    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Rectified_Left) |
-                                    (operatingMode.supportedDataSources & Source_Lidar_Scan));
+    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
+                                    (operatingMode.supportedDataSources & Source_Luma_Right) |
+                                    Source_Feature_Left|Source_Feature_Right);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
@@ -446,7 +586,6 @@ int main(int    argc,
         status = channelP->getDeviceStatus(statusMessage);
 
         if (Status_Ok == status) {
-
             std::cout << "Uptime: " << statusMessage.uptime << ", " <<
             "SystemOk: " << statusMessage.systemOk << ", " <<
             "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
@@ -457,9 +596,7 @@ int main(int    argc,
             "FPGA Power: " << statusMessage.fpgaPower << ", " <<
             "Logic Power: " << statusMessage.logicPower << ", " <<
             "Imager Power: " << statusMessage.imagerPower << std::endl;
-
         }
-
 
         usleep(1000000);
     }
