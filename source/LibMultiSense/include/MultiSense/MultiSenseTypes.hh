@@ -154,7 +154,12 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data            = (1ull<<36);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_0          = (1ull<<18); // Same as Source Feature Left
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_1          = (1ull<<19); // Same as Source Feature Right
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_2          = (1ull<<32); // Same as Source Feature Aux
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_3          = (1ull<<33); // Same as Source Feature Rectified Left
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_4          = (1ull<<34); // Same as Source Feature Rectified Right
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_5          = (1ull<<35); // Same as Source Feature Rectified Aux
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -3083,8 +3088,6 @@ public:
 
     /** DataSource corresponding to secondaryAppDataP*/
     DataSource  source;
-    /** Bits per pixel in the secondaryAppData */
-    uint32_t    bitsPerPixel;
     /** length of the secondaryAppData */
     uint32_t    length;
     /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */

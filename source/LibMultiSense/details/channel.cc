@@ -461,35 +461,35 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
 {
     wire::SourceType wire_mask = 0;
 
-    if (mask & Source_Raw_Left)               wire_mask |= wire::SOURCE_RAW_LEFT;
-    if (mask & Source_Raw_Right)              wire_mask |= wire::SOURCE_RAW_RIGHT;
-    if (mask & Source_Raw_Aux)                wire_mask |= wire::SOURCE_RAW_AUX;
-    if (mask & Source_Luma_Left)              wire_mask |= wire::SOURCE_LUMA_LEFT;
-    if (mask & Source_Luma_Right)             wire_mask |= wire::SOURCE_LUMA_RIGHT;
-    if (mask & Source_Luma_Aux)               wire_mask |= wire::SOURCE_LUMA_AUX;
-    if (mask & Source_Luma_Rectified_Left)    wire_mask |= wire::SOURCE_LUMA_RECT_LEFT;
-    if (mask & Source_Luma_Rectified_Right)   wire_mask |= wire::SOURCE_LUMA_RECT_RIGHT;
-    if (mask & Source_Luma_Rectified_Aux)     wire_mask |= wire::SOURCE_LUMA_RECT_AUX;
-    if (mask & Source_Chroma_Left)            wire_mask |= wire::SOURCE_CHROMA_LEFT;
-    if (mask & Source_Chroma_Right)           wire_mask |= wire::SOURCE_CHROMA_RIGHT;
-    if (mask & Source_Chroma_Rectified_Aux)   wire_mask |= wire::SOURCE_CHROMA_RECT_AUX;
-    if (mask & Source_Chroma_Aux)             wire_mask |= wire::SOURCE_CHROMA_AUX;
-    if (mask & Source_Disparity)              wire_mask |= wire::SOURCE_DISPARITY;
-    if (mask & Source_Disparity_Right)        wire_mask |= wire::SOURCE_DISPARITY_RIGHT;
-    if (mask & Source_Disparity_Aux)          wire_mask |= wire::SOURCE_DISPARITY_AUX;
-    if (mask & Source_Disparity_Cost)         wire_mask |= wire::SOURCE_DISPARITY_COST;
-    if (mask & Source_Jpeg_Left)              wire_mask |= wire::SOURCE_JPEG_LEFT;
-    if (mask & Source_Rgb_Left)               wire_mask |= wire::SOURCE_RGB_LEFT;
-    if (mask & Source_Feature_Left)           wire_mask |= wire::SOURCE_FEATURE_LEFT;
-    if (mask & Source_Feature_Right)          wire_mask |= wire::SOURCE_FEATURE_RIGHT;
-    if (mask & Source_Feature_Aux)            wire_mask |= wire::SOURCE_FEATURE_AUX;
-    if (mask & Source_Feature_Rectified_Left) wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_LEFT;
-    if (mask & Source_Feature_Rectified_Right)wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_RIGHT;
-    if (mask & Source_Feature_Rectified_Aux)  wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_AUX;
-    if (mask & Source_Lidar_Scan)             wire_mask |= wire::SOURCE_LIDAR_SCAN;
-    if (mask & Source_Imu)                    wire_mask |= wire::SOURCE_IMU;
-    if (mask & Source_Pps)                    wire_mask |= wire::SOURCE_PPS;
-    if (mask & Source_Compressed_Left)        wire_mask |= wire::SOURCE_COMPRESSED_LEFT;
+    if (mask & Source_Raw_Left)                         wire_mask |= wire::SOURCE_RAW_LEFT;
+    if (mask & Source_Raw_Right)                        wire_mask |= wire::SOURCE_RAW_RIGHT;
+    if (mask & Source_Raw_Aux)                          wire_mask |= wire::SOURCE_RAW_AUX;
+    if (mask & Source_Luma_Left)                        wire_mask |= wire::SOURCE_LUMA_LEFT;
+    if (mask & Source_Luma_Right)                       wire_mask |= wire::SOURCE_LUMA_RIGHT;
+    if (mask & Source_Luma_Aux)                         wire_mask |= wire::SOURCE_LUMA_AUX;
+    if (mask & Source_Luma_Rectified_Left)              wire_mask |= wire::SOURCE_LUMA_RECT_LEFT;
+    if (mask & Source_Luma_Rectified_Right)             wire_mask |= wire::SOURCE_LUMA_RECT_RIGHT;
+    if (mask & Source_Luma_Rectified_Aux)               wire_mask |= wire::SOURCE_LUMA_RECT_AUX;
+    if (mask & Source_Chroma_Left)                      wire_mask |= wire::SOURCE_CHROMA_LEFT;
+    if (mask & Source_Chroma_Right)                     wire_mask |= wire::SOURCE_CHROMA_RIGHT;
+    if (mask & Source_Chroma_Rectified_Aux)             wire_mask |= wire::SOURCE_CHROMA_RECT_AUX;
+    if (mask & Source_Chroma_Aux)                       wire_mask |= wire::SOURCE_CHROMA_AUX;
+    if (mask & Source_Disparity)                        wire_mask |= wire::SOURCE_DISPARITY;
+    if (mask & Source_Disparity_Right)                  wire_mask |= wire::SOURCE_DISPARITY_RIGHT;
+    if (mask & Source_Disparity_Aux)                    wire_mask |= wire::SOURCE_DISPARITY_AUX;
+    if (mask & Source_Disparity_Cost)                   wire_mask |= wire::SOURCE_DISPARITY_COST;
+    if (mask & Source_Jpeg_Left)                        wire_mask |= wire::SOURCE_JPEG_LEFT;
+    if (mask & Source_Rgb_Left)                         wire_mask |= wire::SOURCE_RGB_LEFT;
+    if (mask & Source_Feature_Left)                     wire_mask |= wire::SOURCE_FEATURE_LEFT;
+    if (mask & Source_Feature_Right)                    wire_mask |= wire::SOURCE_FEATURE_RIGHT;
+    if (mask & Source_Feature_Aux)                      wire_mask |= wire::SOURCE_FEATURE_AUX;
+    if (mask & Source_Feature_Rectified_Left)           wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_LEFT;
+    if (mask & Source_Feature_Rectified_Right)          wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_RIGHT;
+    if (mask & Source_Feature_Rectified_Aux)            wire_mask |= wire::SOURCE_FEATURE_RECTIFIED_AUX;
+    if (mask & Source_Lidar_Scan)                       wire_mask |= wire::SOURCE_LIDAR_SCAN;
+    if (mask & Source_Imu)                              wire_mask |= wire::SOURCE_IMU;
+    if (mask & Source_Pps)                              wire_mask |= wire::SOURCE_PPS;
+    if (mask & Source_Compressed_Left)                  wire_mask |= wire::SOURCE_COMPRESSED_LEFT;
     if (mask & Source_Compressed_Rectified_Left)        wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_LEFT;
     if (mask & Source_Compressed_Right)                 wire_mask |= wire::SOURCE_COMPRESSED_RIGHT;
     if (mask & Source_Compressed_Rectified_Right)       wire_mask |= wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT;
@@ -498,7 +498,12 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Ground_Surface_Spline_Data)       wire_mask |= wire::SOURCE_GROUND_SURFACE_SPLINE_DATA;
     if (mask & Source_Ground_Surface_Class_Image)       wire_mask |= wire::SOURCE_GROUND_SURFACE_CLASS_IMAGE;
     if (mask & Source_AprilTag_Detections)              wire_mask |= wire::SOURCE_APRILTAG_DETECTIONS;
-    if (mask & Source_Secondary_App_Data)               wire_mask |= wire::SOURCE_SECONDARY_APP_DATA;
+    if (mask & Source_Secondary_App_Data_0)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_0;
+    if (mask & Source_Secondary_App_Data_1)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_1;
+    if (mask & Source_Secondary_App_Data_2)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_2;
+    if (mask & Source_Secondary_App_Data_3)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_3;
+    if (mask & Source_Secondary_App_Data_4)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_4;
+    if (mask & Source_Secondary_App_Data_5)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_5;
 
     return wire_mask;
 }
@@ -544,7 +549,12 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_RIGHT)     api_mask |= Source_Compressed_Rectified_Right;
     if (mask & wire::SOURCE_COMPRESSED_AUX)                 api_mask |= Source_Compressed_Aux;
     if (mask & wire::SOURCE_COMPRESSED_RECTIFIED_AUX)       api_mask |= Source_Compressed_Rectified_Aux;
-    if (mask & wire::SOURCE_SECONDARY_APP_DATA)             api_mask |= Source_Secondary_App_Data;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA_0)           api_mask |= Source_Secondary_App_Data_0;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA_1)           api_mask |= Source_Secondary_App_Data_1;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA_2)           api_mask |= Source_Secondary_App_Data_2;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA_3)           api_mask |= Source_Secondary_App_Data_3;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA_4)           api_mask |= Source_Secondary_App_Data_4;
+    if (mask & wire::SOURCE_SECONDARY_APP_DATA_5)           api_mask |= Source_Secondary_App_Data_5;
 
     return api_mask;
 }

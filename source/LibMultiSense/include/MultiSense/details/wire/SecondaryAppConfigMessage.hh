@@ -54,14 +54,16 @@ public:
 
     //
     // Parameters representing the current camera configuration
-    float    framesPerSecond;
+    uint32_t dataLength;
+    uint8_t  data[1024];
 
     //
     // Constructors
 
     SecondaryAppConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     SecondaryAppConfig():
-        framesPerSecond(0.0f)
+        dataLength(0),
+        data()
         {};
 
     //
@@ -72,8 +74,11 @@ public:
                        const VersionType version)
     {
         (void) version;
-        message & framesPerSecond;
-
+        message & dataLength;
+        for (size_t i = 0; i < dataLength; i++)
+        {
+          message & data[i];
+        }
     }
 };
 

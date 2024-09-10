@@ -1,7 +1,9 @@
 /**
- * @file LibMultiSense/SecondarryAppDataMessage.hh
+ * @file LibMultiSense/SecondaryAppActivateMessage.hh
  *
- * Copyright 2013-2022
+ * This message contains a request for camera configuration.
+ *
+ * Copyright 2013-2023
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,14 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, created file.
+ *   2024-09-19, patrick.smith@carnegierobotics.com, IRAD, Copied from CamGetConfigMessage.hh.
  **/
 
-#ifndef LibMultiSense_SecondaryAppData
-#define LibMultiSense_SecondaryAppData
-
-#include <typeinfo>
-#include <cmath>
+#ifndef LibMultiSense_SecondaryAppActivate
+#define LibMultiSense_SecondaryAppActivate
 
 #include "MultiSense/details/utility/Portability.hh"
 
@@ -47,80 +46,39 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ SecondaryAppHeader {
+class SecondaryAppActivate {
 public:
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_ACTIVATE;
 
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP;
-static CRL_CONSTEXPR VersionType VERSION = 1;
 
-#ifdef SENSORPOD_FIRMWARE
-    IdType      id;
-    VersionType version;
-#endif // SENSORPOD_FIRMWARE
+    //
+    // Parameters representing the current camera configuration
+    int  activate;
 
-    uint32_t source;
-    uint32_t length;
-    int64_t  frameId;
-    uint32_t timeSeconds;
-    uint32_t timeMicroSeconds;
-    uint32_t sourceExtended;
-
-    SecondaryAppHeader()
-        :
-#ifdef SENSORDPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
-        source(0),
-        length(0),
-        frameId(0),
-        timeSeconds(0),
-        timeMicroSeconds(0)
-         {};
-};
-
-#ifndef SENSORPOD_FIRMWARE
-
-class SecondaryAppData : public SecondaryAppHeader {
-public:
-
-    void *dataP;
+    std::string name;
 
     //
     // Constructors
 
-    SecondaryAppData(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppData() : dataP(NULL) {};
+    SecondaryAppActivate(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppActivate() {};
 
     //
-    // Serialization routine
+    // Serialization routine.
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
         (void) version;
-        message & source;
-        message & length;
-        message & frameId;
-        message & timeSeconds;
-        message & timeMicroSeconds;
-        message & sourceExtended;
+        // nothing yet
 
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+        message & activate;
 
-            message.write(dataP, length);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + length);
-        }
-
+        message & name;
     }
 };
-
-#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

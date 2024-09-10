@@ -622,12 +622,11 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         secondary_app::Header header;
 
-        header.frameId = SecondaryApp.frameId;
-        header.source = SecondaryApp.source;
-        header.bitsPerPixel = SecondaryApp.bitsPerPixel;
-        header.timeSeconds = SecondaryApp.timeSeconds;
-        header.timeMicroSeconds = SecondaryApp.timeMicroSeconds;
-        header.length = SecondaryApp.length;
+        header.frameId           = SecondaryApp.frameId;
+        header.source            = SecondaryApp.source | ((uint64_t)SecondaryApp.sourceExtended << 32);
+        header.timeSeconds       = SecondaryApp.timeSeconds;
+        header.timeMicroSeconds  = SecondaryApp.timeMicroSeconds;
+        header.length            = SecondaryApp.length;
         header.secondaryAppDataP = SecondaryApp.dataP;
         dispatchSecondaryApplication(buffer, header);
         break;

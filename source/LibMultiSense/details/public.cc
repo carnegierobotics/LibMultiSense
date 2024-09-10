@@ -1599,7 +1599,9 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
     if (Status_Ok != status)
         return status;
 
-    config.framesPerSecond = d.framesPerSecond;
+    (void) config;
+    // config.framesPerSecond = d.framesPerSecond;
+    // TODO: psmith
 
     return Status_Ok;
 }
@@ -1614,7 +1616,9 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
 Status impl::setSecondaryAppConfig(const system::SecondaryAppConfig& c)
 {
     wire::SecondaryAppControl cmd;
-    cmd.framesPerSecond = c.framesPerSecond;
+    (void) c;
+    // cmd.framesPerSecond = c.framesPerSecond;
+    // TODO: psmith
     return waitAck(cmd);
 }
 

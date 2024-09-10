@@ -108,7 +108,7 @@ int main(int    argc,
     std::string currentAddress = "10.66.171.21";
     uint32_t    mtu            = 7200;
     DataSource streams = Source_Luma_Left;
-    streams |= Source_Secondary_App_Data;
+    streams |= Source_Secondary_App_Data_0;
     image::Config cfg;
 
 #if WIN32
