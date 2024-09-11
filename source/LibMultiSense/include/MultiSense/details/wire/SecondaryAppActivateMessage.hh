@@ -63,6 +63,10 @@ public:
 
     SecondaryAppActivate(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     SecondaryAppActivate() {};
+    SecondaryAppActivate(const int i, const std::string & s):
+    activate(i),
+    name(s)
+    {}
 
     //
     // Serialization routine.

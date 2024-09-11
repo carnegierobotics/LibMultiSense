@@ -231,6 +231,9 @@ public:
 
     virtual Status getSecondaryAppConfig (system::SecondaryAppConfig & c);
     virtual Status setSecondaryAppConfig (const system::SecondaryAppConfig & c);
+    virtual Status getRegisteredApps     (system::SecondaryAppRegisteredApps & c);
+    virtual Status secondaryAppActivate  (const std::string & s);
+    virtual Status secondaryAppDeactivate(const std::string & s);
 
     virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig & c);
     virtual Status setFeatureDetectorConfig (const system::FeatureDetectorConfig & c);

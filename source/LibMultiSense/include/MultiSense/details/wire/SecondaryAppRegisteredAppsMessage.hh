@@ -49,7 +49,7 @@ namespace wire {
 class SecondaryAppRegisteredApps {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_REGISTERED_APPS;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP_REGISTERED_APPS;
 
     //
     // Constructors
@@ -68,8 +68,10 @@ public:
                        const VersionType version)
     {
         (void) version;
-
-        message & apps;
+        for (auto app: apps)
+        {
+            message & app;
+        }
     }
 };
 

@@ -4264,11 +4264,55 @@ struct ChannelStatistics
 
 class MULTISENSE_API SecondaryAppConfig {
 public:
-    float framesPerSecond;
+    uint32_t dataLength;
+    uint8_t  data[1024];
 
     SecondaryAppConfig():
-        framesPerSecond(5.0f)
-        {};
+        dataLength(0),
+        data()
+        {}
+
+    SecondaryAppConfig(const uint32_t _length, const uint8_t * _data):
+        dataLength(_length)
+        {
+            if (_length >= 1024)
+            {
+                std::cerr << "Error: Secondary Application Config Length > 1023b" << std::endl;
+                std::cerr << "Truncating data payload to fit in 1024b\n" << std::endl;
+                dataLength = 1023;
+            }
+
+            memcpy(data, _data, dataLength);
+        }
+};
+
+class MULTISENSE_API SecondaryAppActivate {
+public:
+    int activate;
+    std::string name;
+
+    SecondaryAppActivate():
+        activate(0),
+        name()
+        { }
+
+        SecondaryAppActivate(const int _activate, const std::string _name):
+        activate(_activate),
+        name(_name)
+        { }
+};
+
+class MULTISENSE_API SecondaryAppRegisteredApps {
+public:
+    std::vector<std::string> apps;
+
+    SecondaryAppRegisteredApps():
+        apps()
+        { }
+
+    SecondaryAppRegisteredApps(const std::vector<std::string> _apps):
+        apps(_apps)
+        { }
 };
 
 } // namespace system

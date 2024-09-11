@@ -119,6 +119,9 @@
 #include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppGetConfigMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppActivateMessage.hh"
 
 namespace crl {
 namespace multisense {
@@ -1599,9 +1602,19 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
     if (Status_Ok != status)
         return status;
 
-    (void) config;
-    // config.framesPerSecond = d.framesPerSecond;
-    // TODO: psmith
+
+    if (d.dataLength >= 1024)
+    {
+        std::cerr << "Error: data length exceeds 1024b, truncating\n";
+        config.dataLength = 1023;
+        status = Status_Exception;
+    }
+    else
+    {
+        config.dataLength = d.dataLength;
+    }
+
+    memcpy(config.data, d.data, config.dataLength);
 
     return Status_Ok;
 }
@@ -1616,9 +1629,57 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
 Status impl::setSecondaryAppConfig(const system::SecondaryAppConfig& c)
 {
     wire::SecondaryAppControl cmd;
-    (void) c;
-    // cmd.framesPerSecond = c.framesPerSecond;
-    // TODO: psmith
+
+    if (c.dataLength >= 1024)
+    {
+        std::cerr << "Error: data length too large" << std::endl;
+        return Status_Error;
+    }
+    else
+    {
+        cmd.dataLength = c.dataLength;
+    }
+
+    memcpy(cmd.data, c.data, c.dataLength);
+
+    return waitAck(cmd);
+}
+
+Status impl::getRegisteredApps(system::SecondaryAppRegisteredApps& registeredApps)
+{
+    Status          status;
+    wire::SecondaryAppRegisteredApps d;
+
+    status = waitData(wire::SecondaryAppGetRegisteredApps(), d);
+    if (Status_Ok != status)
+        return status;
+
+    for (auto app: d.apps)
+    {
+        registeredApps.apps.push_back(app);
+    }
+
+    return Status_Ok;
+}
+
+
+//
+// Set camera configuration
+//
+// Currently several sensor messages are combined and presented
+// to the user as one.
+
+Status impl::secondaryAppActivate(const std::string &_name)
+{
+    wire::SecondaryAppActivate cmd(1, _name);
+
+    return waitAck(cmd);
+}
+
+Status impl::secondaryAppDeactivate(const std::string &_name)
+{
+    wire::SecondaryAppActivate cmd(0, _name);
+
     return waitAck(cmd);
 }
 
