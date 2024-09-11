@@ -74,10 +74,6 @@ private:
 
     struct timeval time;
 
-#if defined (WIN32)
-    static ULARGE_INTEGER offsetSecondsSince1970;
-#endif
-
 public:
 
     //

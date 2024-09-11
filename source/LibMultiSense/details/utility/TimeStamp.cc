@@ -52,6 +52,10 @@ namespace multisense {
 namespace details {
 namespace utility {
 
+
+ #if defined (WIN32)
+    static ULARGE_INTEGER offsetSecondsSince1970;
+#endif
 /*
  * Constructor. Empty. We rely on the getter methods to do
  * things that are more useful.
