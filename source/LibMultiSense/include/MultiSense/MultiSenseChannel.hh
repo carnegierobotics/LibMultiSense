@@ -1119,6 +1119,54 @@ public:
     virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig& params) = 0;
 
     /**
+     * Get the secondary application config parameters associated with the MultiSense device
+     *
+     * @param params The secondary application parameters to send to the secondary application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully  queried
+     */
+    virtual Status getSecondaryAppConfig (system::SecondaryAppConfig & c) = 0;
+
+    /**
+     * Set the secondary application config associated with the MultiSense device
+     *
+     * @param params The secondary application parameters to send to the on camera secondary
+     *               application
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status setSecondaryAppConfig (const system::SecondaryAppConfig & c) = 0;
+
+    /**
+     * Query the secondary application(s) registered with the MultiSense device
+     *
+     * @param params The secondary application(s) supported by this firmware version
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully queried
+     */
+    virtual Status getRegisteredApps     (system::SecondaryAppRegisteredApps & c) = 0;
+
+    /**
+     * Activate the secondary application for use with the MultiSense device
+     *
+     * @param name the name of the secondary application to activate
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status secondaryAppActivate  (const std::string & name) = 0;
+
+
+    /**
+     * Deactivate the secondary application for use with the MultiSense device
+     *
+     * @param name the name of the secondary application to deactivate
+     *
+     * @return A crl::multisense::Status indicating if the params were successfully set
+     */
+    virtual Status secondaryAppDeactivate(const std::string & s) = 0;
+
+
+    /**
      * Flash a new FPGA bitstream file to the sensor.
      *
      * WARNING: This member should not be used directly. Improper usage can

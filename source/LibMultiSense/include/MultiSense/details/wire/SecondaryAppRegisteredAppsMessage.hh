@@ -46,6 +46,23 @@ namespace multisense {
 namespace details {
 namespace wire {
 
+class SecondaryAppRegisteredApp {
+public:
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    VersionType appVersion;
+    std::string appName;
+
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
+        message & appVersion;
+        message & appName;
+    }
+};
+
 class SecondaryAppRegisteredApps {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
@@ -58,7 +75,7 @@ public:
     SecondaryAppRegisteredApps() {};
 
 
-    std::vector<std::string> apps;
+    std::vector<SecondaryAppRegisteredApp> apps;
 
     //
     // Serialization routine.
@@ -68,10 +85,7 @@ public:
                        const VersionType version)
     {
         (void) version;
-        for (auto app: apps)
-        {
-            message & app;
-        }
+        message & apps;
     }
 };
 

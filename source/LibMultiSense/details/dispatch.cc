@@ -87,6 +87,9 @@
 #include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppActivateMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
 
 #include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
 #include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
@@ -754,6 +757,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::SecondaryAppConfig::ID):
         m_messages.store(wire::SecondaryAppConfig(stream, version));
+        break;
+    case MSG_ID(wire::SecondaryAppRegisteredApps::ID):
+        m_messages.store(wire::SecondaryAppRegisteredApps(stream, version));
         break;
     case MSG_ID(wire::PtpStatusResponse::ID):
         m_messages.store(wire::PtpStatusResponse(stream, version));

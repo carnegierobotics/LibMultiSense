@@ -1656,7 +1656,8 @@ Status impl::getRegisteredApps(system::SecondaryAppRegisteredApps& registeredApp
 
     for (auto app: d.apps)
     {
-        registeredApps.apps.push_back(app);
+        system::SecondaryAppRegisteredApp _a(app.appVersion, app.appName);
+        registeredApps.apps.push_back(_a);
     }
 
     return Status_Ok;
