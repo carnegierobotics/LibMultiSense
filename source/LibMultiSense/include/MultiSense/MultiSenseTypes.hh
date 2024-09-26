@@ -4302,15 +4302,26 @@ public:
         { }
 };
 
+class MULTISENSE_API SecondaryAppRegisteredApp {
+public:
+    VersionType appVersion;
+    std::string appName;
+
+    SecondaryAppRegisteredApp( const VersionType v, const std::string n):
+    appVersion(v),
+    appName(n)
+    {}
+};
+
 class MULTISENSE_API SecondaryAppRegisteredApps {
 public:
-    std::vector<std::string> apps;
+    std::vector<SecondaryAppRegisteredApp> apps;
 
     SecondaryAppRegisteredApps():
         apps()
         { }
 
-    SecondaryAppRegisteredApps(const std::vector<std::string> _apps):
+    SecondaryAppRegisteredApps(const std::vector<SecondaryAppRegisteredApp> _apps):
         apps(_apps)
         { }
 };
