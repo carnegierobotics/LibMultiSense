@@ -67,7 +67,7 @@ public:
     // Constructors
 
     FeatureDetectorControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    FeatureDetectorControl() {};
+    FeatureDetectorControl() : numberOfFeatures(0), grouping(0), motion(0), options(0) {};
 
     //
     // Serialization routine
