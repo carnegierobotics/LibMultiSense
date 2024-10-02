@@ -92,7 +92,15 @@ public:
         message & numberOfFeatures;
         message & grouping;
         message & motion;
-        message & options;
+        if(version>=2)
+        {
+	        message & options;
+	    }
+	    else
+	    {
+	    	options = 0;
+	    }
+	        
     }
 };
 
