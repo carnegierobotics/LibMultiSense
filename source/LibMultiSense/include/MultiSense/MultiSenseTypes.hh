@@ -4072,7 +4072,7 @@ class MULTISENSE_API FeatureDetectorConfig {
          *
          * @return Return the current feature detector options
          */
-        bool options() const { return m_options; };
+        uint32_t options() const { return m_options; };
 
 
         /**
