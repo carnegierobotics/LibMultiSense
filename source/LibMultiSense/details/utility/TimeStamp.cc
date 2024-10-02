@@ -51,7 +51,9 @@ namespace crl {
 namespace multisense {
 namespace details {
 namespace utility {
-
+#if defined (WIN32)
+ULARGE_INTEGER TimeStamp::offsetSecondsSince1970;
+#endif
 /*
  * Constructor. Empty. We rely on the getter methods to do
  * things that are more useful.

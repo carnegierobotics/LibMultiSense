@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-04-25, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #include "MultiSense/details/channel.hh"
@@ -314,7 +315,11 @@ void impl::bind(const std::string& ifName)
     // Create the socket.
 
     m_serverSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+#if defined(__MINGW64__)
+    if (m_serverSocket == INVALID_SOCKET)
+#else
     if (m_serverSocket < 0)
+#endif
         CRL_EXCEPTION("failed to create the UDP socket: %s",
                       strerror(errno));
 
@@ -426,14 +431,14 @@ void impl::publish(const utility::BufferStreamWriter& stream)
     // Send the packet along
 
 // disable MSVC warning for narrowing conversion.
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (push)
 #pragma warning (disable : 4267)
 #endif
     const int32_t ret = sendto(m_serverSocket, (char*)stream.data(), stream.tell(), 0,
                                (struct sockaddr *) &m_sensorAddress,
                                sizeof(m_sensorAddress));
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (pop)
 #endif
 
@@ -557,6 +562,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MONO:                           return wire::SysDeviceInfo::HARDWARE_REV_MONO;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -583,6 +589,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MONO:                           return system::DeviceInfo::HARDWARE_REV_MONO;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
@@ -799,7 +806,11 @@ void *impl::statusThread(void *userDataP)
         usleep(static_cast<unsigned int> (1e6));
     }
 
+#if defined(__MINGW64__)
+    return 0;
+#else
     return NULL;
+#endif
 }
 
 } // namespace details
