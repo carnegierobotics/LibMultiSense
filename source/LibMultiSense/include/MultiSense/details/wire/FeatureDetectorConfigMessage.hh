@@ -50,7 +50,7 @@ namespace wire {
 class FeatureDetectorConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Parameters representing the current camera configuration
@@ -69,6 +69,9 @@ public:
     // which octave motion detection is performed on.
     // Current Octave: 3
     uint32_t motion;
+
+    // Feature detector's internal options
+    uint32_t options;
 
     //
     // Constructors
@@ -89,6 +92,7 @@ public:
         message & numberOfFeatures;
         message & grouping;
         message & motion;
+        message & options;
     }
 };
 

@@ -1545,7 +1545,8 @@ Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
     c.setNumberOfFeatures(f.numberOfFeatures);
     c.setGrouping(f.grouping);
     c.setMotion(f.motion);
-
+    c.setOptions(f.options);
+    
     return Status_Ok;
 }
 Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
@@ -1555,6 +1556,7 @@ Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
     f.numberOfFeatures = c.numberOfFeatures();
     f.grouping = c.grouping();
     f.motion = c.motion();
+    f.options = c.options();
 
     return waitAck(f);
 }

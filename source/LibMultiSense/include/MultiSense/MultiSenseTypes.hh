@@ -4038,6 +4038,12 @@ class MULTISENSE_API FeatureDetectorConfig {
          */
         uint32_t m_motion;
 
+        /**
+         * options
+         * options for feature detctor, set to zero.
+         */
+        uint32_t m_options;
+
     public:
         /**
          * Query the maximum number of features applied to the camera feature detector
@@ -4059,6 +4065,14 @@ class MULTISENSE_API FeatureDetectorConfig {
          * @return Return the current feature detector motion detection status
          */
         bool motion() const { return m_motion; };
+
+        /**
+         * Query the status of the feature detector options
+         *
+         * @return Return the current feature detector options
+         */
+        bool options() const { return m_options; };
+
 
         /**
          * Set the maximum number of features applied to the camera feature detector.
@@ -4104,11 +4118,23 @@ class MULTISENSE_API FeatureDetectorConfig {
             m_motion = m;
         }
 
+                /**
+         * Set the feature motion detection capability of the feature detector
+         * Functions to enable motion detection on Octave 3
+         *
+         *
+         * @param m The feature detector motion detector.
+         */
+        void setOptions(const uint32_t &o)    {
+            m_options = o;
+        }
+
         /** Default constructor */
         FeatureDetectorConfig():
             m_numberOfFeatures(feature_detector::RECOMMENDED_MAX_FEATURES_QUARTER_RES),
             m_grouping(true),
-            m_motion(1)
+            m_motion(1),
+            m_options(0)
         {};
 };
 

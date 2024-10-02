@@ -50,7 +50,7 @@ namespace wire {
 class FeatureDetectorControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Parameters representing the current camera configuration
@@ -60,6 +60,8 @@ public:
     uint32_t grouping;
 
     uint32_t motion;
+
+    uint32_t options;
 
     //
     // Constructors
@@ -79,7 +81,7 @@ public:
         message & numberOfFeatures;
         message & grouping;
         message & motion;
-
+        message & options;
     }
 };
 

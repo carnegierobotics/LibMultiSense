@@ -507,7 +507,8 @@ int main(int    argc,
         std::cout << "Current feature detector settings: "
           << fcfg.numberOfFeatures() << " : "
           << fcfg.grouping() << " : "
-          << fcfg.motion() << "\n";
+          << fcfg.motion() << " : "
+          << fcfg.options() << "\n";
 
         if (quarter_res)
             fcfg.setNumberOfFeatures(1500);
@@ -515,6 +516,7 @@ int main(int    argc,
             fcfg.setNumberOfFeatures(5000);
         fcfg.setGrouping(true);
         fcfg.setMotion(1);
+        fcfg.setOptions(0);
 
         status = channelP->setFeatureDetectorConfig(fcfg);
         if (Status_Ok != status) {
