@@ -18,7 +18,7 @@ jobs:
     steps:
       - id: setup
         run: |
-          sudo apt-get install googletest -y
+          sudo apt-get install libgtest-dev -y
       - uses: actions/checkout@v4
       - id: build-release
         run: |
