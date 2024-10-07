@@ -1686,15 +1686,26 @@ Status impl::secondaryAppDeactivate(const std::string &_name)
 
 Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
 {
-    wire::FeatureDetectorConfig f;
+    wire::SecondaryAppConfig f;
 
-    Status status = waitData(wire::FeatureDetectorGetConfig(), f);
+    Status status = waitData(wire::SecondaryAppGetConfig(), f);
     if (Status_Ok != status)
         return status;
 
-    c.setNumberOfFeatures(f.numberOfFeatures);
-    c.setGrouping(f.grouping);
-    c.setMotion(f.motion);
+
+    try
+    {
+        wire::FeatureDetectorConfig instConfig(f);
+        c.setNumberOfFeatures(instConfig.configItems.numberOfFeatures);
+        c.setGrouping(instConfig.configItems.grouping);
+        c.setMotion(instConfig.configItems.motion);
+    }
+    catch (std::runtime_error e)
+    {
+        std::cerr << e.what() << std::endl;
+        return Status_Error;
+    }
+
 
     return Status_Ok;
 }
@@ -1702,9 +1713,9 @@ Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
 {
     wire::FeatureDetectorControl f;
 
-    f.numberOfFeatures = c.numberOfFeatures();
-    f.grouping = c.grouping();
-    f.motion = c.motion();
+    f.controlItems.numberOfFeatures = c.numberOfFeatures();
+    f.controlItems.grouping = c.grouping();
+    f.controlItems.motion = c.motion();
 
     return waitAck(f);
 }

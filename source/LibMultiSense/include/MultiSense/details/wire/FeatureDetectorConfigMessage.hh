@@ -41,19 +41,14 @@
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/wire/Protocol.hh"
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class FeatureDetectorConfig {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    //
-    // Parameters representing the current camera configuration
+struct FeatureDetectorConfigItems {
 
     //
     // The maximum number of features detected per image
@@ -70,26 +65,36 @@ public:
     // Current Octave: 3
     uint32_t motion;
 
+};
+
+class FeatureDetectorConfig {
+public:
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_CONFIG;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    //
+    // Parameters representing the current camera configuration
+
+    FeatureDetectorConfigItems configItems;
+
+    SecondaryAppConfig configData;
+
     //
     // Constructors
 
-    FeatureDetectorConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorConfig( SecondaryAppConfig & d ) {
+
+        configData = d;
+        if (d.dataLength != sizeof(configItems))
+        {
+          throw std::runtime_error("Error Invalid receipt length\n");
+        }
+
+        memcpy(&configItems, d.data, d.dataLength);
+
+    };
     FeatureDetectorConfig() {};
 
-    //
-    // Serialization routine
-
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-
-        (void) version;
-
-        message & numberOfFeatures;
-        message & grouping;
-        message & motion;
-    }
 };
 
 }}}} // namespaces

@@ -60,7 +60,10 @@ public:
     //
     // Constructors
 
-    SecondaryAppConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppConfig(utility::BufferStreamReader&r, VersionType v) {
+        serialize(r,v);
+    };
+
     SecondaryAppConfig():
         dataLength(0),
         data()
@@ -75,6 +78,7 @@ public:
     {
         (void) version;
         message & dataLength;
+
         for (size_t i = 0; i < dataLength; i++)
         {
           message & data[i];

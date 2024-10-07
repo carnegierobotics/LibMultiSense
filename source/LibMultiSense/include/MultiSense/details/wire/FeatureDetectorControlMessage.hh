@@ -42,18 +42,14 @@
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/wire/Protocol.hh"
 
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class FeatureDetectorControl {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    //
-    // Parameters representing the current camera configuration
+struct FeatureDetectorControlItems {
 
     uint32_t numberOfFeatures;
 
@@ -61,10 +57,24 @@ public:
 
     uint32_t motion;
 
+} ;
+
+class FeatureDetectorControl: public SecondaryAppControl {
+public:
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_CONTROL;
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+
+    //
+    // Parameters representing the current camera configuration
+    FeatureDetectorControlItems controlItems;
+
     //
     // Constructors
 
-    FeatureDetectorControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorControl(utility::BufferStreamReader&r, VersionType v) {
+      SecondaryAppControl::serialize(r,v);
+      memcpy(&controlItems, data, dataLength);
+    };
     FeatureDetectorControl() {};
 
     //
@@ -76,9 +86,12 @@ public:
     {
 
         (void) version;
-        message & numberOfFeatures;
-        message & grouping;
-        message & motion;
+
+        memset(data, 0, sizeof(data));
+        dataLength = sizeof(FeatureDetectorControlItems);
+        memcpy(data, &controlItems, dataLength);
+
+        SecondaryAppControl::serialize(message, version);
 
     }
 };
