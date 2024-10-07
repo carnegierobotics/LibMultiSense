@@ -115,6 +115,14 @@
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
 
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppActivateMessage.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -330,6 +338,27 @@ Status impl::removeIsolatedCallback(image::Callback callback)
 }
 
 //
+// Adds a new secondarty app listener
+
+Status impl::addIsolatedCallback(secondary_app::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_secondaryAppListeners.push_back(new SecondaryAppListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_SECONDARY_APP_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
+}
+
+//
 // Removes a lidar listener
 
 Status impl::removeIsolatedCallback(lidar::Callback callback)
@@ -485,6 +514,33 @@ Status impl::removeIsolatedCallback(apriltag::Callback callback)
             if ((*it)->callback() == callback) {
                 delete *it;
                 m_aprilTagDetectionListeners.erase(it);
+                return Status_Ok;
+            }
+        }
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+
+    return Status_Error;
+}
+
+//
+// Removes a secondary_app listener
+
+Status impl::removeIsolatedCallback(secondary_app::Callback callback)
+{
+    try {
+        utility::ScopedLock lock(m_dispatchLock);
+        std::list<SecondaryAppListener*>::iterator it;
+        for(it  = m_secondaryAppListeners.begin();
+            it != m_secondaryAppListeners.end();
+            it ++) {
+
+            if ((*it)->callback() == callback) {
+                delete *it;
+                m_secondaryAppListeners.erase(it);
                 return Status_Ok;
             }
         }
@@ -1534,17 +1590,122 @@ Status impl::setApriltagParams (const system::ApriltagParams& params)
     return waitAck(w);
 }
 
-Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
-{
-    wire::FeatureDetectorConfig f;
+//
+// Query camera configuration
 
-    Status status = waitData(wire::FeatureDetectorGetConfig(), f);
+Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
+{
+    Status          status;
+    wire::SecondaryAppConfig d;
+
+    status = waitData(wire::SecondaryAppGetConfig(), d);
     if (Status_Ok != status)
         return status;
 
-    c.setNumberOfFeatures(f.numberOfFeatures);
-    c.setGrouping(f.grouping);
-    c.setMotion(f.motion);
+
+    if (d.dataLength >= 1024)
+    {
+        std::cerr << "Error: data length exceeds 1024b, truncating\n";
+        config.dataLength = 1023;
+        status = Status_Exception;
+    }
+    else
+    {
+        config.dataLength = d.dataLength;
+    }
+
+    memcpy(config.data, d.data, config.dataLength);
+
+    return Status_Ok;
+}
+
+
+//
+// Set camera configuration
+//
+// Currently several sensor messages are combined and presented
+// to the user as one.
+
+Status impl::setSecondaryAppConfig(const system::SecondaryAppConfig& c)
+{
+    wire::SecondaryAppControl cmd;
+
+    if (c.dataLength >= 1024)
+    {
+        std::cerr << "Error: data length too large" << std::endl;
+        return Status_Error;
+    }
+    else
+    {
+        cmd.dataLength = c.dataLength;
+    }
+
+    memcpy(cmd.data, c.data, c.dataLength);
+
+    return waitAck(cmd);
+}
+
+Status impl::getRegisteredApps(system::SecondaryAppRegisteredApps& registeredApps)
+{
+    Status          status;
+    wire::SecondaryAppRegisteredApps d;
+
+    status = waitData(wire::SecondaryAppGetRegisteredApps(), d);
+    if (Status_Ok != status)
+        return status;
+
+    for (auto app: d.apps)
+    {
+        system::SecondaryAppRegisteredApp _a(app.appVersion, app.appName);
+        registeredApps.apps.push_back(_a);
+    }
+
+    return Status_Ok;
+}
+
+
+//
+// Set camera configuration
+//
+// Currently several sensor messages are combined and presented
+// to the user as one.
+
+Status impl::secondaryAppActivate(const std::string &_name)
+{
+    wire::SecondaryAppActivate cmd(1, _name);
+
+    return waitAck(cmd);
+}
+
+Status impl::secondaryAppDeactivate(const std::string &_name)
+{
+    wire::SecondaryAppActivate cmd(0, _name);
+
+    return waitAck(cmd);
+}
+
+Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
+{
+    wire::SecondaryAppConfig f;
+
+    Status status = waitData(wire::SecondaryAppGetConfig(), f);
+    if (Status_Ok != status)
+        return status;
+
+
+    try
+    {
+        wire::FeatureDetectorConfig instConfig(f);
+        c.setNumberOfFeatures(instConfig.configItems.numberOfFeatures);
+        c.setGrouping(instConfig.configItems.grouping);
+        c.setMotion(instConfig.configItems.motion);
+    }
+    catch (std::runtime_error e)
+    {
+        std::cerr << e.what() << std::endl;
+        return Status_Error;
+    }
+
 
     return Status_Ok;
 }
@@ -1552,9 +1713,9 @@ Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
 {
     wire::FeatureDetectorControl f;
 
-    f.numberOfFeatures = c.numberOfFeatures();
-    f.grouping = c.grouping();
-    f.motion = c.motion();
+    f.controlItems.numberOfFeatures = c.numberOfFeatures();
+    f.controlItems.grouping = c.grouping();
+    f.controlItems.motion = c.motion();
 
     return waitAck(f);
 }

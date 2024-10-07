@@ -1,12 +1,12 @@
 /**
- * @file LibMultiSense/FeatureDetectorControlMessage.hh
+ * @file LibMultiSense/SecondaryAppActivateMessage.hh
  *
- * This message contains the current feature detector configuration.
+ * This message contains a request for camera configuration.
  *
- * Copyright 2013-2024
+ * Copyright 2013-2023
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegiearobotics.com
+ * http://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -33,66 +33,54 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-09-19, patrick.smith@carnegierobotics.com, IRAD, Copied from CamGetConfigMessage.hh.
  **/
 
-#ifndef LibMultisense_FeatureDetectorControlMessage
-#define LibMultisense_FeatureDetectorControlMessage
+#ifndef LibMultiSense_SecondaryAppActivate
+#define LibMultiSense_SecondaryAppActivate
 
 #include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
-
-#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-struct FeatureDetectorControlItems {
-
-    uint32_t numberOfFeatures;
-
-    uint32_t grouping;
-
-    uint32_t motion;
-
-} ;
-
-class FeatureDetectorControl: public SecondaryAppControl {
+class SecondaryAppActivate {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_ACTIVATE;
+
 
     //
     // Parameters representing the current camera configuration
-    FeatureDetectorControlItems controlItems;
+    int  activate;
+
+    std::string name;
 
     //
     // Constructors
 
-    FeatureDetectorControl(utility::BufferStreamReader&r, VersionType v) {
-      SecondaryAppControl::serialize(r,v);
-      memcpy(&controlItems, data, dataLength);
-    };
-    FeatureDetectorControl() {};
+    SecondaryAppActivate(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppActivate() {};
+    SecondaryAppActivate(const int i, const std::string & s):
+    activate(i),
+    name(s)
+    {}
 
     //
-    // Serialization routine
+    // Serialization routine.
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
+        // nothing yet
 
-        memset(data, 0, sizeof(data));
-        dataLength = sizeof(FeatureDetectorControlItems);
-        memcpy(data, &controlItems, dataLength);
+        message & activate;
 
-        SecondaryAppControl::serialize(message, version);
-
+        message & name;
     }
 };
 

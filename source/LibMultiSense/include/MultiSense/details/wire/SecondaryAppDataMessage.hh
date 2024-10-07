@@ -1,12 +1,10 @@
 /**
- * @file LibMultiSense/FeatureDetectorControlMessage.hh
+ * @file LibMultiSense/SecondarryAppDataMessage.hh
  *
- * This message contains the current feature detector configuration.
- *
- * Copyright 2013-2024
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegiearobotics.com
+ * http://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -33,49 +31,66 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, created file.
  **/
 
-#ifndef LibMultisense_FeatureDetectorControlMessage
-#define LibMultisense_FeatureDetectorControlMessage
+#ifndef LibMultiSense_SecondaryAppData
+#define LibMultiSense_SecondaryAppData
+
+#include <typeinfo>
+#include <cmath>
 
 #include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
-
-#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-struct FeatureDetectorControlItems {
-
-    uint32_t numberOfFeatures;
-
-    uint32_t grouping;
-
-    uint32_t motion;
-
-} ;
-
-class FeatureDetectorControl: public SecondaryAppControl {
+class WIRE_HEADER_ATTRIBS_ SecondaryAppHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    //
-    // Parameters representing the current camera configuration
-    FeatureDetectorControlItems controlItems;
+static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP;
+static CRL_CONSTEXPR VersionType VERSION = 1;
+
+#ifdef SENSORPOD_FIRMWARE
+    IdType      id;
+    VersionType version;
+#endif // SENSORPOD_FIRMWARE
+
+    uint32_t source;
+    uint32_t length;
+    int64_t  frameId;
+    uint32_t timeSeconds;
+    uint32_t timeMicroSeconds;
+    uint32_t sourceExtended;
+
+    SecondaryAppHeader()
+        :
+#ifdef SENSORDPOD_FIRMWARE
+        id(ID),
+        version(VERSION),
+#endif // SENSORPOD_FIRMWARE
+        source(0),
+        length(0),
+        frameId(0),
+        timeSeconds(0),
+        timeMicroSeconds(0)
+         {};
+};
+
+#ifndef SENSORPOD_FIRMWARE
+
+class SecondaryAppData : public SecondaryAppHeader {
+public:
+
+    void *dataP;
 
     //
     // Constructors
 
-    FeatureDetectorControl(utility::BufferStreamReader&r, VersionType v) {
-      SecondaryAppControl::serialize(r,v);
-      memcpy(&controlItems, data, dataLength);
-    };
-    FeatureDetectorControl() {};
+    SecondaryAppData(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppData() : dataP(NULL) {};
 
     //
     // Serialization routine
@@ -84,17 +99,28 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
+        message & source;
+        message & length;
+        message & frameId;
+        message & timeSeconds;
+        message & timeMicroSeconds;
+        message & sourceExtended;
 
-        memset(data, 0, sizeof(data));
-        dataLength = sizeof(FeatureDetectorControlItems);
-        memcpy(data, &controlItems, dataLength);
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
 
-        SecondaryAppControl::serialize(message, version);
+            message.write(dataP, length);
+
+        } else {
+
+            dataP = message.peek();
+            message.seek(message.tell() + length);
+        }
 
     }
 };
+
+#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

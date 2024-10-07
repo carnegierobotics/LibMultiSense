@@ -84,6 +84,12 @@
 
 #include "MultiSense/details/wire/GroundSurfaceModel.hh"
 #include "MultiSense/details/wire/ApriltagDetections.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppActivateMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
 
 #include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
 #include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
@@ -260,6 +266,22 @@ void impl::dispatchFeatureDetections(feature_detector::Header& header)
 
     utility::ScopedLock statsLock(m_statisticsLock);
     m_channelStatistics.numDispatchedFeatureDetections++;
+}
+
+//
+// Publish Secondary App Data
+
+void impl::dispatchSecondaryApplication(utility::BufferStream& buffer,
+                                        secondary_app::Header& header)
+{
+    utility::ScopedLock lock(m_dispatchLock);
+
+    std::list<SecondaryAppListener*>::const_iterator it;
+
+    for(it  = m_secondaryAppListeners.begin();
+        it != m_secondaryAppListeners.end();
+        it ++)
+        (*it)->dispatch(buffer, header);
 }
 
 
@@ -597,46 +619,61 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         dispatchAprilTagDetections(header);
         break;
     }
-    case MSG_ID(wire::FeatureDetector::ID):
+    case MSG_ID(wire::SecondaryAppData::ID):
     {
-        wire::FeatureDetector featureDetector(stream, version);
+        wire::SecondaryAppData SecondaryApp(stream, version);
 
-        const wire::FeatureDetectorMeta * metaP = m_featureDetectorMetaCache.find(featureDetector.frameId);
-        if (NULL == metaP)
-          break;
+        secondary_app::Header header;
 
-        feature_detector::Header header;
-        header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
-        header.frameId        = metaP->frameId;
-        header.timeSeconds    = metaP->timeSeconds;
-        header.timeNanoSeconds= metaP->timeNanoSeconds;
-        header.ptpNanoSeconds = metaP->ptpNanoSeconds;
-        header.octaveWidth    = metaP->octaveWidth;
-        header.octaveHeight   = metaP->octaveHeight;
-        header.numOctaves     = metaP->numOctaves;
-        header.scaleFactor    = metaP->scaleFactor;
-        header.motionStatus   = metaP->motionStatus;
-        header.averageXMotion = metaP->averageXMotion;
-        header.averageYMotion = metaP->averageYMotion;
-        header.numFeatures    = featureDetector.numFeatures;
-        header.numDescriptors = featureDetector.numDescriptors;
-
-        const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
-
-        uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
-        for (size_t i = 0; i < featureDetector.numFeatures; i++) {
-            feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
-            header.features.push_back(f);
-        }
-
-        for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
-            feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
-            header.descriptors.push_back(d);
-        }
-
-        dispatchFeatureDetections(header);
+        header.frameId           = SecondaryApp.frameId;
+        header.source            = SecondaryApp.source | ((uint64_t)SecondaryApp.sourceExtended << 32);
+        header.timeSeconds       = SecondaryApp.timeSeconds;
+        header.timeMicroSeconds  = SecondaryApp.timeMicroSeconds;
+        header.length            = SecondaryApp.length;
+        header.secondaryAppDataP = SecondaryApp.dataP;
+        dispatchSecondaryApplication(buffer, header);
         break;
     }
+    // case MSG_ID(wire::FeatureDetector::ID):
+    // {
+    //     wire::FeatureDetector featureDetector(stream, version);
+    //
+    //     const wire::FeatureDetectorMeta * metaP = m_featureDetectorMetaCache.find(featureDetector.frameId);
+    //     if (NULL == metaP)
+    //       break;
+    //
+    //     feature_detector::Header header;
+    //     header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
+    //     header.frameId        = metaP->frameId;
+    //     header.timeSeconds    = metaP->timeSeconds;
+    //     header.timeNanoSeconds= metaP->timeNanoSeconds;
+    //     header.ptpNanoSeconds = metaP->ptpNanoSeconds;
+    //     header.octaveWidth    = metaP->octaveWidth;
+    //     header.octaveHeight   = metaP->octaveHeight;
+    //     header.numOctaves     = metaP->numOctaves;
+    //     header.scaleFactor    = metaP->scaleFactor;
+    //     header.motionStatus   = metaP->motionStatus;
+    //     header.averageXMotion = metaP->averageXMotion;
+    //     header.averageYMotion = metaP->averageYMotion;
+    //     header.numFeatures    = featureDetector.numFeatures;
+    //     header.numDescriptors = featureDetector.numDescriptors;
+    //
+    //     const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
+    //
+    //     uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+    //     for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+    //         feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
+    //         header.features.push_back(f);
+    //     }
+    //
+    //     for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
+    //         feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
+    //         header.descriptors.push_back(d);
+    //     }
+    //
+    //     dispatchFeatureDetections(header);
+    //     break;
+    // }
     case MSG_ID(wire::FeatureDetectorMeta::ID):
     {
         wire::FeatureDetectorMeta *metaP = new (std::nothrow) wire::FeatureDetectorMeta(stream, version);
@@ -718,12 +755,18 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     case MSG_ID(wire::SysExternalCalibration::ID):
         m_messages.store(wire::SysExternalCalibration(stream, version));
         break;
+    case MSG_ID(wire::SecondaryAppConfig::ID):
+        m_messages.store(wire::SecondaryAppConfig(stream, version));
+        break;
+    case MSG_ID(wire::SecondaryAppRegisteredApps::ID):
+        m_messages.store(wire::SecondaryAppRegisteredApps(stream, version));
+        break;
     case MSG_ID(wire::PtpStatusResponse::ID):
         m_messages.store(wire::PtpStatusResponse(stream, version));
         break;
-    case MSG_ID(wire::FeatureDetectorConfig::ID):
-        m_messages.store(wire::FeatureDetectorConfig(stream, version));
-        break;
+    // case MSG_ID(wire::FeatureDetectorConfig::ID):
+    //     m_messages.store(wire::FeatureDetectorConfig(stream, version));
+    //     break;
     default:
 
         CRL_DEBUG("unknown message received: id=%d, version=%d\n",

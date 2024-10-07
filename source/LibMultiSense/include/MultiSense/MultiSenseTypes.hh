@@ -154,6 +154,12 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_0          = (1ull<<18); // Same as Source Feature Left
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_1          = (1ull<<19); // Same as Source Feature Right
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_2          = (1ull<<32); // Same as Source Feature Aux
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_3          = (1ull<<33); // Same as Source Feature Rectified Left
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_4          = (1ull<<34); // Same as Source Feature Rectified Right
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_5          = (1ull<<35); // Same as Source Feature Rectified Aux
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -3070,6 +3076,47 @@ namespace feature_detector {
 } // namespace feature_detector
 
 
+namespace secondary_app {
+
+/**
+ * Class containing Header information for a secondary_app callback.
+ *
+ * See crl::multisense::Channel::addIsolatedCallback
+ */
+class MULTISENSE_API Header : public HeaderBase {
+public:
+
+    /** DataSource corresponding to secondaryAppDataP*/
+    DataSource  source;
+    /** length of the secondaryAppData */
+    uint32_t    length;
+    /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */
+    int64_t     frameId;
+    /** The time seconds value corresponding to when  the secondaryAppData was captured*/
+    uint32_t    timeSeconds;
+    /** The time microseconds value corresponding to when the secondaryAppData was captured*/
+    uint32_t    timeMicroSeconds;
+    /** The number of frames per second currently streaming from the device */
+    float       framesPerSecond;
+    /** The length of the secondaryAppData data stored in secondaryAppDataDataP */
+    uint32_t    secondaryAppDataLength;
+    /** A pointer to the secondaryAppData data */
+    const void *secondaryAppDataP;
+
+    /**
+     * Default Constructor
+     */
+    Header()
+        : source(Source_Unknown) {};
+
+};
+    /**
+     * Function pointer for receiving callbacks for apriltag data
+     */
+    typedef void (*Callback)(const Header& header,
+                             void         *userDataP);
+} // namespace secondary_app
+
 namespace system {
 
 /**
@@ -4213,6 +4260,70 @@ struct ChannelStatistics
     //
     // The number of dispatached feature detections
     std::size_t numDispatchedFeatureDetections;
+};
+
+class MULTISENSE_API SecondaryAppConfig {
+public:
+    uint32_t dataLength;
+    uint8_t  data[1024];
+
+    SecondaryAppConfig():
+        dataLength(0),
+        data()
+        {}
+
+    SecondaryAppConfig(const uint32_t _length, const uint8_t * _data):
+        dataLength(_length)
+        {
+            if (_length >= 1024)
+            {
+                std::cerr << "Error: Secondary Application Config Length > 1023b" << std::endl;
+                std::cerr << "Truncating data payload to fit in 1024b\n" << std::endl;
+                dataLength = 1023;
+            }
+
+            memcpy(data, _data, dataLength);
+        }
+};
+
+class MULTISENSE_API SecondaryAppActivate {
+public:
+    int activate;
+    std::string name;
+
+    SecondaryAppActivate():
+        activate(0),
+        name()
+        { }
+
+        SecondaryAppActivate(const int _activate, const std::string _name):
+        activate(_activate),
+        name(_name)
+        { }
+};
+
+class MULTISENSE_API SecondaryAppRegisteredApp {
+public:
+    VersionType appVersion;
+    std::string appName;
+
+    SecondaryAppRegisteredApp( const VersionType v, const std::string n):
+    appVersion(v),
+    appName(n)
+    {}
+};
+
+class MULTISENSE_API SecondaryAppRegisteredApps {
+public:
+    std::vector<SecondaryAppRegisteredApp> apps;
+
+    SecondaryAppRegisteredApps():
+        apps()
+        { }
+
+    SecondaryAppRegisteredApps(const std::vector<SecondaryAppRegisteredApp> _apps):
+        apps(_apps)
+        { }
 };
 
 } // namespace system
