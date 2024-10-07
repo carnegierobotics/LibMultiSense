@@ -11,6 +11,7 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.ref_name }}-build
       cancel-in-progress: ${{ github.ref_name != 'main' }}
