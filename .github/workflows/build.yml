@@ -1,0 +1,33 @@
+name: Build LibMultiSense
+
+on:
+  push:
+    branches:
+      - master
+  release:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: small
+    concurrency:
+      group: ${{ github.ref_name }}-build
+      cancel-in-progress: ${{ github.ref_name != 'main' }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: repo
+      - id: build-release
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=install-release
+          cmake --build build -j "$(nproc)"
+          make -C build test
+          cmake --install build
+      - id: build-debug
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=install-debug
+          cmake --build build -j "$(nproc)"
+          make -C build test
+          cmake --install build
