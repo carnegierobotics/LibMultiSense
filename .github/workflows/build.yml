@@ -16,9 +16,7 @@ jobs:
       group: ${{ github.ref_name }}-build
       cancel-in-progress: ${{ github.ref_name != 'main' }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          path: repo
+      - uses: actions/checkout@v4
       - id: build-release
         run: |
           pwd
