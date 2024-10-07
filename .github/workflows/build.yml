@@ -21,12 +21,16 @@ jobs:
           path: repo
       - id: build-release
         run: |
+          pwd
+          ls -lah
           cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=install-release
           cmake --build build -j "$(nproc)"
           make -C build test
           cmake --install build
       - id: build-debug
         run: |
+          pwd
+          ls -lah
           cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON -DCMAKE_INSTALL_PREFIX=install-debug
           cmake --build build -j "$(nproc)"
           make -C build test
