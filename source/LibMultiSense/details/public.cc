@@ -1343,6 +1343,54 @@ Status impl::getMtu(int32_t& mtu)
     return status;
 }
 
+Status impl::setBestMtu()
+{
+    uint cur_mtu = 9000;
+    uint bisections = 0;
+    Status status = Status_Ok;
+
+    
+
+    //
+    // v2.2 and older do not support testing MTU
+    
+    if (m_sensorVersion.firmwareVersion <= 0x0202)
+        return Status_Unsupported;
+
+    while (bisections < 7){
+        std::cout << "Testing MTU " << cur_mtu << std::endl;
+        wire::SysTestMtuResponse resp;
+        status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        if ((Status_Ok == status) && (cur_mtu == MAX_MTU_SIZE)){
+            std::cout << "Max MTU negeotiated on first try!\n";
+            break;
+        }
+
+        bisections++;
+
+        if (Status_Ok != status){
+           cur_mtu -= (cur_mtu - MIN_MTU_SIZE) / 2;
+        } else if (bisections < 7){
+            cur_mtu += (MAX_MTU_SIZE - cur_mtu) / 2;
+        }
+
+        if ((Status_Ok != status) && (bisections == 7)){
+            cur_mtu = MIN_MTU_SIZE;
+            status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        }
+    }
+
+    if (Status_Ok == status)
+        status = waitAck(wire::SysMtu(cur_mtu));
+    if (Status_Ok == status){
+        m_sensorMtu = cur_mtu;
+        std::cout << "MTU Negotiate Status: " << status << " Selected MTU: " << cur_mtu << std::endl;
+    }
+
+    return status;
+
+}
+
 Status impl::getMotorPos(int32_t& pos)
 {
     wire::MotorPoll resp;
