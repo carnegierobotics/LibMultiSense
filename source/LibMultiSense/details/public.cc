@@ -1360,8 +1360,8 @@ Status impl::setBestMtu()
     while (bisections < 7){
         std::cout << "Testing MTU " << cur_mtu << std::endl;
         wire::SysTestMtuResponse resp;
-        status = waitData(wire::SysTestMtu(cur_mtu), resp);
-        if ((Status_Ok == status) && (cur_mtu == 9000)){
+        status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        if ((Status_Ok == status) && (cur_mtu == MAX_MTU_SIZE)){
             std::cout << "Max MTU negeotiated on first try!\n";
             break;
         }
@@ -1378,7 +1378,7 @@ Status impl::setBestMtu()
 
         if ((Status_Ok != status) && (bisections == 7)){
             cur_mtu = min_mtu;
-            status = waitData(wire::SysTestMtu(cur_mtu), resp);
+            status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
         }
     }
 
