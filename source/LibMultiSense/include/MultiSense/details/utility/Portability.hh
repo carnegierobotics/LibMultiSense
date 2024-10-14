@@ -59,7 +59,7 @@
     // MS Visual C++ uses __declspec(thread) to declare thread local variables.
     #define CRL_THREAD_LOCAL __declspec(thread)
 #else
-    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at http://support.carnegierobotics.com for assistance."
+    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at https://carnegierobotics.com/submitaticket for assistance."
 #endif
 
 #if defined (__GNUC__)
@@ -73,7 +73,7 @@
     // Use C99 standard macros to get the undecorated name of the current function
     #define CRL_PRETTY_FUNCTION __func__
 #else
-    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at http://support.carnegierobotics.com for assistance."
+    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at https://carnegierobotics.com/submitaticket for assistance."
 #endif
 
 #if !defined(MULTISENSE_API)

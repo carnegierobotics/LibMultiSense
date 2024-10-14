@@ -3,7 +3,7 @@
 LibMultiSense is a C++ library used to interface with the MultiSense S
 family of sensors from Carnegie Robotics. For more information on the
 various MultiSense products please visit
-http://carnegierobotics.com/products/
+https://carnegierobotics.com/products
 
 LibMultiSense was previously hosted as a Mercurial repository on Bitbucket
 with the following URL: https://bitbucket.org/crl/libmultisense
@@ -83,4 +83,4 @@ To report an issue with this library or request a new feature,
 please use the [GitHub issues system](https://github.com/carnegierobotics/LibMultiSense/issues)
 
 For product support, please see the [support section of our website](https://carnegierobotics.com/support)
-Individual support requests can be created in our [support portal](https://support.carnegierobotics.com/hc/en-us)
+Individual support requests can be created in our [support portal](https://carnegierobotics.com/submitaticket)
