@@ -44,8 +44,12 @@
 #include <string>
 #include <iostream>
 
-#define PACK __attribute__((packed,aligned(4)))
 
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#pragma pack(push, 1)
+#else
+#define PACK __attribute__((packed,aligned(4)))
+#endif
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -127,7 +131,7 @@ inline void PrintStatus(StatusMessage s)
     std::cout << "-------------------------------------------------\n\n";
 }
 
-typedef uint32_t UpdateStatusMessage;
+typedef int32_t UpdateStatusMessage;
 static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Error = -1;
 static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Ok    = 0;
 static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Done  = 1;
@@ -149,6 +153,9 @@ struct PACK MessageSetup {
         memcpy(&ServerAddress, &sr, sizeof(struct sockaddr_in));
     }
 };
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#pragma pack(pop)
+#endif
 
 struct PACK MessageBlockAck {
     MessageType Id;
@@ -159,7 +166,9 @@ struct PACK MessageBlockAck {
     {
     }
 };
-
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#pragma pack(pop)
+#endif
 struct PACK MessageFileBlock {
     MessageType Id;
     uint32_t Length;
@@ -176,6 +185,9 @@ struct PACK MessageFileBlock {
         memcpy(Buffer, _Buffer, ChunkLen);
     }
 };
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#pragma pack(pop)
+#endif
 
 struct PACK MessageUpdateStatus {
     uint32_t State;
@@ -189,7 +201,9 @@ struct PACK MessageUpdateStatus {
     {
     }
 };
-
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#pragma pack(pop)
+#endif
 } //namespace Messages
 
 #endif /* end of include guard: __FUU_Messages_H__ */
