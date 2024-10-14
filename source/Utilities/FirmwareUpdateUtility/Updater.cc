@@ -92,7 +92,7 @@
      uint32_t crc32_initial = 0;
      uint32_t bytesWritten = 0;
      int32_t blockSeq=0;
-     ssize_t bytesRcvd = 0;
+     long int bytesRcvd = 0;
      uint8_t chunk[Messages::BLOCK_SIZE] = {};
 
      if (!FilePath)
@@ -101,25 +101,25 @@
          return -1;
      }
 
-     int fd = open(FilePath, O_RDONLY|O_SYNC);
-     if (fd < 0){
+     FILE * fd = fopen(FilePath, "rb");
+     if (!fd){
          std::cerr << "Failed to open file!\n";
          return -1;
      }
 
-     uint32_t FileSize = lseek(fd, 0L, SEEK_END);
-     lseek(fd, 0L, SEEK_SET);
+     fseek(fd, 0, SEEK_END);
+     uint32_t FileSize = ftell(fd);
+     rewind(fd);
 
-
-     for (ssize_t i = 0; i < FileSize; i+=Messages::BLOCK_SIZE) {
-         uint32_t l = read(fd, chunk, Messages::BLOCK_SIZE);
+     for (size_t i = 0; i < FileSize; i+=Messages::BLOCK_SIZE) {
+         uint32_t l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
          crc32_initial = crc32(crc32_initial, chunk, l);
      }
      crc32_final = crc32_initial;
 
      std::cout << "CRC32 0x" << std::hex <<  crc32_final << std::endl;
 
-     lseek(fd, 0L, SEEK_SET);
+     rewind(fd);
 
      const int numBlocks = FileSize/Messages::BLOCK_SIZE;
      Messages::MessageBlockAck BlockAck;
@@ -127,10 +127,10 @@
      while (bytesWritten<FileSize) {
 
          uint32_t sent = 0;
-         ssize_t l = read(fd, chunk, Messages::BLOCK_SIZE);
+         int l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
          if (l <= 0) {
              std::cerr << "Error: Failed to read chunk from File\n";
-             close(fd);
+             fclose(fd);
              return -1;
          }
 
@@ -146,22 +146,22 @@
          bytesRcvd = Receive((uint8_t *)&BlockAck, sizeof(BlockAck), NULL);
          if (bytesRcvd < 0){
            std::cerr << "Socket timed out waiting for ACK, check connections and try again\n";
-           close(fd);
+           fclose(fd);
            exit(1);
          }
 
-         if (bytesRcvd < (ssize_t)sizeof(BlockAck)) {
-           std::cerr << "Invalid ACK\n" << std::endl;
+         if (bytesRcvd < (long int)sizeof(BlockAck)) {
+           std::cerr << "Invalid ACK\n";
          }
 
          if (BlockAck.Sequence != Block.Sequence) {
-           std::cerr << "Invalid Sequence, Resending block" << std::endl;
+           std::cerr << "Invalid Sequence, Resending block\n";
          }
 
          printf("Sending Block (%d/%d)\r", BlockAck.Sequence, numBlocks);
      }
 
      std::cout << "Finished sending file to camera!\n";
-     close(fd);
+     fclose(fd);
      return ret;
  }
