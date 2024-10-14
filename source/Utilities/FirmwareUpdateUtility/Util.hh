@@ -37,14 +37,23 @@
 #ifndef __FUU_UTIL_H__
 #define __FUU_UTIL_H__
 
-#include <unistd.h>
+#ifdef WIN32
+    #include <io.h>
+#else
+    #include <unistd.h>
+#endif
 
 namespace Util {
 
 
   bool FileExists(const char * FilePath)
   {
-    return (access(FilePath, F_OK)  == 0);
+    
+    #ifdef _WIN32
+        return (_access(FilePath, 0)  == 0);
+    #else
+        return (access(FilePath, F_OK)  == 0);
+    #endif
   }
 
 }
