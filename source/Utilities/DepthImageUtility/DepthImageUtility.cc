@@ -153,7 +153,6 @@ std::vector<uint16_t> createDepthImage(const image::Header &disparity,
 
     std::vector<uint16_t> pixels(height * width, 0);
 
-
     const double max_ni_depth = std::numeric_limits<uint16_t>::max();
 
     for (size_t h = 0 ; h < height ; ++h) {
