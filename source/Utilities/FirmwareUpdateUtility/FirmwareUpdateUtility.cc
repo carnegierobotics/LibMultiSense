@@ -34,7 +34,6 @@
  *   2024-27-08, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include <getopt.h>
 #include <signal.h>
 #include <limits.h>
 #include <iostream>
@@ -42,6 +41,8 @@
 #include <chrono>
 #include <thread>
 #include <atomic>
+
+#include <Utilities/portability/getopt/getopt.h>
 
 #include "Messages.hh"
 #include "Updater.hh"
