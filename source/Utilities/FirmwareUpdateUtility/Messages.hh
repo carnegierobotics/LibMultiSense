@@ -37,9 +37,14 @@
  #ifndef __FUU_Messages_H__
  #define __FUU_Messages_H__
 
+#ifdef WIN32
+#define INET_ADDRSTRLEN 16
+#else 
+#include <netinet/in.h>
+#endif // WIN32
+
 
 #include <stdint.h>
-#include <netinet/in.h>
 #include <cstring>
 #include <string>
 #include <iostream>

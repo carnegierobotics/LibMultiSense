@@ -40,13 +40,17 @@
 
 #include <iostream>
 
- int Updater::Receive(uint8_t * buf, const size_t len, ssize_t *RxLen)
+ int Updater::Receive(uint8_t * buf, const size_t len, long int *RxLen)
  {
 
      int ret = 0;
      struct sockaddr_in PeerAddr;
-     ssize_t BytesReceived = 0;
+     long int BytesReceived = 0;
+#if WIN32
+     int PeerLength = sizeof(struct sockaddr_in);
+#else
      socklen_t PeerLength = sizeof(struct sockaddr_in);
+#endif
 
      BytesReceived = recvfrom(m_Ip->Sock(), buf, len, 0, (struct sockaddr *)&PeerAddr, &PeerLength);
      if (BytesReceived<0) {
@@ -67,8 +71,12 @@
  int Updater::Send(uint8_t * buf, const size_t len)
  {
 
+#if WIN32
+     int PeerLength = sizeof(struct sockaddr_in);
+#else
      socklen_t PeerLength = sizeof(struct sockaddr_in);
-     ssize_t Sent = 0;
+#endif
+     long int Sent = 0;
      struct sockaddr_in server = m_Ip->Server();
 
      Sent = sendto(m_Ip->Sock(), buf, len, 0, (struct sockaddr *)&server, PeerLength);
