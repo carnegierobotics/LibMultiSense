@@ -71,7 +71,7 @@ int Ip::Bind()
         std::cerr << "Error Failed to Send Setup Message\n";
         if (bSent < 0)
         {
-            std::cerr << strerror(errno) << std::endl;
+            std::cerr << SOCKET_ERROR << std::endl;
         }
         else
         {
@@ -88,7 +88,7 @@ int Ip::Bind()
         std::cerr << "Error Failed to Receive Setup Message\n";
         if (bRead < 0)
         {
-            std::cerr << strerror(errno) << std::endl;
+            std::cerr << SOCKET_ERRNO << std::endl;
         }
         else
         {
@@ -121,17 +121,28 @@ int Ip::Setup(const char * _IpAddress)
       strcpy(m_IpAddress, _IpAddress);
     }
 
+#ifdef WIN32
+    WSADATA wsaData;
+    ret = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (ret != NO_ERROR) {
+        std::cerr << "Failed to init windows socket API!\n";
+        std::cerr << SOCKET_ERRNO << std::endl;
+        return -1;
+    }
+#endif
+
+
     m_SockFd = socket(AF_INET, SOCK_DGRAM, 0);
     if (m_SockFd < 0) {
        std::cerr << "Failed to create udp socket!\n";
-       std::cerr << strerror(errno) << std::endl;
+       std::cerr << SOCKET_ERRNO << std::endl;
        return -1;
     }
 
     ret = setsockopt(m_SockFd, SOL_SOCKET, SO_SNDBUF, (char *)&so_sendbuf, sizeof(so_sendbuf));
     if (ret < 0) {
         std::cerr <<  "Failed to set socket option sendbuf size: " << so_sendbuf << std::endl;
-        std::cerr << strerror(errno) << std::endl;
+        std::cerr << SOCKET_ERRNO << std::endl;
         closesocket(m_SockFd);
         return ret;
     }
@@ -139,7 +150,7 @@ int Ip::Setup(const char * _IpAddress)
     ret = setsockopt(m_SockFd, SOL_SOCKET, SO_RCVBUF, (char*)&so_recvbuf, sizeof(so_recvbuf));
     if (ret < 0) {
         std::cerr <<  "Failed to set socket option recvbuf size: " << so_recvbuf << std::endl;
-        std::cerr << strerror(errno) << std::endl;
+        std::cerr << SOCKET_ERRNO << std::endl;
         closesocket(m_SockFd);
         return ret;
     }
@@ -147,7 +158,7 @@ int Ip::Setup(const char * _IpAddress)
     ret = setsockopt(m_SockFd, SOL_SOCKET, SO_REUSEADDR, (char*)&so_reuse, sizeof(so_reuse));
     if (ret < 0) {
         std::cerr <<  "Failed to set socket option reuseaddr\n";
-        std::cerr << strerror(errno) << std::endl;
+        std::cerr << SOCKET_ERRNO << std::endl;
         return ret;
     }
 
@@ -162,7 +173,7 @@ int Ip::Setup(const char * _IpAddress)
 
     if (setsockopt(m_SockFd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv)) == -1){
         std::cerr << "Couldn't set socket timeout\n" << std::endl;
-        std::cerr << strerror(errno) << std::endl;
+        std::cerr << SOCKET_STR_ERR << std::endl;
         return -1;
     }
 

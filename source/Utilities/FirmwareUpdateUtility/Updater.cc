@@ -62,8 +62,8 @@
 #pragma warning (pop)
 #endif
      if (BytesReceived<0) {
-         std::cerr << "Failed to receive from socket!\n" << strerror(errno) <<std::endl;
-         return -errno;
+         std::cerr << "Failed to receive from socket: " << SOCKET_STR_ERR <<std::endl;
+         return -SOCKET_ERRNO;
      } else if (BytesReceived==0) {
          std::cerr << "Socket connection closed!\n";
          return -1;
@@ -98,7 +98,7 @@
 #endif
      if (Sent<0)
      {
-         std::cerr << "Failed to send to socket: " << strerror(errno) << std::endl;
+         std::cerr << "Failed to send to socket: " << SOCKET_STR_ERR << std::endl;
      }
      else if (Sent == 0)
      {

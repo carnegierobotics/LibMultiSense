@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
       ret = u.Receive((uint8_t *)&UpdateStatus, sizeof(UpdateStatus), &MsgLen);
       if (ret < 0)
       {
-          if (ret == -EAGAIN)
+          if (ret == -EAGAIN || ret == -10060)
           {
               usleep(100);
               continue;
