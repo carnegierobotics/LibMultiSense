@@ -71,7 +71,7 @@ int Ip::Bind()
         std::cerr << "Error Failed to Send Setup Message\n";
         if (bSent < 0)
         {
-            std::cerr << SOCKET_ERROR << std::endl;
+            std::cerr << SOCKET_ERRNO << std::endl;
         }
         else
         {

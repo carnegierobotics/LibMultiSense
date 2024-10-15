@@ -91,14 +91,13 @@
 #ifdef WIN32
 #ifndef NOMINMAX
 #define NOMINMAX 1
+#endif
 #define SOCKET_ERRNO WSAGetLastError()
 #define SOCKET_STR_ERR SOCKET_ERRNO
+#define usleep(usec) Sleep((usec)/1000)
 #else
 #define SOCKET_ERRNO errno 
 #define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
-#endif
-
-#define usleep(usec) Sleep((usec)/1000)
 #endif
 
 #ifndef WIN32
