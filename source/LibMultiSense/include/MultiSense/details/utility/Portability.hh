@@ -98,9 +98,6 @@
 #else
 #define SOCKET_ERRNO errno 
 #define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
-#endif
-
-#ifndef WIN32
 #define closesocket close
 #endif
 
