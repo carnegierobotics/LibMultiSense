@@ -37,15 +37,18 @@
  #ifndef __FUU_Messages_H__
  #define __FUU_Messages_H__
 
+#ifdef WIN32
+#define INET_ADDRSTRLEN 16
+#include <WinSock2.h>
+#else 
+#include <netinet/in.h>
+#endif
+
 
 #include <stdint.h>
-#include <netinet/in.h>
 #include <cstring>
 #include <string>
 #include <iostream>
-
-#define PACK __attribute__((packed,aligned(4)))
-
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -66,22 +69,22 @@ static CRL_CONSTEXPR MessageType Message_Status     = 4;
 static CRL_CONSTEXPR MessageType Message_Reboot     = 5;
 
 typedef uint32_t StatusMessage;
-static CRL_CONSTEXPR StatusMessage Status_NotStarted          = (0x1<<0);
-static CRL_CONSTEXPR StatusMessage Status_FileNotReceived     = (0x1<<1);
-static CRL_CONSTEXPR StatusMessage Status_FileReceived        = (0x1<<2);
-static CRL_CONSTEXPR StatusMessage Status_FileCheckComplete   = (0x1<<3);
-static CRL_CONSTEXPR StatusMessage Status_FileCheckFailed     = (0x1<<4);
-static CRL_CONSTEXPR StatusMessage Status_BackupComplete      = (0x1<<5);
-static CRL_CONSTEXPR StatusMessage Status_BackupFailed        = (0x1<<6);
-static CRL_CONSTEXPR StatusMessage Status_BootImageComplete   = (0x1<<7);
-static CRL_CONSTEXPR StatusMessage Status_BootImageFailed     = (0x1<<8);
-static CRL_CONSTEXPR StatusMessage Status_OSImageComplete     = (0x1<<9);
-static CRL_CONSTEXPR StatusMessage Status_OSImageFailed       = (0x1<<10);
-static CRL_CONSTEXPR StatusMessage Status_FSComplete          = (0x1<<11);
-static CRL_CONSTEXPR StatusMessage Status_FSFailed            = (0x1<<12);
-static CRL_CONSTEXPR StatusMessage Status_UpdateComplete      = (0x1<<13);
-static CRL_CONSTEXPR StatusMessage Status_UpdateFailed        = (0x1<<14);
-static CRL_CONSTEXPR StatusMessage Status_ClientConnected     = (0x1<<31);
+static CRL_CONSTEXPR StatusMessage Status_NotStarted          = (0x1u<<0);
+static CRL_CONSTEXPR StatusMessage Status_FileNotReceived     = (0x1u<<1);
+static CRL_CONSTEXPR StatusMessage Status_FileReceived        = (0x1u<<2);
+static CRL_CONSTEXPR StatusMessage Status_FileCheckComplete   = (0x1u<<3);
+static CRL_CONSTEXPR StatusMessage Status_FileCheckFailed     = (0x1u<<4);
+static CRL_CONSTEXPR StatusMessage Status_BackupComplete      = (0x1u<<5);
+static CRL_CONSTEXPR StatusMessage Status_BackupFailed        = (0x1u<<6);
+static CRL_CONSTEXPR StatusMessage Status_BootImageComplete   = (0x1u<<7);
+static CRL_CONSTEXPR StatusMessage Status_BootImageFailed     = (0x1u<<8);
+static CRL_CONSTEXPR StatusMessage Status_OSImageComplete     = (0x1u<<9);
+static CRL_CONSTEXPR StatusMessage Status_OSImageFailed       = (0x1u<<10);
+static CRL_CONSTEXPR StatusMessage Status_FSComplete          = (0x1u<<11);
+static CRL_CONSTEXPR StatusMessage Status_FSFailed            = (0x1u<<12);
+static CRL_CONSTEXPR StatusMessage Status_UpdateComplete      = (0x1u<<13);
+static CRL_CONSTEXPR StatusMessage Status_UpdateFailed        = (0x1u<<14);
+static CRL_CONSTEXPR StatusMessage Status_ClientConnected     = (0x1u<<31);
 static CRL_CONSTEXPR StatusMessage Status_Error =    (Status_FileNotReceived |
                                                       Status_FileCheckFailed |
                                                       Status_BackupFailed |
@@ -111,7 +114,6 @@ inline std::string StatusString(StatusMessage s)
         case Status_ClientConnected:    return "Client Connected";
         default: return "Unknown Status";
     }
-    return "";
 }
 
 inline void PrintStatus(StatusMessage s)
@@ -127,7 +129,7 @@ inline void PrintStatus(StatusMessage s)
     std::cout << "-------------------------------------------------\n\n";
 }
 
-typedef uint32_t UpdateStatusMessage;
+typedef int32_t UpdateStatusMessage;
 static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Error = -1;
 static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Ok    = 0;
 static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Done  = 1;
@@ -135,6 +137,13 @@ static CRL_CONSTEXPR UpdateStatusMessage UpdateStatus_Done  = 1;
 typedef uint32_t UpdateStatusId;
 static CRL_CONSTEXPR UpdateStatusId UpdateStatusId_Message = 0;
 static CRL_CONSTEXPR UpdateStatusId UpdateStatusId_ACK     = 1;
+
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#define PACK 
+#pragma pack(push,1)
+#else
+#define PACK __attribute__((packed,aligned(4)))
+#endif
 
 struct PACK MessageSetup {
 
@@ -190,6 +199,9 @@ struct PACK MessageUpdateStatus {
     }
 };
 
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#pragma pack(pop)
+#endif
 } //namespace Messages
 
 #endif /* end of include guard: __FUU_Messages_H__ */

@@ -48,7 +48,6 @@
 #include <errno.h>
 #include <string.h>
 #include <linux/futex.h>
-#include <unistd.h>
 #include <sys/syscall.h>
 
 #include <vector>

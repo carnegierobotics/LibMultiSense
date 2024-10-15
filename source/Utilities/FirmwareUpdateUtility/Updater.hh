@@ -52,7 +52,7 @@ public:
         m_Ip = _Ip;
     }
 
-    int Receive(uint8_t * buf, const size_t len, ssize_t *rxlen);
+    int Receive(uint8_t * buf, const size_t len, long int *rxlen);
     int Send(uint8_t * buf, const size_t len);
     int SendFile(char * FilePath);
 

@@ -926,7 +926,7 @@ void impl::handle()
 #endif
                     m_lastUnexpectedSequenceId = sequence;
 
-                    utility::ScopedLock lock(m_statisticsLock);
+                    utility::ScopedLock lock2(m_statisticsLock);
                     m_channelStatistics.numDroppedAssemblers += 1;
                 }
                 continue;
@@ -975,7 +975,7 @@ void impl::handle()
 #ifdef UDP_ASSEMBLER_DEBUG
                 CRL_DEBUG("UDP Assembler dropping sequence=%" PRId64 "\n", willBeDropped.second);
 #endif
-                utility::ScopedLock lock(m_statisticsLock);
+                utility::ScopedLock lock2(m_statisticsLock);
                 m_channelStatistics.numDroppedAssemblers += 1;
             }
             m_udpTrackerCache.insert(sequence, trP);
