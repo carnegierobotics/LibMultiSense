@@ -52,7 +52,15 @@
      socklen_t PeerLength = sizeof(struct sockaddr_in);
 #endif
 
-     BytesReceived = recvfrom(m_Ip->Sock(), buf, len, 0, (struct sockaddr *)&PeerAddr, &PeerLength);
+     // Disable narrowing conversion warning for 'len' argument
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
+     BytesReceived = recvfrom(m_Ip->Sock(), (char*)buf, len, 0, (struct sockaddr *)&PeerAddr, &PeerLength);
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (pop)
+#endif
      if (BytesReceived<0) {
          std::cerr << "Failed to receive from socket!\n" << strerror(errno) <<std::endl;
          return -errno;
@@ -79,7 +87,15 @@
      long int Sent = 0;
      struct sockaddr_in server = m_Ip->Server();
 
-     Sent = sendto(m_Ip->Sock(), buf, len, 0, (struct sockaddr *)&server, PeerLength);
+     // Disable narrowing conversion warning for 'len' argument
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
+     Sent = sendto(m_Ip->Sock(), (char*)buf, len, 0, (struct sockaddr *)&server, PeerLength);
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (pop)
+#endif
      if (Sent<0)
      {
          std::cerr << "Failed to send to socket: " << strerror(errno) << std::endl;
@@ -120,7 +136,15 @@
      rewind(fd);
 
      for (size_t i = 0; i < FileSize; i+=Messages::BLOCK_SIZE) {
+         // Disable narrowing conversion wanring on windows, we limit on return value to BLOCK_SIZE
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
          uint32_t l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (pop)
+#endif
          crc32_initial = crc32(crc32_initial, chunk, l);
      }
      crc32_final = crc32_initial;
@@ -135,8 +159,15 @@
      while (bytesWritten<FileSize) {
 
          uint32_t sent = 0;
-         int l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
-         if (l <= 0) {
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
+         uint32_t l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (pop)
+#endif
+         if (l == 0) {
              std::cerr << "Error: Failed to read chunk from File\n";
              fclose(fd);
              return -1;

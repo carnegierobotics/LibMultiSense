@@ -34,7 +34,6 @@
  *   2024-27-08, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1 
@@ -42,6 +41,8 @@
 #define INET_ADDRSTRLEN 16
 #include <WinSock2.h>
 #include <Windows.h>
+typedef SOCKET socket_t;
+
 #else
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -55,6 +56,7 @@
 #include <ifaddrs.h>
 #include <netinet/udp.h>
 #include <sys/time.h>
+typedef int socket_t;
 #endif
 
 
@@ -89,7 +91,7 @@ public:
         m_Connected = 0;
     }
 
-    int Sock( )
+    socket_t Sock( )
     {
         return m_SockFd;
     }
@@ -100,7 +102,8 @@ public:
     }
     
 private:
-    int m_SockFd;
+
+    socket_t m_SockFd;
     struct sockaddr_in m_ClientAddress;
     struct sockaddr_in m_ServerAddress;
     char m_IpAddress[INET_ADDRSTRLEN];

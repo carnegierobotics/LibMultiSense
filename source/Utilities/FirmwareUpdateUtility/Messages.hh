@@ -39,22 +39,16 @@
 
 #ifdef WIN32
 #define INET_ADDRSTRLEN 16
+#include <WinSock2.h>
 #else 
 #include <netinet/in.h>
-#endif // WIN32
+#endif
 
 
 #include <stdint.h>
 #include <cstring>
 #include <string>
 #include <iostream>
-
-
-#if defined (_MSC_VER) || defined(__MINGW64__)
-#pragma pack(push, 1)
-#else
-#define PACK __attribute__((packed,aligned(4)))
-#endif
 
 #if defined (CRL_HAVE_CONSTEXPR)
 #define CRL_CONSTEXPR constexpr
@@ -120,7 +114,6 @@ inline std::string StatusString(StatusMessage s)
         case Status_ClientConnected:    return "Client Connected";
         default: return "Unknown Status";
     }
-    return "";
 }
 
 inline void PrintStatus(StatusMessage s)
@@ -145,6 +138,13 @@ typedef uint32_t UpdateStatusId;
 static CRL_CONSTEXPR UpdateStatusId UpdateStatusId_Message = 0;
 static CRL_CONSTEXPR UpdateStatusId UpdateStatusId_ACK     = 1;
 
+#if defined (_MSC_VER) || defined(__MINGW64__)
+#define PACK 
+#pragma pack(push,1)
+#else
+#define PACK __attribute__((packed,aligned(4)))
+#endif
+
 struct PACK MessageSetup {
 
     MessageType Id;
@@ -158,9 +158,6 @@ struct PACK MessageSetup {
         memcpy(&ServerAddress, &sr, sizeof(struct sockaddr_in));
     }
 };
-#if defined (_MSC_VER) || defined(__MINGW64__)
-#pragma pack(pop)
-#endif
 
 struct PACK MessageBlockAck {
     MessageType Id;
@@ -171,9 +168,7 @@ struct PACK MessageBlockAck {
     {
     }
 };
-#if defined (_MSC_VER) || defined(__MINGW64__)
-#pragma pack(pop)
-#endif
+
 struct PACK MessageFileBlock {
     MessageType Id;
     uint32_t Length;
@@ -190,9 +185,6 @@ struct PACK MessageFileBlock {
         memcpy(Buffer, _Buffer, ChunkLen);
     }
 };
-#if defined (_MSC_VER) || defined(__MINGW64__)
-#pragma pack(pop)
-#endif
 
 struct PACK MessageUpdateStatus {
     uint32_t State;
@@ -206,6 +198,7 @@ struct PACK MessageUpdateStatus {
     {
     }
 };
+
 #if defined (_MSC_VER) || defined(__MINGW64__)
 #pragma pack(pop)
 #endif

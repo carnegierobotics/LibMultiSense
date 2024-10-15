@@ -62,6 +62,11 @@ static void usage() {
 static void signal_handler(int signal);
 std::atomic<int> ExitReceived(0);
 
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
+
+
 int main(int argc, char *argv[]) {
 
   char IpAddress[INET_ADDRSTRLEN] = {};
@@ -121,7 +126,7 @@ int main(int argc, char *argv[]) {
   while (!UpdateComplete || !ExitReceived)
   {
       Messages::MessageUpdateStatus UpdateStatus;
-      ssize_t MsgLen = 0;
+      long int MsgLen = 0;
 
       ret = u.Receive((uint8_t *)&UpdateStatus, sizeof(UpdateStatus), &MsgLen);
       if (ret < 0)
