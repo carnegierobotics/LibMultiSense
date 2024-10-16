@@ -91,7 +91,7 @@ void usage(const char *programNameP)
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=7200)" << std::endl;
+    std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=1500)" << std::endl;
     std::cerr << "\t-r <head_id>    : remote head ID (default=0)" << std::endl;
 
     exit(1);
@@ -390,7 +390,7 @@ int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    int32_t mtu = 7200;
+    int32_t mtu = 1500;
     RemoteHeadChannel head_id = Remote_Head_VPB;
 
 #if WIN32
