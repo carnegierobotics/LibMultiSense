@@ -1358,13 +1358,10 @@ Status impl::setBestMtu()
         return Status_Unsupported;
 
     while (bisections < 7){
-        std::cout << "Testing MTU " << cur_mtu << std::endl;
         wire::SysTestMtuResponse resp;
         status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
-        if ((Status_Ok == status) && (cur_mtu == MAX_MTU_SIZE)){
-            std::cout << "Max MTU negeotiated on first try!\n";
+        if ((Status_Ok == status) && (cur_mtu == MAX_MTU_SIZE))
             break;
-        }
 
         bisections++;
 
@@ -1384,10 +1381,8 @@ Status impl::setBestMtu()
 
     if (Status_Ok == status)
         status = waitAck(wire::SysMtu(cur_mtu));
-    if (Status_Ok == status){
+    if (Status_Ok == status)
         m_sensorMtu = cur_mtu;
-        std::cout << "MTU Negotiate Status: " << status << " Selected MTU: " << cur_mtu << std::endl;
-    }
 
     return status;
 
