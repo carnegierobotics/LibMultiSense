@@ -287,7 +287,7 @@ int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    int32_t mtu = 1500;
+    int32_t mtu = 0;
     RemoteHeadChannel head_id = Remote_Head_VPB;
 
 #if WIN32
@@ -384,8 +384,10 @@ int main(int    argc,
 
     //
     // Change MTU
-
-    status = channelP->setMtu(mtu);
+    if (mtu >= 1500)
+        status = channelP->setMtu(mtu);
+    else
+        status = channelP->setBestMtu();
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         goto clean_out;

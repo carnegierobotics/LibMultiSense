@@ -136,7 +136,7 @@ int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    uint32_t    mtu            = 1500;
+    uint32_t    mtu            = 0;
 
     crl::multisense::CameraProfile  profile = crl::multisense::User_Control;
     crl::multisense::system::ApriltagParams params;
@@ -211,10 +211,12 @@ int main(int    argc,
 
     //
     // Change MTU
-
-    status = channelP->setMtu(mtu);
+    if (mtu >= 1500)
+        status = channelP->setMtu(mtu);
+    else 
+        status = channelP->setBestMtu();
     if (Status_Ok != status) {
-        std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to set MTU: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 

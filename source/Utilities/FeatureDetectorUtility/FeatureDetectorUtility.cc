@@ -525,7 +525,7 @@ int main(int    argc,
     //
     // Change MTU
 
-    status = channelP->setMtu(mtu);
+    status = channelP->setBestMtu();
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         goto clean_out;
