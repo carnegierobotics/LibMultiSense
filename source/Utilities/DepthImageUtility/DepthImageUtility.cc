@@ -76,7 +76,7 @@ void usage(const char *programNameP)
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
+    std::cerr << "\t-m <mtu>                : CURRENT MTU (default=1500)" << std::endl;
     std::cerr << "\t-c                      : Save color images and depth in the color image frame" << std::endl;
 
     exit(1);
@@ -313,7 +313,7 @@ int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    int32_t mtu = 7200;
+    int32_t mtu = 1500;
     bool useColor = false;
 
 #if WIN32

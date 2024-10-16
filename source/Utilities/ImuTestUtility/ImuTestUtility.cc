@@ -76,7 +76,7 @@ void usage(const char *programNameP)
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <ip_address>    : IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>           : default=7200" << std::endl;
+    std::cerr << "\t-m <mtu>           : default=1500" << std::endl;
     std::cerr << "\t-f <log_file>      : FILE to log IMU data (stdout by default)" << std::endl;
 
     exit(1);
@@ -139,7 +139,7 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     const char *logFileNameP   = NULL;
-    uint32_t    mtu            = 7200;
+    uint32_t    mtu            = 1500;
 
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
