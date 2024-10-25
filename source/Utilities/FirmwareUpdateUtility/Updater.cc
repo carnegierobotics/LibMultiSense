@@ -158,7 +158,6 @@
            std::cerr << "Invalid Sequence, Resending block" << std::endl;
          }
 
-         printf("Sending Block (%d/%d)\r", BlockAck.Sequence, numBlocks);
      }
 
      std::cout << "Finished sending file to camera!\n";
