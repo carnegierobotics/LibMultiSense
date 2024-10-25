@@ -139,7 +139,7 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     const char *logFileNameP   = NULL;
-    uint32_t    mtu            = 1500;
+    uint32_t    mtu            = 0;
 
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
@@ -216,10 +216,12 @@ int main(int    argc,
 
     //
     // Change MTU
-
-    status = channelP->setMtu(mtu);
+    if (mtu >= 1500)
+        status = channelP->setMtu(mtu);
+    else 
+        status = channelP->setBestMtu();
     if (Status_Ok != status) {
-        std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to set MTU: " << Channel::statusString(status) << std::endl;
         goto clean_out;
     }
 

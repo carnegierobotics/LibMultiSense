@@ -955,6 +955,16 @@ public:
     virtual Status setMtu              (int32_t mtu)                        = 0;
 
     /**
+     * Binary search for best path MTU (within ~118B).
+     *
+     *
+     * @return A crl::multisense::Status indicating if the mtu configuration
+     * was successfully received
+     */
+
+    virtual Status setBestMtu          ()                                   = 0;
+
+    /**
      * Query the current sensor's network configuration.
      *
      * See system::NetworkConfig for a usage example
