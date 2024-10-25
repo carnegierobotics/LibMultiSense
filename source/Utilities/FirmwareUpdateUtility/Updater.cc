@@ -121,7 +121,6 @@
 
      lseek(fd, 0L, SEEK_SET);
 
-     const int numBlocks = FileSize/Messages::BLOCK_SIZE;
      Messages::MessageBlockAck BlockAck;
 
      while (bytesWritten<FileSize) {
