@@ -301,6 +301,13 @@ static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_3        = (1ull<<33);
 static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_4        = (1ull<<34); // same as SOURCE_FEATURE_RECTIFIED_RIGHT
 static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_5        = (1ull<<35); // same as SOURCE_FEATURE_RECTIFIED_AUX
 
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA = (SOURCE_SECONDARY_APP_DATA_0 |
+                                                             SOURCE_SECONDARY_APP_DATA_1 |
+                                                             SOURCE_SECONDARY_APP_DATA_2 |
+                                                             SOURCE_SECONDARY_APP_DATA_3 |
+                                                             SOURCE_SECONDARY_APP_DATA_4 |
+                                                             SOURCE_SECONDARY_APP_DATA_5);
+
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
                                                             SOURCE_RAW_AUX         |
