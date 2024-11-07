@@ -1345,15 +1345,15 @@ Status impl::getMtu(int32_t& mtu)
 
 Status impl::setBestMtu()
 {
-    uint cur_mtu = MAX_MTU_SIZE;
-    uint max_mtu = MAX_MTU_SIZE;
-    uint min_mtu = MIN_MTU_SIZE;
-    uint bisections = 0;
+    uint32_t cur_mtu = MAX_MTU_SIZE;
+    uint32_t max_mtu = MAX_MTU_SIZE;
+    uint32_t min_mtu = MIN_MTU_SIZE;
+    uint32_t bisections = 0;
     Status status = Status_Ok;
 
     //
     // v2.2 and older do not support testing MTU
-    
+
     if (m_sensorVersion.firmwareVersion <= 0x0202)
         return Status_Unsupported;
 
