@@ -4207,7 +4207,8 @@ struct ChannelStatistics
         numDispatchedImu(0),
         numDispatchedCompressedImage(0),
         numDispatchedGroundSurfaceSpline(0),
-        numDispatchedAprilTagDetections(0)
+        numDispatchedAprilTagDetections(0),
+        numDispatchedSecondary(0)
     {
     };
 
@@ -4258,8 +4259,8 @@ struct ChannelStatistics
     std::size_t numDispatchedAprilTagDetections;
 
     //
-    // The number of dispatached feature detections
-    std::size_t numDispatchedFeatureDetections;
+    // The number of dispatached secondary application
+    std::size_t numDispatchedSecondary;
 };
 
 class MULTISENSE_API SecondaryAppConfig {

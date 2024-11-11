@@ -58,14 +58,16 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     VersionType version;
 #endif // SENSORPOD_FIRMWARE
 
-    size_t dataLength;
-    void * dataP;
+    int64_t frameId;
+    size_t  dataLength;
+    void *  dataP;
 
     SecondaryAppMetaHeader():
 #ifdef SENSORDPOD_FIRMWARE
         id(ID),
         version(VERSION),
 #endif // SENSORPOD_FIRMWARE
+        frameId(0),
         dataLength(0),
         dataP(nullptr)
       {};
@@ -81,7 +83,7 @@ public:
     // Constructors
 
     SecondaryAppMetadata(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppMetadata() : dataLength(0), dataP(NULL) {};
+    SecondaryAppMetadata() {};
 
     //
     // Serialization routine

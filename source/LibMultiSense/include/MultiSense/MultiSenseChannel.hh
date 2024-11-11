@@ -390,8 +390,8 @@ public:
      * @return A crl::multisense::Status indicating if the callback registration
      * succeeded or failed
      */
-    virtual Status addIsolatedCallback(feature_detector::Callback callback,
-                                       void         *userDataP=NULL) = 0;
+    // virtual Status addIsolatedCallback(feature_detector::Callback callback,
+                                       // void         *userDataP=NULL) = 0;
 
     /**
      * Unregister a user defined image::Callback. This stops the callback
@@ -487,7 +487,7 @@ public:
      * succeeded or failed
      */
 
-    virtual Status removeIsolatedCallback(feature_detector::Callback callback) = 0;
+    // virtual Status removeIsolatedCallback(feature_detector::Callback callback) = 0;
 
     /**
      * Unregister a user defined secondary_app::Callback. This stops the callback

@@ -290,24 +290,24 @@ Status impl::addIsolatedCallback(apriltag::Callback callback,
 
 //
 // Adds a new feature detector listener
-
-Status impl::addIsolatedCallback(feature_detector::Callback callback,
-                                 void *userDataP)
-{
-    try {
-
-        utility::ScopedLock lock(m_dispatchLock);
-        m_featureDetectorListeners.push_back(new FeatureDetectorListener(callback,
-                                               0,
-                                               userDataP,
-                                               MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE));
-
-    } catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
-        return Status_Exception;
-    }
-    return Status_Ok;
-}
+//
+// Status impl::addIsolatedCallback(feature_detector::Callback callback,
+//                                  void *userDataP)
+// {
+//     try {
+//
+//         utility::ScopedLock lock(m_dispatchLock);
+//         m_featureDetectorListeners.push_back(new FeatureDetectorListener(callback,
+//                                                0,
+//                                                userDataP,
+//                                                MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE));
+//
+//     } catch (const std::exception& e) {
+//         CRL_DEBUG("exception: %s\n", e.what());
+//         return Status_Exception;
+//     }
+//     return Status_Ok;
+// }
 
 //
 // Removes an image listener
@@ -555,31 +555,31 @@ Status impl::removeIsolatedCallback(secondary_app::Callback callback)
 
 //
 // Removes a feature detector listener
-
-Status impl::removeIsolatedCallback(feature_detector::Callback callback)
-{
-    try {
-        utility::ScopedLock lock(m_dispatchLock);
-
-        std::list<FeatureDetectorListener*>::iterator it;
-        for(it  = m_featureDetectorListeners.begin();
-            it != m_featureDetectorListeners.end();
-            ++ it) {
-
-            if ((*it)->callback() == callback) {
-                delete *it;
-                m_featureDetectorListeners.erase(it);
-                return Status_Ok;
-            }
-        }
-
-    } catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
-        return Status_Exception;
-    }
-
-    return Status_Error;
-}
+// 
+// Status impl::removeIsolatedCallback(feature_detector::Callback callback)
+// {
+//     try {
+//         utility::ScopedLock lock(m_dispatchLock);
+//
+//         std::list<FeatureDetectorListener*>::iterator it;
+//         for(it  = m_featureDetectorListeners.begin();
+//             it != m_featureDetectorListeners.end();
+//             ++ it) {
+//
+//             if ((*it)->callback() == callback) {
+//                 delete *it;
+//                 m_featureDetectorListeners.erase(it);
+//                 return Status_Ok;
+//             }
+//         }
+//
+//     } catch (const std::exception& e) {
+//         CRL_DEBUG("exception: %s\n", e.what());
+//         return Status_Exception;
+//     }
+//
+//     return Status_Error;
+// }
 
 //
 // Reserve the current callback buffer being used in a dispatch thread

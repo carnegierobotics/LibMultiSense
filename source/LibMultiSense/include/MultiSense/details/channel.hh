@@ -48,7 +48,7 @@
 #include "MultiSense/details/storage.hh"
 #include "MultiSense/details/wire/Protocol.hh"
 #include "MultiSense/details/wire/ImageMetaMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppMetaMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
 #include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
@@ -126,8 +126,8 @@ public:
     virtual Status addIsolatedCallback   (secondary_app::Callback callback,
                                           void         *userDataP);
 
-    virtual Status addIsolatedCallback   (feature_detector::Callback callback,
-                                          void         *userDataP);
+    // virtual Status addIsolatedCallback   (feature_detector::Callback callback,
+                                          // void         *userDataP);
 
     virtual Status removeIsolatedCallback(image::Callback callback);
     virtual Status removeIsolatedCallback(lidar::Callback callback);
@@ -137,7 +137,7 @@ public:
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
     virtual Status removeIsolatedCallback(apriltag::Callback   callback);
     virtual Status removeIsolatedCallback(secondary_app::Callback   callback);
-    virtual Status removeIsolatedCallback(feature_detector::Callback   callback);
+    // virtual Status removeIsolatedCallback(feature_detector::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -311,6 +311,7 @@ private:
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS              = 5;
     static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH            = 4;
+    static CRL_CONSTEXPR uint32_t SECONDARY_APP_META_CACHE_DEPTH    = 4;
     static CRL_CONSTEXPR uint32_t FEATURE_DETECTOR_META_CACHE_DEPTH = 4;
     static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH           = 4;
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY            = 8;
@@ -457,7 +458,12 @@ private:
     //
     // A cache of feature detector meta data
 
-    DepthCache<int64_t, wire::FeatureDetectorMeta> m_featureDetectorMetaCache;
+    // DepthCache<int64_t, wire::FeatureDetectorMeta> m_featureDetectorMetaCache;
+
+    //
+    // A cache of secondary application meta data
+
+    DepthCache<int64_t, wire::SecondaryAppMetadata> m_secondaryAppMetaCache;
 
     //
     // A map of custom UDP assemblers
@@ -503,7 +509,7 @@ private:
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
     std::list<SecondaryAppListener*>            m_secondaryAppListeners;
-    std::list<FeatureDetectorListener*>         m_featureDetectorListeners;
+    // std::list<FeatureDetectorListener*>      m_featureDetectorListeners;
 
     //
     // A message signal interface

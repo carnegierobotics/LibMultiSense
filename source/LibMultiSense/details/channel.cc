@@ -79,7 +79,8 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_rxLargeBufferPool(),
     m_rxSmallBufferPool(),
     m_imageMetaCache(IMAGE_META_CACHE_DEPTH),
-    m_featureDetectorMetaCache(FEATURE_DETECTOR_META_CACHE_DEPTH),
+    // m_featureDetectorMetaCache(FEATURE_DETECTOR_META_CACHE_DEPTH),
+    m_secondaryAppMetaCache(SECONDARY_APP_META_CACHE_DEPTH),
     m_udpAssemblerMap(),
     m_dispatchLock(),
     m_streamLock(),
@@ -93,7 +94,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_imuListeners(),
     m_compressedImageListeners(),
     m_secondaryAppListeners(),
-    m_featureDetectorListeners(),
+    // m_featureDetectorListeners(),
     m_watch(),
     m_messages(),
     m_streamsEnabled(0),
@@ -270,11 +271,11 @@ void impl::cleanup()
         its != m_secondaryAppListeners.end();
         its ++)
         delete *its;
-    std::list<FeatureDetectorListener*>::const_iterator itf;
-    for(itf  = m_featureDetectorListeners.begin();
-        itf != m_featureDetectorListeners.end();
-        ++ itf)
-        delete *itf;
+    // std::list<FeatureDetectorListener*>::const_iterator itf;
+    // for(itf  = m_featureDetectorListeners.begin();
+    //     itf != m_featureDetectorListeners.end();
+    //     ++ itf)
+    //     delete *itf;
     BufferPool::const_iterator it;
     for(it  = m_rxLargeBufferPool.begin();
         it != m_rxLargeBufferPool.end();
@@ -291,7 +292,7 @@ void impl::cleanup()
     m_imuListeners.clear();
     m_secondaryAppListeners.clear();
     m_compressedImageListeners.clear();
-    m_featureDetectorListeners.clear();
+    // m_featureDetectorListeners.clear();
     m_rxLargeBufferPool.clear();
     m_rxSmallBufferPool.clear();
 

@@ -253,20 +253,20 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
 //
 // Publish a feature detection event
 
-void impl::dispatchFeatureDetections(feature_detector::Header& header)
-{
-    utility::ScopedLock lock(m_dispatchLock);
-
-    std::list<FeatureDetectorListener*>::const_iterator it;
-
-    for(it  = m_featureDetectorListeners.begin();
-        it != m_featureDetectorListeners.end();
-        ++ it)
-        (*it)->dispatch(header);
-
-    utility::ScopedLock statsLock(m_statisticsLock);
-    m_channelStatistics.numDispatchedFeatureDetections++;
-}
+// void impl::dispatchFeatureDetections(feature_detector::Header& header)
+// {
+//     utility::ScopedLock lock(m_dispatchLock);
+//
+//     std::list<FeatureDetectorListener*>::const_iterator it;
+//
+//     for(it  = m_featureDetectorListeners.begin();
+//         it != m_featureDetectorListeners.end();
+//         ++ it)
+//         (*it)->dispatch(header);
+//
+//     utility::ScopedLock statsLock(m_statisticsLock);
+//     m_channelStatistics.numDispatchedFeatureDetections++;
+// }
 
 //
 // Publish Secondary App Data
@@ -282,6 +282,9 @@ void impl::dispatchSecondaryApplication(utility::BufferStream& buffer,
         it != m_secondaryAppListeners.end();
         it ++)
         (*it)->dispatch(buffer, header);
+
+    utility::ScopedLock statsLock(m_statisticsLock);
+    m_channelStatistics.numDispatchedSecondary++;
 }
 
 
@@ -621,6 +624,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     }
     case MSG_ID(wire::SecondaryAppData::ID):
     {
+        printf("[%s] secondaryAppData\n", __func__ );
         wire::SecondaryAppData SecondaryApp(stream, version);
 
         secondary_app::Header header;
@@ -674,14 +678,15 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     //     dispatchFeatureDetections(header);
     //     break;
     // }
-    case MSG_ID(wire::FeatureDetectorMeta::ID):
+    case MSG_ID(wire::SecondaryAppMetadata::ID):
     {
-        wire::FeatureDetectorMeta *metaP = new (std::nothrow) wire::FeatureDetectorMeta(stream, version);
+        printf("[%s] secondaryAppMetaData\n", __func__ );
+        wire::SecondaryAppMetadata *metaP = new (std::nothrow) wire::SecondaryAppMetadata(stream, version);
 
         if (NULL == metaP)
             CRL_EXCEPTION_RAW("unable to allocate metadata");
 
-        m_featureDetectorMetaCache.insert(metaP->frameId, metaP); // destroys oldest
+        m_secondaryAppMetaCache.insert(metaP->frameId, metaP); // destroys oldest
         break;
     }
     case MSG_ID(wire::Ack::ID):
