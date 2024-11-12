@@ -501,6 +501,19 @@ public:
     virtual Status removeIsolatedCallback(secondary_app::Callback callback) = 0;
 
     /**
+     * Provides an interface to convert generic secondary app data to usable feature detector data
+     *
+     * @param h the application defined feature detector header
+     * @param data the generic payload from the secondary application
+     * @param len the length of the generic payload
+     * @param frameId the frameId for metadata lookup
+     *
+     * @return A crl::multisense::Status indicating if the callback deregistration
+     * succeeded or failed
+     */
+    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const uint8_t * data, const size_t len, const int64_t frameId) = 0;
+
+    /**
      * Reserve image or lidar data within a isolated callback so it is available
      * after the callback returns.
      *

@@ -49,6 +49,7 @@
 #include "MultiSense/details/wire/Protocol.hh"
 #include "MultiSense/details/wire/ImageMetaMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppMetaMessage.hh"
+#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
 #include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
@@ -103,6 +104,8 @@ public:
     //
     // Public API
 
+    virtual Status findMetadata          (wire::FeatureDetectorMeta * f, const int64_t & frameId);
+
     virtual Status addIsolatedCallback   (image::Callback callback,
                                           DataSource      imageSourceMask,
                                           void           *userDataP);
@@ -138,6 +141,8 @@ public:
     virtual Status removeIsolatedCallback(apriltag::Callback   callback);
     virtual Status removeIsolatedCallback(secondary_app::Callback   callback);
     // virtual Status removeIsolatedCallback(feature_detector::Callback   callback);
+
+    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const uint8_t * data, const size_t len, const int64_t frameId);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);

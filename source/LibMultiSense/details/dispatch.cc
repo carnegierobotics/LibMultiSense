@@ -624,7 +624,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     }
     case MSG_ID(wire::SecondaryAppData::ID):
     {
-        printf("[%s] secondaryAppData\n", __func__ );
         wire::SecondaryAppData SecondaryApp(stream, version);
 
         secondary_app::Header header;
@@ -638,49 +637,8 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         dispatchSecondaryApplication(buffer, header);
         break;
     }
-    // case MSG_ID(wire::FeatureDetector::ID):
-    // {
-    //     wire::FeatureDetector featureDetector(stream, version);
-    //
-    //     const wire::FeatureDetectorMeta * metaP = m_featureDetectorMetaCache.find(featureDetector.frameId);
-    //     if (NULL == metaP)
-    //       break;
-    //
-    //     feature_detector::Header header;
-    //     header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
-    //     header.frameId        = metaP->frameId;
-    //     header.timeSeconds    = metaP->timeSeconds;
-    //     header.timeNanoSeconds= metaP->timeNanoSeconds;
-    //     header.ptpNanoSeconds = metaP->ptpNanoSeconds;
-    //     header.octaveWidth    = metaP->octaveWidth;
-    //     header.octaveHeight   = metaP->octaveHeight;
-    //     header.numOctaves     = metaP->numOctaves;
-    //     header.scaleFactor    = metaP->scaleFactor;
-    //     header.motionStatus   = metaP->motionStatus;
-    //     header.averageXMotion = metaP->averageXMotion;
-    //     header.averageYMotion = metaP->averageYMotion;
-    //     header.numFeatures    = featureDetector.numFeatures;
-    //     header.numDescriptors = featureDetector.numDescriptors;
-    //
-    //     const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
-    //
-    //     uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
-    //     for (size_t i = 0; i < featureDetector.numFeatures; i++) {
-    //         feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
-    //         header.features.push_back(f);
-    //     }
-    //
-    //     for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
-    //         feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
-    //         header.descriptors.push_back(d);
-    //     }
-    //
-    //     dispatchFeatureDetections(header);
-    //     break;
-    // }
     case MSG_ID(wire::SecondaryAppMetadata::ID):
     {
-        printf("[%s] secondaryAppMetaData\n", __func__ );
         wire::SecondaryAppMetadata *metaP = new (std::nothrow) wire::SecondaryAppMetadata(stream, version);
 
         if (NULL == metaP)
@@ -795,6 +753,24 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 	break;
     }
 }
+
+Status impl::findMetadata(wire::FeatureDetectorMeta * f, const int64_t & frameId)
+{
+  wire::SecondaryAppMetadata * m = m_secondaryAppMetaCache.find(frameId);
+
+  if (NULL == m) {
+    fprintf(stderr, "%s Unable to find metadata for frame: %ld\n", __func__, frameId);
+    return Status_Error;
+  }
+
+  utility::BufferStreamReader stream(reinterpret_cast<uint8_t *>(m->dataP), m->dataLength);
+
+  wire::FeatureDetectorMeta _f(stream, 1);
+  memcpy(f, &_f, sizeof(_f));
+
+  return Status_Ok;
+}
+
 
 //
 // Get a UDP assembler for this message type. We are given

@@ -99,6 +99,8 @@ public:
             message.write(dataP, dataLength);
 
         } else {
+            message & frameId;
+            message & dataLength;
 
             dataP = message.peek();
             message.seek(message.tell() + dataLength);

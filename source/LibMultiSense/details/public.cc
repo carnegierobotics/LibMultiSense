@@ -123,6 +123,8 @@
 #include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppActivateMessage.hh"
 
+#include "MultiSense/details/utility/BufferStream.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -553,33 +555,56 @@ Status impl::removeIsolatedCallback(secondary_app::Callback callback)
     return Status_Error;
 }
 
-//
-// Removes a feature detector listener
-// 
-// Status impl::removeIsolatedCallback(feature_detector::Callback callback)
-// {
-//     try {
-//         utility::ScopedLock lock(m_dispatchLock);
-//
-//         std::list<FeatureDetectorListener*>::iterator it;
-//         for(it  = m_featureDetectorListeners.begin();
-//             it != m_featureDetectorListeners.end();
-//             ++ it) {
-//
-//             if ((*it)->callback() == callback) {
-//                 delete *it;
-//                 m_featureDetectorListeners.erase(it);
-//                 return Status_Ok;
-//             }
-//         }
-//
-//     } catch (const std::exception& e) {
-//         CRL_DEBUG("exception: %s\n", e.what());
-//         return Status_Exception;
-//     }
-//
-//     return Status_Error;
-// }
+Status impl::secondaryAppDataExtract(feature_detector::Header &header, const uint8_t * data, const size_t len, const int64_t frameId)
+{
+  utility::BufferStreamReader stream(data, len);
+  wire::FeatureDetector featureDetector(stream, 1); //TODO
+
+
+  wire::FeatureDetectorMeta m;
+  if (findMetadata(&m, frameId) == Status_Ok)
+  {
+    fprintf(stderr, "%s Meta data extracted\n", __func__ );
+  }
+  else
+  {
+    fprintf(stderr, "%s Error metadata extraction for frame %ld failed\n", __func__, frameId );
+    return Status_Error;
+  }
+
+  header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
+  header.frameId        = m.frameId;
+  header.timeSeconds    = m.timeSeconds;
+  header.timeNanoSeconds= m.timeNanoSeconds;
+  header.ptpNanoSeconds = m.ptpNanoSeconds;
+  header.octaveWidth    = m.octaveWidth;
+  header.octaveHeight   = m.octaveHeight;
+  header.numOctaves     = m.numOctaves;
+  header.scaleFactor    = m.scaleFactor;
+  header.motionStatus   = m.motionStatus;
+  header.averageXMotion = m.averageXMotion;
+  header.averageYMotion = m.averageYMotion;
+  header.numFeatures    = featureDetector.numFeatures;
+  header.numDescriptors = featureDetector.numDescriptors;
+
+  const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
+
+  uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+  for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+      feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
+      header.features.push_back(f);
+  }
+
+  for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
+      feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
+      header.descriptors.push_back(d);
+  }
+
+  return Status_Ok;
+}
+
+
+
 
 //
 // Reserve the current callback buffer being used in a dispatch thread
