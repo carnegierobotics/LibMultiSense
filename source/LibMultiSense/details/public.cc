@@ -572,7 +572,8 @@ Status impl::secondaryAppDataExtract(feature_detector::Header &header, const uin
     return Status_Error;
   }
 
-  header.source         = featureDetector.source | ((uint64_t)featureDetector.sourceExtended << 32);
+
+  header.source         = featureDetector.source;
   header.frameId        = m.frameId;
   header.timeSeconds    = m.timeSeconds;
   header.timeNanoSeconds= m.timeNanoSeconds;

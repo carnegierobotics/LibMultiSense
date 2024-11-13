@@ -96,18 +96,16 @@ public:
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
-    static CRL_CONSTEXPR VersionType VERSION    = 2;
+    static CRL_CONSTEXPR VersionType VERSION    = 1;
 
 #ifdef SENSORPOD_FIRMWARE
     IdType                 id;
     VersionType            version;
 #endif // SENSORPOD_FIRMWARE
-    uint32_t               source;
+    uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
     uint16_t               numDescriptors;
-    uint32_t               sourceExtended;
-
 
     FeatureDetectorHeader() :
 #ifdef SENSORPOD_FIRMWARE
@@ -117,8 +115,7 @@ public:
         source(0),
         frameId(0),
         numFeatures(0),
-        numDescriptors(0),
-        sourceExtended(0)
+        numDescriptors(0)
      {};
 
 };
@@ -164,14 +161,6 @@ public:
             message.seek(message.tell() + featureDataSize);
         }
 
-        if (version >= 2)
-        {
-          message & sourceExtended;
-        }
-        else
-        {
-          sourceExtended = 0;
-        }
     }
 
 };

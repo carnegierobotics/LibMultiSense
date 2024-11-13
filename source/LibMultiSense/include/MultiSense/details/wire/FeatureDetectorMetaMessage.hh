@@ -50,10 +50,7 @@ namespace wire {
   public:
       static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR_META;
       static CRL_CONSTEXPR VersionType VERSION    = 1;
-#ifdef SENSORPOD_FIRMWARE
-      IdType                 id;
       VersionType            version;
-#endif // SENSORPOD_FIRMWARE
       uint32_t               length;
       uint32_t               source;
       int64_t                frameId;
@@ -71,10 +68,7 @@ namespace wire {
       uint16_t               numDescriptors;
 
       FeatureDetectorMetaHeader() :
-  #ifdef SENSORPOD_FIRMWARE
-          id(ID),
           version(VERSION),
-  #endif // SENSORPOD_FIRMWARE
           length(0),
           source(0),
           frameId(0),
@@ -110,9 +104,10 @@ public:
 
     template<class Archive>
         void serialize(Archive&          message,
-                       const VersionType version)
+                       const VersionType _version)
     {
-        (void) version;
+        (void) _version;
+        message & version;
         message & length;
         message & source;
         message & frameId;
