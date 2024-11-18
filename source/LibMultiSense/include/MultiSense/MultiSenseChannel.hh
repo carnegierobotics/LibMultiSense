@@ -511,7 +511,7 @@ public:
      * @return A crl::multisense::Status indicating if the callback deregistration
      * succeeded or failed
      */
-    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const uint8_t * data, const size_t len, const int64_t frameId) = 0;
+    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const secondary_app::Header &origh) = 0;
 
     /**
      * Reserve image or lidar data within a isolated callback so it is available

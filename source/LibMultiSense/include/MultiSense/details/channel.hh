@@ -104,8 +104,6 @@ public:
     //
     // Public API
 
-    virtual Status findMetadata          (wire::FeatureDetectorMeta * f, const int64_t & frameId);
-
     virtual Status addIsolatedCallback   (image::Callback callback,
                                           DataSource      imageSourceMask,
                                           void           *userDataP);
@@ -142,7 +140,7 @@ public:
     virtual Status removeIsolatedCallback(secondary_app::Callback   callback);
     // virtual Status removeIsolatedCallback(feature_detector::Callback   callback);
 
-    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const uint8_t * data, const size_t len, const int64_t frameId);
+    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const secondary_app::Header &orig);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -310,7 +308,7 @@ private:
     static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE     = (10 * (1024 * 1024));
     static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT    = 16;
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE     = (8 * (1024));
-    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 128;
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 256;
     static CRL_CONSTEXPR uint32_t MAX_BUFFER_ALLOCATION_RETRIES = 5;
 
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
@@ -459,11 +457,6 @@ private:
     // A cache of image meta data
 
     DepthCache<int64_t, wire::ImageMeta> m_imageMetaCache;
-
-    //
-    // A cache of feature detector meta data
-
-    // DepthCache<int64_t, wire::FeatureDetectorMeta> m_featureDetectorMetaCache;
 
     //
     // A cache of secondary application meta data

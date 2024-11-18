@@ -82,8 +82,17 @@ public:
     //
     // Constructors
 
-    SecondaryAppMetadata(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppMetadata(utility::BufferStreamReader&r, VersionType v) {
+      mRef = new utility::BufferStreamReader(r);
+      serialize(r, v);
+    };
+
     SecondaryAppMetadata() {};
+
+    ~SecondaryAppMetadata() {
+      if (mRef)
+          delete mRef;
+    };
 
     //
     // Serialization routine
@@ -107,6 +116,8 @@ public:
         }
 
     }
+
+    utility::BufferStreamReader * mRef;
 };
 
 #endif // !SENSORPOD_FIRMWARE

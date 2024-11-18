@@ -3102,6 +3102,10 @@ public:
     uint32_t    secondaryAppDataLength;
     /** A pointer to the secondaryAppData data */
     const void *secondaryAppDataP;
+    /** The metadata length */
+    uint32_t    secondaryAppMetadataLength;
+    /** The metadata generic payload*/
+    const void *secondaryAppMetadataP;
 
     /**
      * Default Constructor

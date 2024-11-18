@@ -351,7 +351,9 @@ void featureDetectorCallback(const secondary_app::Header& header,
 
     feature_detector::Header fHeader;
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
-    Status s = userData->channelP->secondaryAppDataExtract(fHeader, reinterpret_cast<const uint8_t*>(header.secondaryAppDataP), header.secondaryAppDataLength, header.frameId);
+    Status s = userData->channelP->secondaryAppDataExtract(fHeader, header);
+    void * buffer = userData->channelP->reserveCallbackBuffer();
+
     if (s != Status_Ok)
     {
       fprintf(stderr, "%s Error failed extraction\n", __func__ );
@@ -389,6 +391,7 @@ void featureDetectorCallback(const secondary_app::Header& header,
     std::cout << "timeSeconds:     " << fHeader.timeSeconds << "\n";
     std::cout << "timeNanoSeconds: " << fHeader.timeNanoSeconds << "\n";
     std::cout << "ptpNanoSeconds:  " << fHeader.ptpNanoSeconds << "\n";
+    userData->channelP->releaseCallbackBuffer(buffer);
 }
 
 } // anonymous

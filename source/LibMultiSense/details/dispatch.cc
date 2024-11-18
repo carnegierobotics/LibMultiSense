@@ -628,12 +628,18 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 
         secondary_app::Header header;
 
-        header.frameId           = SecondaryApp.frameId;
-        header.source            = SecondaryApp.source | ((uint64_t)SecondaryApp.sourceExtended << 32);
-        header.timeSeconds       = SecondaryApp.timeSeconds;
-        header.timeMicroSeconds  = SecondaryApp.timeMicroSeconds;
-        header.length            = SecondaryApp.length;
-        header.secondaryAppDataP = SecondaryApp.dataP;
+        wire::SecondaryAppMetadata * metaP = m_secondaryAppMetaCache.find(SecondaryApp.frameId);
+        if (metaP == NULL)
+            break;
+
+        header.frameId                    = SecondaryApp.frameId;
+        header.source                     = SecondaryApp.source | ((uint64_t)SecondaryApp.sourceExtended << 32);
+        header.timeSeconds                = SecondaryApp.timeSeconds;
+        header.timeMicroSeconds           = SecondaryApp.timeMicroSeconds;
+        header.length                     = SecondaryApp.length;
+        header.secondaryAppDataP          = SecondaryApp.dataP;
+        header.secondaryAppMetadataP      = metaP->dataP;
+        header.secondaryAppMetadataLength = metaP->dataLength;
         dispatchSecondaryApplication(buffer, header);
         break;
     }
@@ -753,24 +759,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
 	break;
     }
 }
-
-Status impl::findMetadata(wire::FeatureDetectorMeta * f, const int64_t & frameId)
-{
-  wire::SecondaryAppMetadata * m = m_secondaryAppMetaCache.find(frameId);
-
-  if (NULL == m) {
-    fprintf(stderr, "%s Unable to find metadata for frame: %ld\n", __func__, frameId);
-    return Status_Error;
-  }
-
-  utility::BufferStreamReader stream(reinterpret_cast<uint8_t *>(m->dataP), m->dataLength);
-
-  wire::FeatureDetectorMeta _f(stream, 1);
-  memcpy(f, &_f, sizeof(_f));
-
-  return Status_Ok;
-}
-
 
 //
 // Get a UDP assembler for this message type. We are given

@@ -555,36 +555,27 @@ Status impl::removeIsolatedCallback(secondary_app::Callback callback)
     return Status_Error;
 }
 
-Status impl::secondaryAppDataExtract(feature_detector::Header &header, const uint8_t * data, const size_t len, const int64_t frameId)
+Status impl::secondaryAppDataExtract(feature_detector::Header &header, const secondary_app::Header &orig)
 {
-  utility::BufferStreamReader stream(data, len);
-  wire::FeatureDetector featureDetector(stream, 1); //TODO
+  utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(orig.secondaryAppDataP), orig.secondaryAppDataLength);
+  wire::FeatureDetector featureDetector(stream, 1); //TODO Version check
 
+  utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
 
-  wire::FeatureDetectorMeta m;
-  if (findMetadata(&m, frameId) == Status_Ok)
-  {
-    fprintf(stderr, "%s Meta data extracted\n", __func__ );
-  }
-  else
-  {
-    fprintf(stderr, "%s Error metadata extraction for frame %ld failed\n", __func__, frameId );
-    return Status_Error;
-  }
-
+  wire::FeatureDetectorMeta _meta(metaStream, 1);
 
   header.source         = featureDetector.source;
-  header.frameId        = m.frameId;
-  header.timeSeconds    = m.timeSeconds;
-  header.timeNanoSeconds= m.timeNanoSeconds;
-  header.ptpNanoSeconds = m.ptpNanoSeconds;
-  header.octaveWidth    = m.octaveWidth;
-  header.octaveHeight   = m.octaveHeight;
-  header.numOctaves     = m.numOctaves;
-  header.scaleFactor    = m.scaleFactor;
-  header.motionStatus   = m.motionStatus;
-  header.averageXMotion = m.averageXMotion;
-  header.averageYMotion = m.averageYMotion;
+  header.frameId        = _meta.frameId;
+  header.timeSeconds    = _meta.timeSeconds;
+  header.timeNanoSeconds= _meta.timeNanoSeconds;
+  header.ptpNanoSeconds = _meta.ptpNanoSeconds;
+  header.octaveWidth    = _meta.octaveWidth;
+  header.octaveHeight   = _meta.octaveHeight;
+  header.numOctaves     = _meta.numOctaves;
+  header.scaleFactor    = _meta.scaleFactor;
+  header.motionStatus   = _meta.motionStatus;
+  header.averageXMotion = _meta.averageXMotion;
+  header.averageYMotion = _meta.averageYMotion;
   header.numFeatures    = featureDetector.numFeatures;
   header.numDescriptors = featureDetector.numDescriptors;
 
