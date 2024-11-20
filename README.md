@@ -135,10 +135,13 @@ clone within your repository
 
 ##### Local Installation
 
-Install LibMultiSense to a location on your system (i.e. /opt/multisense)
+LibMultiSense is installed on your system (i.e. in a location like /opt/multisense)
 
     find_package(MultiSense)
     target_link_libraries(<your-library-or-binary> MultiSense)
+
+When running CMake, make sure to specify the location of the LibMultiSense install
+via `-DCMAKE_PREFIX_PATH`
 
 ##### Git Submodule
 
@@ -177,7 +180,7 @@ any existing project.
 The two header files MultiSenseChannel.hh and MultiSenseTypes.hh contain
 all the declarations necessary to interface with a MultiSense sensor.
 
-Doxygen documentation can be built for LibMultisense by runnning the Doxygen
+Doxygen documentation can be built for LibMultisense by running the Doxygen
 configuration file located in the docs directory
 
     > cd LibMultiSense/docs
