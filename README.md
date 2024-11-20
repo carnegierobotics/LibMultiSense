@@ -8,6 +8,148 @@ http://carnegierobotics.com/products/
 LibMultiSense was previously hosted as a Mercurial repository on Bitbucket
 with the following URL: https://bitbucket.org/crl/libmultisense
 
+### LibMultiSense Hello World
+
+test.cpp
+
+```
+#include <stdexcept>
+#include <signal.h>
+#include <unistd.h>
+
+#include <MultiSense/MultiSenseTypes.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+
+struct UserData
+{
+    size_t count = 0;
+};
+
+void image_callback(const crl::multisense::image::Header& header, void* user_data)
+{
+    UserData* metadata= reinterpret_cast<UserData*>(user_data);
+    metadata->count++;
+
+    switch (header.source) {
+        case crl::multisense::Source_Luma_Left: std::cout << "luma left" << std::endl; break;
+        case crl::multisense::Source_Luma_Right: std::cout << "luma right" << std::endl; break;
+        case crl::multisense::Source_Disparity: std::cout << "disparity" << std::endl; break;
+    }
+
+    std::cout << "width: " << header.width <<
+                 ", height: " << header.height <<
+                 ", bits per pixel: " << header.bitsPerPixel <<
+                 ", frame_id: " << header.frameId <<
+                 ", seconds: " << header.timeSeconds <<
+                 ", microseconds: " << header.timeMicroSeconds <<
+                 ", exposure: " << header.exposure <<
+                 ", gain: " << header.gain <<
+                 ", fps: " << header.framesPerSecond <<
+                 ", imageLength: " << header.imageLength << std::endl;
+}
+
+int main()
+{
+    //
+    // Instantiate a channel connecting to a sensor at the factory default
+    // IP address
+    crl::multisense::Channel* channel;
+    channel = crl::multisense::Channel::Create("10.66.171.21");
+    channel->setMtu(1500);
+
+    crl::multisense::Status status;
+
+    //
+    // Query, modify and set the cameras image config. This is used to change camera
+    // settings
+    crl::multisense::image::Config image_config;
+    status = channel->getImageConfig(image_config);
+    if(crl::multisense::Status_Ok != status) {
+        std::cerr << "unable to get the image config" << std::endl;
+    }
+
+    image_config.setFps(10.0);
+    image_config.setGamma(2.2);
+
+    status = channel->setImageConfig(image_config);
+    if(crl::multisense::Status_Ok != status) {
+        std::cerr << "unable to set the image config" << std::endl;
+    }
+
+    //
+    // Data which can be shared among callbacks
+    UserData metadata;
+
+    //
+    // Attached a callback to the Channel which will get called when certain image types
+    // are recieved by the camera. Multiple image callbacks can be attached to a
+    // Channel
+    status = channel->addIsolatedCallback(image_callback,
+                                          crl::multisense::Source_Luma_Left  |
+                                          crl::multisense::Source_Luma_Right |
+                                          crl::multisense::Source_Disparity,
+                                          &metadata);
+    if(crl::multisense::Status_Ok != status) {
+        std::cerr << "unable to add isolated callback" << std::endl;
+    }
+
+    //
+    // Start image streams from the camera.
+    status = channel->startStreams(crl::multisense::Source_Luma_Left  |
+                                     crl::multisense::Source_Luma_Right |
+                                     crl::multisense::Source_Disparity);
+    if(crl::multisense::Status_Ok != status) {
+        std::cerr << "unable to start image streams" << std::endl;
+    }
+
+    //
+    // Spin until the user wants to exit. Images will be serviced in the image_callback
+    // as they are received by the camera
+    while(true)
+    {
+        usleep(100000);
+    }
+
+    //
+    // Stop streams and remove our callback
+    status = channel->stopStreams(crl::multisense::Source_All);
+    if(crl::multisense::Status_Ok != status) {
+        std::cerr << "unable to stop image streams" << std::endl;
+    }
+
+    status = channel->removeIsolatedCallback(image_callback);
+    if(crl::multisense::Status_Ok != status) {
+        std::cerr << "unable to remove isolated callback" << std::endl;
+    }
+
+    //
+    // Destroy the channel instance
+    crl::multisense::Channel::Destroy(channel);
+}
+
+```
+
+CMakeLists.txt
+
+```
+cmake_minimum_required(VERSION 3.0)
+project(multisense_example VERSION 0.0.0.0 LANGUAGES C CXX)
+
+find_package(MultiSense REQUIRED)
+add_executable(test test.cpp)
+target_link_libraries(test MultiSense)
+
+install(TARGETS test
+        RUNTIME DESTINATION bin)
+```
+
+Build Hello World
+
+    > mkdir build && cd build
+    > cmake -DCMAKE_PREFIX_PATH=<path-to-libmultisense-install> ..
+    > make
+
+
 ### Installation
 
 #### Linux
@@ -29,13 +171,24 @@ To build the standalone LibMultiSense library and demonstration applications.
 To build the standalone LibMultiSense library without the demonstration applications,
 set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
-Integrating LibMultiSense into an existing CMake project is easy. Simply
-clone the LibMultiSense repository into the existing project's source tree.
- In the main CMakeLists.txt file of the project, add the following lines:
+Integrating LibMultiSense into an existing CMake project is easy. There are two
+primary methods for integration: a local install on your system, or a submodule
+clone within your repository
+
+- Local Installation
+
+Install LibMultiSense to a location on your system (i.e. /opt/multisense)
+
+    find_package(MultiSense)
+    target_link_libraries(<your-library-or-binary> MultiSense)
+
+- Git Submodule
+
+Clone the LibMultiSense repository into the existing project's source tree.
+In the main CMakeLists.txt file of the project, add the following lines:
 
      include_directories(LibMultiSense/source/LibMultiSense)
      add_subdirectory(LibMultiSense/source/LibMultiSense)
-
 
 #### Windows
 
@@ -59,7 +212,7 @@ Open the solution file with Visual Studio (http://msdn.microsoft.com/en-us/vstud
 and build the Solution.
 
 
-### Documentation and Examples
+### Documentation
 
 LibMultiSense builds as a single shared library which can be linked into
 any existing project.
@@ -73,7 +226,7 @@ configuration file located in the docs directory
     > cd LibMultiSense/docs
     > doxygen Doxyfile
 
-Html and LaTex documentation will be generated in the docs directory.
+HTML and LaTex documentation will be generated in the docs directory.
 
 Usage examples are included in the Doxygen documentation.
 
