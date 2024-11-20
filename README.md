@@ -5,9 +5,6 @@ family of sensors from Carnegie Robotics. For more information on the
 various MultiSense products please visit
 http://carnegierobotics.com/products/
 
-LibMultiSense was previously hosted as a Mercurial repository on Bitbucket
-with the following URL: https://bitbucket.org/crl/libmultisense
-
 ### LibMultiSense Hello World
 
 #### test.cpp
@@ -136,14 +133,14 @@ Integrating LibMultiSense into an existing CMake project is easy. There are two
 primary methods for integration: a local install on your system, or a submodule
 clone within your repository
 
-- Local Installation
+##### Local Installation
 
 Install LibMultiSense to a location on your system (i.e. /opt/multisense)
 
     find_package(MultiSense)
     target_link_libraries(<your-library-or-binary> MultiSense)
 
-- Git Submodule
+##### Git Submodule
 
 Clone the LibMultiSense repository into the existing project's source tree.
 In the main CMakeLists.txt file of the project, add the following lines:
@@ -171,7 +168,6 @@ Open a command prompt and execute the following commands:
 This will create a LibMultiSense.sln Visual Studio Solution file in the build directory.
 Open the solution file with Visual Studio (http://msdn.microsoft.com/en-us/vstudio/aa718325.aspx)
 and build the Solution.
-
 
 ### Documentation
 
