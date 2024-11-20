@@ -76,7 +76,7 @@ void usage(const char* programNameP)
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>                : CURRENT MTU (default=7200)" << std::endl;
+    std::cerr << "\t-m <mtu>                : CURRENT MTU (default=1500)" << std::endl;
     std::cerr << "\t-s <color_source>       : LEFT,RIGHT,AUX (default=aux)" << std::endl;
 
     exit(1);
@@ -187,7 +187,7 @@ int main(int    argc,
         char** argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    int32_t mtu = 7200;
+    int32_t mtu = 0;
     std::pair<DataSource, DataSource> userSource{ Source_Chroma_Rectified_Aux, Source_Luma_Rectified_Aux };
 
 #if WIN32
@@ -222,10 +222,12 @@ int main(int    argc,
 
     //
     // Change MTU
-
-    status = channelP->ptr()->setMtu(mtu);
+    if (mtu >= 1500)
+        status = channelP->ptr()->setMtu(mtu);
+    else
+        status = channelP->ptr()->setBestMtu();
     if (Status_Ok != status) {
-        std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to set MTU: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 

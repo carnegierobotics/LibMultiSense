@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2013-06-14, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
 #ifdef WIN32
@@ -82,7 +83,7 @@ void usage(const char *programNameP)
     std::cerr << "USAGE: " << programNameP << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=7200)" << std::endl;
+    std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=1500)" << std::endl;
     std::cerr << "\t-r <head_id>    : remote head ID (default=0)" << std::endl;
 
     exit(1);
@@ -286,7 +287,7 @@ int main(int    argc,
          char **argvPP)
 {
     std::string currentAddress = "10.66.171.21";
-    int32_t mtu = 7200;
+    int32_t mtu = 0;
     RemoteHeadChannel head_id = Remote_Head_VPB;
 
 #if WIN32
@@ -383,8 +384,10 @@ int main(int    argc,
 
     //
     // Change MTU
-
-    status = channelP->setMtu(mtu);
+    if (mtu >= 1500)
+        status = channelP->setMtu(mtu);
+    else
+        status = channelP->setBestMtu();
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU to " << mtu << ": " << Channel::statusString(status) << std::endl;
         goto clean_out;
@@ -445,6 +448,7 @@ int main(int    argc,
         status = channelP->getDeviceStatus(statusMessage);
 
         if (Status_Ok == status) {
+
             std::cout << "Uptime: " << statusMessage.uptime << ", " <<
             "SystemOk: " << statusMessage.systemOk << ", " <<
             "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
@@ -455,6 +459,7 @@ int main(int    argc,
             "FPGA Power: " << statusMessage.fpgaPower << ", " <<
             "Logic Power: " << statusMessage.logicPower << ", " <<
             "Imager Power: " << statusMessage.imagerPower << std::endl;
+
         }
 
 
