@@ -10,42 +10,35 @@ with the following URL: https://bitbucket.org/crl/libmultisense
 
 ### LibMultiSense Hello World
 
-test.cpp
-
+#### test.cpp
 ```
-#include <stdexcept>
-#include <signal.h>
+#include <iostream>
 #include <unistd.h>
 
 #include <MultiSense/MultiSenseTypes.hh>
 #include <MultiSense/MultiSenseChannel.hh>
+
+using namespace crl::multisense;
 
 struct UserData
 {
     size_t count = 0;
 };
 
-void image_callback(const crl::multisense::image::Header& header, void* user_data)
+void image_callback(const image::Header& header, void* user_data)
 {
     UserData* metadata= reinterpret_cast<UserData*>(user_data);
     metadata->count++;
 
     switch (header.source) {
-        case crl::multisense::Source_Luma_Left: std::cout << "luma left" << std::endl; break;
-        case crl::multisense::Source_Luma_Right: std::cout << "luma right" << std::endl; break;
-        case crl::multisense::Source_Disparity: std::cout << "disparity" << std::endl; break;
+        case Source_Luma_Left: std::cout << "luma left" << std::endl; break;
+        case Source_Luma_Right: std::cout << "luma right" << std::endl; break;
+        case Source_Disparity: std::cout << "disparity" << std::endl; break;
     }
 
-    std::cout << "width: " << header.width <<
-                 ", height: " << header.height <<
-                 ", bits per pixel: " << header.bitsPerPixel <<
-                 ", frame_id: " << header.frameId <<
+    std::cout << "frame_id: " << header.frameId <<
                  ", seconds: " << header.timeSeconds <<
-                 ", microseconds: " << header.timeMicroSeconds <<
-                 ", exposure: " << header.exposure <<
-                 ", gain: " << header.gain <<
-                 ", fps: " << header.framesPerSecond <<
-                 ", imageLength: " << header.imageLength << std::endl;
+                 ", microseconds: " << header.timeMicroSeconds << std::endl;
 }
 
 int main()
@@ -53,53 +46,24 @@ int main()
     //
     // Instantiate a channel connecting to a sensor at the factory default
     // IP address
-    crl::multisense::Channel* channel;
-    channel = crl::multisense::Channel::Create("10.66.171.21");
+    Channel* channel = nullptr;
+    channel = Channel::Create("10.66.171.21");
     channel->setMtu(1500);
 
-    crl::multisense::Status status;
-
-    //
-    // Query, modify and set the cameras image config. This is used to change camera
-    // settings
-    crl::multisense::image::Config image_config;
-    status = channel->getImageConfig(image_config);
-    if(crl::multisense::Status_Ok != status) {
-        std::cerr << "unable to get the image config" << std::endl;
-    }
-
-    image_config.setFps(10.0);
-    image_config.setGamma(2.2);
-
-    status = channel->setImageConfig(image_config);
-    if(crl::multisense::Status_Ok != status) {
-        std::cerr << "unable to set the image config" << std::endl;
-    }
+    Status status;
 
     //
     // Data which can be shared among callbacks
-    UserData metadata;
+    UserData meta;
 
     //
     // Attached a callback to the Channel which will get called when certain image types
-    // are recieved by the camera. Multiple image callbacks can be attached to a
+    // are received by the camera. Multiple image callbacks can be attached to a
     // Channel
-    status = channel->addIsolatedCallback(image_callback,
-                                          crl::multisense::Source_Luma_Left  |
-                                          crl::multisense::Source_Luma_Right |
-                                          crl::multisense::Source_Disparity,
-                                          &metadata);
-    if(crl::multisense::Status_Ok != status) {
-        std::cerr << "unable to add isolated callback" << std::endl;
-    }
-
-    //
-    // Start image streams from the camera.
-    status = channel->startStreams(crl::multisense::Source_Luma_Left  |
-                                     crl::multisense::Source_Luma_Right |
-                                     crl::multisense::Source_Disparity);
-    if(crl::multisense::Status_Ok != status) {
-        std::cerr << "unable to start image streams" << std::endl;
+    status = channel->addIsolatedCallback(image_callback, Source_Luma_Left, &meta);
+    status = channel->startStreams(Source_Luma_Left);
+    if(Status_Ok != status) {
+        std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
     }
 
     //
@@ -112,24 +76,21 @@ int main()
 
     //
     // Stop streams and remove our callback
-    status = channel->stopStreams(crl::multisense::Source_All);
-    if(crl::multisense::Status_Ok != status) {
-        std::cerr << "unable to stop image streams" << std::endl;
-    }
-
+    status = channel->stopStreams(Source_All);
     status = channel->removeIsolatedCallback(image_callback);
-    if(crl::multisense::Status_Ok != status) {
-        std::cerr << "unable to remove isolated callback" << std::endl;
+
+    if(Status_Ok != status) {
+        std::cerr << "unable to stop streams and remove isolated callback" << std::endl;
     }
 
     //
     // Destroy the channel instance
-    crl::multisense::Channel::Destroy(channel);
+    Channel::Destroy(channel);
 }
 
 ```
 
-CMakeLists.txt
+#### CMakeLists.txt
 
 ```
 cmake_minimum_required(VERSION 3.0)
@@ -143,7 +104,7 @@ install(TARGETS test
         RUNTIME DESTINATION bin)
 ```
 
-Build Hello World
+#### Build Hello World
 
     > mkdir build && cd build
     > cmake -DCMAKE_PREFIX_PATH=<path-to-libmultisense-install> ..
