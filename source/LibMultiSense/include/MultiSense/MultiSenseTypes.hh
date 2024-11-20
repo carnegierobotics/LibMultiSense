@@ -3088,8 +3088,6 @@ public:
 
     /** DataSource corresponding to secondaryAppDataP*/
     DataSource  source;
-    /** length of the secondaryAppData */
-    uint32_t    length;
     /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */
     int64_t     frameId;
     /** The time seconds value corresponding to when  the secondaryAppData was captured*/

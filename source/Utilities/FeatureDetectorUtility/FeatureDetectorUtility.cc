@@ -348,15 +348,15 @@ void imageCallback(const image::Header& header,
 void featureDetectorCallback(const secondary_app::Header& header,
                    void                *userDataP)
 {
-
     feature_detector::Header fHeader;
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
-    Status s = userData->channelP->secondaryAppDataExtract(fHeader, header);
     void * buffer = userData->channelP->reserveCallbackBuffer();
+    Status s = userData->channelP->secondaryAppDataExtract(fHeader, header);
 
     if (s != Status_Ok)
     {
-      fprintf(stderr, "%s Error failed extraction\n", __func__ );
+      fprintf(stderr, "%s Error Secondary App Data extraction failed\n", __func__ );
+      userData->channelP->releaseCallbackBuffer(buffer);
       return;
     }
 
@@ -374,9 +374,9 @@ void featureDetectorCallback(const secondary_app::Header& header,
         {
             it->second.featureTime = std::chrono::system_clock::now();
             std::cout << "Feature received after image " << fHeader.frameId
-            << " Delta: "
-            << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
-            << "ms\n";
+              << " Delta: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+              << "ms\n";
             userData->elapsedTime.erase(it);
         }
     }

@@ -91,12 +91,6 @@
 #include "MultiSense/details/wire/SecondaryAppGetRegisteredAppsMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
 
-#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
-
 #include <limits>
 
 #define __STDC_FORMAT_MACROS
@@ -249,24 +243,6 @@ void impl::dispatchAprilTagDetections(apriltag::Header& header)
     utility::ScopedLock statsLock(m_statisticsLock);
     m_channelStatistics.numDispatchedGroundSurfaceSpline += 1;
 }
-
-//
-// Publish a feature detection event
-
-// void impl::dispatchFeatureDetections(feature_detector::Header& header)
-// {
-//     utility::ScopedLock lock(m_dispatchLock);
-//
-//     std::list<FeatureDetectorListener*>::const_iterator it;
-//
-//     for(it  = m_featureDetectorListeners.begin();
-//         it != m_featureDetectorListeners.end();
-//         ++ it)
-//         (*it)->dispatch(header);
-//
-//     utility::ScopedLock statsLock(m_statisticsLock);
-//     m_channelStatistics.numDispatchedFeatureDetections++;
-// }
 
 //
 // Publish Secondary App Data
@@ -636,7 +612,7 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         header.source                     = SecondaryApp.source | ((uint64_t)SecondaryApp.sourceExtended << 32);
         header.timeSeconds                = SecondaryApp.timeSeconds;
         header.timeMicroSeconds           = SecondaryApp.timeMicroSeconds;
-        header.length                     = SecondaryApp.length;
+        header.secondaryAppDataLength     = SecondaryApp.length;
         header.secondaryAppDataP          = SecondaryApp.dataP;
         header.secondaryAppMetadataP      = metaP->dataP;
         header.secondaryAppMetadataLength = metaP->dataLength;
@@ -733,9 +709,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
     case MSG_ID(wire::PtpStatusResponse::ID):
         m_messages.store(wire::PtpStatusResponse(stream, version));
         break;
-    // case MSG_ID(wire::FeatureDetectorConfig::ID):
-    //     m_messages.store(wire::FeatureDetectorConfig(stream, version));
-    //     break;
     default:
 
         CRL_DEBUG("unknown message received: id=%d, version=%d\n",

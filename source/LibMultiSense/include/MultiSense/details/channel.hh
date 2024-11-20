@@ -315,13 +315,12 @@ private:
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS              = 5;
     static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH            = 4;
     static CRL_CONSTEXPR uint32_t SECONDARY_APP_META_CACHE_DEPTH    = 4;
-    static CRL_CONSTEXPR uint32_t FEATURE_DETECTOR_META_CACHE_DEPTH = 4;
     static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH           = 4;
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY            = 8;
 
 #if __cplusplus > 199711L
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > IMAGE_META_CACHE_DEPTH,            "Image metadata depth cache too large");
-    static_assert(RX_POOL_LARGE_BUFFER_COUNT > FEATURE_DETECTOR_META_CACHE_DEPTH, "Feature detector metadata depth cache too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > SECONDARY_APP_META_CACHE_DEPTH,    "Secondary Application metadata depth cache too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH,           "UDP depth cache too large");
     static_assert(RX_POOL_SMALL_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH,           "UDP depth cache too large");
 #endif
@@ -336,11 +335,17 @@ private:
     static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 8;
     static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 8;
     static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_SECONDARY_APP_QUEUE_SIZE    = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE   = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE         = 8;
 
 #if __cplusplus > 199711L
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_IMAGE_QUEUE_SIZE, "Image queue too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_LASER_QUEUE_SIZE, "Laser queue too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE, "Compressed image queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_SECONDARY_APP_QUEUE_SIZE, "Secondary App queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_GROUND_SURFACE_QUEUE_SIZE,"Ground Surface queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_APRILTAG_QUEUE_SIZE,      "April Tag queue too large");
 #endif
 
     //
@@ -349,10 +354,6 @@ private:
 
     static CRL_CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 64;
-    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE   = 8;
-    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE         = 8;
-    static CRL_CONSTEXPR uint32_t MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE = 8;
-    static CRL_CONSTEXPR uint32_t MAX_USER_SECONDARY_APP_QUEUE_SIZE    = 8;
 
 
     //
