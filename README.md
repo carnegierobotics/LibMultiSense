@@ -8,7 +8,7 @@ http://carnegierobotics.com/products/
 ### LibMultiSense Hello World
 
 #### test.cpp
-```
+```c++
 #include <iostream>
 #include <unistd.h>
 
