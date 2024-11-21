@@ -3,6 +3,8 @@
 - [Hello World](#libmultisense-hello-world)
     - [OpenCV Integration](#opencv-integration)
     - [Copy-Free Buffer Reservations](#copy-free-operations-image-buffer-reservations)
+    - [Camera Configuration](#camera-configuration)
+    - [Depth Image Generation](#depth-image-generation)
 - [Installation](#installation)
 - [Doccumentation](#doccumentation)
 - [Support](#support)
@@ -11,6 +13,10 @@ LibMultiSense is a C++ library used to interface with the MultiSense S
 family of sensors from Carnegie Robotics. For more information on the
 various MultiSense products please visit
 http://carnegierobotics.com/products/
+
+For more detailed documentation on general MultiSense operation
+please visit
+https://docs.carnegierobotics.com/docs/index.html
 
 ### Installation
 
@@ -107,6 +113,9 @@ any existing project.
 
 The two header files MultiSenseChannel.hh and MultiSenseTypes.hh contain
 all the declarations necessary to interface with a MultiSense sensor.
+
+The following example demonstrates how to connect, stream, and receive image
+for the MultiSense camera.
 
 #### test.cpp
 ```c++
@@ -370,6 +379,196 @@ int main()
     // Channel
     status = channel->addIsolatedCallback(image_callback, Source_Luma_Aux | Source_Chroma_Aux, &meta);
     status = channel->startStreams(Source_Luma_Aux | Source_Chroma_Aux);
+    if(Status_Ok != status) {
+        std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
+    }
+
+    //
+    // Spin until the user wants to exit. Images will be serviced in the image_callback
+    // as they are received by the camera
+    while(true)
+    {
+        usleep(100000);
+    }
+
+    //
+    // Stop streams and remove our callback
+    status = channel->stopStreams(Source_All);
+    status = channel->removeIsolatedCallback(image_callback);
+
+    if(Status_Ok != status) {
+        std::cerr << "unable to stop streams and remove isolated callback" << std::endl;
+    }
+
+    //
+    // Destroy the channel instance
+    Channel::Destroy(channel);
+}
+```
+
+### Camera Configuration
+
+Camera settings like resolution, exposure, FPS, gain, gamma, and white balance can be configured
+via the LibMultiSense `image::Config`
+
+#### test.cc
+
+```c++
+int main()
+{
+    //
+    // Instantiate a channel connecting to a sensor at the factory default
+    // IP address. Note jumbo frames are suggested when running at 30 FPS
+    Channel* channel = nullptr;
+    channel = Channel::Create("10.66.171.21");
+    channel->setMtu(9000);
+
+    Status status;
+
+    //
+    // Query the current camera's image configuration, and update the desired
+    // configuration settings
+    image::Config image_config;
+    status = channel->getImageConfig(image_config);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+    }
+
+    image_config.setResolution(960, 600);
+    image_config.setDisparities(256);
+    image_config.setFps(30.0);
+
+    status = channel->setImageConfig(image_config);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to set image config: " << Channel::statusString(status) << std::endl;
+    }
+
+    Channel::Destroy(channel);
+}
+```
+
+### Depth Image Generation
+
+Disparity images can be converted to depth images using the camera's onboard calibration.
+
+The following modified version of the [Hello World](#libmultisense-hello-world) example,
+converts disparity images to openni depth images and saves them to disk using OpenCV.
+
+#### test.cpp
+
+```c++
+#include <iostream>
+#include <limits>
+#include <unistd.h>
+
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
+#include <MultiSense/MultiSenseTypes.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+
+using namespace crl::multisense;
+
+struct UserData
+{
+    image::Calibration calibration;
+
+    crl::multisense::system::DeviceInfo device_info;
+};
+
+void image_callback(const image::Header& header, void* user_data)
+{
+    UserData* metadata = reinterpret_cast<UserData*>(user_data);
+
+    //
+    // Scale the full resolution calibration based on the current operating resolution
+    // See https://docs.carnegierobotics.com/docs/calibration/stereo.html
+    const double x_scale = static_cast<double>(header.width) / static_cast<double>(metadata->device_info.imagerWidth);
+
+    const double f = metadata->calibration.left.P[0][0] * x_scale;
+    const double b = metadata->calibration.left.P[0][3] / metadata->calibration.left.P[0][0];
+
+    const uint16_t* raw_disparity = reinterpret_cast<const uint16_t*>(header.imageDataP);
+
+    //
+    // Convert each quantized disparity pixel to depth using: z = (f * b) / d. Store the output in the
+    // quantized openni depth image format
+    const double max_ni_depth = std::numeric_limits<uint16_t>::max();
+    std::vector<uint16_t> output_depth_buffer(header.width * header.height, 0);
+    for (size_t i = 0 ; i < (header.width * header.height) ; ++i)
+    {
+        const uint16_t d = raw_disparity[i];
+        if (d == 0) continue;
+
+        //
+        // Disparity images are quantized to 1/16 of a pixel
+        const double z = (f * b) / (static_cast<double>(d) / 16.0);
+
+        //
+        // OpenNI Depth images are quantized to millimeters
+        output_depth_buffer[i] = static_cast<uint16_t>(std::min(max_ni_depth, std::max(0.0, z * 1000)));
+    }
+
+    //
+    // Save the output depth image with OpenCV
+    const cv::Mat_<uint16_t> depth_image(header.height, header.width, output_depth_buffer.data());
+    cv::imwrite(std::to_string(header.frameId) + ".png", depth_image);
+}
+
+int main()
+{
+    //
+    // Instantiate a channel connecting to a sensor at the factory default
+    // IP address
+    Channel* channel = nullptr;
+    channel = Channel::Create("10.66.171.21");
+    channel->setMtu(1500);
+
+    Status status;
+
+    //
+    // Query calibration
+    image::Calibration calibration;
+    status = channel->getImageCalibration(calibration);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
+    }
+
+    //
+    // Query device info
+    system::DeviceInfo device_info;
+    status = channel->getDeviceInfo(device_info);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to query device info: " << Channel::statusString(status) << std::endl;
+    }
+
+    //
+    // Query and set the image config to 1/4 resolution
+    image::Config image_config;
+    status = channel->getImageConfig(image_config);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+    }
+
+    image_config.setResolution(device_info.imagerWidth / 2, device_info.imagerHeight / 2);
+    image_config.setDisparities(256);
+    image_config.setFps(10.0);
+
+    status = channel->setImageConfig(image_config);
+    if (Status_Ok != status) {
+        std::cerr << "Failed to set image config: " << Channel::statusString(status) << std::endl;
+    }
+
+    //
+    // Data which can be shared among callbacks
+    UserData meta{calibration, device_info};
+
+    //
+    // Attached a callback to the Channel which will get called when certain image types
+    // are received by the camera. Multiple image callbacks can be attached to a
+    // Channel
+    status = channel->addIsolatedCallback(image_callback, Source_Disparity, &meta);
+    status = channel->startStreams(Source_Disparity);
     if(Status_Ok != status) {
         std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
     }
