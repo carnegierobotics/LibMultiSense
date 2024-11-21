@@ -134,8 +134,8 @@ struct UserData
 
 void image_callback(const image::Header& header, void* user_data)
 {
-    UserData* metadata = reinterpret_cast<UserData*>(user_data);
-    metadata->count++;
+    UserData* meta = reinterpret_cast<UserData*>(user_data);
+    meta->count++;
 
     switch (header.source) {
         case Source_Luma_Left: std::cout << "luma left" << std::endl; break;
@@ -301,9 +301,9 @@ struct UserData
 
 void image_callback(const image::Header& header, void* user_data)
 {
-    UserData* metadata = reinterpret_cast<UserData*>(user_data);
+    UserData* meta = reinterpret_cast<UserData*>(user_data);
 
-    if (!metadata->channel) return;
+    if (!meta->channel) return;
 
     //
     // Reserve our header for color processing. If there is already a valid
@@ -311,40 +311,42 @@ void image_callback(const image::Header& header, void* user_data)
     // was dropped, and we should release the existing buffer before reserving
     switch (header.source) {
         case Source_Luma_Aux:
-            if (metadata->mono_image_ref) {
-                metadata->channel->releaseCallbackBuffer(metadata->mono_image_ref);
+            if (meta->mono_image_ref) {
+                meta->channel->releaseCallbackBuffer(meta->mono_image_ref);
             }
 
-            metadata->mono_image_ref = metadata->channel->reserveCallbackBuffer();
-            metadata->mono_image = header;
+            meta->mono_image_ref = meta->channel->reserveCallbackBuffer();
+            meta->mono_image = header;
 
             break;
         case Source_Chroma_Aux:
-            if (metadata->chroma_image_ref) {
-                metadata->channel->releaseCallbackBuffer(metadata->chroma_image_ref);
+            if (meta->chroma_image_ref) {
+                meta->channel->releaseCallbackBuffer(meta->chroma_image_ref);
             }
 
-            metadata->chroma_image_ref = metadata->channel->reserveCallbackBuffer();
-            metadata->chroma_image = header;
+            meta->chroma_image_ref = meta->channel->reserveCallbackBuffer();
+            meta->chroma_image = header;
             break;
     }
 
     //
     // If we have a valid luma and chroma pair create a color image
-    if (metadata->mono_image_ref &&
-        metadata->chroma_image_ref &&
-        metadata->mono_image.frameId == metadata->chroma_image.frameId) {
+    if (meta->mono_image_ref &&
+        meta->chroma_image_ref &&
+        meta->mono_image.frameId == meta->chroma_image.frameId) {
 
         //
         // Create a OpenCV images using our stored image headers.
         uint8_t* raw_luma =
-            const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(metadata->mono_image.imageDataP));
-        const cv::Mat_<uint8_t> luma(metadata->mono_image.height, metadata->mono_image.width, raw_luma);
+            const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(meta->mono_image.imageDataP));
+        const cv::Mat_<uint8_t> luma(meta->mono_image.height,
+                                     meta->mono_image.width,
+                                     raw_luma);
 
         uint16_t* raw_chroma =
-            const_cast<uint16_t*>(reinterpret_cast<const uint16_t*>(metadata->chroma_image.imageDataP));
-        const cv::Mat_<uint16_t> chroma(metadata->chroma_image.height,
-                                        metadata->chroma_image.width,
+            const_cast<uint16_t*>(reinterpret_cast<const uint16_t*>(meta->chroma_image.imageDataP));
+        const cv::Mat_<uint16_t> chroma(meta->chroma_image.height,
+                                        meta->chroma_image.width,
                                         raw_chroma);
 
         cv::Mat bgr;
@@ -356,10 +358,10 @@ void image_callback(const image::Header& header, void* user_data)
 
         //
         // Release and invalidate our buffers
-        metadata->channel->releaseCallbackBuffer(metadata->mono_image_ref);
-        metadata->channel->releaseCallbackBuffer(metadata->chroma_image_ref);
-        metadata->mono_image_ref = nullptr;
-        metadata->chroma_image_ref = nullptr;
+        meta->channel->releaseCallbackBuffer(meta->mono_image_ref);
+        meta->channel->releaseCallbackBuffer(meta->chroma_image_ref);
+        meta->mono_image_ref = nullptr;
+        meta->chroma_image_ref = nullptr;
     }
 }
 
@@ -486,17 +488,17 @@ struct UserData
 
 void image_callback(const image::Header& header, void* user_data)
 {
-    UserData* metadata = reinterpret_cast<UserData*>(user_data);
+    UserData* meta = reinterpret_cast<UserData*>(user_data);
 
     //
     // Scale the full resolution calibration based on the current operating resolution
     // See https://docs.carnegierobotics.com/docs/calibration/stereo.html
     const double x_scale = static_cast<double>(header.width) /
-                           static_cast<double>(metadata->device_info.imagerWidth);
+                           static_cast<double>(meta->device_info.imagerWidth);
 
-    const double f = metadata->calibration.left.P[0][0] * x_scale;
-    const double b = metadata->calibration.left.P[0][3] /
-                     metadata->calibration.left.P[0][0];
+    const double f = meta->calibration.left.P[0][0] * x_scale;
+    const double b = meta->calibration.left.P[0][3] /
+                     meta->calibration.left.P[0][0];
 
     const uint16_t* raw_disparity = reinterpret_cast<const uint16_t*>(header.imageDataP);
 
