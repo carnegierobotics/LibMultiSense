@@ -1,6 +1,6 @@
 # LibMultiSense
 
-- [Hello World](#libmultisense-hello-world)
+- [Hello World](#hello-world)
     - [OpenCV Integration](#opencv-integration)
     - [Copy-Free Buffer Reservations](#copy-free-operations-image-buffer-reservations)
     - [Camera Configuration](#camera-configuration)
@@ -106,7 +106,7 @@ For product support, please see the [support section of our website](https://car
 Individual support requests can be created in our [support portal](https://support.carnegierobotics.com/hc/en-us)
 
 
-### LibMultiSense Hello World
+### Hello World
 
 LibMultiSense builds as a single shared library which can be linked into
 any existing project.
@@ -222,7 +222,7 @@ install(TARGETS test
 ### OpenCV Integration
 
 To display the images received from the camera in a OpenCV window, the image callback function
-and CMakeLists.txt outlined in the [Hello World](#libmultisense-hello-orld) example can be
+and CMakeLists.txt outlined in the [Hello World](#hello-world) example can be
 updated to the following
 
 #### image_callback function
@@ -265,7 +265,7 @@ like color images or point clouds. By default, the memory underlying a Header ob
 is only valid in the scope of a callback. LibMultiSense offers a reservation mechanism
 to extend the lifetime of data underlying Header objects for as long as the user would like.
 
-The following modified version of the [Hello World](#libmultisense-hello-world) example,
+The following modified version of the [Hello World](#hello-world) example,
 highlights how to perform this reservation operation to create and display color aux images.
 
 Note, there are a limited number of buffers which LibMultiSense internally manages to store
@@ -461,7 +461,7 @@ int main()
 
 Disparity images can be converted to depth images using the camera's onboard calibration.
 
-The following modified version of the [Hello World](#libmultisense-hello-world) example,
+The following modified version of the [Hello World](#hello-world) example,
 converts disparity images to openni depth images and saves them to disk using OpenCV.
 
 #### test.cpp
