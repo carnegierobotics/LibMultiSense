@@ -492,13 +492,14 @@ void image_callback(const image::Header& header, void* user_data)
 
     //
     // Scale the full resolution calibration based on the current operating resolution
+    // Also negate the tx estimate to get the raw baseline
     // See https://docs.carnegierobotics.com/docs/calibration/stereo.html
     const double x_scale = static_cast<double>(header.width) /
                            static_cast<double>(meta->device_info.imagerWidth);
 
     const double f = meta->calibration.left.P[0][0] * x_scale;
-    const double b = meta->calibration.left.P[0][3] /
-                     meta->calibration.left.P[0][0];
+    const double b = -1.0 * meta->calibration.right.P[0][3] /
+                     meta->calibration.right.P[0][0];
 
     const uint16_t* raw_disparity = reinterpret_cast<const uint16_t*>(header.imageDataP);
 
