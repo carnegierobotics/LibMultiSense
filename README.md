@@ -234,7 +234,8 @@ void image_callback(const image::Header& header, void* user_data)
 {
     //
     // Create a OpenCV matrix using our image container
-    uint8_t* raw_image_data = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(header.imageDataP));
+    uint8_t* raw_image_data =
+        const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(header.imageDataP));
     const cv::Mat_<uint8_t> image(header.height, header.width, raw_image_data);
 
     //
@@ -336,11 +337,15 @@ void image_callback(const image::Header& header, void* user_data)
 
         //
         // Create a OpenCV images using our stored image headers.
-        uint8_t* raw_luma = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(metadata->mono_image.imageDataP));
+        uint8_t* raw_luma =
+            const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(metadata->mono_image.imageDataP));
         const cv::Mat_<uint8_t> luma(metadata->mono_image.height, metadata->mono_image.width, raw_luma);
 
-        uint16_t* raw_chroma = const_cast<uint16_t*>(reinterpret_cast<const uint16_t*>(metadata->chroma_image.imageDataP));
-        const cv::Mat_<uint16_t> chroma(metadata->chroma_image.height, metadata->chroma_image.width, raw_chroma);
+        uint16_t* raw_chroma =
+            const_cast<uint16_t*>(reinterpret_cast<const uint16_t*>(metadata->chroma_image.imageDataP));
+        const cv::Mat_<uint16_t> chroma(metadata->chroma_image.height,
+                                        metadata->chroma_image.width,
+                                        raw_chroma);
 
         cv::Mat bgr;
         cv::cvtColorTwoPlane(luma, chroma, bgr, cv::COLOR_YUV2BGR_NV12);
@@ -377,7 +382,10 @@ int main()
     // Attached a callback to the Channel which will get called when certain image types
     // are received by the camera. Multiple image callbacks can be attached to a
     // Channel
-    status = channel->addIsolatedCallback(image_callback, Source_Luma_Aux | Source_Chroma_Aux, &meta);
+    status = channel->addIsolatedCallback(image_callback,
+                                           Source_Luma_Aux |
+                                           Source_Chroma_Aux,
+                                           &meta);
     status = channel->startStreams(Source_Luma_Aux | Source_Chroma_Aux);
     if(Status_Ok != status) {
         std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
@@ -431,7 +439,7 @@ int main()
     image::Config image_config;
     status = channel->getImageConfig(image_config);
     if (Status_Ok != status) {
-        std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to get image config"  << std::endl;
     }
 
     image_config.setResolution(960, 600);
@@ -440,7 +448,7 @@ int main()
 
     status = channel->setImageConfig(image_config);
     if (Status_Ok != status) {
-        std::cerr << "Failed to set image config: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to set image config" << std::endl;
     }
 
     Channel::Destroy(channel);
@@ -483,16 +491,18 @@ void image_callback(const image::Header& header, void* user_data)
     //
     // Scale the full resolution calibration based on the current operating resolution
     // See https://docs.carnegierobotics.com/docs/calibration/stereo.html
-    const double x_scale = static_cast<double>(header.width) / static_cast<double>(metadata->device_info.imagerWidth);
+    const double x_scale = static_cast<double>(header.width) /
+                           static_cast<double>(metadata->device_info.imagerWidth);
 
     const double f = metadata->calibration.left.P[0][0] * x_scale;
-    const double b = metadata->calibration.left.P[0][3] / metadata->calibration.left.P[0][0];
+    const double b = metadata->calibration.left.P[0][3] /
+                     metadata->calibration.left.P[0][0];
 
     const uint16_t* raw_disparity = reinterpret_cast<const uint16_t*>(header.imageDataP);
 
     //
-    // Convert each quantized disparity pixel to depth using: z = (f * b) / d. Store the output in the
-    // quantized openni depth image format
+    // Convert each quantized disparity pixel to depth using: z = (f * b) / d.
+    // Store the output in the quantized openni depth image format
     const double max_ni_depth = std::numeric_limits<uint16_t>::max();
     std::vector<uint16_t> output_depth_buffer(header.width * header.height, 0);
     for (size_t i = 0 ; i < (header.width * header.height) ; ++i)
@@ -506,12 +516,14 @@ void image_callback(const image::Header& header, void* user_data)
 
         //
         // OpenNI Depth images are quantized to millimeters
-        output_depth_buffer[i] = static_cast<uint16_t>(std::min(max_ni_depth, std::max(0.0, z * 1000)));
+        output_depth_buffer[i] =
+            static_cast<uint16_t>(std::min(max_ni_depth, std::max(0.0, z * 1000)));
     }
 
     //
     // Save the output depth image with OpenCV
-    const cv::Mat_<uint16_t> depth_image(header.height, header.width, output_depth_buffer.data());
+    const cv::Mat_<uint16_t> depth_image(header.height, header.width,
+                                         output_depth_buffer.data());
     cv::imwrite(std::to_string(header.frameId) + ".png", depth_image);
 }
 
@@ -531,7 +543,7 @@ int main()
     image::Calibration calibration;
     status = channel->getImageCalibration(calibration);
     if (Status_Ok != status) {
-        std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query calibraiton" << std::endl;
     }
 
     //
@@ -539,7 +551,7 @@ int main()
     system::DeviceInfo device_info;
     status = channel->getDeviceInfo(device_info);
     if (Status_Ok != status) {
-        std::cerr << "Failed to query device info: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query device info" << std::endl;
     }
 
     //
@@ -547,7 +559,7 @@ int main()
     image::Config image_config;
     status = channel->getImageConfig(image_config);
     if (Status_Ok != status) {
-        std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to get image config" << std::endl;
     }
 
     image_config.setResolution(device_info.imagerWidth / 2, device_info.imagerHeight / 2);
@@ -556,7 +568,7 @@ int main()
 
     status = channel->setImageConfig(image_config);
     if (Status_Ok != status) {
-        std::cerr << "Failed to set image config: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to set image config" << std::endl;
     }
 
     //
