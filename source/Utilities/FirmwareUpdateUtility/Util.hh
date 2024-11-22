@@ -46,15 +46,14 @@
 namespace Util {
 
 
-  bool FileExists(const char * FilePath)
-  {
-    
-    #ifdef _WIN32
-        return (_access(FilePath, 0)  == 0);
-    #else
-        return (access(FilePath, F_OK)  == 0);
-    #endif
-  }
+    bool FileExists(const char * FilePath)
+    {
+        #ifdef _WIN32
+            return (_access(FilePath, 0)  == 0);
+        #else
+            return (access(FilePath, F_OK)  == 0);
+        #endif
+    }
 
 }
 

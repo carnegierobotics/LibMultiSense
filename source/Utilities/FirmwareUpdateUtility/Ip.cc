@@ -51,8 +51,8 @@ int Ip::Bind()
 #endif
 
     if (m_SockFd < 0) {
-      std::cerr << "Error: Invalid Socket Descriptor\n";
-      return -1;
+        std::cerr << "Error: Invalid Socket Descriptor\n";
+        return -1;
     }
 
     m_ClientAddress.sin_family = AF_INET;
@@ -118,7 +118,7 @@ int Ip::Setup(const char * _IpAddress)
     int ret = 0;
 
     if (_IpAddress) {
-      strcpy(m_IpAddress, _IpAddress);
+        strcpy(m_IpAddress, _IpAddress);
     }
 
 #ifdef WIN32

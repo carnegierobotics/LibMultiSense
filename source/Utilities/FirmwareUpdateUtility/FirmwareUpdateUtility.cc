@@ -69,114 +69,114 @@ std::atomic<int> ExitReceived(0);
 
 int main(int argc, char *argv[]) {
 
-  char IpAddress[INET_ADDRSTRLEN] = {};
-  char FilePath[PATH_MAX]         = {};
-  bool UpdateComplete = false;
-  int  ret = 0;
-  int  opt;
+    char IpAddress[INET_ADDRSTRLEN] = {};
+    char FilePath[PATH_MAX]         = {};
+    bool UpdateComplete = false;
+    int  ret = 0;
+    int  opt;
 
-  while ((opt = getopt(argc, argv, "a:f:h")) != -1) {
-    switch (opt) {
-    case 'a':
-        strncpy(IpAddress, optarg, INET_ADDRSTRLEN - 1);
-        break;
-    case 'f':
-        strncpy(FilePath, optarg, PATH_MAX - 1);
-        break;
-    case 'h':
-    default: /* '?' */
-        usage();
-        exit(1);
+    while ((opt = getopt(argc, argv, "a:f:h")) != -1) {
+        switch (opt) {
+        case 'a':
+            strncpy(IpAddress, optarg, INET_ADDRSTRLEN - 1);
+            break;
+        case 'f':
+            strncpy(FilePath, optarg, PATH_MAX - 1);
+            break;
+        case 'h':
+        default: /* '?' */
+            usage();
+            exit(1);
+        }
     }
-  }
 
-  signal(SIGINT, signal_handler);
+    signal(SIGINT, signal_handler);
 
-  if (!strcmp(IpAddress, "")) {
-    strcpy(IpAddress, "10.66.171.21");
-  }
+    if (!strcmp(IpAddress, "")) {
+        strcpy(IpAddress, "10.66.171.21");
+    }
 
-  if (!strcmp(FilePath, "")) {
-    strcpy(FilePath, "update.img");
-  }
+    if (!strcmp(FilePath, "")) {
+        strcpy(FilePath, "update.img");
+    }
 
-  if (!Util::FileExists(FilePath)) {
-    std::cerr << "Error: File " << FilePath << " Does not exist\n";
-    usage();
-    return -1;
-  }
+    if (!Util::FileExists(FilePath)) {
+        std::cerr << "Error: File " << FilePath << " Does not exist\n";
+        usage();
+        return -1;
+    }
 
-  Ip i;
-  if (i.Setup(IpAddress) < 0) {
-      std::cerr << "Error Failed to setup Network\n";
-      return -1;
-  }
+    Ip i;
+    if (i.Setup(IpAddress) < 0) {
+        std::cerr << "Error Failed to setup Network\n";
+        return -1;
+    }
 
-  if (i.Bind() < 0) {
-      std::cerr << "Error Failed to bind to camera server\n";
-      return -1;
-  }
+    if (i.Bind() < 0) {
+        std::cerr << "Error Failed to bind to camera server\n";
+        return -1;
+    }
 
-  Updater u(&i);
+    Updater u(&i);
 
-  if (u.SendFile(FilePath) < 0) {
-      std::cerr << "Error failed to send the file " << FilePath << " to the camera!";
-      return -1;
-  }
+    if (u.SendFile(FilePath) < 0) {
+        std::cerr << "Error failed to send the file " << FilePath << " to the camera!";
+        return -1;
+    }
 
-  while (!UpdateComplete || !ExitReceived)
-  {
-      Messages::MessageUpdateStatus UpdateStatus;
-      long int MsgLen = 0;
+    while (!UpdateComplete || !ExitReceived)
+    {
+        Messages::MessageUpdateStatus UpdateStatus;
+        long int MsgLen = 0;
 
-      ret = u.Receive((uint8_t *)&UpdateStatus, sizeof(UpdateStatus), &MsgLen);
-      if (ret < 0)
-      {
-          if (ret == -EAGAIN || ret == -10060)
-          {
-              usleep(100);
-              continue;
-          }
-          std::cerr << "Error: Failed to get message from camera\n";
-          return -1;
-      }
-      else if (ret == 0)
-      {
-          std::cerr << "Error: Connection closed by camera\n";
-          return -1;
-      }
+        ret = u.Receive((uint8_t *)&UpdateStatus, sizeof(UpdateStatus), &MsgLen);
+        if (ret < 0)
+        {
+            if (ret == -EAGAIN || ret == -10060)
+            {
+                usleep(100);
+                continue;
+            }
+            std::cerr << "Error: Failed to get message from camera\n";
+            return -1;
+        }
+        else if (ret == 0)
+        {
+            std::cerr << "Error: Connection closed by camera\n";
+            return -1;
+        }
 
-      if (UpdateStatus.State & Messages::Status_Error)
-      {
-          std::cerr << "Error: Received an error from Camera\n";
-      }
-      else
-      {
-          Messages::PrintStatus(UpdateStatus.State);
-          if (UpdateStatus.State & Messages::Status_UpdateComplete)
-          {
-              std::cout << "Notice: Update is complete, camera will power cycle!\n";
-              UpdateStatus.Id = Messages::UpdateStatusId_ACK;
-              UpdateStatus.Status = Messages::UpdateStatus_Done;
-              ret = u.Send((uint8_t*)&UpdateStatus, sizeof(UpdateStatus));
-              break;
-          }
-          else
-          {
-              UpdateStatus.Id = Messages::UpdateStatusId_ACK;
-              UpdateStatus.Status = Messages::UpdateStatus_Ok;
-              ret = u.Send((uint8_t *)&UpdateStatus, sizeof(UpdateStatus));
-              if (ret < 0)
-              {
-                  std::cerr << "Error Failed to send ack to camera\n";
-              }
+        if (UpdateStatus.State & Messages::Status_Error)
+        {
+            std::cerr << "Error: Received an error from Camera\n";
+        }
+        else
+        {
+            Messages::PrintStatus(UpdateStatus.State);
+            if (UpdateStatus.State & Messages::Status_UpdateComplete)
+            {
+                std::cout << "Notice: Update is complete, camera will power cycle!\n";
+                UpdateStatus.Id = Messages::UpdateStatusId_ACK;
+                UpdateStatus.Status = Messages::UpdateStatus_Done;
+                ret = u.Send((uint8_t*)&UpdateStatus, sizeof(UpdateStatus));
+                break;
+            }
+            else
+            {
+                UpdateStatus.Id = Messages::UpdateStatusId_ACK;
+                UpdateStatus.Status = Messages::UpdateStatus_Ok;
+                ret = u.Send((uint8_t *)&UpdateStatus, sizeof(UpdateStatus));
+                if (ret < 0)
+                {
+                    std::cerr << "Error Failed to send ack to camera\n";
+                }
 
-          }
+            }
 
-      }
-  }
+        }
+    }
 
-  return ret;
+    return ret;
 }
 
 static void signal_handler(int signal)
