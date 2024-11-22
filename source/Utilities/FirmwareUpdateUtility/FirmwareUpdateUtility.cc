@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     int  ret = 0;
     int  opt;
 
-    while ((opt = getopt(argc, argv, "a:f:h")) != -1) {
+    while ((opt = getopt(argc, argv, "a:f:vh")) != -1) {
         switch (opt) {
         case 'a':
             strncpy(IpAddress, optarg, INET_ADDRSTRLEN - 1);
