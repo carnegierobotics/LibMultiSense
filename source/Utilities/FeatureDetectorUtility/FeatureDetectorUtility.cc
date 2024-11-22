@@ -65,6 +65,8 @@
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
+#include "FeatureDetectorUtilities.hh"
+
 using namespace crl::multisense;
 
 namespace {  // anonymous
@@ -351,7 +353,7 @@ void featureDetectorCallback(const secondary_app::Header& header,
     feature_detector::Header fHeader;
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
     void * buffer = userData->channelP->reserveCallbackBuffer();
-    Status s = userData->channelP->secondaryAppDataExtract(fHeader, header);
+    Status s = feature_detector::secondaryAppDataExtract(fHeader, header);
 
     if (s != Status_Ok)
     {
@@ -360,8 +362,8 @@ void featureDetectorCallback(const secondary_app::Header& header,
       return;
     }
 
-    if ((fHeader.source == Source_Feature_Left)
-        || (fHeader.source == Source_Feature_Rectified_Left)) {
+    if ((fHeader.source == feature_detector::Source_Feature_Left)
+        || (fHeader.source == feature_detector::Source_Feature_Rectified_Left)) {
 
         auto it = userData->elapsedTime.find(fHeader.frameId);
         if (it == userData->elapsedTime.end()) {
@@ -524,11 +526,11 @@ int main(int    argc,
 
         fprintf(stderr, "%s got registered app: %s activated\n", __func__, s.apps[0].appName.c_str() );
 
-        system::FeatureDetectorConfig c;
+        feature_detector::FeatureDetectorConfig c;
         c.setNumberOfFeatures(5000);
         c.setGrouping(1);
         c.setMotion(0);
-        status = channelP->setFeatureDetectorConfig(c);
+        status = channelP->setSecondaryAppConfig(c);
         if (Status_Ok != status)
         {
           std::cerr << "Error failed to set featureDetectorConfig apps\n";
@@ -537,9 +539,9 @@ int main(int    argc,
 
         std::cout << "Successfully Configured Feature Detector\n";
 
-        system::FeatureDetectorConfig fcfg;
+        feature_detector::FeatureDetectorConfig fcfg;
 
-        status = channelP->getFeatureDetectorConfig(fcfg);
+        status = channelP->getSecondaryAppConfig(fcfg);
         if (Status_Ok != status) {
           std::cerr << "Failed to get feature detector config: " << Channel::statusString(status) << std::endl;
                 goto clean_out;
@@ -557,7 +559,7 @@ int main(int    argc,
         fcfg.setGrouping(true);
         fcfg.setMotion(1);
 
-        status = channelP->setFeatureDetectorConfig(fcfg);
+        status = channelP->setSecondaryAppConfig(fcfg);
         if (Status_Ok != status) {
           std::cerr << "Failed to set feature detector config\n";
         }
@@ -615,7 +617,7 @@ int main(int    argc,
 
     status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
                                     (operatingMode.supportedDataSources & Source_Luma_Right) |
-                                    Source_Feature_Left|Source_Feature_Right);
+                                    feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;

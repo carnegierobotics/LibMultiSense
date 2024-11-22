@@ -106,12 +106,6 @@
 #include "MultiSense/details/wire/ImuInfoMessage.hh"
 #include "MultiSense/details/wire/ImuConfigMessage.hh"
 
-#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
-
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
 
@@ -533,48 +527,6 @@ Status impl::removeIsolatedCallback(secondary_app::Callback callback)
 
     return Status_Error;
 }
-
-Status impl::secondaryAppDataExtract(feature_detector::Header &header, const secondary_app::Header &orig)
-{
-  utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(orig.secondaryAppDataP), orig.secondaryAppDataLength);
-  wire::FeatureDetector featureDetector(stream, 1); //TODO Version check
-
-  utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
-  wire::FeatureDetectorMeta _meta(metaStream, 1);
-
-  header.source         = featureDetector.source;
-  header.frameId        = _meta.frameId;
-  header.timeSeconds    = _meta.timeSeconds;
-  header.timeNanoSeconds= _meta.timeNanoSeconds;
-  header.ptpNanoSeconds = _meta.ptpNanoSeconds;
-  header.octaveWidth    = _meta.octaveWidth;
-  header.octaveHeight   = _meta.octaveHeight;
-  header.numOctaves     = _meta.numOctaves;
-  header.scaleFactor    = _meta.scaleFactor;
-  header.motionStatus   = _meta.motionStatus;
-  header.averageXMotion = _meta.averageXMotion;
-  header.averageYMotion = _meta.averageYMotion;
-  header.numFeatures    = featureDetector.numFeatures;
-  header.numDescriptors = featureDetector.numDescriptors;
-
-  const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
-
-  uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
-  for (size_t i = 0; i < featureDetector.numFeatures; i++) {
-      feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
-      header.features.push_back(f);
-  }
-
-  for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
-      feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
-      header.descriptors.push_back(d);
-  }
-
-  return Status_Ok;
-}
-
-
-
 
 //
 // Reserve the current callback buffer being used in a dispatch thread
@@ -1621,9 +1573,11 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
 // Currently several sensor messages are combined and presented
 // to the user as one.
 
-Status impl::setSecondaryAppConfig(const system::SecondaryAppConfig& c)
+Status impl::setSecondaryAppConfig(system::SecondaryAppConfig& c)
 {
     wire::SecondaryAppControl cmd;
+
+    c.serialize();
 
     if (c.dataLength >= 1024)
     {
@@ -1677,42 +1631,6 @@ Status impl::secondaryAppDeactivate(const std::string &_name)
     wire::SecondaryAppActivate cmd(0, _name);
 
     return waitAck(cmd);
-}
-
-Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
-{
-    wire::SecondaryAppConfig f;
-
-    Status status = waitData(wire::SecondaryAppGetConfig(), f);
-    if (Status_Ok != status)
-        return status;
-
-
-    try
-    {
-        wire::FeatureDetectorConfig instConfig(f);
-        c.setNumberOfFeatures(instConfig.configItems.numberOfFeatures);
-        c.setGrouping(instConfig.configItems.grouping);
-        c.setMotion(instConfig.configItems.motion);
-    }
-    catch (std::runtime_error e)
-    {
-        std::cerr << e.what() << std::endl;
-        return Status_Error;
-    }
-
-
-    return Status_Ok;
-}
-Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
-{
-    wire::FeatureDetectorControl f;
-
-    f.controlItems.numberOfFeatures = c.numberOfFeatures();
-    f.controlItems.grouping = c.grouping();
-    f.controlItems.motion = c.motion();
-
-    return waitAck(f);
 }
 
 //

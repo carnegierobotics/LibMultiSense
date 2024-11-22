@@ -32,6 +32,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2024-01-25, patrick.smith@carnegierobotics.com, IRAD, created file.
+ *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Moved file.
  **/
 
 #ifndef LibMultiSense_FeatureDetectorMetadataMessage
@@ -46,9 +47,8 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-  class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
+class FeatureDetectorMetaHeader {
   public:
-      static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR_META;
       static CRL_CONSTEXPR VersionType VERSION    = 1;
       VersionType            version;
       uint32_t               length;
@@ -67,28 +67,26 @@ namespace wire {
       uint16_t               numFeatures;
       uint16_t               numDescriptors;
 
-      FeatureDetectorMetaHeader() :
-          version(VERSION),
-          length(0),
-          source(0),
-          frameId(0),
-          timeSeconds(0),
-          timeNanoSeconds(0),
-          ptpNanoSeconds(0),
-          octaveWidth(0),
-          octaveHeight(0),
-          numOctaves(0),
-          scaleFactor(0),
-          motionStatus(0),
-          averageXMotion(0),
-          averageYMotion(0),
-          numFeatures(0),
-          numDescriptors(0)
-       {};
+    FeatureDetectorMetaHeader() :
+        version(VERSION),
+        length(0),
+        source(0),
+        frameId(0),
+        timeSeconds(0),
+        timeNanoSeconds(0),
+        ptpNanoSeconds(0),
+        octaveWidth(0),
+        octaveHeight(0),
+        numOctaves(0),
+        scaleFactor(0),
+        motionStatus(0),
+        averageXMotion(0),
+        averageYMotion(0),
+        numFeatures(0),
+        numDescriptors(0)
+     {};
 
-  };
-
-#ifndef SENSORPOD_FIRMWARE
+};
 
 class FeatureDetectorMeta : public FeatureDetectorMetaHeader {
 public:
@@ -126,8 +124,6 @@ public:
 
     }
 };
-
-#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

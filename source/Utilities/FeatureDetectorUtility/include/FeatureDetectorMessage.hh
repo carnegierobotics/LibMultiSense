@@ -34,6 +34,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, created file.
+ *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Moved file.
  **/
 
 #ifndef LibMultiSense_FeatureDetectorMessage
@@ -58,7 +59,6 @@ public:
     uint8_t octave;
     uint8_t descriptor;
 
-#ifndef SENSORPOD_FIRMWARE
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
@@ -71,7 +71,6 @@ public:
         message & octave;
         message & descriptor;
     }
-#endif // !SENSORPOD_FIRMWARE
 };
 
 class Descriptor {
@@ -79,7 +78,6 @@ public:
 
     uint32_t d[8];
 
-#ifndef SENSORPOD_FIRMWARE
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
@@ -90,28 +88,18 @@ public:
             message & d[i];
         }
     }
-#endif // !SENSORPOD_FIRMWARE
 };
 
-class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
+class FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
     static CRL_CONSTEXPR VersionType VERSION    = 1;
 
-#ifdef SENSORPOD_FIRMWARE
-    IdType                 id;
-    VersionType            version;
-#endif // SENSORPOD_FIRMWARE
     uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
     uint16_t               numDescriptors;
 
     FeatureDetectorHeader() :
-#ifdef SENSORPOD_FIRMWARE
-        id(ID),
-        version(VERSION),
-#endif // SENSORPOD_FIRMWARE
         source(0),
         frameId(0),
         numFeatures(0),
@@ -120,11 +108,9 @@ public:
 
 };
 
-#ifndef SENSORPOD_FIRMWARE
 
 class FeatureDetector : public FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR;
     static CRL_CONSTEXPR VersionType VERSION = 1;
     static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_LEFT  = 1;
     static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_RIGHT = 2;
@@ -165,7 +151,6 @@ public:
 
 };
 
-#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

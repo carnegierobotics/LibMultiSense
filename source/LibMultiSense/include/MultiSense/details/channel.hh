@@ -49,7 +49,6 @@
 #include "MultiSense/details/wire/Protocol.hh"
 #include "MultiSense/details/wire/ImageMetaMessage.hh"
 #include "MultiSense/details/wire/SecondaryAppMetaMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
 #include "MultiSense/details/wire/StatusResponseMessage.hh"
 #include "MultiSense/details/wire/PtpStatusResponseMessage.hh"
 #include "MultiSense/details/wire/VersionResponseMessage.hh"
@@ -127,9 +126,6 @@ public:
     virtual Status addIsolatedCallback   (secondary_app::Callback callback,
                                           void         *userDataP);
 
-    // virtual Status addIsolatedCallback   (feature_detector::Callback callback,
-                                          // void         *userDataP);
-
     virtual Status removeIsolatedCallback(image::Callback callback);
     virtual Status removeIsolatedCallback(lidar::Callback callback);
     virtual Status removeIsolatedCallback(pps::Callback   callback);
@@ -138,9 +134,6 @@ public:
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
     virtual Status removeIsolatedCallback(apriltag::Callback   callback);
     virtual Status removeIsolatedCallback(secondary_app::Callback   callback);
-    // virtual Status removeIsolatedCallback(feature_detector::Callback   callback);
-
-    virtual Status secondaryAppDataExtract(feature_detector::Header &h, const secondary_app::Header &orig);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -233,13 +226,10 @@ public:
     virtual Status getLocalUdpPort       (uint16_t& port);
 
     virtual Status getSecondaryAppConfig (system::SecondaryAppConfig & c);
-    virtual Status setSecondaryAppConfig (const system::SecondaryAppConfig & c);
+    virtual Status setSecondaryAppConfig (system::SecondaryAppConfig & c);
     virtual Status getRegisteredApps     (system::SecondaryAppRegisteredApps & c);
     virtual Status secondaryAppActivate  (const std::string & s);
     virtual Status secondaryAppDeactivate(const std::string & s);
-
-    virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig & c);
-    virtual Status setFeatureDetectorConfig (const system::FeatureDetectorConfig & c);
 
     virtual system::ChannelStatistics getStats();
 
@@ -508,7 +498,6 @@ private:
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
     std::list<SecondaryAppListener*>            m_secondaryAppListeners;
-    // std::list<FeatureDetectorListener*>      m_featureDetectorListeners;
 
     //
     // A message signal interface
@@ -599,7 +588,6 @@ private:
     void                         dispatchAprilTagDetections(apriltag::Header& header);
     void                         dispatchSecondaryApplication(utility::BufferStream& buffer,
                                                               secondary_app::Header& header);
-    void                         dispatchFeatureDetections(feature_detector::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

@@ -270,12 +270,6 @@ static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT             = (1ull<<11);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST              = (1ull<<12);
 static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT                   = (1ull<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1ull<<17);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1ull<<18);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1ull<<19);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_AUX                 = (1ull<<32);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_LEFT      = (1ull<<33);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_RIGHT     = (1ull<<34);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_AUX       = (1ull<<35);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1ull<<20);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1ull<<22);
 static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1ull<<21);
@@ -294,12 +288,12 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1ull<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1ull<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1ull<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1ull<<17); // same as SOURCE_RGB_LEFT
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_0        = (1ull<<18); // same as SOURCE_FEATURE_LEFT
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_1        = (1ull<<19); // same as SOURCE_FEATURE_RIGHT
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_2        = (1ull<<32); // same as SOURCE_FEATURE_AUX
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_3        = (1ull<<33); // same as SOURCE_FEATURE_RECTIFIED_LEFT
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_4        = (1ull<<34); // same as SOURCE_FEATURE_RECTIFIED_RIGHT
-static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_5        = (1ull<<35); // same as SOURCE_FEATURE_RECTIFIED_AUX
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_0        = (1ull<<18);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_1        = (1ull<<19);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_2        = (1ull<<32);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_3        = (1ull<<33);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_4        = (1ull<<34);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_5        = (1ull<<35);
 
 static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA = (SOURCE_SECONDARY_APP_DATA_0 |
                                                              SOURCE_SECONDARY_APP_DATA_1 |
@@ -337,13 +331,6 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_RECTIFIED_AUX
                                                           );
 
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_DETECTOR = (SOURCE_FEATURE_LEFT |
-                                                           SOURCE_FEATURE_RIGHT|
-                                                           SOURCE_FEATURE_AUX  |
-                                                           SOURCE_FEATURE_RECTIFIED_LEFT  |
-                                                           SOURCE_FEATURE_RECTIFIED_RIGHT  |
-                                                           SOURCE_FEATURE_RECTIFIED_AUX
-                                                          );
 //
 // Exposure config
 

@@ -131,12 +131,6 @@ static CRL_CONSTEXPR DataSource Source_Disparity_Right               = (1ull<<11
 static CRL_CONSTEXPR DataSource Source_Disparity_Cost                = (1ull<<12);
 static CRL_CONSTEXPR DataSource Source_Jpeg_Left                     = (1ull<<16);
 static CRL_CONSTEXPR DataSource Source_Rgb_Left                      = (1ull<<17);
-static CRL_CONSTEXPR DataSource Source_Feature_Left                  = (1ull<<18);
-static CRL_CONSTEXPR DataSource Source_Feature_Right                 = (1ull<<19);
-static CRL_CONSTEXPR DataSource Source_Feature_Aux                   = (1ull<<32);
-static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Left        = (1ull<<33);
-static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Right       = (1ull<<34);
-static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Aux         = (1ull<<35);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Spline_Data    = (1ull<<20);
 static CRL_CONSTEXPR DataSource Source_Ground_Surface_Class_Image    = (1ull<<22);
 static CRL_CONSTEXPR DataSource Source_AprilTag_Detections           = (1ull<<23);
@@ -154,12 +148,12 @@ static CRL_CONSTEXPR DataSource Source_Compressed_Aux                = (1ull<<14
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Left     = (1ull<<15);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Right    = (1ull<<16);
 static CRL_CONSTEXPR DataSource Source_Compressed_Rectified_Aux      = (1ull<<17);
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_0          = (1ull<<18); // Same as Source Feature Left
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_1          = (1ull<<19); // Same as Source Feature Right
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_2          = (1ull<<32); // Same as Source Feature Aux
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_3          = (1ull<<33); // Same as Source Feature Rectified Left
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_4          = (1ull<<34); // Same as Source Feature Rectified Right
-static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_5          = (1ull<<35); // Same as Source Feature Rectified Aux
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_0          = (1ull<<18);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_1          = (1ull<<19);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_2          = (1ull<<32);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_3          = (1ull<<33);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_4          = (1ull<<34);
+static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_5          = (1ull<<35);
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
@@ -3024,58 +3018,6 @@ typedef void (*Callback)(const Header& header,
 
 } // namespace apriltag
 
-namespace feature_detector {
-
-
-  /** The recommended maximum number of features for full resolution camera operation */
-  static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_FULL_RES    = 5000;
-  /** The recommended maximum number of features for quarter resolution camera operation */
-  static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_QUARTER_RES = 1500;
-
-
-  struct Feature {
-    uint16_t x;
-    uint16_t y;
-    uint8_t angle;
-    uint8_t resp;
-    uint8_t octave;
-    uint8_t descriptor;
-  };
-
-  struct Descriptor {
-    uint32_t d[8]; //Descriptor is 32 bytes
-  };
-
-  class MULTISENSE_API Header : public HeaderBase {
-  public:
-
-      DataSource source;
-      int64_t  frameId;
-      uint32_t timeSeconds;
-      uint32_t timeNanoSeconds;
-      int64_t  ptpNanoSeconds;
-      uint16_t octaveWidth;
-      uint16_t octaveHeight;
-      uint16_t numOctaves;
-      uint16_t scaleFactor;
-      uint16_t motionStatus;
-      uint16_t averageXMotion;
-      uint16_t averageYMotion;
-      uint16_t numFeatures;
-      uint16_t numDescriptors;
-      std::vector<Feature> features;
-      std::vector<Descriptor> descriptors;
-  };
-
-  /**
-   * Function pointer for receiving callbacks for feature_detector data
-   */
-  typedef void (*Callback)(const Header& header,
-                           void         *userDataP);
-
-} // namespace feature_detector
-
-
 namespace secondary_app {
 
 /**
@@ -3990,177 +3932,6 @@ class MULTISENSE_API ApriltagParams {
             decode_sharpening(0.25) {};
 };
 
-/**
- * Example code showing usage of the onboard feature detector.
- * Can also reference FeatureDetectorUtility.cc
- *
- * Example code to set a device's feature detection parameters:
- ** \code{.cpp}
- *     //
- *     // Instantiate a channel connecting to a sensor at the factory default
- *     // IP address
- *     crl::multisense::Channel* channel;
- *     channel = crl::multisense::Channel::Create("10.66.171.21");
- *
- *     channel->setMtu(7200);
- *
- *     FeatureDetectorConfig fcfg;
- *
- *     status = channelP->getFeatureDetectorConfig(fcfg);
- *     if (Status_Ok != status) {
- *           std::cerr << "Failed to get feature detector config: " << Channel::statusString(status) << std::endl;
- *             goto clean_out;
- *     }
- *
- *     if (quarter_res)
- *         fcfg.setNumberOfFeatures(1500);
- *     else
- *         fcfg.setNumberOfFeatures(5000);
- *
- *     fcfg.setGrouping(true);
- *     fcfg.setMotion(1);
- *
- *     status = channelP->setFeatureDetectorConfig(fcfg);
- *     if (Status_Ok != status) {
- *       std::cerr << "Failed to set feature detector config\n";
- *         goto clean_out;
- *     }
- *
- *     //
- *     // Add Image Callback
- *     channelP->addIsolatedCallback(imageCallback, Source_Luma_Left|Source_Luma_Right, &userData);
- *     //
- *     // Add Feature Callback
- *     channelP->addIsolatedCallback(featureDetectorCallback, &userData);
- *
- *     //
- *     // Start streaming
- *     status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
- *                                     (operatingMode.supportedDataSources & Source_Luma_Right) |
- *                                     (operatingMode.supportedDataSources & Source_Feature_Left)|
- *                                     (operatingMode.supportedDataSources & Source_Feature_Right));
- *     if (Status_Ok != status) {
- *         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
- *         goto clean_out;
- *     } *
- *     //
- *     // Destroy the channel instance
- *     crl::multisense::Channel::Destroy(channel);
- * \endcode
- */
-
-class MULTISENSE_API FeatureDetectorConfig {
-
-    private:
-
-        /**
-         * numberOfFeatures
-         * The maximum features to be searched for in one image.
-         *
-         * Current recommended settings.
-         * Full    Resolution: 5000 Features @5FPS
-         * Quarter Resolution: 1500 Features @15FPS
-         */
-        uint32_t m_numberOfFeatures;
-
-        /**
-         * grouping
-         * Enable/Disable the grouping feature in feaure detection.
-         * Grouping adds scale invariance to ORB features, by detecting the same
-         * feature in multiple octaves, and grouping the feature.
-         * Grouping reduces redundant features and eliminates the need to keep
-         * track of features referencing  the same corner.
-         * When grouping is enabled, the user should expect less features than
-         * descriptors, which should result in computationally easier feature matching,
-         * between consecutive frames.
-         * Although grouping does come at a slightly reduced framerate, it is
-         * recommended and verified at the recommended settings.
-         */
-        bool m_grouping;
-
-        /**
-         * motion
-         * Enable / disable motion detection in the feature detector.
-         * When enabled, you can check the averageXMotion, averageYMotion and
-         * motionStatus of the feaure_detector::header.
-         * averageXMotion and averageYMotion == 65535 corresponds to a failed
-         * motion detection for that feature frame.
-         */
-        uint32_t m_motion;
-
-    public:
-        /**
-         * Query the maximum number of features applied to the camera feature detector
-         *
-         * @return Return the current maximum number of features
-         */
-        uint32_t numberOfFeatures() const { return m_numberOfFeatures; };
-
-        /**
-         * Query the status of the feature detector feature grouping
-         *
-         * @return Return the current feature grouping status
-         */
-        bool grouping() const { return m_grouping; };
-
-        /**
-         * Query the status of the feature detector motion detection
-         *
-         * @return Return the current feature detector motion detection status
-         */
-        bool motion() const { return m_motion; };
-
-        /**
-         * Set the maximum number of features applied to the camera feature detector.
-         * Current recommended settings.
-         * Full    Resolution: 5000 Features @5FPS
-         * Quarter Resolution: 1500 Features @15FPS
-         *
-         * @param numberOfFeatures The maximum number of features.
-         */
-
-        void setNumberOfFeatures(const uint32_t &numberOfFeatures)    {
-
-            if (numberOfFeatures > feature_detector::RECOMMENDED_MAX_FEATURES_FULL_RES)
-            {
-                std::cout << "WARNING: The number of features requested is above recommended level!" << '\n';
-                std::cout << "If a performance impact is noticed reduce number of features and/or framerate of camera" << '\n';
-                std::cout << "The recommended maximum camera settings when using the feature detector is:" << '\n';
-                std::cout << "Quarter Res: 15FPS and 1500 Features" << '\n';
-                std::cout << "Full    Res:  5FPS and 5000 Features" << '\n';
-            }
-
-            m_numberOfFeatures = numberOfFeatures;
-
-        };
-
-        /**
-         * Set the feature grouping capability the feature detector
-         *
-         * @param g The feature grouping to apply to this camera
-         */
-        void setGrouping(const bool &g)    {
-            m_grouping = g;
-        }
-
-        /**
-         * Set the feature motion detection capability of the feature detector
-         * Functions to enable motion detection on Octave 3
-         *
-         *
-         * @param m The feature detector motion detector.
-         */
-        void setMotion(const uint32_t &m)    {
-            m_motion = m;
-        }
-
-        /** Default constructor */
-        FeatureDetectorConfig():
-            m_numberOfFeatures(feature_detector::RECOMMENDED_MAX_FEATURES_QUARTER_RES),
-            m_grouping(true),
-            m_motion(1)
-        {};
-};
 
 /**
  * PTP status data associated with a specific stamped MultiSense message
@@ -4280,13 +4051,15 @@ public:
         {
             if (_length >= 1024)
             {
-                std::cerr << "Error: Secondary Application Config Length > 1023b" << std::endl;
+                std::cerr << "Error: Secondary Application Config Length > 1024b" << std::endl;
                 std::cerr << "Truncating data payload to fit in 1024b\n" << std::endl;
                 dataLength = 1023;
             }
 
             memcpy(data, _data, dataLength);
         }
+
+      virtual void serialize( void ) = 0;
 };
 
 class MULTISENSE_API SecondaryAppActivate {
