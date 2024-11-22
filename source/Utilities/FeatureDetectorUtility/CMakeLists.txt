@@ -18,7 +18,7 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
     # Setup the executable that we will use.
     #
 
-    add_executable(FeatureDetectorUtility FeatureDetectorUtility.cc)
+    add_executable(FeatureDetectorUtility FeatureDetectorUtility.cc FeatureDetectorUtilities.cc)
 
     #
     # Specify libraries against which to link.
