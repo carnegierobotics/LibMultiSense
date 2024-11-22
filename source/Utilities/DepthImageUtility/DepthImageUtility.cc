@@ -34,6 +34,9 @@
  *   2023-10-12, malvarado@carnegierobotics.com, PR1044, Created file.
  **/
 
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
@@ -61,9 +64,6 @@
 #include <Utilities/portability/getopt/getopt.h>
 #include <Utilities/shared/ChannelUtilities.hh>
 #include <Utilities/shared/Io.hh>
-
-#include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
 

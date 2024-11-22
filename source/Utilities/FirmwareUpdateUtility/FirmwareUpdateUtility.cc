@@ -34,7 +34,6 @@
  *   2024-27-08, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include <getopt.h>
 #include <signal.h>
 #include <limits.h>
 #include <iostream>
@@ -42,6 +41,8 @@
 #include <chrono>
 #include <thread>
 #include <atomic>
+
+#include <Utilities/portability/getopt/getopt.h>
 
 #include "Messages.hh"
 #include "Updater.hh"
@@ -60,6 +61,11 @@ static void usage() {
 
 static void signal_handler(int signal);
 std::atomic<int> ExitReceived(0);
+
+#ifndef PATH_MAX
+#define PATH_MAX MAX_PATH
+#endif
+
 
 int main(int argc, char *argv[]) {
 
@@ -121,12 +127,12 @@ int main(int argc, char *argv[]) {
   while (!UpdateComplete || !ExitReceived)
   {
       Messages::MessageUpdateStatus UpdateStatus;
-      ssize_t MsgLen = 0;
+      long int MsgLen = 0;
 
       ret = u.Receive((uint8_t *)&UpdateStatus, sizeof(UpdateStatus), &MsgLen);
       if (ret < 0)
       {
-          if (ret == -EAGAIN)
+          if (ret == -EAGAIN || ret == -10060)
           {
               usleep(100);
               continue;

@@ -42,8 +42,13 @@
 
 int Ip::Bind()
 {
+#if WIN32
+    int PeerLength = sizeof(struct sockaddr_in);
+    int ClientLength = sizeof(struct sockaddr_in);
+#else
     socklen_t PeerLength = sizeof(struct sockaddr_in);
     socklen_t ClientLength = sizeof(struct sockaddr_in);
+#endif
 
     if (m_SockFd < 0) {
       std::cerr << "Error: Invalid Socket Descriptor\n";
@@ -59,14 +64,14 @@ int Ip::Bind()
     m_ServerAddress.sin_port = htons(Messages::SERVER_PORT);
 
     Messages::MessageSetup MsgSetup(m_ClientAddress, m_ServerAddress);
-    ssize_t bSent = sendto(m_SockFd, &MsgSetup, sizeof(MsgSetup), 0,
+    long int bSent = sendto(m_SockFd, (char *)&MsgSetup, sizeof(MsgSetup), 0,
       (struct sockaddr *)&m_ServerAddress, ClientLength);
     if ((sizeof(Messages::MessageSetup) != bSent) || (bSent < 0))
     {
         std::cerr << "Error Failed to Send Setup Message\n";
         if (bSent < 0)
         {
-            std::cerr << strerror(errno) << std::endl;
+            std::cerr << SOCKET_ERRNO << std::endl;
         }
         else
         {
@@ -76,14 +81,14 @@ int Ip::Bind()
         return -1;
     }
 
-    ssize_t bRead = recvfrom(m_SockFd, &MsgSetup, sizeof(Messages::MessageSetup), 0,
+    long int bRead = recvfrom(m_SockFd, (char *)&MsgSetup, sizeof(Messages::MessageSetup), 0,
       (struct sockaddr *)&m_ServerAddress, &PeerLength);
     if (sizeof(Messages::MessageSetup) != bRead|| (bRead < 0))
     {
         std::cerr << "Error Failed to Receive Setup Message\n";
         if (bRead < 0)
         {
-            std::cerr << strerror(errno) << std::endl;
+            std::cerr << SOCKET_ERRNO << std::endl;
         }
         else
         {
@@ -111,47 +116,64 @@ int Ip::Setup(const char * _IpAddress)
     int so_recvbuf = 1024*1024*16;
     int so_reuse = 1;
     int ret = 0;
-    struct timeval tv;
-    tv.tv_sec = 1;
-    tv.tv_usec = 000000;
 
     if (_IpAddress) {
       strcpy(m_IpAddress, _IpAddress);
     }
 
+#ifdef WIN32
+    WSADATA wsaData;
+    ret = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (ret != NO_ERROR) {
+        std::cerr << "Failed to init windows socket API!\n";
+        std::cerr << SOCKET_ERRNO << std::endl;
+        return -1;
+    }
+#endif
+
+
     m_SockFd = socket(AF_INET, SOCK_DGRAM, 0);
     if (m_SockFd < 0) {
        std::cerr << "Failed to create udp socket!\n";
-       std::cerr << strerror(errno) << std::endl;
+       std::cerr << SOCKET_ERRNO << std::endl;
        return -1;
     }
 
-    ret = setsockopt(m_SockFd, SOL_SOCKET, SO_SNDBUF, &so_sendbuf, sizeof(so_sendbuf));
+    ret = setsockopt(m_SockFd, SOL_SOCKET, SO_SNDBUF, (char *)&so_sendbuf, sizeof(so_sendbuf));
     if (ret < 0) {
         std::cerr <<  "Failed to set socket option sendbuf size: " << so_sendbuf << std::endl;
-        std::cerr << strerror(errno) << std::endl;
-        close(m_SockFd);
+        std::cerr << SOCKET_ERRNO << std::endl;
+        closesocket(m_SockFd);
         return ret;
     }
 
-    ret = setsockopt(m_SockFd, SOL_SOCKET, SO_RCVBUF, &so_recvbuf, sizeof(so_recvbuf));
+    ret = setsockopt(m_SockFd, SOL_SOCKET, SO_RCVBUF, (char*)&so_recvbuf, sizeof(so_recvbuf));
     if (ret < 0) {
         std::cerr <<  "Failed to set socket option recvbuf size: " << so_recvbuf << std::endl;
-        std::cerr << strerror(errno) << std::endl;
-        close(m_SockFd);
+        std::cerr << SOCKET_ERRNO << std::endl;
+        closesocket(m_SockFd);
         return ret;
     }
 
-    ret = setsockopt(m_SockFd, SOL_SOCKET, SO_REUSEADDR, &so_reuse, sizeof(so_reuse));
+    ret = setsockopt(m_SockFd, SOL_SOCKET, SO_REUSEADDR, (char*)&so_reuse, sizeof(so_reuse));
     if (ret < 0) {
         std::cerr <<  "Failed to set socket option reuseaddr\n";
-        std::cerr << strerror(errno) << std::endl;
+        std::cerr << SOCKET_ERRNO << std::endl;
         return ret;
     }
 
-    if (setsockopt(m_SockFd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1){
+#if WIN32
+    // Milliseconds
+    DWORD tv = 1000;
+#else
+    struct timeval tv;
+    tv.tv_sec = 1;
+    tv.tv_usec = 000000;
+#endif // WIN32
+
+    if (setsockopt(m_SockFd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv)) == -1){
         std::cerr << "Couldn't set socket timeout\n" << std::endl;
-        std::cerr << strerror(errno) << std::endl;
+        std::cerr << SOCKET_STR_ERR << std::endl;
         return -1;
     }
 

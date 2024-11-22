@@ -34,26 +34,42 @@
  *   2024-27-08, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1 
+#endif
+#define INET_ADDRSTRLEN 16
+#include <WinSock2.h>
+#include <Windows.h>
+typedef SOCKET socket_t;
+
+#else
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/sendfile.h>
+#include <sys/un.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <ifaddrs.h>
+#include <netinet/udp.h>
+#include <sys/time.h>
+typedef int socket_t;
+#endif
+
+
+
  #include <stdio.h>
  #include <stdlib.h>
- #include <unistd.h>
  #include <errno.h>
  #include <fcntl.h>
  #include <string.h>
- #include <sys/ioctl.h>
  #include <sys/types.h>
- #include <sys/socket.h>
- #include <sys/sendfile.h>
- #include <sys/un.h>
- #include <netinet/in.h>
- #include <netdb.h>
- #include <arpa/inet.h>
- #include <sys/wait.h>
  #include <signal.h>
- #include <ifaddrs.h>
- #include <netinet/udp.h>
- #include <sys/time.h>
 
+#include <MultiSense/details/utility/Portability.hh>
 
 class Ip
 {
@@ -69,13 +85,13 @@ public:
     {
         if (m_SockFd > 0)
         {
-            close(m_SockFd);
+            closesocket(m_SockFd);
         }
 
         m_Connected = 0;
     }
 
-    int Sock( )
+    socket_t Sock( )
     {
         return m_SockFd;
     }
@@ -84,9 +100,10 @@ public:
     {
         return m_ServerAddress;
     }
-
+    
 private:
-    int m_SockFd;
+
+    socket_t m_SockFd;
     struct sockaddr_in m_ClientAddress;
     struct sockaddr_in m_ServerAddress;
     char m_IpAddress[INET_ADDRSTRLEN];
