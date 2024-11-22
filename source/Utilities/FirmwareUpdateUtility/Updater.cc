@@ -110,7 +110,7 @@ int Updater::Receive(uint8_t * buf, const size_t len, long int *RxLen)
 
 }
 
-int Updater::SendFile(char * FilePath)
+int Updater::SendFile(char * FilePath, bool verbose)
 {
     int ret = 0;
     uint32_t crc32_final = 0;
@@ -154,6 +154,7 @@ int Updater::SendFile(char * FilePath)
 
     rewind(fd);
 
+    const int numBlocks = FileSize/Messages::BLOCK_SIZE;
     Messages::MessageBlockAck BlockAck;
 
     while (bytesWritten<FileSize) {
@@ -196,6 +197,9 @@ int Updater::SendFile(char * FilePath)
         if (BlockAck.Sequence != Block.Sequence) {
         std::cerr << "Invalid Sequence, Resending block\n";
         }
+
+        if (verbose)
+            printf("Sending Block (%d/%d)\r", BlockAck.Sequence, numBlocks);
 
     }
 

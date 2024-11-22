@@ -54,9 +54,10 @@ static void usage() {
     std::cout << "FirmwareUpdateUtility\n";
     std::cout << "\n";
     std::cout << "FirmwareUpdateUtility <options>\n";
-    std::cout << "-a Ip Address of camera (Default 10.66.171.21)\n";
-    std::cout << "-f Path of firmware update (Default update.img)\n";
-    std::cout << "-h Print this menu and exit.\n\n";
+    std::cout << "-a [address]  Ip Address of camera (Default 10.66.171.21)\n";
+    std::cout << "-f [filepath] Path of firmware update (Default update.img)\n";
+    std::cout << "-v            Print verbose file upload status (default false)\n";
+    std::cout << "-h            Print this menu and exit.\n\n";
 }
 
 static void signal_handler(int signal);
@@ -69,6 +70,7 @@ std::atomic<int> ExitReceived(0);
 
 int main(int argc, char *argv[]) {
 
+    bool verbose_progress = false;
     char IpAddress[INET_ADDRSTRLEN] = {};
     char FilePath[PATH_MAX]         = {};
     bool UpdateComplete = false;
@@ -82,6 +84,9 @@ int main(int argc, char *argv[]) {
             break;
         case 'f':
             strncpy(FilePath, optarg, PATH_MAX - 1);
+            break;        
+        case 'v':
+            verbose_progress = true;
             break;
         case 'h':
         default: /* '?' */
@@ -119,7 +124,7 @@ int main(int argc, char *argv[]) {
 
     Updater u(&i);
 
-    if (u.SendFile(FilePath) < 0) {
+    if (u.SendFile(FilePath, verbose_progress) < 0) {
         std::cerr << "Error failed to send the file " << FilePath << " to the camera!";
         return -1;
     }
