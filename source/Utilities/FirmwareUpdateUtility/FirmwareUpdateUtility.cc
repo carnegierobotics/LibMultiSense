@@ -96,6 +96,7 @@ int main(int argc, char *argv[]) {
 
   if (!Util::FileExists(FilePath)) {
     std::cerr << "Error: File " << FilePath << " Does not exist\n";
+    usage();
     return -1;
   }
 
