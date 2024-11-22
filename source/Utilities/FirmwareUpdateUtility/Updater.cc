@@ -62,7 +62,8 @@ int Updater::Receive(uint8_t * buf, const size_t len, long int *RxLen)
 #pragma warning (pop)
 #endif
     if (BytesReceived<0) {
-        std::cerr << "Failed to receive from socket: " << SOCKET_STR_ERR <<std::endl;
+        if (SOCKET_ERRNO != CRL_EAGAIN)
+            std::cerr << "Failed to receive from socket: " << SOCKET_STR_ERR <<std::endl;
         return -SOCKET_ERRNO;
     } else if (BytesReceived==0) {
         std::cerr << "Socket connection closed!\n";

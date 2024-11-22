@@ -93,11 +93,13 @@
 #define NOMINMAX 1
 #endif
 #define SOCKET_ERRNO WSAGetLastError()
-#define SOCKET_STR_ERR SOCKET_ERRNO
+#define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
+#define CRL_EAGAIN WSAEWOULDBLOCK
 #define usleep(usec) Sleep((usec)/1000)
 #else
 #define SOCKET_ERRNO errno 
 #define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
+#define CRL_EAGAIN EAGAIN
 #define closesocket close
 #endif
 
