@@ -93,18 +93,19 @@ public:
 class FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR VersionType VERSION    = 1;
-
+    VersionType            version;
     uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
     uint16_t               numDescriptors;
 
     FeatureDetectorHeader() :
+        version(VERSION),
         source(0),
         frameId(0),
         numFeatures(0),
         numDescriptors(0)
-     {};
+    {};
 
 };
 
@@ -126,10 +127,11 @@ public:
 
     template<class Archive>
         void serialize(Archive&          message,
-                       const VersionType version)
+                       const VersionType _version)
     {
-        (void) version;
+        (void) _version;
 
+        message & version;
         message & source;
         message & frameId;
         message & numFeatures;

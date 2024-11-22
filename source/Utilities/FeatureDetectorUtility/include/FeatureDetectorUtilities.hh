@@ -31,13 +31,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Moved file.
+ *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
 #ifndef __FEATURE_DETECTOR_UTILITIES_H__
 #define __FEATURE_DETECTOR_UTILITIES_H__
-
-
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/utility/Thread.hh"
@@ -47,6 +45,7 @@
 
 #include "FeatureDetectorMessage.hh"
 #include "FeatureDetectorMetaMessage.hh"
+#include "FeatureDetectorConfig.hh"
 
 using namespace crl::multisense;
 using namespace crl::multisense::details;
@@ -70,24 +69,7 @@ class MULTISENSE_API FeatureDetectorConfig: public crl::multisense::system::Seco
 
     private:
 
-        struct FeatureDetectorConfigItems {
-
-            //
-            // The maximum number of features detected per image
-            uint32_t numberOfFeatures;
-
-            //
-            // Enable/Disable feature grouping
-            bool grouping;
-
-            //
-            // Enable motion detection
-            // Currently this functions as enable/disable but could be used to specify
-            // which octave motion detection is performed on.
-            // Current Octave: 3
-            uint32_t motion;
-
-        } mConfigItems;
+        wire::FeatureDetectorConfigParams mConfigItems;
 
     public:
         /**
