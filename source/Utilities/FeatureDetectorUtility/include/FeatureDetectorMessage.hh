@@ -43,13 +43,14 @@
 #include <cmath>
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class Feature {
+class __attribute__((__packed__)) Feature {
 public:
 
     uint16_t x;
@@ -59,41 +60,18 @@ public:
     uint8_t octave;
     uint8_t descriptor;
 
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        message & x;
-        message & y;
-        message & angle;
-        message & resp;
-        message & octave;
-        message & descriptor;
-    }
 };
 
-class Descriptor {
+class __attribute__((__packed__)) Descriptor {
 public:
 
     uint32_t d[8];
-
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        for (size_t i = 0; i < 8; i++)
-        {
-            message & d[i];
-        }
-    }
 };
 
-class FeatureDetectorHeader {
+class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR VersionType VERSION    = 1;
-    VersionType            version;
+    static CRL_CONSTEXPR   VersionType VERSION    = 1;
+    wire::VersionType      version;
     uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
@@ -109,13 +87,11 @@ public:
 
 };
 
+#ifndef SENSORPOD_FIRMWARE
 
 class FeatureDetector : public FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
-    static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_LEFT  = 1;
-    static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_RIGHT = 2;
-
     void * dataP;
 
     //
@@ -152,6 +128,8 @@ public:
     }
 
 };
+
+#endif // !SENSORPOD_FIRMWARE
 
 
 }}}} // namespaces

@@ -41,16 +41,17 @@
 #include <typeinfo>
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class FeatureDetectorMetaHeader {
+class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
       static CRL_CONSTEXPR VersionType VERSION    = 1;
-      VersionType            version;
+      wire::VersionType      version;
       uint32_t               length;
       uint32_t               source;
       int64_t                frameId;
@@ -88,6 +89,8 @@ class FeatureDetectorMetaHeader {
 
 };
 
+#ifndef SENSORPOD_FIRMWARE
+
 class FeatureDetectorMeta : public FeatureDetectorMetaHeader {
 public:
 
@@ -124,6 +127,8 @@ public:
 
     }
 };
+
+#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 
