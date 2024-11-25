@@ -32,3 +32,18 @@ jobs:
           cmake --build build -j "$(nproc)"
           make -C build test
           cmake --install build
+
+  buildwindows:
+    name: build for windows
+    runs-on: windows-2022
+
+    steps:
+    - uses: actions/checkout@v4
+    - id: build-release
+      run: |
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build ${{github.workspace}}/build --config Release --target install -- /m:10
+    - id: build-debug
+      run: |
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
+          cmake --build ${{github.workspace}}/build --config Debug --target install -- /m:10
