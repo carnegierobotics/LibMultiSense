@@ -436,7 +436,7 @@ namespace image {
  *      crl::multisense::Channel* channel;
  *      channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *      channel->setMtu(7200);
+ *      channel->setMtu(1500);
  *
  *      try
  *      {
@@ -722,7 +722,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a imageConfig instance to store the queried configuration
@@ -754,7 +754,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a imageConfig instance to store the queried configuration
@@ -1840,7 +1840,7 @@ protected:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a image::Calibration instance to store the queried calibration
@@ -1872,7 +1872,7 @@ protected:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a image::Calibration instance to store the queried calibration
@@ -1964,7 +1964,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a histogram instance to store histogram data
@@ -2124,7 +2124,7 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a lidarCalibration instance to store the queried laser calibration
@@ -2156,7 +2156,7 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a lidarCalibration instance to store the new laser calibration
@@ -2225,7 +2225,7 @@ static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a lightingConfig instance to store our queried lighting configuration
@@ -2257,7 +2257,7 @@ static CRL_CONSTEXPR float    MAX_DUTY_CYCLE = 100.0;
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a lightingConfig instance to store our queried lighting configuration
@@ -2507,7 +2507,7 @@ private:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a lightingConfig instance to store our queried lighting configuration
@@ -2677,7 +2677,7 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a vector of IMU info instances to store information for
@@ -2754,7 +2754,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create local variables to store the information returned by
@@ -2788,7 +2788,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a vector of IMU configurations to store the queried IMU configuration
@@ -3071,7 +3071,7 @@ namespace system {
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     std::vector<crl::multisense::system::DeviceMode> deviceModeVect;
  *
@@ -3131,7 +3131,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a VersionInfo instance to store the sensors version info
@@ -3216,7 +3216,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of Device info to store the sensors device information
@@ -3365,7 +3365,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of NetworkConfig to store the sensor's network configuration
@@ -3397,7 +3397,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a new instance of a Network configuration with the new desired
@@ -3468,7 +3468,7 @@ public:
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of StatusMessage to store the sensor's status
@@ -3591,7 +3591,7 @@ class MULTISENSE_API StatusMessage {
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of ExternalCalibration to store the device's imager
@@ -3624,7 +3624,7 @@ class MULTISENSE_API StatusMessage {
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of ExternalCalibration to store the device's imager
@@ -3698,7 +3698,7 @@ class MULTISENSE_API ExternalCalibration {
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of GroundSurfaceParams to store the device's params
@@ -3845,7 +3845,7 @@ class MULTISENSE_API GroundSurfaceParams {
  *     crl::multisense::Channel* channel;
  *     channel = crl::multisense::Channel::Create("10.66.171.21");
  *
- *     channel->setMtu(7200);
+ *     channel->setMtu(1500);
  *
  *     //
  *     // Create a instance of ApriltagParams to store the device's params

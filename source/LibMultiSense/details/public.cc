@@ -1346,6 +1346,51 @@ Status impl::getMtu(int32_t& mtu)
     return status;
 }
 
+Status impl::setBestMtu()
+{
+    uint32_t cur_mtu = MAX_MTU_SIZE;
+    uint32_t max_mtu = MAX_MTU_SIZE;
+    uint32_t min_mtu = MIN_MTU_SIZE;
+    uint32_t bisections = 0;
+    Status status = Status_Ok;
+
+    //
+    // v2.2 and older do not support testing MTU
+
+    if (m_sensorVersion.firmwareVersion <= 0x0202)
+        return Status_Unsupported;
+
+    while (bisections < 7){
+        wire::SysTestMtuResponse resp;
+        status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        if ((Status_Ok == status) && (cur_mtu == MAX_MTU_SIZE))
+            break;
+
+        bisections++;
+
+        if (Status_Ok != status){
+            max_mtu = cur_mtu;
+            cur_mtu -= (cur_mtu - min_mtu) / 2;
+        } else if (bisections < 7){
+            min_mtu = cur_mtu;
+            cur_mtu += (max_mtu - cur_mtu) / 2;
+        }
+
+        if ((Status_Ok != status) && (bisections == 7)){
+            cur_mtu = min_mtu;
+            status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        }
+    }
+
+    if (Status_Ok == status)
+        status = waitAck(wire::SysMtu(cur_mtu));
+    if (Status_Ok == status)
+        m_sensorMtu = cur_mtu;
+
+    return status;
+
+}
+
 Status impl::getMotorPos(int32_t& pos)
 {
     wire::MotorPoll resp;

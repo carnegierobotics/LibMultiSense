@@ -187,6 +187,7 @@ public:
 
     virtual Status getMtu                (int32_t& mtu);
     virtual Status setMtu                (int32_t mtu);
+    virtual Status setBestMtu            ();
 
     virtual Status getMotorPos           (int32_t& mtu);
 
@@ -289,6 +290,7 @@ private:
     //
     // Misc. internal constants
 
+    static CRL_CONSTEXPR uint32_t MIN_MTU_SIZE                  = 1500;
     static CRL_CONSTEXPR uint32_t MAX_MTU_SIZE                  = 9000;
     static CRL_CONSTEXPR uint16_t DEFAULT_SENSOR_TX_PORT        = 9001;
 
