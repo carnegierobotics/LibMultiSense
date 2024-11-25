@@ -39,6 +39,7 @@
 #define __FEATURE_DETECTOR_CONFIG_H__
 
 #include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/MultiSenseTypes.hh"
 
 namespace crl {
 namespace multisense {
