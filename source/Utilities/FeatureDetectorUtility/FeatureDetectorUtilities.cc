@@ -35,8 +35,20 @@
  **/
 
 
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#endif
+
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
+
+#include <MultiSense/details/utility/BufferStream.hh>
+#include <MultiSense/details/wire/Protocol.hh>
+
 #include "FeatureDetectorUtilities.hh"
-#include "MultiSense/details/utility/BufferStream.hh"
+
 
 namespace feature_detector
 {
