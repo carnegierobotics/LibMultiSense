@@ -58,9 +58,9 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
     VersionType version;
 #endif // SENSORPOD_FIRMWARE
 
-    int64_t frameId;
-    size_t  dataLength;
-    void *  dataP;
+    int64_t  frameId;
+    uint32_t dataLength;
+    void *   dataP;
 
     SecondaryAppMetaHeader():
 #ifdef SENSORDPOD_FIRMWARE
