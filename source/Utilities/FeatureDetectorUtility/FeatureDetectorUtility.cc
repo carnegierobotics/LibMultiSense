@@ -414,10 +414,10 @@ int main(int    argc,
     //
     // Parse args
 
-    int c;
+    int opt;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:m:r:")))
-        switch(c) {
+    while(-1 != (opt = getopt(argc, argvPP, "a:m:r:")))
+        switch(opt) {
         case 'a': currentAddress = std::string(optarg);               break;
         case 'm': mtu            = atoi(optarg);                      break;
         case 'r': head_id        = getRemoteHeadIdFromString(optarg); break;
@@ -526,11 +526,11 @@ int main(int    argc,
 
         fprintf(stderr, "%s got registered app: %s activated\n", __func__, s.apps[0].appName.c_str() );
 
-        feature_detector::FeatureDetectorConfig c;
-        c.setNumberOfFeatures(5000);
-        c.setGrouping(1);
-        c.setMotion(0);
-        status = channelP->setSecondaryAppConfig(c);
+        feature_detector::FeatureDetectorConfig fcfg;
+        fcfg.setNumberOfFeatures(5000);
+        fcfg.setGrouping(1);
+        fcfg.setMotion(0);
+        status = channelP->setSecondaryAppConfig(fcfg);
         if (Status_Ok != status)
         {
           std::cerr << "Error failed to set featureDetectorConfig apps\n";
@@ -539,7 +539,6 @@ int main(int    argc,
 
         std::cout << "Successfully Configured Feature Detector\n";
 
-        feature_detector::FeatureDetectorConfig fcfg;
 
         status = channelP->getSecondaryAppConfig(fcfg);
         if (Status_Ok != status) {
@@ -570,7 +569,7 @@ int main(int    argc,
 
     if (mtu >= 1500)
         status = channelP->setMtu(mtu);
-    else 
+    else
         status = channelP->setBestMtu();
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU: " << Channel::statusString(status) << std::endl;
