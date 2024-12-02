@@ -114,10 +114,10 @@ public:
         message & numFeatures;
         message & numDescriptors;
 
-        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
+        // const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
         dataP = message.peek();
-        message.seek(message.tell() + featureDataSize);
+        // message.seek(message.tell() + featureDataSize);
 
     }
 
