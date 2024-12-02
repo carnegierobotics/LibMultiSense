@@ -46,7 +46,7 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-struct MULTISENSE_API FeatureDetectorConfigParams {
+struct FeatureDetectorConfigParams {
 
 
     static CRL_CONSTEXPR VersionType VERSION    = 1;

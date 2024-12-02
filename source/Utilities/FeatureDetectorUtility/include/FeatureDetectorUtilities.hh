@@ -65,7 +65,7 @@ static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_FULL_RES    = 5000;
 /** The recommended maximum number of features for quarter resolution camera operation */
 static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_QUARTER_RES = 1500;
 
-class MULTISENSE_API FeatureDetectorConfig: public crl::multisense::system::SecondaryAppConfig {
+class FeatureDetectorConfig: public crl::multisense::system::SecondaryAppConfig {
 
     private:
 
@@ -155,7 +155,7 @@ class MULTISENSE_API FeatureDetectorConfig: public crl::multisense::system::Seco
 
 #pragma pack(push,1)
 
-struct MULTISENSE_API Feature {
+struct Feature {
   uint16_t x;
   uint16_t y;
   uint8_t angle;
@@ -164,13 +164,13 @@ struct MULTISENSE_API Feature {
   uint8_t descriptor;
 };
 
-struct MULTISENSE_API Descriptor {
+struct Descriptor {
   uint32_t d[8]; //Descriptor is 32 bytes
 };
 
 #pragma pack(pop)
 
-class MULTISENSE_API Header : public HeaderBase {
+class Header : public HeaderBase {
 
 public:
 
