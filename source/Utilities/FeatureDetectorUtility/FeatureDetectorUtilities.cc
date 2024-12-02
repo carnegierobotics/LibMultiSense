@@ -79,7 +79,7 @@ Status secondaryAppDataExtract(feature_detector::Header &header, const secondary
 
   const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
 
-  uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+  uint8_t * dataP = reinterpret_cast<uint8_t *>(stream.peek());
   for (size_t i = 0; i < featureDetector.numFeatures; i++) {
       feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
       header.features->push_back(f);
