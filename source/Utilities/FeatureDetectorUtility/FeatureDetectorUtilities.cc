@@ -36,6 +36,7 @@
 
 
 #include "FeatureDetectorUtilities.hh"
+#include "MultiSense/details/utility/BufferStream.hh"
 
 namespace feature_detector
 {
