@@ -72,7 +72,7 @@ public:
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR   VersionType VERSION    = 1;
-    wire::VersionType      version;
+    VersionType            version;
     uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
@@ -92,7 +92,6 @@ public:
 
 class FeatureDetector : public FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR VersionType VERSION = 1;
     void * dataP;
 
     //
