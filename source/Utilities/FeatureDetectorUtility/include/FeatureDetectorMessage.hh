@@ -51,6 +51,7 @@ namespace details {
 namespace wire {
 
 #pragma pack(push, 1)
+
 class MULTISENSE_API Feature {
 public:
     uint16_t x;
@@ -59,18 +60,16 @@ public:
     uint8_t resp;
     uint8_t octave;
     uint8_t descriptor;
-
 };
 
 class MULTISENSE_API Descriptor {
 public:
-
     uint32_t d[8];
 };
 
 #pragma pack(pop)
 
-class MULTISENSE_API FeatureDetectorHeader {
+class MULTISENSE_API WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR   VersionType VERSION    = 1;
     wire::VersionType      version;

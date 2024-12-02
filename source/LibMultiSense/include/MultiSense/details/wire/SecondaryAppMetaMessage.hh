@@ -50,7 +50,7 @@ namespace wire {
 class WIRE_HEADER_ATTRIBS_ SecondaryAppMetaHeader {
 public:
 
-static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_META;
+static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP_META;
 static CRL_CONSTEXPR VersionType VERSION = 1;
 
 #ifdef SENSORPOD_FIRMWARE

@@ -48,7 +48,7 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class MULTISENSE_API FeatureDetectorMetaHeader {
+class MULTISENSE_API WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
       static CRL_CONSTEXPR VersionType VERSION    = 1;
       VersionType            version;

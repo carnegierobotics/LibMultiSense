@@ -171,8 +171,8 @@ public:
     uint16_t averageYMotion;
     uint16_t numFeatures;
     uint16_t numDescriptors;
-    std::vector<wire::Feature> features;
-    std::vector<wire::Descriptor> descriptors;
+    MULTISENSE_API std::vector<wire::Feature> features;
+    MULTISENSE_API std::vector<wire::Descriptor> descriptors;
 };
 
 
