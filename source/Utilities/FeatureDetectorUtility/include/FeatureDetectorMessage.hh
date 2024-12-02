@@ -50,9 +50,9 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class __attribute__((__packed__)) Feature {
+#pragma pack(push, 1)
+class Feature {
 public:
-
     uint16_t x;
     uint16_t y;
     uint8_t angle;
@@ -62,11 +62,13 @@ public:
 
 };
 
-class __attribute__((__packed__)) Descriptor {
+class Descriptor {
 public:
 
     uint32_t d[8];
 };
+
+#pragma pack(pop)
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:

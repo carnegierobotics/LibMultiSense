@@ -51,7 +51,7 @@ namespace wire {
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
       static CRL_CONSTEXPR VersionType VERSION    = 1;
-      wire::VersionType      version;
+      VersionType            version;
       uint32_t               length;
       uint32_t               source;
       int64_t                frameId;

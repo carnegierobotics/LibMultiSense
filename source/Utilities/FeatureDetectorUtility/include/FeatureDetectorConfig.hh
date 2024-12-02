@@ -81,9 +81,6 @@ struct FeatureDetectorConfigParams {
 
 };
 
-}
-}
-}
-}
+}}}}
 
 #endif /* end of include guard: __FEATURE_DETECTOR_CONFIG_H__ */

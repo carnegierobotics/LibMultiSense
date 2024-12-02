@@ -153,18 +153,6 @@ class MULTISENSE_API FeatureDetectorConfig: public crl::multisense::system::Seco
 
 };
 
-struct Feature {
-  uint16_t x;
-  uint16_t y;
-  uint8_t angle;
-  uint8_t resp;
-  uint8_t octave;
-  uint8_t descriptor;
-};
-
-struct Descriptor {
-  uint32_t d[8]; //Descriptor is 32 bytes
-};
 
 class MULTISENSE_API Header : public HeaderBase {
 public:
@@ -183,8 +171,8 @@ public:
     uint16_t averageYMotion;
     uint16_t numFeatures;
     uint16_t numDescriptors;
-    std::vector<Feature> features;
-    std::vector<Descriptor> descriptors;
+    std::vector<wire::Feature> features;
+    std::vector<wire::Descriptor> descriptors;
 };
 
 
