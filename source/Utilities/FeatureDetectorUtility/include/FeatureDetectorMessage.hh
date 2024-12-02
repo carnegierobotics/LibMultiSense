@@ -116,15 +116,8 @@ public:
 
         const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(dataP, featureDataSize);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + featureDataSize);
-        }
+        dataP = message.peek();
+        message.seek(message.tell() + featureDataSize);
 
     }
 
