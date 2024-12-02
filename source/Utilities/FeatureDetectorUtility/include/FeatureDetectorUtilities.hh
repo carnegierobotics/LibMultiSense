@@ -154,6 +154,7 @@ class MULTISENSE_API FeatureDetectorConfig: public crl::multisense::system::Seco
 };
 
 #pragma pack(push,1)
+
 struct MULTISENSE_API Feature {
   uint16_t x;
   uint16_t y;
@@ -168,6 +169,7 @@ struct MULTISENSE_API Descriptor {
 };
 
 #pragma pack(pop)
+
 class MULTISENSE_API Header : public HeaderBase {
 
 public:
@@ -186,8 +188,20 @@ public:
     uint16_t averageYMotion;
     uint16_t numFeatures;
     uint16_t numDescriptors;
-    std::vector<Feature> features;
-    std::vector<Descriptor> descriptors;
+    std::vector<Feature> * features;
+    std::vector<Descriptor> * descriptors;
+
+  Header()
+  {
+    features = new std::vector<Feature>;
+    descriptors = new std::vector<Descriptor>;
+  }
+
+  ~Header()
+  {
+    delete features;
+    delete descriptors;
+  }
 };
 
 
