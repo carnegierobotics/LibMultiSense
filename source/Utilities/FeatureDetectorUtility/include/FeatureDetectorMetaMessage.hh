@@ -48,7 +48,7 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
+class MULTISENSE_API FeatureDetectorMetaHeader {
   public:
       static CRL_CONSTEXPR VersionType VERSION    = 1;
       VersionType            version;
@@ -91,7 +91,7 @@ class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
 
 #ifndef SENSORPOD_FIRMWARE
 
-class FeatureDetectorMeta : public FeatureDetectorMetaHeader {
+class MULTISENSE_API FeatureDetectorMeta : public FeatureDetectorMetaHeader {
 public:
 
     //

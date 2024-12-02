@@ -51,7 +51,7 @@ namespace details {
 namespace wire {
 
 #pragma pack(push, 1)
-class Feature {
+class MULTISENSE_API Feature {
 public:
     uint16_t x;
     uint16_t y;
@@ -62,7 +62,7 @@ public:
 
 };
 
-class Descriptor {
+class MULTISENSE_API Descriptor {
 public:
 
     uint32_t d[8];
@@ -70,7 +70,7 @@ public:
 
 #pragma pack(pop)
 
-class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
+class MULTISENSE_API FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR   VersionType VERSION    = 1;
     wire::VersionType      version;
@@ -91,7 +91,7 @@ public:
 
 #ifndef SENSORPOD_FIRMWARE
 
-class FeatureDetector : public FeatureDetectorHeader {
+class MULTISENSE_API FeatureDetector : public FeatureDetectorHeader {
 public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
     void * dataP;
