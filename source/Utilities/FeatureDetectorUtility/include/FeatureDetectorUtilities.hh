@@ -170,7 +170,7 @@ struct Descriptor {
 
 #pragma pack(pop)
 
-class Header : public HeaderBase {
+class MULTISENSE_API Header : public HeaderBase {
 
 public:
 
