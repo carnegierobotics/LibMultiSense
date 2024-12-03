@@ -49,3 +49,7 @@ docs/latex/
 
 # Visual Studio cache/options directory
 .vs
+
+# JetBrains IDE files
+.idea
+cmake-build-debug
