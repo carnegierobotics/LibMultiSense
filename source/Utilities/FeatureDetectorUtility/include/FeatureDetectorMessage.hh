@@ -108,7 +108,8 @@ public:
                        const VersionType _version)
     {
         (void) _version;
-        // 
+        (void) message;
+        //
         // message & version;
         // message & source;
         // message & frameId;
