@@ -37,12 +37,6 @@
 #ifndef __FEATURE_DETECTOR_UTILITIES_H__
 #define __FEATURE_DETECTOR_UTILITIES_H__
 
-#include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/utility/Thread.hh"
-#include "MultiSense/details/utility/BufferStream.hh"
-#include "MultiSense/details/utility/Units.hh"
-#include "MultiSense/details/listeners.hh"
-
 #include "FeatureDetectorMessage.hh"
 #include "FeatureDetectorMetaMessage.hh"
 #include "FeatureDetectorConfig.hh"

@@ -41,14 +41,7 @@
 #endif
 #endif
 
-#include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/MultiSenseChannel.hh>
-
-#include <MultiSense/details/utility/BufferStream.hh>
-#include <MultiSense/details/wire/Protocol.hh>
-
 #include "FeatureDetectorUtilities.hh"
-
 
 namespace feature_detector
 {
@@ -79,7 +72,7 @@ Status secondaryAppDataExtract(feature_detector::Header &header, const secondary
 
   const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
 
-  uint8_t * dataP = reinterpret_cast<uint8_t *>(stream.peek());
+  uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
   for (size_t i = 0; i < featureDetector.numFeatures; i++) {
       feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
       header.features->push_back(f);

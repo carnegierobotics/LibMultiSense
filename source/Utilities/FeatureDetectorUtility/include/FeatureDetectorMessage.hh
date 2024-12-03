@@ -42,8 +42,9 @@
 
 #include <cmath>
 
-#include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/details/wire/Protocol.hh>
+#include <MultiSense/details/utility/BufferStream.hh>
 
 namespace crl {
 namespace multisense {
@@ -77,7 +78,6 @@ public:
     int64_t                frameId;
     uint16_t               numFeatures;
     uint16_t               numDescriptors;
-    // void * dataP;
 
     FeatureDetectorHeader() :
         version(VERSION),
@@ -93,6 +93,8 @@ public:
 
 class FeatureDetector : public FeatureDetectorHeader {
 public:
+
+    void * dataP;
 
     //
     // Constructors
@@ -113,10 +115,10 @@ public:
         message & numFeatures;
         message & numDescriptors;
 
-        // const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
+        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
 
-        // dataP = message.peek();
-        // message.seek(message.tell() + featureDataSize);
+        dataP = message.peek();
+        message.seek(message.tell() + featureDataSize);
 
     }
 

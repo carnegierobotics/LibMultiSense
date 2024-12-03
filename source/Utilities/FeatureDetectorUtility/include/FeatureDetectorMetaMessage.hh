@@ -40,8 +40,8 @@
 
 #include <typeinfo>
 
-#include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 namespace crl {
 namespace multisense {
@@ -97,7 +97,7 @@ public:
     //
     // Constructors
 
-    FeatureDetectorMeta(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetectorMeta(utility::BufferStreamReader &r, VersionType v) {serialize(r,v);};
     FeatureDetectorMeta() {};
 
     //
