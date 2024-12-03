@@ -43,8 +43,8 @@
 #include <cmath>
 
 #include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/details/wire/Protocol.hh>
 #include <MultiSense/details/utility/BufferStream.hh>
+#include <MultiSense/details/wire/Protocol.hh>
 
 namespace crl {
 namespace multisense {
@@ -108,18 +108,17 @@ public:
                        const VersionType _version)
     {
         (void) _version;
-        (void) message;
-        //
-        // message & version;
-        // message & source;
-        // message & frameId;
-        // message & numFeatures;
-        // message & numDescriptors;
-        //
-        // const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
-        //
-        // dataP = message.peek();
-        // message.seek(message.tell() + featureDataSize);
+        
+        message & version;
+        message & source;
+        message & frameId;
+        message & numFeatures;
+        message & numDescriptors;
+
+        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
+
+        dataP = message.peek();
+        message.seek(message.tell() + featureDataSize);
 
     }
 

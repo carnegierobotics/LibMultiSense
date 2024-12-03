@@ -108,24 +108,23 @@ public:
                        const VersionType _version)
     {
         (void) _version;
-        (void) message;
-        // message & version;
-        // message & length;
-        // message & source;
-        // message & frameId;
-        // message & timeSeconds;
-        // message & timeNanoSeconds;
-        // message & ptpNanoSeconds;
-        // message & octaveWidth;
-        // message & octaveHeight;
-        // message & numOctaves;
-        // message & scaleFactor;
-        // message & motionStatus;
-        // message & averageXMotion;
-        // message & averageYMotion;
-        // message & numFeatures;
-        // message & numDescriptors;
-
+        
+        message & version;
+        message & length;
+        message & source;
+        message & frameId;
+        message & timeSeconds;
+        message & timeNanoSeconds;
+        message & ptpNanoSeconds;
+        message & octaveWidth;
+        message & octaveHeight;
+        message & numOctaves;
+        message & scaleFactor;
+        message & motionStatus;
+        message & averageXMotion;
+        message & averageYMotion;
+        message & numFeatures;
+        message & numDescriptors;
     }
 };
 
