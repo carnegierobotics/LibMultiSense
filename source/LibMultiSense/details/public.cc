@@ -937,46 +937,7 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
     // what is the proper c++ cast for this?
     ConfigAccess& a = *((ConfigAccess *) &config);
 
-    if (m_sensorVersion.firmwareVersion >= 0x0600)
-    {
-        wire::AuxCamConfig d;
-
-        status = waitData(wire::AuxCamGetConfig(), d);
-        if (Status_Ok != status)
-            return status;
-
-        a.setGain(d.gain);
-
-        a.setExposure(d.exposure);
-        a.setAutoExposure(d.autoExposure != 0);
-        a.setAutoExposureMax(d.autoExposureMax);
-        a.setAutoExposureDecay(d.autoExposureDecay);
-        a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
-        a.setAutoExposureThresh(d.autoExposureThresh);
-
-        a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
-        a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
-        a.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
-        a.setAutoWhiteBalanceThresh(d.autoWhiteBalanceThresh);
-        a.setHdr(d.hdrEnabled);
-
-        a.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
-                             d.autoExposureRoiWidth, d.autoExposureRoiHeight);
-
-        a.setCal(d.fx, d.fy, d.cx, d.cy);
-
-        a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
-
-        a.setGamma(d.gamma);
-
-        a.enableSharpening(d.sharpeningEnable);
-        a.setSharpeningPercentage(d.sharpeningPercentage);
-        a.setSharpeningLimit(d.sharpeningLimit);
-        a.setGainMax(d.gainMax);
-
-        return Status_Ok;
-    }
-    else
+    if (m_sensorVersion.firmwareVersion < 0x0600)
     {
         //
         // Use the legacy secondary exposure fields from the image config to populate the aux config
@@ -1055,7 +1016,42 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
         return Status_Ok;
     }
 
-    return Status_Unsupported;
+    wire::AuxCamConfig d;
+
+    status = waitData(wire::AuxCamGetConfig(), d);
+    if (Status_Ok != status)
+        return status;
+
+    a.setGain(d.gain);
+
+    a.setExposure(d.exposure);
+    a.setAutoExposure(d.autoExposure != 0);
+    a.setAutoExposureMax(d.autoExposureMax);
+    a.setAutoExposureDecay(d.autoExposureDecay);
+    a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
+    a.setAutoExposureThresh(d.autoExposureThresh);
+
+    a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
+    a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
+    a.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
+    a.setAutoWhiteBalanceThresh(d.autoWhiteBalanceThresh);
+    a.setHdr(d.hdrEnabled);
+
+    a.setAutoExposureRoi(d.autoExposureRoiX, d.autoExposureRoiY,
+                         d.autoExposureRoiWidth, d.autoExposureRoiHeight);
+
+    a.setCal(d.fx, d.fy, d.cx, d.cy);
+
+    a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
+
+    a.setGamma(d.gamma);
+
+    a.enableSharpening(d.sharpeningEnable);
+    a.setSharpeningPercentage(d.sharpeningPercentage);
+    a.setSharpeningLimit(d.sharpeningLimit);
+    a.setGainMax(d.gainMax);
+
+    return Status_Ok;
 }
 
 //
@@ -1121,42 +1117,7 @@ Status impl::setImageConfig(const image::Config& c)
 
 Status impl::setAuxImageConfig(const image::AuxConfig& c)
 {
-    if (m_sensorVersion.firmwareVersion >= 0x0600)
-    {
-        wire::AuxCamControl cmd;
-
-        cmd.gain            = c.gain();
-
-        cmd.exposure                    = c.exposure();
-        cmd.autoExposure                = c.autoExposure() ? 1 : 0;
-        cmd.autoExposureMax             = c.autoExposureMax();
-        cmd.autoExposureDecay           = c.autoExposureDecay();
-        cmd.autoExposureThresh          = c.autoExposureThresh();
-        cmd.autoExposureTargetIntensity = c.autoExposureTargetIntensity();
-
-        cmd.whiteBalanceRed          = c.whiteBalanceRed();
-        cmd.whiteBalanceBlue         = c.whiteBalanceBlue();
-        cmd.autoWhiteBalance         = c.autoWhiteBalance() ? 1 : 0;
-        cmd.autoWhiteBalanceDecay    = c.autoWhiteBalanceDecay();
-        cmd.autoWhiteBalanceThresh   = c.autoWhiteBalanceThresh();
-        cmd.hdrEnabled               = c.hdrEnabled();
-
-        cmd.autoExposureRoiX         = c.autoExposureRoiX();
-        cmd.autoExposureRoiY         = c.autoExposureRoiY();
-        cmd.autoExposureRoiWidth     = c.autoExposureRoiWidth();
-        cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
-
-        cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
-
-        cmd.gamma = c.gamma();
-        cmd.sharpeningEnable = c.enableSharpening();
-        cmd.sharpeningPercentage = c.sharpeningPercentage();
-        cmd.sharpeningLimit = c.sharpeningLimit();
-        cmd.gainMax = c.gainMax();
-
-        return waitAck(cmd);
-    }
-    else
+    if (m_sensorVersion.firmwareVersion < 0x0600)
     {
         //
         // Use the legacy secondary exposure controls if we are working with older firmware. Query the
@@ -1223,7 +1184,38 @@ Status impl::setAuxImageConfig(const image::AuxConfig& c)
         return waitAck(cmd);
     }
 
-    return Status_Unsupported;
+    wire::AuxCamControl cmd;
+
+    cmd.gain            = c.gain();
+
+    cmd.exposure                    = c.exposure();
+    cmd.autoExposure                = c.autoExposure() ? 1 : 0;
+    cmd.autoExposureMax             = c.autoExposureMax();
+    cmd.autoExposureDecay           = c.autoExposureDecay();
+    cmd.autoExposureThresh          = c.autoExposureThresh();
+    cmd.autoExposureTargetIntensity = c.autoExposureTargetIntensity();
+
+    cmd.whiteBalanceRed          = c.whiteBalanceRed();
+    cmd.whiteBalanceBlue         = c.whiteBalanceBlue();
+    cmd.autoWhiteBalance         = c.autoWhiteBalance() ? 1 : 0;
+    cmd.autoWhiteBalanceDecay    = c.autoWhiteBalanceDecay();
+    cmd.autoWhiteBalanceThresh   = c.autoWhiteBalanceThresh();
+    cmd.hdrEnabled               = c.hdrEnabled();
+
+    cmd.autoExposureRoiX         = c.autoExposureRoiX();
+    cmd.autoExposureRoiY         = c.autoExposureRoiY();
+    cmd.autoExposureRoiWidth     = c.autoExposureRoiWidth();
+    cmd.autoExposureRoiHeight    = c.autoExposureRoiHeight();
+
+    cmd.cameraProfile    = static_cast<uint32_t>(c.cameraProfile());
+
+    cmd.gamma = c.gamma();
+    cmd.sharpeningEnable = c.enableSharpening();
+    cmd.sharpeningPercentage = c.sharpeningPercentage();
+    cmd.sharpeningLimit = c.sharpeningLimit();
+    cmd.gainMax = c.gainMax();
+
+    return waitAck(cmd);
 }
 
 //
