@@ -53,21 +53,21 @@ Status secondaryAppDataExtract(feature_detector::Header &header, const secondary
   utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(orig.secondaryAppDataP), orig.secondaryAppDataLength);
   wire::FeatureDetector featureDetector(stream, wire::FeatureDetector::VERSION);
 
-  utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
-  wire::FeatureDetectorMeta _meta(metaStream, wire::FeatureDetectorMeta::VERSION);
+  // utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
+  // wire::FeatureDetectorMeta _meta(metaStream, wire::FeatureDetectorMeta::VERSION);
 
   header.source         = featureDetector.source;
-  header.frameId        = _meta.frameId;
-  header.timeSeconds    = _meta.timeSeconds;
-  header.timeNanoSeconds= _meta.timeNanoSeconds;
-  header.ptpNanoSeconds = _meta.ptpNanoSeconds;
-  header.octaveWidth    = _meta.octaveWidth;
-  header.octaveHeight   = _meta.octaveHeight;
-  header.numOctaves     = _meta.numOctaves;
-  header.scaleFactor    = _meta.scaleFactor;
-  header.motionStatus   = _meta.motionStatus;
-  header.averageXMotion = _meta.averageXMotion;
-  header.averageYMotion = _meta.averageYMotion;
+  // header.frameId        = _meta.frameId;
+  // header.timeSeconds    = _meta.timeSeconds;
+  // header.timeNanoSeconds= _meta.timeNanoSeconds;
+  // header.ptpNanoSeconds = _meta.ptpNanoSeconds;
+  // header.octaveWidth    = _meta.octaveWidth;
+  // header.octaveHeight   = _meta.octaveHeight;
+  // header.numOctaves     = _meta.numOctaves;
+  // header.scaleFactor    = _meta.scaleFactor;
+  // header.motionStatus   = _meta.motionStatus;
+  // header.averageXMotion = _meta.averageXMotion;
+  // header.averageYMotion = _meta.averageYMotion;
   header.numFeatures    = featureDetector.numFeatures;
   header.numDescriptors = featureDetector.numDescriptors;
 
