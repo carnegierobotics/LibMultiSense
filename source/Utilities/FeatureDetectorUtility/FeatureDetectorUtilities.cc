@@ -48,40 +48,41 @@ namespace feature_detector
 
 Status secondaryAppDataExtract(feature_detector::Header &header, const secondary_app::Header &orig)
 {
-
-  crl::multisense::details::utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(orig.secondaryAppDataP), orig.secondaryAppDataLength);
-  wire::FeatureDetector featureDetector(stream, 1);
-
-  crl::multisense::details::utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
-  wire::FeatureDetectorMeta _meta(metaStream, 1);
-
-  header.source         = featureDetector.source;
-  header.frameId        = _meta.frameId;
-  header.timeSeconds    = _meta.timeSeconds;
-  header.timeNanoSeconds= _meta.timeNanoSeconds;
-  header.ptpNanoSeconds = _meta.ptpNanoSeconds;
-  header.octaveWidth    = _meta.octaveWidth;
-  header.octaveHeight   = _meta.octaveHeight;
-  header.numOctaves     = _meta.numOctaves;
-  header.scaleFactor    = _meta.scaleFactor;
-  header.motionStatus   = _meta.motionStatus;
-  header.averageXMotion = _meta.averageXMotion;
-  header.averageYMotion = _meta.averageYMotion;
-  header.numFeatures    = featureDetector.numFeatures;
-  header.numDescriptors = featureDetector.numDescriptors;
-
-  const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
-
-  uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
-  for (size_t i = 0; i < featureDetector.numFeatures; i++) {
-      feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
-      header.features->push_back(f);
-  }
-
-  for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
-      feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
-      header.descriptors->push_back(d);
-  }
+  (void) header;
+  (void) orig;
+  // crl::multisense::details::utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(orig.secondaryAppDataP), orig.secondaryAppDataLength);
+  // wire::FeatureDetector featureDetector(stream, 1);
+  //
+  // crl::multisense::details::utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
+  // wire::FeatureDetectorMeta _meta(metaStream, 1);
+  //
+  // header.source         = featureDetector.source;
+  // header.frameId        = _meta.frameId;
+  // header.timeSeconds    = _meta.timeSeconds;
+  // header.timeNanoSeconds= _meta.timeNanoSeconds;
+  // header.ptpNanoSeconds = _meta.ptpNanoSeconds;
+  // header.octaveWidth    = _meta.octaveWidth;
+  // header.octaveHeight   = _meta.octaveHeight;
+  // header.numOctaves     = _meta.numOctaves;
+  // header.scaleFactor    = _meta.scaleFactor;
+  // header.motionStatus   = _meta.motionStatus;
+  // header.averageXMotion = _meta.averageXMotion;
+  // header.averageYMotion = _meta.averageYMotion;
+  // header.numFeatures    = featureDetector.numFeatures;
+  // header.numDescriptors = featureDetector.numDescriptors;
+  //
+  // const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
+  //
+  // uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+  // for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+  //     feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
+  //     header.features->push_back(f);
+  // }
+  //
+  // for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
+  //     feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
+  //     header.descriptors->push_back(d);
+  // }
 
   return Status_Ok;
 }
