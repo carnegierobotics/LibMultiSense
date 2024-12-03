@@ -1200,7 +1200,7 @@ Status impl::setAuxImageConfig(const image::AuxConfig& c)
         cmd.gamma = d.gamma;
         cmd.gainMax = d.gainMax;
 
-        cmd.exposureSource = sourceApiToWire(Source_Luma_Left);
+        cmd.exposureSource = static_cast<uint32_t>(sourceApiToWire(Source_Luma_Left));
 
         wire::ExposureConfig auxExposureConfig;
         auxExposureConfig.exposure                    = c.exposure();
@@ -1216,7 +1216,7 @@ Status impl::setAuxImageConfig(const image::AuxConfig& c)
         auxExposureConfig.autoExposureRoiHeight    = c.autoExposureRoiHeight();
 
         auxExposureConfig.gain = c.gain();
-        auxExposureConfig.exposureSource = sourceApiToWire(Source_Luma_Aux);
+        auxExposureConfig.exposureSource = static_cast<uint32_t>(sourceApiToWire(Source_Luma_Aux));
 
         cmd.secondaryExposureConfigs.push_back(auxExposureConfig);
 
