@@ -26,7 +26,7 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
 
     target_link_libraries (FeatureDetectorUtility ${MULTISENSE_UTILITY_LIBS})
     target_include_directories (FeatureDetectorUtility PRIVATE include)
-    target_include_directories (FeatureDetectorUtility PRIVATE ../../source/LibMultiSense/details/include)
+    # target_include_directories (FeatureDetectorUtility PRIVATE ../../source/LibMultiSense/details/include)
     #
     # Specify the install location
     #
