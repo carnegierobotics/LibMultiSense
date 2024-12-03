@@ -13,7 +13,7 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
     (CMAKE_CXX_COMPILER_ID MATCHES Clang AND
     CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 3.4))
 
-    #set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_CXX_STANDARD 14)
     #
     # Setup the executable that we will use.
     #
