@@ -41,19 +41,17 @@
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/MultiSenseTypes.hh"
 
-namespace crl {
-namespace multisense {
-namespace details {
-namespace wire {
+using namespace crl::multisense::details;
+
+#pragma pack(push, 1)
 
 struct FeatureDetectorConfigParams {
 
-
-    static CRL_CONSTEXPR VersionType VERSION    = 1;
+    static CRL_CONSTEXPR wire::VersionType VERSION    = 1;
 
     //
     // The message version
-    VersionType version;
+    wire::VersionType version;
 
     //
     // The maximum number of features detected per image
@@ -75,12 +73,9 @@ struct FeatureDetectorConfigParams {
       numberOfFeatures(1500),
       grouping(true),
       motion(1)
-    {
-
-    }
-
+    {    }
 };
 
-}}}}
+#pragma pack(pop)
 
 #endif /* end of include guard: __FEATURE_DETECTOR_CONFIG_H__ */

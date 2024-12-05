@@ -43,15 +43,12 @@
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
-namespace crl {
-namespace multisense {
-namespace details {
-namespace wire {
+using namespace crl::multisense::details;
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
-      static CRL_CONSTEXPR VersionType VERSION    = 1;
-      VersionType            version;
+      static CRL_CONSTEXPR wire::VersionType VERSION    = 1;
+      wire::VersionType      version;
       uint32_t               length;
       uint32_t               source;
       int64_t                frameId;
@@ -97,7 +94,7 @@ public:
     //
     // Constructors
 
-    FeatureDetectorMeta(utility::BufferStreamReader &r, VersionType v) {serialize(r,v);};
+    FeatureDetectorMeta(utility::BufferStreamReader &r, wire::VersionType v) {serialize(r,v);};
     FeatureDetectorMeta() {};
 
     //
@@ -105,10 +102,10 @@ public:
 
     template<class Archive>
         void serialize(Archive&          message,
-                       const VersionType _version)
+                       const wire::VersionType _version)
     {
         (void) _version;
-        
+
         message & version;
         message & length;
         message & source;
@@ -129,7 +126,5 @@ public:
 };
 
 #endif // !SENSORPOD_FIRMWARE
-
-}}}} // namespaces
 
 #endif

@@ -46,10 +46,7 @@
 #include <MultiSense/details/utility/BufferStream.hh>
 #include <MultiSense/details/wire/Protocol.hh>
 
-namespace crl {
-namespace multisense {
-namespace details {
-namespace wire {
+using namespace crl::multisense::details;
 
 #pragma pack(push, 1)
 
@@ -72,8 +69,8 @@ public:
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR   VersionType VERSION    = 1;
-    VersionType            version;
+    static CRL_CONSTEXPR   wire::VersionType VERSION    = 1;
+    wire::VersionType      version;
     uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
@@ -99,34 +96,31 @@ public:
     //
     // Constructors
 
-    FeatureDetector(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetector(utility::BufferStreamReader&r, wire::VersionType v) {serialize(r,v);};
     FeatureDetector() {};
 
 
     template<class Archive>
         void serialize(Archive&          message,
-                       const VersionType _version)
+                       const wire::VersionType _version)
     {
         (void) _version;
-        
+
         message & version;
         message & source;
         message & frameId;
         message & numFeatures;
         message & numDescriptors;
 
-        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
+        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(Feature) + numDescriptors*sizeof(Descriptor)));
 
         dataP = message.peek();
         message.seek(message.tell() + featureDataSize);
-
     }
 
 };
 
 #endif // !SENSORPOD_FIRMWARE
 
-
-}}}} // namespaces
 
 #endif
