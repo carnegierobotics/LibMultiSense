@@ -34,7 +34,7 @@
  *   2023-12-12, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "MultiSense/details/utility/TimeStamp.hh"
+#include "utility/TimeStamp.hh"
 
 #include <gtest/gtest.h>
 
