@@ -1,12 +1,10 @@
 /**
- * @file LibMultiSense/FeatureDetectorControlMessage.hh
+ * @file LibMultiSense/SecondaryAppMetaMessage.hh
  *
- * This message contains the current feature detector configuration.
- *
- * Copyright 2013-2024
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegiearobotics.com
+ * http://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -33,39 +31,68 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-10-31, patrick.smith@carnegierobotics.com, IRAD, created file.
  **/
 
-#ifndef LibMultisense_FeatureDetectorControlMessage
-#define LibMultisense_FeatureDetectorControlMessage
+#ifndef LibMultiSense_SecondaryAppMetaData
+#define LibMultiSense_SecondaryAppMetaData
+
+#include <typeinfo>
+#include <cmath>
 
 #include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/details/wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class FeatureDetectorControl {
+class WIRE_HEADER_ATTRIBS_ SecondaryAppMetaHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_FEATURE_DETECTOR_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    //
-    // Parameters representing the current camera configuration
+static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP_META;
+static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    uint32_t numberOfFeatures;
+#ifdef SENSORPOD_FIRMWARE
+    IdType      id;
+    VersionType version;
+#endif // SENSORPOD_FIRMWARE
 
-    uint32_t grouping;
+    int64_t  frameId;
+    uint32_t dataLength;
+    void *   dataP;
 
-    uint32_t motion;
+    SecondaryAppMetaHeader():
+#ifdef SENSORDPOD_FIRMWARE
+        id(ID),
+        version(VERSION),
+#endif // SENSORPOD_FIRMWARE
+        frameId(0),
+        dataLength(0),
+        dataP(nullptr)
+      {};
+};
+
+#ifndef SENSORPOD_FIRMWARE
+
+class SecondaryAppMetadata : public SecondaryAppMetaHeader {
+public:
+
 
     //
     // Constructors
 
-    FeatureDetectorControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    FeatureDetectorControl() {};
+    SecondaryAppMetadata(utility::BufferStreamReader&r, VersionType v) {
+      mRef = new utility::BufferStreamReader(r);
+      serialize(r, v);
+    };
+
+    SecondaryAppMetadata() {};
+
+    ~SecondaryAppMetadata() {
+      if (mRef)
+          delete mRef;
+    };
 
     //
     // Serialization routine
@@ -74,14 +101,26 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
-        message & numberOfFeatures;
-        message & grouping;
-        message & motion;
+
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+
+            message.write(dataP, dataLength);
+
+        } else {
+            message & frameId;
+            message & dataLength;
+
+            dataP = message.peek();
+            message.seek(message.tell() + dataLength);
+        }
 
     }
+
+    utility::BufferStreamReader * mRef;
 };
+
+#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

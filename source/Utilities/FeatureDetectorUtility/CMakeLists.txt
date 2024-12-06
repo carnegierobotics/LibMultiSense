@@ -25,10 +25,7 @@ if ((CMAKE_CXX_COMPILER_ID MATCHES MSVC AND
     #
 
     target_link_libraries (FeatureDetectorUtility ${MULTISENSE_UTILITY_LIBS})
-
-    #
-    # Specify the install location
-    #
+    target_include_directories (FeatureDetectorUtility PRIVATE include)
 
     install(TARGETS FeatureDetectorUtility RUNTIME DESTINATION "bin")
 endif()

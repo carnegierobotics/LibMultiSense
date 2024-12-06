@@ -99,7 +99,13 @@ namespace multisense {
 namespace details {
 namespace utility {
 
-class Exception : public std::exception
+#if defined (_MSC_VER)
+#pragma warning (push)
+#pragma warning (disable: 4251)
+#pragma warning (disable: 4275)
+#endif
+
+class MULTISENSE_API Exception : public std::exception
 {
 private:
 
@@ -113,6 +119,10 @@ public:
 
     virtual const char* what() const throw();
 };
+
+#if defined (_MSC_VER)
+#pragma warning (pop)
+#endif
 
 }}}} // namespaces
 

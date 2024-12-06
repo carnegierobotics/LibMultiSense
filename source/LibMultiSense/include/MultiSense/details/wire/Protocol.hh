@@ -154,48 +154,51 @@ static CRL_CONSTEXPR IdType ID_ACK = 0x0001;
 //
 // Commands
 
-static CRL_CONSTEXPR IdType ID_CMD_GET_VERSION              = 0x0002;
-static CRL_CONSTEXPR IdType ID_CMD_GET_STATUS               = 0x0003;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_CONFIG           = 0x0004;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_CONTROL              = 0x0007;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_HISTORY          = 0x0008;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_SET_HDR              = 0x000b;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_SET_RESOLUTION       = 0x000c;
-static CRL_CONSTEXPR IdType ID_CMD_LIDAR_GET_CONFIG         = 0x000d;
-static CRL_CONSTEXPR IdType ID_CMD_LIDAR_SET_MOTOR          = 0x0010;
-static CRL_CONSTEXPR IdType ID_CMD_LED_GET_STATUS           = 0x0012;
-static CRL_CONSTEXPR IdType ID_CMD_LED_SET                  = 0x0013;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_MTU                  = 0x0014;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_FLASH_OP             = 0x0015;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_NETWORK          = 0x0016;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DEVICE_INFO      = 0x0017;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_CAMERA_CAL       = 0x0018;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_LIDAR_CAL        = 0x0019;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_MTU              = 0x001a;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_NETWORK          = 0x001b;
-static CRL_CONSTEXPR IdType ID_CMD_STREAM_CONTROL           = 0x001c;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DEVICE_MODES     = 0x001d;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_SET_TRIGGER_SOURCE   = 0x001e;
-static CRL_CONSTEXPR IdType ID_CMD_IMU_GET_INFO             = 0x001f;
-static CRL_CONSTEXPR IdType ID_CMD_IMU_GET_CONFIG           = 0x0020;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_TEST_MTU             = 0x0021;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DIRECTED_STREAMS = 0x0022;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_SENSOR_CAL       = 0x0023;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_EXTERNAL_CAL     = 0x0024;
-static CRL_CONSTEXPR IdType ID_CMD_LED_GET_SENSOR_STATUS    = 0x0025;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_TRANSMIT_DELAY   = 0x0026;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_TRANSMIT_DELAY   = 0x0027;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_MOTOR_POLL           = 0x0028;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PTP              = 0x0029;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_AUX_CONTROL          = 0x002a;
-static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_AUX_CONFIG       = 0x002b;
-static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_GET_CONFIG   = 0x002c;
-static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONTROL      = 0x002d;
-static CRL_CONSTEXPR IdType ID_CMD_GET_PTP_STATUS           = 0x002e;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PACKET_DELAY     = 0x002f;
-static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_PACKET_DELAY     = 0x0030;
-static CRL_CONSTEXPR IdType ID_CMD_FEATURE_DETECTOR_GET_CONFIG  = 0x0031;
-static CRL_CONSTEXPR IdType ID_CMD_FEATURE_DETECTOR_CONTROL     = 0x0032;
+static CRL_CONSTEXPR IdType ID_CMD_GET_VERSION                        = 0x0002;
+static CRL_CONSTEXPR IdType ID_CMD_GET_STATUS                         = 0x0003;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_CONFIG                     = 0x0004;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_CONTROL                        = 0x0007;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_HISTORY                    = 0x0008;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_SET_HDR                        = 0x000b;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_SET_RESOLUTION                 = 0x000c;
+static CRL_CONSTEXPR IdType ID_CMD_LIDAR_GET_CONFIG                   = 0x000d;
+static CRL_CONSTEXPR IdType ID_CMD_LIDAR_SET_MOTOR                    = 0x0010;
+static CRL_CONSTEXPR IdType ID_CMD_LED_GET_STATUS                     = 0x0012;
+static CRL_CONSTEXPR IdType ID_CMD_LED_SET                            = 0x0013;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_MTU                            = 0x0014;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_FLASH_OP                       = 0x0015;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_NETWORK                    = 0x0016;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DEVICE_INFO                = 0x0017;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_CAMERA_CAL                 = 0x0018;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_LIDAR_CAL                  = 0x0019;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_MTU                        = 0x001a;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_NETWORK                    = 0x001b;
+static CRL_CONSTEXPR IdType ID_CMD_STREAM_CONTROL                     = 0x001c;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DEVICE_MODES               = 0x001d;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_SET_TRIGGER_SOURCE             = 0x001e;
+static CRL_CONSTEXPR IdType ID_CMD_IMU_GET_INFO                       = 0x001f;
+static CRL_CONSTEXPR IdType ID_CMD_IMU_GET_CONFIG                     = 0x0020;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_TEST_MTU                       = 0x0021;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_DIRECTED_STREAMS           = 0x0022;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_SENSOR_CAL                 = 0x0023;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_EXTERNAL_CAL               = 0x0024;
+static CRL_CONSTEXPR IdType ID_CMD_LED_GET_SENSOR_STATUS              = 0x0025;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_TRANSMIT_DELAY             = 0x0026;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_TRANSMIT_DELAY             = 0x0027;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_MOTOR_POLL                     = 0x0028;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PTP                        = 0x0029;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_AUX_CONTROL                    = 0x002a;
+static CRL_CONSTEXPR IdType ID_CMD_CAM_GET_AUX_CONFIG                 = 0x002b;
+static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_GET_CONFIG             = 0x002c;
+static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONTROL                = 0x002d;
+static CRL_CONSTEXPR IdType ID_CMD_GET_PTP_STATUS                     = 0x002e;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_SET_PACKET_DELAY               = 0x002f;
+static CRL_CONSTEXPR IdType ID_CMD_SYS_GET_PACKET_DELAY               = 0x0030;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_GET_CONFIG           = 0x0031;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_CONTROL              = 0x0032;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_GET_REGISTERED_APPS  = 0x0033;
+static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_ACTIVATE             = 0x0034;
+
 //
 // Data
 
@@ -235,9 +238,11 @@ static CRL_CONSTEXPR IdType ID_DATA_CAM_AUX_CONFIG                     = 0x0124;
 static CRL_CONSTEXPR IdType ID_CMD_REMOTE_HEAD_CONFIG                  = 0x0125;
 static CRL_CONSTEXPR IdType ID_DATA_PTP_STATUS                         = 0x0126;
 static CRL_CONSTEXPR IdType ID_DATA_SYS_PACKET_DELAY                   = 0x0127;
-static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_META              = 0x0128;
-static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR                   = 0x0129;
-static CRL_CONSTEXPR IdType ID_DATA_FEATURE_DETECTOR_CONFIG            = 0x012A;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_META                 = 0x0128;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP                      = 0x0129;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_CONFIG               = 0x012A;
+static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_REGISTERED_APPS      = 0x012B;
+
 
 //
 // Data sources
@@ -260,12 +265,6 @@ static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_RIGHT             = (1ull<<11);
 static CRL_CONSTEXPR SourceType SOURCE_DISPARITY_COST              = (1ull<<12);
 static CRL_CONSTEXPR SourceType SOURCE_JPEG_LEFT                   = (1ull<<16);
 static CRL_CONSTEXPR SourceType SOURCE_RGB_LEFT                    = (1ull<<17);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_LEFT                = (1ull<<18);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RIGHT               = (1ull<<19);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_AUX                 = (1ull<<32);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_LEFT      = (1ull<<33);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_RIGHT     = (1ull<<34);
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_RECTIFIED_AUX       = (1ull<<35);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_SPLINE_DATA  = (1ull<<20);
 static CRL_CONSTEXPR SourceType SOURCE_GROUND_SURFACE_CLASS_IMAGE  = (1ull<<22);
 static CRL_CONSTEXPR SourceType SOURCE_APRILTAG_DETECTIONS         = (1ull<<21);
@@ -284,6 +283,19 @@ static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_AUX              = (1ull<<14);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_LEFT   = (1ull<<15);
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_RIGHT  = (1ull<<16); // same as SOURCE_JPEG_LEFT
 static CRL_CONSTEXPR SourceType SOURCE_COMPRESSED_RECTIFIED_AUX    = (1ull<<17); // same as SOURCE_RGB_LEFT
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_0        = (1ull<<18);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_1        = (1ull<<19);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_2        = (1ull<<32);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_3        = (1ull<<33);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_4        = (1ull<<34);
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA_5        = (1ull<<35);
+
+static CRL_CONSTEXPR SourceType SOURCE_SECONDARY_APP_DATA = (SOURCE_SECONDARY_APP_DATA_0 |
+                                                             SOURCE_SECONDARY_APP_DATA_1 |
+                                                             SOURCE_SECONDARY_APP_DATA_2 |
+                                                             SOURCE_SECONDARY_APP_DATA_3 |
+                                                             SOURCE_SECONDARY_APP_DATA_4 |
+                                                             SOURCE_SECONDARY_APP_DATA_5);
 
 static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT        |
                                                             SOURCE_RAW_RIGHT       |
@@ -314,13 +326,6 @@ static CRL_CONSTEXPR SourceType SOURCE_IMAGES            = (SOURCE_RAW_LEFT     
                                                             SOURCE_COMPRESSED_RECTIFIED_AUX
                                                           );
 
-static CRL_CONSTEXPR SourceType SOURCE_FEATURE_DETECTOR = (SOURCE_FEATURE_LEFT |
-                                                           SOURCE_FEATURE_RIGHT|
-                                                           SOURCE_FEATURE_AUX  |
-                                                           SOURCE_FEATURE_RECTIFIED_LEFT  |
-                                                           SOURCE_FEATURE_RECTIFIED_RIGHT  |
-                                                           SOURCE_FEATURE_RECTIFIED_AUX
-                                                          );
 //
 // Exposure config
 
