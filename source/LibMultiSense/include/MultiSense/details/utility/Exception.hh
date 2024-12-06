@@ -63,6 +63,7 @@
 
 #if !defined(MULTISENSE_API)
 #if defined (_MSC_VER)
+#pragma warning(disable : 4275)
 #if defined (MultiSense_STATIC)
 #define MULTISENSE_API __declspec(dllexport)
 #elif defined (MultiSense_EXPORTS)
