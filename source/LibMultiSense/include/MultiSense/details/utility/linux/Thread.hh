@@ -56,7 +56,7 @@
 
 #include "MultiSense/details/utility/Portability.hh"
 
-#include "MultiSense/details/utility/Exception.hh"
+#include <utility/Exception.hh>
 
 namespace crl {
 namespace multisense {
