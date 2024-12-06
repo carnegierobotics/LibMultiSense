@@ -71,8 +71,8 @@ std::atomic<int> ExitReceived(0);
 int main(int argc, char *argv[]) {
 
     bool verbose_progress = false;
-    char IpAddress[INET_ADDRSTRLEN] = {};
-    char FilePath[PATH_MAX]         = {};
+    std::string ipAddress = "10.66.171.21";
+    std::string filePath;
     bool UpdateComplete = false;
     int  ret = 0;
     int  opt;
@@ -80,11 +80,11 @@ int main(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "a:f:vh")) != -1) {
         switch (opt) {
         case 'a':
-            strncpy(IpAddress, optarg, INET_ADDRSTRLEN - 1);
+            ipAddress = std::string(optarg);
             break;
         case 'f':
-            strncpy(FilePath, optarg, PATH_MAX - 1);
-            break;        
+            filePath = std::string(optarg);
+            break;
         case 'v':
             verbose_progress = true;
             break;
@@ -97,22 +97,25 @@ int main(int argc, char *argv[]) {
 
     signal(SIGINT, signal_handler);
 
-    if (!strcmp(IpAddress, "")) {
-        strcpy(IpAddress, "10.66.171.21");
+    if (ipAddress.empty()) {
+        std::cerr << "Missing IP address\n";
+        exit(-1);
     }
 
-    if (!strcmp(FilePath, "")) {
-        strcpy(FilePath, "update.img");
+    if (filePath.empty())
+    {
+        std::cerr << "Please specify a file path\n";
+        exit(-1);
     }
 
-    if (!Util::FileExists(FilePath)) {
-        std::cerr << "Error: File " << FilePath << " Does not exist\n";
+    if (!Util::FileExists(filePath.c_str())) {
+        std::cerr << "Error: File " << filePath << " Does not exist\n";
         usage();
         return -1;
     }
 
     Ip i;
-    if (i.Setup(IpAddress) < 0) {
+    if (i.Setup(ipAddress.c_str()) < 0) {
         std::cerr << "Error Failed to setup Network\n";
         return -1;
     }
@@ -124,8 +127,8 @@ int main(int argc, char *argv[]) {
 
     Updater u(&i);
 
-    if (u.SendFile(FilePath, verbose_progress) < 0) {
-        std::cerr << "Error failed to send the file " << FilePath << " to the camera!";
+    if (u.SendFile(filePath, verbose_progress) < 0) {
+        std::cerr << "Error failed to send the file " << filePath << " to the camera!";
         return -1;
     }
 

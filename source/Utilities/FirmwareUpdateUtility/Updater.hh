@@ -54,7 +54,7 @@ public:
 
     int Receive(uint8_t * buf, const size_t len, long int *rxlen);
     int Send(uint8_t * buf, const size_t len);
-    int SendFile(char * FilePath, bool verbose);
+    int SendFile(std::string& FilePath, bool verbose);
 
 private:
     Ip * m_Ip;

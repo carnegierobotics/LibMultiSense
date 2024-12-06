@@ -39,6 +39,8 @@
 #include "crc.h"
 
 #include <iostream>
+#include <fstream>
+#include <string>
 
 int Updater::Receive(uint8_t * buf, const size_t len, long int *RxLen)
 {
@@ -110,7 +112,7 @@ int Updater::Receive(uint8_t * buf, const size_t len, long int *RxLen)
 
 }
 
-int Updater::SendFile(char * FilePath, bool verbose)
+int Updater::SendFile(std::string &filePath, bool verbose)
 {
     int ret = 0;
     uint32_t crc32_final = 0;
@@ -120,90 +122,106 @@ int Updater::SendFile(char * FilePath, bool verbose)
     long int bytesRcvd = 0;
     uint8_t chunk[Messages::BLOCK_SIZE] = {};
 
-    if (!FilePath)
-    {
-        std::cerr << "Invalid File\n";
-        return -1;
-    }
-
-    FILE * fd = fopen(FilePath, "rb");
-    if (!fd){
-        std::cerr << "Failed to open file!\n";
-        return -1;
-    }
-
-    fseek(fd, 0, SEEK_END);
-    uint32_t FileSize = ftell(fd);
-    rewind(fd);
-
-    for (size_t i = 0; i < FileSize; i+=Messages::BLOCK_SIZE) {
-        // Disable narrowing conversion wanring on windows, we limit on return value to BLOCK_SIZE
-#if defined(WIN32) && !defined(__MINGW64__)
-#pragma warning (push)
-#pragma warning (disable : 4267)
-#endif
-        uint32_t l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
-#if defined(WIN32) && !defined(__MINGW64__)
-#pragma warning (pop)
-#endif
-        crc32_initial = crc32(crc32_initial, chunk, l);
-    }
-    crc32_final = crc32_initial;
-
-    std::cout << "CRC32 0x" << std::hex <<  crc32_final << std::endl;
-
-    rewind(fd);
-
-    const int numBlocks = FileSize/Messages::BLOCK_SIZE;
-    Messages::MessageBlockAck BlockAck;
-
-    while (bytesWritten<FileSize) {
-
-        uint32_t sent = 0;
-#if defined(WIN32) && !defined(__MINGW64__)
-#pragma warning (push)
-#pragma warning (disable : 4267)
-#endif
-        uint32_t l = fread(chunk, 1, Messages::BLOCK_SIZE, fd);
-#if defined(WIN32) && !defined(__MINGW64__)
-#pragma warning (pop)
-#endif
-        if (l == 0) {
-            std::cerr << "Error: Failed to read chunk from File\n";
-            fclose(fd);
+    std::ifstream file;
+    try {
+        file.open(filePath.c_str(),
+                            std::ios::in | std::ios::binary);
+        if (false == file.good()) {
+            std::cerr << "Cannot open file: " << filePath << std::endl;
             return -1;
         }
 
-        Messages::MessageFileBlock Block(FileSize, bytesWritten, crc32_final, l, blockSeq++, chunk);
+    } catch (const std::exception &e) {
+        fprintf(stderr, "Exception accessing %s Error: %s\n",
+                filePath.c_str(), e.what() );
+        return -1;
+    }
+
+    file.seekg(0, file.end);
+    std::streamoff fileLength = file.tellg();
+    file.seekg(0, file.beg);
+
+    uint32_t l;
+    do {
+        // Disable narrowing conversion wanring on windows, we limit on return value to BLOCK_SIZE
+        #if defined(WIN32) && !defined(__MINGW64__)
+          #pragma warning (push)
+          #pragma warning (disable : 4267)
+        #endif
+
+        file.read((char *)chunk, Messages::BLOCK_SIZE);
+        l = file.gcount();
+
+        #if defined(WIN32) && !defined(__MINGW64__)
+          #pragma warning (pop)
+        #endif
+
+        crc32_initial = crc32(crc32_initial, chunk, l);
+
+    } while(!file.eof());
+
+    crc32_final = crc32_initial;
+
+    file.seekg(0, file.beg);
+
+    const int numBlocks = fileLength/Messages::BLOCK_SIZE;
+    Messages::MessageBlockAck BlockAck;
+
+    do {
+        uint32_t sent = 0;
+
+        #if defined(WIN32) && !defined(__MINGW64__)
+          #pragma warning (push)
+          #pragma warning (disable : 4267)
+        #endif
+
+        file.read((char *)chunk, Messages::BLOCK_SIZE);
+        l = file.gcount();
+
+        if (l == 0)
+        {
+            std::cerr << "Error: Failed to read chunk from File\n";
+            file.close();
+            return -1;
+        }
+
+        Messages::MessageFileBlock Block(fileLength, bytesWritten, crc32_final, l, blockSeq++, chunk);
         sent = Send((uint8_t*)&Block, sizeof(Block));
         if (sent!=sizeof(Block))
         {
-            std::cerr << "RUNT Sent Expected " << l << " Got " << sent << std::endl;
+            std::cerr << "Warning: Truncated send expected: " << sizeof(Block) << " sent: " << sent << std::endl;
         }
 
         bytesWritten += l;
 
         bytesRcvd = Receive((uint8_t *)&BlockAck, sizeof(BlockAck), NULL);
-        if (bytesRcvd < 0){
-        std::cerr << "Socket timed out waiting for ACK, check connections and try again\n";
-        fclose(fd);
-        exit(1);
+        if (bytesRcvd < 0)
+        {
+            std::cerr << "Socket timed out waiting for ACK, check connections and try again\n";
+            file.close();
+            exit(1);
         }
 
-        if (bytesRcvd < (long int)sizeof(BlockAck)) {
-        std::cerr << "Invalid ACK\n";
+        if (bytesRcvd < (long int)sizeof(BlockAck))
+        {
+            std::cerr << "Invalid ACK\n";
         }
 
-        if (BlockAck.Sequence != Block.Sequence) {
-        std::cerr << "Invalid Sequence, Resending block\n";
+        if (BlockAck.Sequence != Block.Sequence)
+        {
+            std::cerr << "Invalid Sequence, Resending block\n";
         }
+
+        #if defined(WIN32) && !defined(__MINGW64__)
+          #pragma warning (pop)
+        #endif
 
         if (verbose)
             printf("Sending Block (%d/%d)\r", BlockAck.Sequence, numBlocks);
 
-    }
+    } while(!file.eof());
 
     std::cout << "Finished sending file to camera!\n";
-    fclose(fd);
+    file.close();
     return ret;
 }

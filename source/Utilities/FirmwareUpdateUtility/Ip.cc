@@ -60,7 +60,7 @@ int Ip::Bind()
     m_ClientAddress.sin_port = 0;
 
     m_ServerAddress.sin_family = AF_INET;
-    m_ServerAddress.sin_addr.s_addr = inet_addr(m_IpAddress);
+    m_ServerAddress.sin_addr.s_addr = inet_addr(m_IpAddress.c_str());
     m_ServerAddress.sin_port = htons(Messages::SERVER_PORT);
 
     Messages::MessageSetup MsgSetup(m_ClientAddress, m_ServerAddress);
@@ -110,16 +110,15 @@ int Ip::Bind()
 
 }
 
-int Ip::Setup(const char * _IpAddress)
+int Ip::Setup(std::string _IpAddress)
 {
     int so_sendbuf = 1024*1024*16;
     int so_recvbuf = 1024*1024*16;
     int so_reuse = 1;
     int ret = 0;
 
-    if (_IpAddress) {
-        strcpy(m_IpAddress, _IpAddress);
-    }
+    m_IpAddress = _IpAddress;
+
 
 #ifdef WIN32
     WSADATA wsaData;

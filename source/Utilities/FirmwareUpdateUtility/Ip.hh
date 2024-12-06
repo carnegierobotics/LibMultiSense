@@ -36,7 +36,7 @@
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1 
+#define WIN32_LEAN_AND_MEAN 1
 #endif
 #define INET_ADDRSTRLEN 16
 #include <WinSock2.h>
@@ -68,6 +68,7 @@ typedef int socket_t;
  #include <string.h>
  #include <sys/types.h>
  #include <signal.h>
+ #include <string>
 
 #include <MultiSense/details/utility/Portability.hh>
 
@@ -80,7 +81,7 @@ public:
 
     }
     int Bind();
-    int Setup(const char * _IpAddress);
+    int Setup(std::string _IpAddress);
     ~Ip()
     {
         if (m_SockFd > 0)
@@ -100,12 +101,12 @@ public:
     {
         return m_ServerAddress;
     }
-    
+
 private:
 
     socket_t m_SockFd;
     struct sockaddr_in m_ClientAddress;
     struct sockaddr_in m_ServerAddress;
-    char m_IpAddress[INET_ADDRSTRLEN];
+    std::string m_IpAddress;
     int m_Connected;
 };
