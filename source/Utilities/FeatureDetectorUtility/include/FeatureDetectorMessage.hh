@@ -34,6 +34,7 @@
  *
  * Significant history (date, user, job code, action):
  *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, created file.
+ *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Moved file.
  **/
 
 #ifndef LibMultiSense_FeatureDetectorMessage
@@ -41,85 +42,47 @@
 
 #include <cmath>
 
-#include "MultiSense/details/utility/Portability.hh"
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/details/utility/BufferStream.hh>
+#include <MultiSense/details/wire/Protocol.hh>
 
-namespace crl {
-namespace multisense {
-namespace details {
-namespace wire {
+using namespace crl::multisense::details;
+
+#pragma pack(push, 1)
 
 class Feature {
 public:
-
     uint16_t x;
     uint16_t y;
     uint8_t angle;
     uint8_t resp;
     uint8_t octave;
     uint8_t descriptor;
-
-#ifndef SENSORPOD_FIRMWARE
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        message & x;
-        message & y;
-        message & angle;
-        message & resp;
-        message & octave;
-        message & descriptor;
-    }
-#endif // !SENSORPOD_FIRMWARE
 };
 
 class Descriptor {
 public:
-
     uint32_t d[8];
-
-#ifndef SENSORPOD_FIRMWARE
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        for (size_t i = 0; i < 8; i++)
-        {
-            message & d[i];
-        }
-    }
-#endif // !SENSORPOD_FIRMWARE
 };
+
+#pragma pack(pop)
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID         = ID_DATA_FEATURE_DETECTOR;
-    static CRL_CONSTEXPR VersionType VERSION    = 2;
-
-#ifdef SENSORPOD_FIRMWARE
-    IdType                 id;
-    VersionType            version;
-#endif // SENSORPOD_FIRMWARE
-    uint32_t               source;
+    static CRL_CONSTEXPR   wire::VersionType VERSION    = 1;
+    wire::VersionType      version;
+    uint64_t               source;
     int64_t                frameId;
     uint16_t               numFeatures;
     uint16_t               numDescriptors;
-    uint32_t               sourceExtended;
-
 
     FeatureDetectorHeader() :
-#ifdef SENSORPOD_FIRMWARE
-        id(ID),
         version(VERSION),
-#endif // SENSORPOD_FIRMWARE
         source(0),
         frameId(0),
         numFeatures(0),
-        numDescriptors(0),
-        sourceExtended(0)
-     {};
+        numDescriptors(0)
+    {};
 
 };
 
@@ -127,57 +90,37 @@ public:
 
 class FeatureDetector : public FeatureDetectorHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
-    static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_LEFT  = 1;
-    static CRL_CONSTEXPR uint16_t    FEATURE_TYPE_IMAGE_RIGHT = 2;
 
     void * dataP;
 
     //
     // Constructors
 
-    FeatureDetector(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    FeatureDetector(utility::BufferStreamReader&r, wire::VersionType v) {serialize(r,v);};
     FeatureDetector() {};
 
 
     template<class Archive>
         void serialize(Archive&          message,
-                       const VersionType version)
+                       const wire::VersionType _version)
     {
-        (void) version;
+        (void) _version;
 
+        message & version;
         message & source;
         message & frameId;
         message & numFeatures;
         message & numDescriptors;
 
-        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(wire::Feature) + numDescriptors*sizeof(wire::Descriptor)));
+        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(Feature) + numDescriptors*sizeof(Descriptor)));
 
-        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
-
-            message.write(dataP, featureDataSize);
-
-        } else {
-
-            dataP = message.peek();
-            message.seek(message.tell() + featureDataSize);
-        }
-
-        if (version >= 2)
-        {
-          message & sourceExtended;
-        }
-        else
-        {
-          sourceExtended = 0;
-        }
+        dataP = message.peek();
+        message.seek(message.tell() + featureDataSize);
     }
 
 };
 
 #endif // !SENSORPOD_FIRMWARE
 
-}}}} // namespaces
 
 #endif
