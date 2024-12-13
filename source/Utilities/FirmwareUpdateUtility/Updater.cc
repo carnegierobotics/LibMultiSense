@@ -124,16 +124,14 @@ int Updater::SendFile(std::string &filePath, bool verbose)
 
     std::ifstream file;
     try {
-        file.open(filePath.c_str(),
-                            std::ios::in | std::ios::binary);
-        if (false == file.good()) {
-            std::cerr << "Cannot open file: " << filePath << std::endl;
+        file.open(filePath, std::ios::in | std::ios::binary);
+        if (!file.good()) {
+            std::cerr << "Cannot open file: `" << filePath << "`\n";
             return -1;
         }
 
     } catch (const std::exception &e) {
-        fprintf(stderr, "Exception accessing %s Error: %s\n",
-                filePath.c_str(), e.what() );
+        std::cerr << "Exception accessing `" << filePath << "` Error: " << e.what() << std::endl;
         return -1;
     }
 
@@ -217,7 +215,7 @@ int Updater::SendFile(std::string &filePath, bool verbose)
         #endif
 
         if (verbose)
-            printf("Sending Block (%d/%d)\r", BlockAck.Sequence, numBlocks);
+            std::cout << "Sending Block (" << BlockAck.Sequence << "/" << numBlocks << ")\r";
 
     } while(!file.eof());
 
