@@ -136,23 +136,14 @@ int Updater::SendFile(std::string &filePath, bool verbose)
     }
 
     file.seekg(0, file.end);
-    std::streamoff fileLength = file.tellg();
+    unsigned int fileLength = static_cast<unsigned int>(file.tellg());
     file.seekg(0, file.beg);
 
-    uint32_t l;
+    unsigned int l;
     do {
-        // Disable narrowing conversion wanring on windows, we limit on return value to BLOCK_SIZE
-        #if defined(WIN32) && !defined(__MINGW64__)
-          #pragma warning (push)
-          #pragma warning (disable : 4267)
-        #endif
 
         file.read((char *)chunk, Messages::BLOCK_SIZE);
-        l = file.gcount();
-
-        #if defined(WIN32) && !defined(__MINGW64__)
-          #pragma warning (pop)
-        #endif
+        l = static_cast<unsigned int>(file.gcount());
 
         crc32_initial = crc32(crc32_initial, chunk, l);
 
@@ -168,13 +159,8 @@ int Updater::SendFile(std::string &filePath, bool verbose)
     do {
         uint32_t sent = 0;
 
-        #if defined(WIN32) && !defined(__MINGW64__)
-          #pragma warning (push)
-          #pragma warning (disable : 4267)
-        #endif
-
         file.read((char *)chunk, Messages::BLOCK_SIZE);
-        l = file.gcount();
+        l = static_cast<unsigned int>(file.gcount());
 
         if (l == 0)
         {
@@ -209,10 +195,6 @@ int Updater::SendFile(std::string &filePath, bool verbose)
         {
             std::cerr << "Invalid Sequence, Resending block\n";
         }
-
-        #if defined(WIN32) && !defined(__MINGW64__)
-          #pragma warning (pop)
-        #endif
 
         if (verbose)
             std::cout << "Sending Block (" << BlockAck.Sequence << "/" << numBlocks << ")\r";
