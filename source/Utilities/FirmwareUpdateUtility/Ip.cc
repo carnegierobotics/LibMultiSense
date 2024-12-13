@@ -1,7 +1,7 @@
 /**
  * @file FirmwareUpdateUtility/Ip.cc
  *
- * Copyright 2013-2024
+ * Copyright 2024-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

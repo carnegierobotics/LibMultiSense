@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/SysGetDirectedStreamsMessage.hh
  *
- * Copyright 2014-2022
+ * Copyright 2014-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

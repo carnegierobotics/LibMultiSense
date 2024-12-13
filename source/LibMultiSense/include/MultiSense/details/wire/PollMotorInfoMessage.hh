@@ -3,7 +3,7 @@
  *
  * This message contains a request for the motor encoder position
  *
- * Copyright 2018-2022
+ * Copyright 2018-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
