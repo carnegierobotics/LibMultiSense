@@ -106,14 +106,18 @@
 #include "MultiSense/details/wire/ImuInfoMessage.hh"
 #include "MultiSense/details/wire/ImuConfigMessage.hh"
 
-#include "MultiSense/details/wire/FeatureDetectorConfigMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorGetConfigMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorControlMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMessage.hh"
-#include "MultiSense/details/wire/FeatureDetectorMetaMessage.hh"
-
 #include "MultiSense/details/wire/SysTestMtuMessage.hh"
 #include "MultiSense/details/wire/SysTestMtuResponseMessage.hh"
+
+#include "MultiSense/details/wire/SecondaryAppConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppControlMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetConfigMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppDataMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppGetRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppRegisteredAppsMessage.hh"
+#include "MultiSense/details/wire/SecondaryAppActivateMessage.hh"
+
+#include "MultiSense/details/utility/BufferStream.hh"
 
 namespace crl {
 namespace multisense {
@@ -281,27 +285,6 @@ Status impl::addIsolatedCallback(apriltag::Callback callback,
 }
 
 //
-// Adds a new feature detector listener
-
-Status impl::addIsolatedCallback(feature_detector::Callback callback,
-                                 void *userDataP)
-{
-    try {
-
-        utility::ScopedLock lock(m_dispatchLock);
-        m_featureDetectorListeners.push_back(new FeatureDetectorListener(callback,
-                                               0,
-                                               userDataP,
-                                               MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE));
-
-    } catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
-        return Status_Exception;
-    }
-    return Status_Ok;
-}
-
-//
 // Removes an image listener
 
 Status impl::removeIsolatedCallback(image::Callback callback)
@@ -327,6 +310,27 @@ Status impl::removeIsolatedCallback(image::Callback callback)
     }
 
     return Status_Error;
+}
+
+//
+// Adds a new secondarty app listener
+
+Status impl::addIsolatedCallback(secondary_app::Callback callback,
+                                 void *userDataP)
+{
+    try {
+
+        utility::ScopedLock lock(m_dispatchLock);
+        m_secondaryAppListeners.push_back(new SecondaryAppListener(callback,
+                                               0,
+                                               userDataP,
+                                               MAX_USER_SECONDARY_APP_QUEUE_SIZE));
+
+    } catch (const std::exception& e) {
+        CRL_DEBUG("exception: %s\n", e.what());
+        return Status_Exception;
+    }
+    return Status_Ok;
 }
 
 //
@@ -498,21 +502,20 @@ Status impl::removeIsolatedCallback(apriltag::Callback callback)
 }
 
 //
-// Removes a feature detector listener
+// Removes a secondary_app listener
 
-Status impl::removeIsolatedCallback(feature_detector::Callback callback)
+Status impl::removeIsolatedCallback(secondary_app::Callback callback)
 {
     try {
         utility::ScopedLock lock(m_dispatchLock);
-
-        std::list<FeatureDetectorListener*>::iterator it;
-        for(it  = m_featureDetectorListeners.begin();
-            it != m_featureDetectorListeners.end();
-            ++ it) {
+        std::list<SecondaryAppListener*>::iterator it;
+        for(it  = m_secondaryAppListeners.begin();
+            it != m_secondaryAppListeners.end();
+            it ++) {
 
             if ((*it)->callback() == callback) {
                 delete *it;
-                m_featureDetectorListeners.erase(it);
+                m_secondaryAppListeners.erase(it);
                 return Status_Ok;
             }
         }
@@ -925,7 +928,6 @@ Status impl::getImageConfig(image::Config& config)
 Status impl::getAuxImageConfig(image::AuxConfig& config)
 {
     Status             status;
-    wire::AuxCamConfig d;
 
     // for access to protected calibration members
     class ConfigAccess : public image::AuxConfig {
@@ -937,6 +939,87 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
 
     // what is the proper c++ cast for this?
     ConfigAccess& a = *((ConfigAccess *) &config);
+
+    if (m_sensorVersion.firmwareVersion < 0x0600)
+    {
+        //
+        // Use the legacy secondary exposure fields from the image config to populate the aux config
+        wire::CamConfig d;
+
+        status = waitData(wire::CamGetConfig(), d);
+        if (Status_Ok != status)
+            return status;
+
+        int index = -1;
+        for (size_t i = 0 ; i < d.secondaryExposureConfigs.size() ; ++i)
+        {
+            if (d.secondaryExposureConfigs[i].exposureSource == sourceApiToWire(Source_Luma_Aux) ||
+                d.secondaryExposureConfigs[i].exposureSource == sourceApiToWire(Source_Luma_Rectified_Aux))
+            {
+                index = static_cast<int>(i);
+                break;
+            }
+        }
+
+        //
+        // Assume the aux config is the same as the main stereo pair if there is no explicit secondary config for
+        // the aux camera
+        if (index < 0)
+        {
+            a.setGain(d.gain);
+
+            a.setExposure(d.exposure);
+            a.setAutoExposure(d.autoExposure != 0);
+            a.setAutoExposureMax(d.autoExposureMax);
+            a.setAutoExposureDecay(d.autoExposureDecay);
+            a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
+            a.setAutoExposureThresh(d.autoExposureThresh);
+
+            CRL_CONSTEXPR uint16_t auxMaxHeight = 1188;
+
+            a.setAutoExposureRoi(d.autoExposureRoiX, std::min(d.autoExposureRoiY, auxMaxHeight),
+                                 d.autoExposureRoiWidth,
+                                 std::min(d.autoExposureRoiHeight, static_cast<uint16_t>(auxMaxHeight - std::min(d.autoExposureRoiY, auxMaxHeight))));
+        }
+        else
+        {
+            wire::ExposureConfig &auxExposureConfig = d.secondaryExposureConfigs[index];
+
+            a.setGain(auxExposureConfig.gain);
+
+            a.setExposure(auxExposureConfig.exposure);
+            a.setAutoExposure(auxExposureConfig.autoExposure != 0);
+            a.setAutoExposureMax(auxExposureConfig.autoExposureMax);
+            a.setAutoExposureDecay(auxExposureConfig.autoExposureDecay);
+            a.setAutoExposureTargetIntensity(auxExposureConfig.autoExposureTargetIntensity);
+            a.setAutoExposureThresh(auxExposureConfig.autoExposureThresh);
+
+
+            a.setAutoExposureRoi(auxExposureConfig.autoExposureRoiX, auxExposureConfig.autoExposureRoiY,
+                                 auxExposureConfig.autoExposureRoiWidth, auxExposureConfig.autoExposureRoiHeight);
+        }
+
+        a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
+        a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
+        a.setAutoWhiteBalanceDecay(d.autoWhiteBalanceDecay);
+        a.setAutoWhiteBalanceThresh(d.autoWhiteBalanceThresh);
+        a.setHdr(d.hdrEnabled);
+
+        a.setCal(d.fx, d.fy, d.cx, d.cy);
+
+        a.setCameraProfile(static_cast<CameraProfile>(d.cameraProfile));
+
+        a.setGamma(d.gamma);
+
+        a.enableSharpening(d.sharpeningEnable);
+        a.setSharpeningPercentage(d.sharpeningPercentage);
+        a.setSharpeningLimit(d.sharpeningLimit);
+        a.setGainMax(d.gainMax);
+
+        return Status_Ok;
+    }
+
+    wire::AuxCamConfig d;
 
     status = waitData(wire::AuxCamGetConfig(), d);
     if (Status_Ok != status)
@@ -950,8 +1033,6 @@ Status impl::getAuxImageConfig(image::AuxConfig& config)
     a.setAutoExposureDecay(d.autoExposureDecay);
     a.setAutoExposureTargetIntensity(d.autoExposureTargetIntensity);
     a.setAutoExposureThresh(d.autoExposureThresh);
-
-    a.setGain(d.gain);
 
     a.setWhiteBalance(d.whiteBalanceRed, d.whiteBalanceBlue);
     a.setAutoWhiteBalance(d.autoWhiteBalance != 0);
@@ -1022,11 +1103,90 @@ Status impl::setImageConfig(const image::Config& c)
     cmd.gamma = c.gamma();
     cmd.gainMax = c.gainMax();
 
+    if (m_sensorVersion.firmwareVersion < 0x0600)
+    {
+        wire::CamConfig d;
+
+        status = waitData(wire::CamGetConfig(), d);
+        if (Status_Ok != status)
+            return status;
+
+        cmd.exposureSource = d.exposureSource;
+        cmd.secondaryExposureConfigs = d.secondaryExposureConfigs;
+    }
+
     return waitAck(cmd);
 }
 
 Status impl::setAuxImageConfig(const image::AuxConfig& c)
 {
+    if (m_sensorVersion.firmwareVersion < 0x0600)
+    {
+        //
+        // Use the legacy secondary exposure controls if we are working with older firmware. Query the
+        // current image config to ensure we populate the CamControl message with the correct current values
+
+        Status status = Status_Ok;
+
+        wire::CamConfig d;
+
+        status = waitData(wire::CamGetConfig(), d);
+        if (Status_Ok != status)
+            return status;
+
+        wire::CamControl cmd;
+
+        cmd.framesPerSecond = d.framesPerSecond;
+        cmd.gain            = d.gain;
+
+        cmd.exposure                    = d.exposure;
+        cmd.autoExposure                = d.autoExposure;
+        cmd.autoExposureMax             = d.autoExposureMax;
+        cmd.autoExposureDecay           = d.autoExposureDecay;
+        cmd.autoExposureThresh          = d.autoExposureThresh;
+        cmd.autoExposureTargetIntensity = d.autoExposureTargetIntensity;
+
+        cmd.whiteBalanceRed          = d.whiteBalanceRed;
+        cmd.whiteBalanceBlue         = d.whiteBalanceBlue;
+        cmd.autoWhiteBalance         = d.autoWhiteBalance;
+        cmd.autoWhiteBalanceDecay    = d.autoWhiteBalanceDecay;
+        cmd.autoWhiteBalanceThresh   = d.autoWhiteBalanceThresh;
+        cmd.stereoPostFilterStrength = d.stereoPostFilterStrength;
+        cmd.hdrEnabled               = d.hdrEnabled;
+
+        cmd.autoExposureRoiX         = d.autoExposureRoiX;
+        cmd.autoExposureRoiY         = d.autoExposureRoiY;
+        cmd.autoExposureRoiWidth     = d.autoExposureRoiWidth;
+        cmd.autoExposureRoiHeight    = d.autoExposureRoiHeight;
+
+        cmd.cameraProfile = d.cameraProfile;
+
+        cmd.gamma = d.gamma;
+        cmd.gainMax = d.gainMax;
+
+        cmd.exposureSource = static_cast<uint32_t>(sourceApiToWire(Source_Luma_Left));
+
+        wire::ExposureConfig auxExposureConfig;
+        auxExposureConfig.exposure                    = c.exposure();
+        auxExposureConfig.autoExposure                = c.autoExposure() ? 1 : 0;
+        auxExposureConfig.autoExposureMax             = c.autoExposureMax();
+        auxExposureConfig.autoExposureDecay           = c.autoExposureDecay();
+        auxExposureConfig.autoExposureThresh          = c.autoExposureThresh();
+        auxExposureConfig.autoExposureTargetIntensity = c.autoExposureTargetIntensity();
+
+        auxExposureConfig.autoExposureRoiX         = c.autoExposureRoiX();
+        auxExposureConfig.autoExposureRoiY         = c.autoExposureRoiY();
+        auxExposureConfig.autoExposureRoiWidth     = c.autoExposureRoiWidth();
+        auxExposureConfig.autoExposureRoiHeight    = c.autoExposureRoiHeight();
+
+        auxExposureConfig.gain = c.gain();
+        auxExposureConfig.exposureSource = static_cast<uint32_t>(sourceApiToWire(Source_Luma_Aux));
+
+        cmd.secondaryExposureConfigs.push_back(auxExposureConfig);
+
+        return waitAck(cmd);
+    }
+
     wire::AuxCamControl cmd;
 
     cmd.gain            = c.gain();
@@ -1343,6 +1503,51 @@ Status impl::getMtu(int32_t& mtu)
     return status;
 }
 
+Status impl::setBestMtu()
+{
+    uint32_t cur_mtu = MAX_MTU_SIZE;
+    uint32_t max_mtu = MAX_MTU_SIZE;
+    uint32_t min_mtu = MIN_MTU_SIZE;
+    uint32_t bisections = 0;
+    Status status = Status_Ok;
+
+    //
+    // v2.2 and older do not support testing MTU
+
+    if (m_sensorVersion.firmwareVersion <= 0x0202)
+        return Status_Unsupported;
+
+    while (bisections < 7){
+        wire::SysTestMtuResponse resp;
+        status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        if ((Status_Ok == status) && (cur_mtu == MAX_MTU_SIZE))
+            break;
+
+        bisections++;
+
+        if (Status_Ok != status){
+            max_mtu = cur_mtu;
+            cur_mtu -= (cur_mtu - min_mtu) / 2;
+        } else if (bisections < 7){
+            min_mtu = cur_mtu;
+            cur_mtu += (max_mtu - cur_mtu) / 2;
+        }
+
+        if ((Status_Ok != status) && (bisections == 7)){
+            cur_mtu = min_mtu;
+            status = waitData(wire::SysTestMtu(cur_mtu), resp, 0.1, 1);
+        }
+    }
+
+    if (Status_Ok == status)
+        status = waitAck(wire::SysMtu(cur_mtu));
+    if (Status_Ok == status)
+        m_sensorMtu = cur_mtu;
+
+    return status;
+
+}
+
 Status impl::getMotorPos(int32_t& pos)
 {
     wire::MotorPoll resp;
@@ -1534,29 +1739,100 @@ Status impl::setApriltagParams (const system::ApriltagParams& params)
     return waitAck(w);
 }
 
-Status impl::getFeatureDetectorConfig (system::FeatureDetectorConfig & c)
-{
-    wire::FeatureDetectorConfig f;
+//
+// Query camera configuration
 
-    Status status = waitData(wire::FeatureDetectorGetConfig(), f);
+Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
+{
+    Status          status;
+    wire::SecondaryAppConfig d;
+
+    status = waitData(wire::SecondaryAppGetConfig(), d);
     if (Status_Ok != status)
         return status;
 
-    c.setNumberOfFeatures(f.numberOfFeatures);
-    c.setGrouping(f.grouping);
-    c.setMotion(f.motion);
+
+    if (d.dataLength >= 1024)
+    {
+        std::cerr << "Error: data length exceeds 1024b, truncating\n";
+        config.dataLength = 1023;
+        status = Status_Exception;
+    }
+    else
+    {
+        config.dataLength = d.dataLength;
+    }
+
+    memcpy(config.data, d.data, config.dataLength);
 
     return Status_Ok;
 }
-Status impl::setFeatureDetectorConfig (const system::FeatureDetectorConfig & c)
+
+
+//
+// Set camera configuration
+//
+// Currently several sensor messages are combined and presented
+// to the user as one.
+
+Status impl::setSecondaryAppConfig(system::SecondaryAppConfig& c)
 {
-    wire::FeatureDetectorControl f;
+    wire::SecondaryAppControl cmd;
 
-    f.numberOfFeatures = c.numberOfFeatures();
-    f.grouping = c.grouping();
-    f.motion = c.motion();
+    c.serialize();
 
-    return waitAck(f);
+    if (c.dataLength >= 1024)
+    {
+        std::cerr << "Error: data length too large" << std::endl;
+        return Status_Error;
+    }
+    else
+    {
+        cmd.dataLength = c.dataLength;
+    }
+
+    memcpy(cmd.data, c.data, c.dataLength);
+
+    return waitAck(cmd);
+}
+
+Status impl::getRegisteredApps(system::SecondaryAppRegisteredApps& registeredApps)
+{
+    Status          status;
+    wire::SecondaryAppRegisteredApps d;
+
+    status = waitData(wire::SecondaryAppGetRegisteredApps(), d);
+    if (Status_Ok != status)
+        return status;
+
+    for (auto app: d.apps)
+    {
+        system::SecondaryAppRegisteredApp _a(app.appVersion, app.appName);
+        registeredApps.apps.push_back(_a);
+    }
+
+    return Status_Ok;
+}
+
+
+//
+// Set camera configuration
+//
+// Currently several sensor messages are combined and presented
+// to the user as one.
+
+Status impl::secondaryAppActivate(const std::string &_name)
+{
+    wire::SecondaryAppActivate cmd(1, _name);
+
+    return waitAck(cmd);
+}
+
+Status impl::secondaryAppDeactivate(const std::string &_name)
+{
+    wire::SecondaryAppActivate cmd(0, _name);
+
+    return waitAck(cmd);
 }
 
 //
