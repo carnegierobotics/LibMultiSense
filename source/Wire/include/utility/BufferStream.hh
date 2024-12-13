@@ -93,7 +93,7 @@ public:
     void seek(std::size_t idx)  {
 
         if (idx > m_size)
-            CRL_EXCEPTION("invalid seek location %d, [0, %d] valid\n",
+            CRL_EXCEPTION("invalid seek location %lu, [0, %lu] valid\n",
                           idx, m_size);
         m_tell = idx;
     };

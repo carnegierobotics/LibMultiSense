@@ -65,6 +65,8 @@
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
+#include "FeatureDetectorUtilities.hh"
+
 using namespace crl::multisense;
 
 namespace {  // anonymous
@@ -345,43 +347,53 @@ void imageCallback(const image::Header& header,
         std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
-void featureDetectorCallback(const feature_detector::Header& header,
+void featureDetectorCallback(const secondary_app::Header& header,
                    void                *userDataP)
 {
-
+    feature_detector::Header fHeader;
     UserData *userData = reinterpret_cast<UserData*>(userDataP);
+    void * buffer = userData->channelP->reserveCallbackBuffer();
+    Status s = feature_detector::secondaryAppDataExtract(fHeader, header);
 
-    if ((header.source == Source_Feature_Left)
-        || (header.source == Source_Feature_Rectified_Left)) {
+    if (s != Status_Ok)
+    {
+      fprintf(stderr, "%s Error Secondary App Data extraction failed\n", __func__ );
+      userData->channelP->releaseCallbackBuffer(buffer);
+      return;
+    }
 
-        auto it = userData->elapsedTime.find(header.frameId);
+    if ((fHeader.source == feature_detector::Source_Feature_Left)
+        || (fHeader.source == feature_detector::Source_Feature_Rectified_Left)) {
+
+        auto it = userData->elapsedTime.find(fHeader.frameId);
         if (it == userData->elapsedTime.end()) {
-            std::cout << "Unexpected result, image not yet received for frame: " << header.frameId << "\n";
+            std::cout << "Unexpected result, image not yet received for frame: " << fHeader.frameId << "\n";
             featureDetectionTime t;
             t.featureTime = std::chrono::system_clock::now();
-            userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(header.frameId, t));
+            userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(fHeader.frameId, t));
         }
         else
         {
             it->second.featureTime = std::chrono::system_clock::now();
-            std::cout << "Feature received after image " << header.frameId
-            << " Delta: "
-            << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
-            << "ms\n";
+            std::cout << "Feature received after image " << fHeader.frameId
+              << " Delta: "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+              << "ms\n";
             userData->elapsedTime.erase(it);
         }
     }
-    std::cout << "Source: " << header.source << "\n";
-    std::cout << "Frame:  " << header.frameId << "\n";
-    std::cout << "Motion X: " << header.averageXMotion << "\n";
-    std::cout << "Motion Y: " << header.averageYMotion << "\n";
-    std::cout << "Number of features:     " << header.numFeatures    << "\n";
-    std::cout << "Number of descriptors:  " << header.numDescriptors << "\n";
-    std::cout << "Octave Width:    " << header.octaveWidth << "\n";
-    std::cout << "Octave Height:   " << header.octaveHeight << "\n";
-    std::cout << "timeSeconds:     " << header.timeSeconds << "\n";
-    std::cout << "timeNanoSeconds: " << header.timeNanoSeconds << "\n";
-    std::cout << "ptpNanoSeconds:  " << header.ptpNanoSeconds << "\n";
+    std::cout << "Source: " << fHeader.source << "\n";
+    std::cout << "Frame:  " << fHeader.frameId << "\n";
+    std::cout << "Motion X: " << fHeader.averageXMotion << "\n";
+    std::cout << "Motion Y: " << fHeader.averageYMotion << "\n";
+    std::cout << "Number of features:     " << fHeader.numFeatures    << "\n";
+    std::cout << "Number of descriptors:  " << fHeader.numDescriptors << "\n";
+    std::cout << "Octave Width:    " << fHeader.octaveWidth << "\n";
+    std::cout << "Octave Height:   " << fHeader.octaveHeight << "\n";
+    std::cout << "timeSeconds:     " << fHeader.timeSeconds << "\n";
+    std::cout << "timeNanoSeconds: " << fHeader.timeNanoSeconds << "\n";
+    std::cout << "ptpNanoSeconds:  " << fHeader.ptpNanoSeconds << "\n";
+    userData->channelP->releaseCallbackBuffer(buffer);
 }
 
 } // anonymous
@@ -402,10 +414,10 @@ int main(int    argc,
     //
     // Parse args
 
-    int c;
+    int opt;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:m:r:")))
-        switch(c) {
+    while(-1 != (opt = getopt(argc, argvPP, "a:m:r:")))
+        switch(opt) {
         case 'a': currentAddress = std::string(optarg);               break;
         case 'm': mtu            = atoi(optarg);                      break;
         case 'r': head_id        = getRemoteHeadIdFromString(optarg); break;
@@ -496,9 +508,39 @@ int main(int    argc,
     }
 
     {
-        system::FeatureDetectorConfig fcfg;
 
-        status = channelP->getFeatureDetectorConfig(fcfg);
+        system::SecondaryAppRegisteredApps s;
+        status = channelP->getRegisteredApps(s);
+        if (Status_Ok != status)
+        {
+          std::cerr << "Error failed to get registered apps\n";
+          return -2;
+        }
+
+        status = channelP->secondaryAppActivate(s.apps[0].appName);
+        if (Status_Ok != status)
+        {
+          std::cerr << "Error failed to activate app " << s.apps[0].appName;
+          return -2;
+        }
+
+        fprintf(stderr, "%s got registered app: %s activated\n", __func__, s.apps[0].appName.c_str() );
+
+        feature_detector::FeatureDetectorConfig fcfg;
+        fcfg.setNumberOfFeatures(5000);
+        fcfg.setGrouping(1);
+        fcfg.setMotion(0);
+        status = channelP->setSecondaryAppConfig(fcfg);
+        if (Status_Ok != status)
+        {
+          std::cerr << "Error failed to set featureDetectorConfig apps\n";
+          return -2;
+        }
+
+        std::cout << "Successfully Configured Feature Detector\n";
+
+
+        status = channelP->getSecondaryAppConfig(fcfg);
         if (Status_Ok != status) {
           std::cerr << "Failed to get feature detector config: " << Channel::statusString(status) << std::endl;
                 goto clean_out;
@@ -516,7 +558,7 @@ int main(int    argc,
         fcfg.setGrouping(true);
         fcfg.setMotion(1);
 
-        status = channelP->setFeatureDetectorConfig(fcfg);
+        status = channelP->setSecondaryAppConfig(fcfg);
         if (Status_Ok != status) {
           std::cerr << "Failed to set feature detector config\n";
         }
@@ -527,7 +569,7 @@ int main(int    argc,
 
     if (mtu >= 1500)
         status = channelP->setMtu(mtu);
-    else 
+    else
         status = channelP->setBestMtu();
     if (Status_Ok != status) {
 		std::cerr << "Failed to set MTU: " << Channel::statusString(status) << std::endl;
@@ -577,7 +619,7 @@ int main(int    argc,
 
     status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
                                     (operatingMode.supportedDataSources & Source_Luma_Right) |
-                                    Source_Feature_Left|Source_Feature_Right);
+                                    feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
@@ -588,18 +630,18 @@ int main(int    argc,
         system::StatusMessage statusMessage;
         status = channelP->getDeviceStatus(statusMessage);
 
-        if (Status_Ok == status) {
-            std::cout << "Uptime: " << statusMessage.uptime << ", " <<
-            "SystemOk: " << statusMessage.systemOk << ", " <<
-            "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
-            "Left Imager Temp: " << statusMessage.leftImagerTemperature << ", " <<
-            "Right Imager Temp: " << statusMessage.rightImagerTemperature << ", " <<
-            "Input Voltage: " << statusMessage.inputVoltage << ", " <<
-            "Input Current: " << statusMessage.inputCurrent << ", " <<
-            "FPGA Power: " << statusMessage.fpgaPower << ", " <<
-            "Logic Power: " << statusMessage.logicPower << ", " <<
-            "Imager Power: " << statusMessage.imagerPower << std::endl;
-        }
+        // if (Status_Ok == status) {
+        //     std::cout << "Uptime: " << statusMessage.uptime << ", " <<
+        //     "SystemOk: " << statusMessage.systemOk << ", " <<
+        //     "FPGA Temp: " << statusMessage.fpgaTemperature << ", " <<
+        //     "Left Imager Temp: " << statusMessage.leftImagerTemperature << ", " <<
+        //     "Right Imager Temp: " << statusMessage.rightImagerTemperature << ", " <<
+        //     "Input Voltage: " << statusMessage.inputVoltage << ", " <<
+        //     "Input Current: " << statusMessage.inputCurrent << ", " <<
+        //     "FPGA Power: " << statusMessage.fpgaPower << ", " <<
+        //     "Logic Power: " << statusMessage.logicPower << ", " <<
+        //     "Imager Power: " << statusMessage.imagerPower << std::endl;
+        // }
 
         usleep(1000000);
     }

@@ -1,7 +1,7 @@
 /**
- * @file LibMultiSense/SecondaryAppControl.hh
+ * @file LibMultiSense/SecondaryAppGetConfig.hh
  *
- * This message contains the current camera configuration.
+ * This message contains a request for camera configuration.
  *
  * Copyright 2013-2023
  * Carnegie Robotics, LLC
@@ -33,54 +33,40 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, Copied from CamGetConfigMessage.hh.
  **/
 
-#ifndef LibMultiSense_SecondaryAppControl
-#define LibMultiSense_SecondaryAppControl
+#ifndef LibMultiSense_SecondaryAppGetConfig
+#define LibMultiSense_SecondaryAppGetConfig
 
-#include "utility/Portability.hh"
-#include "wire/Protocol.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class SecondaryAppControl {
+class SecondaryAppGetConfig {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
-
-    //
-    // Parameters representing the current camera configuration
-    uint32_t dataLength;
-
-    uint8_t data[1024];
-
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_GET_CONFIG;
 
     //
     // Constructors
 
-    SecondaryAppControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppControl():
-        dataLength(0),
-        data()
-        {};
+    SecondaryAppGetConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppGetConfig() {};
 
     //
-    // Serialization routine
+    // Serialization routine.
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
+        (void) message;
         (void) version;
-        message & dataLength;
-        for (size_t i = 0; i < dataLength; i++)
-        {
-          message & data[i];
-        }
+        // nothing yet
     }
 };
 

@@ -42,13 +42,9 @@
 
 #include <cmath>
 
-<<<<<<< HEAD:source/Wire/include/wire/FeatureDetectorMessage.hh
-#include "utility/Portability.hh"
-=======
-#include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/details/utility/BufferStream.hh>
-#include <MultiSense/details/wire/Protocol.hh>
->>>>>>> master:source/Utilities/FeatureDetectorUtility/include/FeatureDetectorMessage.hh
+#include <utility/Portability.hh>
+#include <utility/BufferStream.hh>
+#include <wire/Protocol.hh>
 
 using namespace crl::multisense::details;
 

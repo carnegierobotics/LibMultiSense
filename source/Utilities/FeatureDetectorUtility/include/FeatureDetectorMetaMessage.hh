@@ -1,9 +1,7 @@
 /**
- * @file LibMultiSense/FeatureDetectorMessage.hh
+ * @file LibMultiSense/FeatureDetectorMetaMessage.hh
  *
- * This message contains first class feature data.
- *
- * Copyright 2013-2024
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,76 +31,74 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, created file.
+ *   2024-01-25, patrick.smith@carnegierobotics.com, IRAD, created file.
  *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Moved file.
  **/
 
-#ifndef LibMultiSense_FeatureDetectorMessage
-#define LibMultiSense_FeatureDetectorMessage
+#ifndef LibMultiSense_FeatureDetectorMetadataMessage
+#define LibMultiSense_FeatureDetectorMetadataMessage
 
-#include <cmath>
+#include <typeinfo>
 
-<<<<<<< HEAD:source/Wire/include/wire/FeatureDetectorMessage.hh
 #include "utility/Portability.hh"
-=======
-#include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/details/utility/BufferStream.hh>
-#include <MultiSense/details/wire/Protocol.hh>
->>>>>>> master:source/Utilities/FeatureDetectorUtility/include/FeatureDetectorMessage.hh
+#include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense::details;
 
-#pragma pack(push, 1)
+class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
+  public:
+      static CRL_CONSTEXPR wire::VersionType VERSION    = 1;
+      wire::VersionType      version;
+      uint32_t               length;
+      uint32_t               source;
+      int64_t                frameId;
+      uint32_t               timeSeconds;
+      uint32_t               timeNanoSeconds;
+      int64_t                ptpNanoSeconds;
+      uint16_t               octaveWidth;
+      uint16_t               octaveHeight;
+      uint16_t               numOctaves;
+      uint16_t               scaleFactor;
+      uint16_t               motionStatus;
+      uint16_t               averageXMotion;
+      uint16_t               averageYMotion;
+      uint16_t               numFeatures;
+      uint16_t               numDescriptors;
 
-class Feature {
-public:
-    uint16_t x;
-    uint16_t y;
-    uint8_t angle;
-    uint8_t resp;
-    uint8_t octave;
-    uint8_t descriptor;
-};
-
-class Descriptor {
-public:
-    uint32_t d[8];
-};
-
-#pragma pack(pop)
-
-class WIRE_HEADER_ATTRIBS_ FeatureDetectorHeader {
-public:
-    static CRL_CONSTEXPR   wire::VersionType VERSION    = 1;
-    wire::VersionType      version;
-    uint64_t               source;
-    int64_t                frameId;
-    uint16_t               numFeatures;
-    uint16_t               numDescriptors;
-
-    FeatureDetectorHeader() :
+    FeatureDetectorMetaHeader() :
         version(VERSION),
+        length(0),
         source(0),
         frameId(0),
+        timeSeconds(0),
+        timeNanoSeconds(0),
+        ptpNanoSeconds(0),
+        octaveWidth(0),
+        octaveHeight(0),
+        numOctaves(0),
+        scaleFactor(0),
+        motionStatus(0),
+        averageXMotion(0),
+        averageYMotion(0),
         numFeatures(0),
         numDescriptors(0)
-    {};
+     {};
 
 };
 
 #ifndef SENSORPOD_FIRMWARE
 
-class FeatureDetector : public FeatureDetectorHeader {
+class FeatureDetectorMeta : public FeatureDetectorMetaHeader {
 public:
-
-    void * dataP;
 
     //
     // Constructors
 
-    FeatureDetector(utility::BufferStreamReader&r, wire::VersionType v) {serialize(r,v);};
-    FeatureDetector() {};
+    FeatureDetectorMeta(utility::BufferStreamReader &r, wire::VersionType v) {serialize(r,v);};
+    FeatureDetectorMeta() {};
 
+    //
+    // Serialization routine
 
     template<class Archive>
         void serialize(Archive&          message,
@@ -111,20 +107,24 @@ public:
         (void) _version;
 
         message & version;
+        message & length;
         message & source;
         message & frameId;
+        message & timeSeconds;
+        message & timeNanoSeconds;
+        message & ptpNanoSeconds;
+        message & octaveWidth;
+        message & octaveHeight;
+        message & numOctaves;
+        message & scaleFactor;
+        message & motionStatus;
+        message & averageXMotion;
+        message & averageYMotion;
         message & numFeatures;
         message & numDescriptors;
-
-        const uint32_t featureDataSize = static_cast<uint32_t> (std::ceil( numFeatures*sizeof(Feature) + numDescriptors*sizeof(Descriptor)));
-
-        dataP = message.peek();
-        message.seek(message.tell() + featureDataSize);
     }
-
 };
 
 #endif // !SENSORPOD_FIRMWARE
-
 
 #endif

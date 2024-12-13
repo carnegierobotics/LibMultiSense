@@ -48,7 +48,7 @@
 #include "MultiSense/details/storage.hh"
 #include "wire/Protocol.hh"
 #include "wire/ImageMetaMessage.hh"
-#include "wire/FeatureDetectorMetaMessage.hh"
+#include "wire/SecondaryAppMetaMessage.hh"
 #include "wire/StatusResponseMessage.hh"
 #include "wire/PtpStatusResponseMessage.hh"
 #include "wire/VersionResponseMessage.hh"
@@ -123,7 +123,7 @@ public:
     virtual Status addIsolatedCallback   (apriltag::Callback callback,
                                           void         *userDataP);
 
-    virtual Status addIsolatedCallback   (feature_detector::Callback callback,
+    virtual Status addIsolatedCallback   (secondary_app::Callback callback,
                                           void         *userDataP);
 
     virtual Status removeIsolatedCallback(image::Callback callback);
@@ -133,7 +133,7 @@ public:
     virtual Status removeIsolatedCallback(compressed_image::Callback   callback);
     virtual Status removeIsolatedCallback(ground_surface::Callback   callback);
     virtual Status removeIsolatedCallback(apriltag::Callback   callback);
-    virtual Status removeIsolatedCallback(feature_detector::Callback   callback);
+    virtual Status removeIsolatedCallback(secondary_app::Callback   callback);
 
     virtual void*  reserveCallbackBuffer ();
     virtual Status releaseCallbackBuffer (void *referenceP);
@@ -226,8 +226,11 @@ public:
                                           uint32_t                     bufferSize);
     virtual Status getLocalUdpPort       (uint16_t& port);
 
-    virtual Status getFeatureDetectorConfig (system::FeatureDetectorConfig & c);
-    virtual Status setFeatureDetectorConfig (const system::FeatureDetectorConfig & c);
+    virtual Status getSecondaryAppConfig (system::SecondaryAppConfig & c);
+    virtual Status setSecondaryAppConfig (system::SecondaryAppConfig & c);
+    virtual Status getRegisteredApps     (system::SecondaryAppRegisteredApps & c);
+    virtual Status secondaryAppActivate  (const std::string & s);
+    virtual Status secondaryAppDeactivate(const std::string & s);
 
     virtual system::ChannelStatistics getStats();
 
@@ -297,19 +300,19 @@ private:
     static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_SIZE     = (10 * (1024 * 1024));
     static CRL_CONSTEXPR uint32_t RX_POOL_LARGE_BUFFER_COUNT    = 16;
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_SIZE     = (8 * (1024));
-    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 128;
+    static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 256;
     static CRL_CONSTEXPR uint32_t MAX_BUFFER_ALLOCATION_RETRIES = 5;
 
     static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS              = 5;
     static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH            = 4;
-    static CRL_CONSTEXPR uint32_t FEATURE_DETECTOR_META_CACHE_DEPTH = 4;
+    static CRL_CONSTEXPR uint32_t SECONDARY_APP_META_CACHE_DEPTH    = 4;
     static CRL_CONSTEXPR uint32_t UDP_TRACKER_CACHE_DEPTH           = 4;
     static CRL_CONSTEXPR uint32_t TIME_SYNC_OFFSET_DECAY            = 8;
 
 #if __cplusplus > 199711L
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > IMAGE_META_CACHE_DEPTH,            "Image metadata depth cache too large");
-    static_assert(RX_POOL_LARGE_BUFFER_COUNT > FEATURE_DETECTOR_META_CACHE_DEPTH, "Feature detector metadata depth cache too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > SECONDARY_APP_META_CACHE_DEPTH,    "Secondary Application metadata depth cache too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH,           "UDP depth cache too large");
     static_assert(RX_POOL_SMALL_BUFFER_COUNT > UDP_TRACKER_CACHE_DEPTH,           "UDP depth cache too large");
 #endif
@@ -324,11 +327,17 @@ private:
     static CRL_CONSTEXPR uint32_t MAX_USER_IMAGE_QUEUE_SIZE = 8;
     static CRL_CONSTEXPR uint32_t MAX_USER_LASER_QUEUE_SIZE = 8;
     static CRL_CONSTEXPR uint32_t MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_SECONDARY_APP_QUEUE_SIZE    = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE   = 8;
+    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE         = 8;
 
 #if __cplusplus > 199711L
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_IMAGE_QUEUE_SIZE, "Image queue too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_LASER_QUEUE_SIZE, "Laser queue too large");
     static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_COMPRESSED_IMAGE_QUEUE_SIZE, "Compressed image queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_SECONDARY_APP_QUEUE_SIZE, "Secondary App queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_GROUND_SURFACE_QUEUE_SIZE,"Ground Surface queue too large");
+    static_assert(RX_POOL_LARGE_BUFFER_COUNT > MAX_USER_APRILTAG_QUEUE_SIZE,      "April Tag queue too large");
 #endif
 
     //
@@ -337,9 +346,7 @@ private:
 
     static CRL_CONSTEXPR uint32_t MAX_USER_PPS_QUEUE_SIZE = 2;
     static CRL_CONSTEXPR uint32_t MAX_USER_IMU_QUEUE_SIZE = 64;
-    static CRL_CONSTEXPR uint32_t MAX_USER_GROUND_SURFACE_QUEUE_SIZE   = 8;
-    static CRL_CONSTEXPR uint32_t MAX_USER_APRILTAG_QUEUE_SIZE         = 8;
-    static CRL_CONSTEXPR uint32_t MAX_USER_FEATURE_DETECTOR_QUEUE_SIZE = 8;
+
 
     //
     // The maximum number of directed streams
@@ -445,9 +452,9 @@ private:
     DepthCache<int64_t, wire::ImageMeta> m_imageMetaCache;
 
     //
-    // A cache of feature detector meta data
+    // A cache of secondary application meta data
 
-    DepthCache<int64_t, wire::FeatureDetectorMeta> m_featureDetectorMetaCache;
+    DepthCache<int64_t, wire::SecondaryAppMetadata> m_secondaryAppMetaCache;
 
     //
     // A map of custom UDP assemblers
@@ -492,7 +499,7 @@ private:
     std::list<CompressedImageListener*>         m_compressedImageListeners;
     std::list<GroundSurfaceSplineListener*>     m_groundSurfaceSplineListeners;
     std::list<AprilTagDetectionListener*>       m_aprilTagDetectionListeners;
-    std::list<FeatureDetectorListener*>         m_featureDetectorListeners;
+    std::list<SecondaryAppListener*>            m_secondaryAppListeners;
 
     //
     // A message signal interface
@@ -581,7 +588,8 @@ private:
                                                          compressed_image::Header& header);
     void                         dispatchGroundSurfaceSpline(ground_surface::Header& header);
     void                         dispatchAprilTagDetections(apriltag::Header& header);
-    void                         dispatchFeatureDetections(feature_detector::Header& header);
+    void                         dispatchSecondaryApplication(utility::BufferStream& buffer,
+                                                              secondary_app::Header& header);
 
     utility::BufferStreamWriter& findFreeBuffer  (uint32_t messageLength);
     const int64_t&               unwrapSequenceId(uint16_t id);

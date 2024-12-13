@@ -1,7 +1,7 @@
 /**
- * @file LibMultiSense/SecondaryAppControl.hh
+ * @file LibMultiSense/SecondaryAppRegisteredAppsMessage.hh
  *
- * This message contains the current camera configuration.
+ * This message contains a request for camera configuration.
  *
  * Copyright 2013-2023
  * Carnegie Robotics, LLC
@@ -33,54 +33,59 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-09-19, patrick.smith@carnegierobotics.com, IRAD, Copied from CamGetConfigMessage.hh.
  **/
 
-#ifndef LibMultiSense_SecondaryAppControl
-#define LibMultiSense_SecondaryAppControl
+#ifndef LibMultiSense_SecondaryAppRegisteredApps
+#define LibMultiSense_SecondaryAppRegisteredApps
 
-#include "utility/Portability.hh"
-#include "wire/Protocol.hh"
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class SecondaryAppControl {
+class SecondaryAppRegisteredApp {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    //
-    // Parameters representing the current camera configuration
-    uint32_t dataLength;
-
-    uint8_t data[1024];
-
-
-    //
-    // Constructors
-
-    SecondaryAppControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppControl():
-        dataLength(0),
-        data()
-        {};
-
-    //
-    // Serialization routine
+    VersionType appVersion;
+    std::string appName;
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
         (void) version;
-        message & dataLength;
-        for (size_t i = 0; i < dataLength; i++)
-        {
-          message & data[i];
-        }
+        message & appVersion;
+        message & appName;
+    }
+};
+
+class SecondaryAppRegisteredApps {
+public:
+    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP_REGISTERED_APPS;
+
+    //
+    // Constructors
+
+    SecondaryAppRegisteredApps(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppRegisteredApps() {};
+
+
+    std::vector<SecondaryAppRegisteredApp> apps;
+
+    //
+    // Serialization routine.
+
+    template<class Archive>
+        void serialize(Archive&          message,
+                       const VersionType version)
+    {
+        (void) version;
+        message & apps;
     }
 };
 

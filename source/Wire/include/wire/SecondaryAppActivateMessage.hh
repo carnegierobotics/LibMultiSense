@@ -1,7 +1,7 @@
 /**
- * @file LibMultiSense/SecondaryAppControl.hh
+ * @file LibMultiSense/SecondaryAppActivateMessage.hh
  *
- * This message contains the current camera configuration.
+ * This message contains a request for camera configuration.
  *
  * Copyright 2013-2023
  * Carnegie Robotics, LLC
@@ -33,11 +33,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-09-19, patrick.smith@carnegierobotics.com, IRAD, Copied from CamGetConfigMessage.hh.
  **/
 
-#ifndef LibMultiSense_SecondaryAppControl
-#define LibMultiSense_SecondaryAppControl
+#ifndef LibMultiSense_SecondaryAppActivate
+#define LibMultiSense_SecondaryAppActivate
 
 #include "utility/Portability.hh"
 #include "wire/Protocol.hh"
@@ -47,40 +47,41 @@ namespace multisense {
 namespace details {
 namespace wire {
 
-class SecondaryAppControl {
+class SecondaryAppActivate {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_ACTIVATE;
+
 
     //
     // Parameters representing the current camera configuration
-    uint32_t dataLength;
+    int  activate;
 
-    uint8_t data[1024];
-
+    std::string name;
 
     //
     // Constructors
 
-    SecondaryAppControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppControl():
-        dataLength(0),
-        data()
-        {};
+    SecondaryAppActivate(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppActivate() {};
+    SecondaryAppActivate(const int i, const std::string & s):
+    activate(i),
+    name(s)
+    {}
 
     //
-    // Serialization routine
+    // Serialization routine.
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
         (void) version;
-        message & dataLength;
-        for (size_t i = 0; i < dataLength; i++)
-        {
-          message & data[i];
-        }
+        // nothing yet
+
+        message & activate;
+
+        message & name;
     }
 };
 

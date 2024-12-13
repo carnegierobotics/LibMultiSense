@@ -1,12 +1,12 @@
 /**
- * @file LibMultiSense/FeatureDetectorConfigMessage.hh
+ * @file LibMultiSense/SecondaryAppActivateMessage.hh
  *
- * This message contains the current feature detector configuration.
+ * This message contains a request for camera configuration.
  *
- * Copyright 2013-2024
+ * Copyright 2013-2023
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegiearobotics.com
+ * http://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -33,62 +33,59 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-25-01, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-09-19, patrick.smith@carnegierobotics.com, IRAD, Copied from CamGetConfigMessage.hh.
  **/
 
-#ifndef LibMultisense_FeatureDetectorConfigMessage
-#define LibMultisense_FeatureDetectorConfigMessage
+#ifndef LibMultiSense_SecondaryAppActivate
+#define LibMultiSense_SecondaryAppActivate
 
+<<<<<<< HEAD:source/Wire/include/wire/FeatureDetectorConfigMessage.hh
 #include "utility/Portability.hh"
 #include "wire/Protocol.hh"
+=======
+#include "MultiSense/details/utility/Portability.hh"
+>>>>>>> master:source/LibMultiSense/include/MultiSense/details/wire/SecondaryAppActivateMessage.hh
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class FeatureDetectorConfig {
+class SecondaryAppActivate {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_DATA_FEATURE_DETECTOR_CONFIG;
     static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_ACTIVATE;
+
 
     //
     // Parameters representing the current camera configuration
+    int  activate;
 
-    //
-    // The maximum number of features detected per image
-    uint32_t numberOfFeatures;
-
-    //
-    // Enable/Disable feature grouping
-    bool grouping;
-
-    //
-    // Enable motion detection
-    // Currently this functions as enable/disable but could be used to specify
-    // which octave motion detection is performed on.
-    // Current Octave: 3
-    uint32_t motion;
+    std::string name;
 
     //
     // Constructors
 
-    FeatureDetectorConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    FeatureDetectorConfig() {};
+    SecondaryAppActivate(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
+    SecondaryAppActivate() {};
+    SecondaryAppActivate(const int i, const std::string & s):
+    activate(i),
+    name(s)
+    {}
 
     //
-    // Serialization routine
+    // Serialization routine.
 
     template<class Archive>
         void serialize(Archive&          message,
                        const VersionType version)
     {
-
         (void) version;
+        // nothing yet
 
-        message & numberOfFeatures;
-        message & grouping;
-        message & motion;
+        message & activate;
+
+        message & name;
     }
 };
 

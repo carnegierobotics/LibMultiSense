@@ -1,9 +1,7 @@
 /**
- * @file LibMultiSense/SecondaryAppControl.hh
+ * @file LibMultiSense/SecondaryAppMetaMessage.hh
  *
- * This message contains the current camera configuration.
- *
- * Copyright 2013-2023
+ * Copyright 2013-2022
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,40 +31,68 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-10-31, patrick.smith@carnegierobotics.com, IRAD, created file.
  **/
 
-#ifndef LibMultiSense_SecondaryAppControl
-#define LibMultiSense_SecondaryAppControl
+#ifndef LibMultiSense_SecondaryAppMetaData
+#define LibMultiSense_SecondaryAppMetaData
 
-#include "utility/Portability.hh"
-#include "wire/Protocol.hh"
+#include <typeinfo>
+#include <cmath>
+
+#include "MultiSense/details/utility/Portability.hh"
 
 namespace crl {
 namespace multisense {
 namespace details {
 namespace wire {
 
-class SecondaryAppControl {
+class WIRE_HEADER_ATTRIBS_ SecondaryAppMetaHeader {
 public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
 
-    //
-    // Parameters representing the current camera configuration
+static CRL_CONSTEXPR IdType      ID      = ID_DATA_SECONDARY_APP_META;
+static CRL_CONSTEXPR VersionType VERSION = 1;
+
+#ifdef SENSORPOD_FIRMWARE
+    IdType      id;
+    VersionType version;
+#endif // SENSORPOD_FIRMWARE
+
+    int64_t  frameId;
     uint32_t dataLength;
+    void *   dataP;
 
-    uint8_t data[1024];
+    SecondaryAppMetaHeader():
+#ifdef SENSORDPOD_FIRMWARE
+        id(ID),
+        version(VERSION),
+#endif // SENSORPOD_FIRMWARE
+        frameId(0),
+        dataLength(0),
+        dataP(nullptr)
+      {};
+};
+
+#ifndef SENSORPOD_FIRMWARE
+
+class SecondaryAppMetadata : public SecondaryAppMetaHeader {
+public:
 
 
     //
     // Constructors
 
-    SecondaryAppControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppControl():
-        dataLength(0),
-        data()
-        {};
+    SecondaryAppMetadata(utility::BufferStreamReader&r, VersionType v) {
+      mRef = new utility::BufferStreamReader(r);
+      serialize(r, v);
+    };
+
+    SecondaryAppMetadata() {};
+
+    ~SecondaryAppMetadata() {
+      if (mRef)
+          delete mRef;
+    };
 
     //
     // Serialization routine
@@ -76,13 +102,25 @@ public:
                        const VersionType version)
     {
         (void) version;
-        message & dataLength;
-        for (size_t i = 0; i < dataLength; i++)
-        {
-          message & data[i];
+
+        if (typeid(Archive) == typeid(utility::BufferStreamWriter)) {
+
+            message.write(dataP, dataLength);
+
+        } else {
+            message & frameId;
+            message & dataLength;
+
+            dataP = message.peek();
+            message.seek(message.tell() + dataLength);
         }
+
     }
+
+    utility::BufferStreamReader * mRef;
 };
+
+#endif // !SENSORPOD_FIRMWARE
 
 }}}} // namespaces
 

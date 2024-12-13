@@ -1,9 +1,7 @@
 /**
- * @file LibMultiSense/SecondaryAppControl.hh
+ * @file LibMultiSense/FeatureDetectorMessage.hh
  *
- * This message contains the current camera configuration.
- *
- * Copyright 2013-2023
+ * Copyright 2013-2024
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -33,57 +31,51 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2023-09-19, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Created file.
  **/
 
-#ifndef LibMultiSense_SecondaryAppControl
-#define LibMultiSense_SecondaryAppControl
 
-#include "utility/Portability.hh"
-#include "wire/Protocol.hh"
+#ifndef __FEATURE_DETECTOR_CONFIG_H__
+#define __FEATURE_DETECTOR_CONFIG_H__
 
-namespace crl {
-namespace multisense {
-namespace details {
-namespace wire {
+#include "MultiSense/details/utility/Portability.hh"
+#include "MultiSense/MultiSenseTypes.hh"
 
-class SecondaryAppControl {
-public:
-    static CRL_CONSTEXPR IdType      ID      = ID_CMD_SECONDARY_APP_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+using namespace crl::multisense::details;
 
-    //
-    // Parameters representing the current camera configuration
-    uint32_t dataLength;
+#pragma pack(push, 1)
 
-    uint8_t data[1024];
+struct FeatureDetectorConfigParams {
 
+    static CRL_CONSTEXPR wire::VersionType VERSION    = 1;
 
     //
-    // Constructors
-
-    SecondaryAppControl(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    SecondaryAppControl():
-        dataLength(0),
-        data()
-        {};
+    // The message version
+    wire::VersionType version;
 
     //
-    // Serialization routine
+    // The maximum number of features detected per image
+    uint32_t numberOfFeatures;
 
-    template<class Archive>
-        void serialize(Archive&          message,
-                       const VersionType version)
-    {
-        (void) version;
-        message & dataLength;
-        for (size_t i = 0; i < dataLength; i++)
-        {
-          message & data[i];
-        }
-    }
+    //
+    // Enable/Disable feature grouping
+    bool grouping;
+
+    //
+    // Enable motion detection
+    // Currently this functions as enable/disable but could be used to specify
+    // which octave motion detection is performed on.
+    // Current Octave: 3
+    uint32_t motion;
+
+    FeatureDetectorConfigParams ( ) :
+      version(VERSION),
+      numberOfFeatures(1500),
+      grouping(true),
+      motion(1)
+    {    }
 };
 
-}}}} // namespaces
+#pragma pack(pop)
 
-#endif
+#endif /* end of include guard: __FEATURE_DETECTOR_CONFIG_H__ */
