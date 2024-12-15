@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
     Updater u(&i);
 
     if (u.SendFile(filePath, verbose_progress) < 0) {
-        std::cerr << "Error failed to send the file " << filePath << " to the camera!";
+        std::cerr << "Error failed to send the file " << filePath << " to the camera!\n";
         return -1;
     }
 

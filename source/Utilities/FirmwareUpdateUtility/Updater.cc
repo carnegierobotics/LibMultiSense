@@ -136,21 +136,21 @@ int Updater::SendFile(std::string &filePath, bool verbose)
     }
 
     file.seekg(0, file.end);
-    unsigned int fileLength = static_cast<unsigned int>(file.tellg());
+    int fileLength = file.tellg();
     file.seekg(0, file.beg);
 
-    unsigned int l;
+    int l;
     do {
 
         file.read((char *)chunk, Messages::BLOCK_SIZE);
-        l = static_cast<unsigned int>(file.gcount());
-
+        l = file.gcount();
         crc32_initial = crc32(crc32_initial, chunk, l);
 
     } while(!file.eof());
 
     crc32_final = crc32_initial;
 
+    file.clear();
     file.seekg(0, file.beg);
 
     const int numBlocks = fileLength/Messages::BLOCK_SIZE;
@@ -160,7 +160,7 @@ int Updater::SendFile(std::string &filePath, bool verbose)
         uint32_t sent = 0;
 
         file.read((char *)chunk, Messages::BLOCK_SIZE);
-        l = static_cast<unsigned int>(file.gcount());
+        l = file.gcount();
 
         if (l == 0)
         {
