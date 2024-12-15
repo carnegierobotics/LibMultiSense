@@ -40,6 +40,8 @@
 #include "Ip.hh"
 #include <stdexcept>
 
+#define MAX_UPDATE_FS 500*1024*1024
+
 class Updater {
 
 public:

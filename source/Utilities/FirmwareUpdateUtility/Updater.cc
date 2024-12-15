@@ -136,15 +136,15 @@ int Updater::SendFile(std::string &filePath, bool verbose)
     }
 
     file.seekg(0, file.end);
-    int fileLength = file.tellg();
+    long long fileLength = file.tellg();
     file.seekg(0, file.beg);
 
-    int l;
+    long long l;
     do {
 
         file.read((char *)chunk, Messages::BLOCK_SIZE);
         l = file.gcount();
-        crc32_initial = crc32(crc32_initial, chunk, l);
+        crc32_initial = crc32(crc32_initial, chunk, static_cast<uint32_t>(l));
 
     } while(!file.eof());
 
@@ -153,7 +153,11 @@ int Updater::SendFile(std::string &filePath, bool verbose)
     file.clear();
     file.seekg(0, file.beg);
 
-    const int numBlocks = fileLength/Messages::BLOCK_SIZE;
+    const long long numBlocks = fileLength/Messages::BLOCK_SIZE;
+    if (fileLength > MAX_UPDATE_FS) {
+        std::cerr << "Update file too large (" << fileLength << "B), can't send\n";
+        return -1;
+    }
     Messages::MessageBlockAck BlockAck;
 
     do {
@@ -169,14 +173,14 @@ int Updater::SendFile(std::string &filePath, bool verbose)
             return -1;
         }
 
-        Messages::MessageFileBlock Block(fileLength, bytesWritten, crc32_final, l, blockSeq++, chunk);
+        Messages::MessageFileBlock Block(static_cast<uint32_t>(fileLength), bytesWritten, crc32_final, static_cast<uint32_t>(l), blockSeq++, chunk);
         sent = Send((uint8_t*)&Block, sizeof(Block));
         if (sent!=sizeof(Block))
         {
             std::cerr << "Warning: Truncated send expected: " << sizeof(Block) << " sent: " << sent << std::endl;
         }
 
-        bytesWritten += l;
+        bytesWritten += static_cast<uint32_t>(l);
 
         bytesRcvd = Receive((uint8_t *)&BlockAck, sizeof(BlockAck), NULL);
         if (bytesRcvd < 0)

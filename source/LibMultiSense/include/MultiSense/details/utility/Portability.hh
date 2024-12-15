@@ -94,7 +94,7 @@
 #endif
 #define SOCKET_ERRNO WSAGetLastError()
 #define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
-#define CRL_EAGAIN WSAEWOULDBLOCK
+#define CRL_EAGAIN WSAETIMEDOUT
 #define usleep(usec) Sleep((usec)/1000)
 #else
 #define SOCKET_ERRNO errno 
