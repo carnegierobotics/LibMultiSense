@@ -47,4 +47,3 @@ jobs:
       run: |
           cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
           cmake --build ${{github.workspace}}/build --config Debug --target install -- /m:10
-          
