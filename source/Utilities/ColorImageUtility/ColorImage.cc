@@ -1,7 +1,7 @@
 /**
  * @file ColorImageUtility/ColorImageUtility.cc
  *
- * Copyright 2020-2022
+ * Copyright 2020-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

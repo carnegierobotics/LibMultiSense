@@ -4,7 +4,7 @@
  * Macros and symbols to help portability between different compiler
  * versions.
  *
- * Copyright 2014-2022
+ * Copyright 2014-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -59,7 +59,7 @@
     // MS Visual C++ uses __declspec(thread) to declare thread local variables.
     #define CRL_THREAD_LOCAL __declspec(thread)
 #else
-    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at http://support.carnegierobotics.com for assistance."
+    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at https://carnegierobotics.com/submitaticket for assistance."
 #endif
 
 #if defined (__GNUC__)
@@ -73,7 +73,7 @@
     // Use C99 standard macros to get the undecorated name of the current function
     #define CRL_PRETTY_FUNCTION __func__
 #else
-    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at http://support.carnegierobotics.com for assistance."
+    #error "This compiler is not yet supported. Please contact Carnegie Robotics support at https://carnegierobotics.com/submitaticket for assistance."
 #endif
 
 #if !defined(MULTISENSE_API)
@@ -92,11 +92,14 @@
 #ifndef NOMINMAX
 #define NOMINMAX 1
 #endif
-
+#define SOCKET_ERRNO WSAGetLastError()
+#define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
+#define CRL_EAGAIN WSAETIMEDOUT
 #define usleep(usec) Sleep((usec)/1000)
-#endif
-
-#ifndef WIN32
+#else
+#define SOCKET_ERRNO errno 
+#define SOCKET_STR_ERR strerror(SOCKET_ERRNO)
+#define CRL_EAGAIN EAGAIN
 #define closesocket close
 #endif
 
