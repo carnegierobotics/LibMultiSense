@@ -5,7 +5,7 @@
  * Tascione's?) StandardException.cc file, which was developed under
  * project RD1013.
  *
- * Copyright 2012-2022
+ * Copyright 2012-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com

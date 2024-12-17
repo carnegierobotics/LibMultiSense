@@ -1,7 +1,7 @@
 /**
  * @file DepthImageUtility/DepthImageUtility.cc
  *
- * Copyright 2020-2023
+ * Copyright 2020-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * https://www.carnegierobotics.com

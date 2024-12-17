@@ -1,10 +1,10 @@
 # LibMultiSense
 
 - [Hello World](#hello-world)
-    - [OpenCV Integration](#opencv-integration)
-    - [Copy-Free Buffer Reservations](#copy-free-operations-image-buffer-reservations)
-    - [Camera Configuration](#camera-configuration)
-    - [Depth Image Generation](#depth-image-generation)
+  - [OpenCV Integration](#opencv-integration)
+  - [Copy-Free Buffer Reservations](#copy-free-operations-image-buffer-reservations)
+  - [Camera Configuration](#camera-configuration)
+  - [Depth Image Generation](#depth-image-generation)
 - [Installation](#installation)
 - [Doccumentation](#doccumentation)
 - [Support](#support)
@@ -12,7 +12,7 @@
 LibMultiSense is a C++ library used to interface with the MultiSense S
 family of sensors from Carnegie Robotics. For more information on the
 various MultiSense products please visit
-http://carnegierobotics.com/products/
+https://carnegierobotics.com/products
 
 For more detailed documentation on general MultiSense operation
 please visit
@@ -103,8 +103,7 @@ To report an issue with this library or request a new feature,
 please use the [GitHub issues system](https://github.com/carnegierobotics/LibMultiSense/issues)
 
 For product support, please see the [support section of our website](https://carnegierobotics.com/support)
-Individual support requests can be created in our [support portal](https://support.carnegierobotics.com/hc/en-us)
-
+Individual support requests can be created in our [support portal](https://carnegierobotics.com/submitaticket)
 
 ### Hello World
 
@@ -118,6 +117,7 @@ The following example demonstrates how to connect, stream, and receive image
 for the MultiSense camera.
 
 #### test.cpp
+
 ```c++
 #include <iostream>
 #include <unistd.h>
@@ -216,8 +216,6 @@ install(TARGETS test
     > mkdir build && cd build
     > cmake -DCMAKE_PREFIX_PATH=<path-to-libmultisense-install> ..
     > make
-
-
 
 ### OpenCV Integration
 

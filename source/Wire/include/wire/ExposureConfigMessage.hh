@@ -1,7 +1,7 @@
 /**
  * @file LibMultiSense/ExposureConfigMessage.hh
  *
- * Copyright 2021-2022
+ * Copyright 2021-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * https://www.carnegierobotics.com

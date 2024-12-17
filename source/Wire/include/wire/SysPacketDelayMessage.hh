@@ -3,7 +3,7 @@
  *
  * This message contains network delay settings
  *
- * Copyright 2017-2024
+ * Copyright 2024-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
