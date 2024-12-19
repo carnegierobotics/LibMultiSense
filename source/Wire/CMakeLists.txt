@@ -101,6 +101,10 @@ target_include_directories(MultiSenseWire
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
 
+if (BUILD_TESTS)
+    add_subdirectory(test)
+endif()
+
 # create install targets
 install(TARGETS MultiSenseWire
   EXPORT MultiSenseWireTargets

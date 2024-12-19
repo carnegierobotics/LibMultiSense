@@ -104,9 +104,6 @@ configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiSenseConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
   INSTALL_DESTINATION lib/cmake/MultiSense)
 
-if (BUILD_TESTS)
-    add_subdirectory(test)
-endif()
 
 # create install targets
 install(TARGETS MultiSense
