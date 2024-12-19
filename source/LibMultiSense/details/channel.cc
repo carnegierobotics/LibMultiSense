@@ -38,15 +38,15 @@
 #include "MultiSense/details/channel.hh"
 #include "MultiSense/details/query.hh"
 
-#include "wire/DisparityMessage.hh"
-#include "wire/SysMtuMessage.hh"
-#include "wire/SysGetMtuMessage.hh"
-#include "wire/StatusRequestMessage.hh"
-#include "wire/StatusResponseMessage.hh"
-#include "wire/PtpStatusRequestMessage.hh"
-#include "wire/PtpStatusResponseMessage.hh"
-#include "wire/VersionRequestMessage.hh"
-#include "wire/SysDeviceInfoMessage.hh"
+#include <wire/DisparityMessage.hh>
+#include <wire/SysMtuMessage.hh>
+#include <wire/SysGetMtuMessage.hh>
+#include <wire/StatusRequestMessage.hh>
+#include <wire/StatusResponseMessage.hh>
+#include <wire/PtpStatusRequestMessage.hh>
+#include <wire/PtpStatusResponseMessage.hh>
+#include <wire/VersionRequestMessage.hh>
+#include <wire/SysDeviceInfoMessage.hh>
 
 #include "MultiSense/details/utility/Functional.hh"
 

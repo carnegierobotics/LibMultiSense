@@ -34,12 +34,11 @@
  *   2021-05-11, wdouglass@carnegierobotics.com, 8000, Created file.
  **/
 
-#include <utility/Portability.hh>
-#include <utility/BufferStream.hh>
+#include "utility/Portability.hh"
+#include "MultiSense/MultiSenseTypes.hh"
+
 #include <wire/Protocol.hh>
-#include <MultiSense/MultiSenseTypes.hh>
-
-
+#include <utility/BufferStream.hh>
 #include <wire/AckMessage.hh>
 #include <wire/CamConfigMessage.hh>
 #include <wire/CamControlMessage.hh>
