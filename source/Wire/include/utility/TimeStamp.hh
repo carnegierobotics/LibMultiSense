@@ -54,6 +54,8 @@
 #endif
 #include <stdint.h>
 
+#include "utility/Portability.hh"
+
 namespace crl {
 namespace multisense {
 namespace details {
@@ -64,7 +66,7 @@ namespace utility {
 // abstracting it away into something that is more usable.
 //
 
-class TimeStamp
+class MULTISENSE_API TimeStamp
 {
 private:
 

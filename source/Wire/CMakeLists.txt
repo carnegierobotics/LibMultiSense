@@ -92,8 +92,9 @@ add_library(MultiSenseWire ${WIRE_HEADERS}
                            ${UTILITY_HEADERS}
                            ${DETAILS_SRC})
 
+target_compile_definitions(MultiSenseWire PRIVATE MultiSense_EXPORTS=True)
 if (MULTISENSE_USE_MONOTONIC_CLOCK)
-    target_compile_definitions(MultiSense PRIVATE USE_MONOTONIC_CLOCK=${MULTISENSE_USE_MONOTONIC_CLOCK})
+    target_compile_definitions(MultiSenseWire PRIVATE USE_MONOTONIC_CLOCK=${MULTISENSE_USE_MONOTONIC_CLOCK})
 endif()
 
 target_include_directories(MultiSenseWire
