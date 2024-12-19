@@ -38,8 +38,8 @@
 #define LibMultiSense_details_signal_hh
 
 #include "MultiSense/details/utility/Thread.hh"
-#include "MultiSense/details/wire/Protocol.hh"
-#include "MultiSense/details/wire/AckMessage.hh"
+#include "wire/Protocol.hh"
+#include "wire/AckMessage.hh"
 
 #include <map>
 

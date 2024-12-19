@@ -41,7 +41,7 @@
 #include "MultiSense/MultiSenseTypes.hh"
 
 #include "MultiSense/details/utility/Thread.hh"
-#include "MultiSense/details/utility/BufferStream.hh"
+#include "utility/BufferStream.hh"
 
 namespace crl {
 namespace multisense {
