@@ -64,7 +64,6 @@
 
 #include "MultiSense/details/wire/SysMtuMessage.hh"
 #include "MultiSense/details/wire/SysNetworkMessage.hh"
-#include "MultiSense/details/wire/SysFlashResponseMessage.hh"
 #include "MultiSense/details/wire/SysDeviceInfoMessage.hh"
 #include "MultiSense/details/wire/SysCameraCalibrationMessage.hh"
 #include "MultiSense/details/wire/SysSensorCalibrationMessage.hh"
@@ -651,9 +650,6 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::MotorPoll::ID):
         m_messages.store(wire::MotorPoll(stream, version));
-        break;
-    case MSG_ID(wire::SysFlashResponse::ID):
-        m_messages.store(wire::SysFlashResponse(stream, version));
         break;
     case MSG_ID(wire::SysDeviceInfo::ID):
         m_messages.store(wire::SysDeviceInfo(stream, version));

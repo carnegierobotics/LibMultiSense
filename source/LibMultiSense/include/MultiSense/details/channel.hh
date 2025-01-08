@@ -206,12 +206,6 @@ public:
     virtual Status setGroundSurfaceParams (const system::GroundSurfaceParams& params);
     virtual Status setApriltagParams      (const system::ApriltagParams& params);
 
-    virtual Status flashBitstream        (const std::string& file);
-    virtual Status flashFirmware         (const std::string& file);
-
-    virtual Status verifyBitstream       (const std::string& file);
-    virtual Status verifyFirmware        (const std::string& file);
-
     virtual Status getImuInfo            (uint32_t& maxSamplesPerMessage,
                                           std::vector<imu::Info>& info);
     virtual Status getImuConfig          (uint32_t& samplesPerMessage,
@@ -595,14 +589,6 @@ private:
     const int64_t&               unwrapSequenceId(uint16_t id);
     UdpAssembler                 getUdpAssembler (const uint8_t *udpDatagramP,
                                                   uint32_t       length);
-
-    void                         eraseFlashRegion          (uint32_t region);
-    void                         programOrVerifyFlashRegion(std::ifstream& file,
-                                                            uint32_t       operation,
-                                                            uint32_t       region);
-    Status                       doFlashOp                 (const std::string& filename,
-                                                            uint32_t           operation,
-                                                            uint32_t           region);
 
     void                         applySensorTimeOffset(const utility::TimeStamp& offset);
     utility::TimeStamp           sensorToLocalTime    (const utility::TimeStamp& sensorTime);
