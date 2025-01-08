@@ -1127,60 +1127,6 @@ public:
     virtual Status secondaryAppDeactivate(const std::string & s) = 0;
 
 
-    /**
-     * Flash a new FPGA bitstream file to the sensor.
-     *
-     * WARNING: This member should not be used directly. Improper usage can
-     * result in the sensor being inoperable. Use the MultiSenseUpdater
-     * script to update the sensor's firmware/bitstream
-     *
-     * @param file The path to the file containing the new sensor bitstream
-     *
-     * @return A crl::multisense::Status indicating if the new bitstream
-     * was successfully flashed
-     */
-
-    virtual Status flashBitstream      (const std::string& file)            = 0;
-
-    /**
-     * Flash a new firmware file to the sensor.
-     *
-     * WARNING: This member should not be used directly. Improper usage can
-     * result in the sensor being inoperable. Use the MultiSenseUpdater
-     * script to update the sensor's firmware/bitstream
-     *
-     * @param file The path to the file containing the new sensor firmware
-     *
-     * @return A crl::multisense::Status indicating if the new firmware
-     * was successfully flashed
-     */
-
-    virtual Status flashFirmware       (const std::string& file)            = 0;
-
-    /**
-     * Verify that the current bitstream in the sensor's flash is the same as
-     * the bitstream specified by file
-     *
-     * @param file The path to the file containing the bitstream to check
-     *
-     * @return A crl::multisense::Status indicating if the bitstream specified
-     * by file is loaded in the sensor's non-volatile flash memory
-     */
-
-    virtual Status verifyBitstream     (const std::string& file)            = 0;
-
-    /**
-     * Verify the current firmware in the sensor's flash is the same as
-     * the firmware specified by file
-     *
-     * @param file The path to the file containing the firmware to check
-     *
-     * @return A crl::multisense::Status indicating if the firmware specified
-     * by file is loaded in the sensor's non-volatile flash memory
-     */
-
-    virtual Status verifyFirmware      (const std::string& file)            = 0;
-
     //
     // IMU configuration.
     //
