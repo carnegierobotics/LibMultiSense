@@ -39,10 +39,12 @@ set(WIRE_HEADERS
   include/MultiSense/details/wire/LidarSetMotorMessage.hh
   include/MultiSense/details/wire/CamGetHistoryMessage.hh
   include/MultiSense/details/wire/ImageMessage.hh
+  include/MultiSense/details/wire/SysFlashResponseMessage.hh
   include/MultiSense/details/wire/LidarPollMotorMessage.hh
   include/MultiSense/details/wire/SysGetDirectedStreamsMessage.hh
   include/MultiSense/details/wire/CamConfigMessage.hh
   include/MultiSense/details/wire/SysSetPtpMessage.hh
+  include/MultiSense/details/wire/SysFlashOpMessage.hh
   include/MultiSense/details/wire/Protocol.hh
   include/MultiSense/details/wire/StreamControlMessage.hh
   include/MultiSense/details/wire/CamSetResolutionMessage.hh

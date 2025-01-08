@@ -84,6 +84,8 @@
 #include <MultiSense/details/wire/SysDeviceModesMessage.hh>
 #include <MultiSense/details/wire/SysDirectedStreamsMessage.hh>
 #include <MultiSense/details/wire/SysExternalCalibrationMessage.hh>
+#include <MultiSense/details/wire/SysFlashOpMessage.hh>
+#include <MultiSense/details/wire/SysFlashResponseMessage.hh>
 #include <MultiSense/details/wire/SysGetCameraCalibrationMessage.hh>
 #include <MultiSense/details/wire/SysGetDeviceInfoMessage.hh>
 #include <MultiSense/details/wire/SysGetDeviceModesMessage.hh>
@@ -155,6 +157,8 @@ namespace wire {
     CRL_CONSTEXPR IdType SysDeviceModes::ID;
     CRL_CONSTEXPR IdType SysDirectedStreams::ID;
     CRL_CONSTEXPR IdType SysExternalCalibration::ID;
+    CRL_CONSTEXPR IdType SysFlashOp::ID;
+    CRL_CONSTEXPR IdType SysFlashResponse::ID;
     CRL_CONSTEXPR IdType SysGetCameraCalibration::ID;
     CRL_CONSTEXPR IdType SysGetDeviceInfo::ID;
     CRL_CONSTEXPR IdType SysGetDeviceModes::ID;
@@ -215,6 +219,8 @@ namespace wire {
     CRL_CONSTEXPR VersionType SysDeviceModes::VERSION;
     CRL_CONSTEXPR VersionType SysDirectedStreams::VERSION;
     CRL_CONSTEXPR VersionType SysExternalCalibration::VERSION;
+    CRL_CONSTEXPR VersionType SysFlashOp::VERSION;
+    CRL_CONSTEXPR VersionType SysFlashResponse::VERSION;
     CRL_CONSTEXPR VersionType SysGetCameraCalibration::VERSION;
     CRL_CONSTEXPR VersionType SysGetDeviceInfo::VERSION;
     CRL_CONSTEXPR VersionType SysGetDeviceModes::VERSION;
