@@ -412,11 +412,11 @@ void featureDetectorCallback(const secondary_app::Header& header,
             if(fHeader.observerStatus==0xffff)
             {
                 std::cout << "observerStatus:  " << observerStatus(fHeader.observerStatus) << "                     \n";
-                std::cout << "observerIndex:   " << fHeader.observerIndex << " \n";
-                std::cout << "observerNum:     " << fHeader.observerNum << " \n";
-                std::cout << "observerDy:      " << fHeader.observerDy * 0.001 << " \n";
-                std::cout << "observerTheta:   " << fHeader.observerTheta * 0.001 << " \n";
-                std::cout << "affineCalCount:  " << fHeader.affineCalCount << "\n";
+                std::cout << "observerIndex:   " << fHeader.observerIndex << "        \n";
+                std::cout << "observerNum:     " << fHeader.observerNum << "        \n";
+                std::cout << "observerDy:      " << fHeader.observerDy * 0.001 << "        \n";
+                std::cout << "observerTheta:   " << fHeader.observerTheta * 0.001 << "        \n";
+                std::cout << "affineCalCount:  " << fHeader.affineCalCount << "        \n";
                 userData->observerStatus = fHeader.observerStatus;
                 userData->observerIndex = fHeader.observerIndex;
                 userData->observerNum = fHeader.observerNum;
@@ -437,10 +437,10 @@ void featureDetectorCallback(const secondary_app::Header& header,
                 if(userData->observerStatus==0xffff)
                 {
                     std::cout << "observerStatus:  " << observerStatus(userData->observerStatus) << " (" << observerStatus(fHeader.observerStatus) << ")                     \n";
-                    std::cout << "observerIndex:   " << userData->observerIndex << " \n";
-                    std::cout << "observerNum:     " << userData->observerNum << " \n";
-                    std::cout << "observerDy:      " << userData->observerDy * 0.001 << " \n";
-                    std::cout << "observerTheta:   " << userData->observerTheta * 0.001 << " \n";
+                    std::cout << "observerIndex:   " << userData->observerIndex <<         "        \n";
+                    std::cout << "observerNum:     " << userData->observerNum <<           "        \n";
+                    std::cout << "observerDy:      " << userData->observerDy * 0.001 <<    "        \n";
+                    std::cout << "observerTheta:   " << userData->observerTheta * 0.001 << "        \n";
                     std::cout << "affineCalCount:  " << userData->affineCalCount << "\n";
                 }
             }
