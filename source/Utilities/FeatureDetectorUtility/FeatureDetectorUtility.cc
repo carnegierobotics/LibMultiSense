@@ -430,7 +430,7 @@ void featureDetectorCallback(const secondary_app::Header& header,
             }
             else if(fHeader.observerStatus==9)
             {
-                std::cout << "observerStatus:  INITIALIZING " << fHeader.observerIndex << "   \n";
+                std::cout << "observerStatus:  INITIALIZING " << fHeader.observerNum << "   \n";
             }
             else
             {
