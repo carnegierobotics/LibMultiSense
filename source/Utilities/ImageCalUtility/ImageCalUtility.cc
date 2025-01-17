@@ -72,6 +72,7 @@ void usage(const char *programNameP)
     fprintf(stderr, "\t-s                   : set the calibration (default is query)\n");
     fprintf(stderr, "\t-r                   : remote head channel (options: VPB, 0, 1, 2, 3)\n");
     fprintf(stderr, "\t-y                   : disable confirmation prompts\n");
+    fprintf(stderr, "\t-C                   : cancel affine calibration\n");
 
     exit(-1);
 }
@@ -154,13 +155,13 @@ int main(int    argc,
     bool        cameraRemoteHead=false;
     bool        setCal=false;
     bool        prompt=true;
-
+    bool        cancelAffine=false;
     //
     // Parse args
 
     int c;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:e:i:r:sy")))
+    while(-1 != (c = getopt(argc, argvPP, "a:e:i:r:syC")))
         switch(c) {
         case 'a': ipAddress      = std::string(optarg);    break;
         case 'i': intrinsicsFile = std::string(optarg);    break;
@@ -172,40 +173,44 @@ int main(int    argc,
         }
         case 's': setCal         = true;                   break;
         case 'y': prompt         = false;                  break;
+        case 'C': cancelAffine   = true;                   break;
         default: usage(*argvPP);                           break;
         }
 
-    //
-    // Verify options
+    if(!cancelAffine)
+    {
+        //
+        // Verify options
 
-    if (intrinsicsFile.empty() || extrinsicsFile.empty()) {
-        fprintf(stderr, "Both intrinsics and extrinsics files must be set\n");
-        usage(*argvPP);
-    }
+        if (intrinsicsFile.empty() || extrinsicsFile.empty()) {
+            fprintf(stderr, "Both intrinsics and extrinsics files must be set\n");
+            usage(*argvPP);
+        }
 
-    if (true == setCal &&
-        (false == fileExists(intrinsicsFile) ||
-         false == fileExists(extrinsicsFile))) {
+        if (true == setCal &&
+            (false == fileExists(intrinsicsFile) ||
+            false == fileExists(extrinsicsFile))) {
 
-        fprintf(stderr, "intrinsics or extrinsics file not found\n");
-        usage(*argvPP);
-    }
+            fprintf(stderr, "intrinsics or extrinsics file not found\n");
+            usage(*argvPP);
+        }
 
-    if (false == setCal && true == prompt &&
-        (true == fileExists(intrinsicsFile) ||
-         true == fileExists(extrinsicsFile))) {
+        if (false == setCal && true == prompt &&
+            (true == fileExists(intrinsicsFile) ||
+            true == fileExists(extrinsicsFile))) {
 
-        fprintf(stdout,
-                "One or both of \"%s\" and \"%s\" already exists.\n\n"
-                "Really overwrite these files? (y/n): ",
-                intrinsicsFile.c_str(),
-                extrinsicsFile.c_str());
-        fflush(stdout);
+            fprintf(stdout,
+                    "One or both of \"%s\" and \"%s\" already exists.\n\n"
+                    "Really overwrite these files? (y/n): ",
+                    intrinsicsFile.c_str(),
+                    extrinsicsFile.c_str());
+            fflush(stdout);
 
-        int reply = getchar();
-        if ('Y' != reply && 'y' != reply) {
-            fprintf(stdout, "Aborting\n");
-            return 0;
+            int reply = getchar();
+            if ('Y' != reply && 'y' != reply) {
+                fprintf(stdout, "Aborting\n");
+                return 0;
+            }
         }
     }
 
@@ -247,6 +252,42 @@ int main(int    argc,
     hasAuxCamera = info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 ||
                    info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 ||
                    info.hardwareRevision == system::DeviceInfo::HARDWARE_REV_MULTISENSE_MONOCAM;
+
+    if(cancelAffine)
+    {
+        image::Calibration calibration;
+
+        status = channelP->getImageCalibration(calibration);
+        if (Status_Ok != status) {
+            fprintf(stderr, "failed to query image calibration: %s\n",
+                    Channel::statusString(status));
+            goto clean_out;
+        }
+
+        // copy 3x3 submatrix of left P matrix to other cameras
+        for(int i=0;i<3;i++)
+        {
+            for(int j=0;j<3;j++)
+            {
+                calibration.right.P[i][j] = calibration.left.P[i][j];
+                if(hasAuxCamera)
+                {
+                    calibration.aux.P[i][j] = calibration.left.P[i][j];
+                }
+            }
+        }
+
+        status = channelP->setImageCalibration(calibration);
+        if (Status_Ok != status) {
+            fprintf(stderr, "failed to set image calibration: %s\n",
+                    Channel::statusString(status));
+            goto clean_out;
+        }
+
+        fprintf(stdout, "Affine calibration successfully canceled\n");
+
+        goto clean_out;
+    }
 
     //
     // Query

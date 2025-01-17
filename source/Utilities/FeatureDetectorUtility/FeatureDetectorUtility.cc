@@ -742,10 +742,17 @@ int main(int    argc,
     // Start streaming
     
 
-    
-    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
-                                    (operatingMode.supportedDataSources & Source_Luma_Right) |
-                                    feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+    if(!affineCalib)
+    {
+        status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
+                                        (operatingMode.supportedDataSources & Source_Luma_Right) |
+                                        feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+    }
+    else
+    {
+        status = channelP->startStreams(feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+    }
+
 
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
