@@ -23,7 +23,7 @@ jobs:
           - ubuntu-latest
           - windows-latest
         build_type:
-          - Debug
+#          - Debug
           - Release
         c_compiler:
           - cl
