@@ -79,21 +79,21 @@ jobs:
 
       - name: Configure CMake
         id: configure
-        run: >
-          cmake
-            -S ${{ github.workspace }}
-            -B ${{ steps.strings.outputs.build-output-dir }}
-            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: |
+          cmake \
+            -S ${{ github.workspace }} \
+            -B ${{ steps.strings.outputs.build-output-dir }} \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}
 
       - name: Build
         id: build
-        run: >
-          cmake
-            --build ${{ steps.strings.outputs.build-output-dir }}
-            --config ${{ matrix.build_type }}
+        run: |
+          cmake \
+            --build ${{ steps.strings.outputs.build-output-dir }} \
+            --config ${{ matrix.build_type }} \
             -j $(nproc)
 
       - name: Test
