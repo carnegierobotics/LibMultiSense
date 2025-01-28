@@ -13,10 +13,6 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
 
-    concurrency:
-      group: ${{ github.ref_name }}-build
-      cancel-in-progress: ${{ github.ref_name != 'main' }}
-
     strategy:
       # TODO: Remove this
       fail-fast: false
