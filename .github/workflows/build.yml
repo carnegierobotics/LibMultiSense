@@ -84,7 +84,8 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}
+            -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }} \
+            -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
 
       - name: Build
         id: build
