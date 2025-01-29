@@ -48,25 +48,25 @@ TEST(Construction, default_)
     EXPECT_EQ(a.getMicroSeconds(), 0);
 }
 
-// TEST(Construction, second_microsecond)
-// {
-//     for (int32_t sec = -1000000; sec <= 1000000; sec += 100000)
-//     {
-//         for (int32_t usec = -1000000; usec <= 1100000; usec += 10000)
-//         {
-//             const TimeStamp time(sec, usec);
-//
-//             EXPECT_EQ(time.getSeconds() * 1000000 + time.getMicroSeconds(),
-//                       sec * 1000000 + usec);
-//
-//             if (usec >= 0 && usec < 1000000)
-//             {
-//                 EXPECT_EQ(time.getSeconds(), sec);
-//                 EXPECT_EQ(time.getMicroSeconds(), usec);
-//             }
-//         }
-//     }
-// }
+TEST(Construction, second_microsecond)
+{
+    for (int32_t sec = -1000000; sec <= 1000000; sec += 100000)
+    {
+        for (int32_t usec = -1000000; usec <= 1100000; usec += 10000)
+        {
+            const TimeStamp time(sec, usec);
+
+            EXPECT_EQ(time.getSeconds() * 1000000 + time.getMicroSeconds(),
+                      sec * 1000000 + usec);
+
+            if (usec >= 0 && usec < 1000000)
+            {
+                EXPECT_EQ(time.getSeconds(), sec);
+                EXPECT_EQ(time.getMicroSeconds(), usec);
+            }
+        }
+    }
+}
 
 TEST(Construction, timeval)
 {
