@@ -24,7 +24,7 @@ jobs:
         run: |
           cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=install-release
           cmake --build build -j "$(nproc)"
-          make -C build test ARGS=--verbose
+          make -C build test
           cmake --install build
       - id: build-debug
         run: |
