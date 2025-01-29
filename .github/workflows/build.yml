@@ -20,7 +20,7 @@ jobs:
       matrix:
         os:
           #- macos-latest
-          - ubuntu-latest
+          - ubuntu-22.04
           - windows-latest
         build_type:
           #- Debug
@@ -40,10 +40,10 @@ jobs:
           #- os: macos-latest
           #  c_compiler: clang
           #  cpp_compiler: clang++
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: gcc
             cpp_compiler: g++
-          #- os: ubuntu-latest
+          #- os: ubuntu-22.04
           #  c_compiler: clang
           #  cpp_compiler: clang++
           - os: windows-latest
@@ -52,7 +52,7 @@ jobs:
         exclude:
           #- os: macos-latest
           #  c_compiler: cl
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             c_compiler: cl
           - os: windows-latest
             c_compiler: gcc
@@ -74,7 +74,7 @@ jobs:
 
       - name: Install GTest
         uses: LazyPanda07/get-gtest@v1.1
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-22.04' }}
         with:
           branch-name: v1.15.2
           install-path: gtest
@@ -90,7 +90,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }}
           -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
-          -DBUILD_TESTS=${{ matrix.os == 'ubuntu-latest' }}
+          -DBUILD_TESTS=${{ matrix.os == 'ubuntu-22.04' }}
           -DGTest_DIR=${{ github.workspace }}/gtest/lib/cmake/GTest
 
       - name: Build
@@ -103,7 +103,7 @@ jobs:
 
       - name: Test
         id: test
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-22.04' }}
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: >
           ctest
