@@ -101,6 +101,13 @@ jobs:
           --config ${{ matrix.build_type }}
           -j $(nproc)
 
+      - name: TEMPORARY - Run failing test manually
+        id: test-timestamp
+        if: ${{ steps.strings.outputs.run-tests }}
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: |
+          ./source/LibMultiSense/test/TestTimestamp
+
       - name: Test
         id: test
         if: ${{ steps.strings.outputs.run-tests }}
