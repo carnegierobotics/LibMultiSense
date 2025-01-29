@@ -90,6 +90,7 @@ jobs:
           -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }}
           -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
           -DBUILD_TESTS=ON
+          -DGTest_DIR=${{ github.workspace }}/gtest/lib/cmake/GTest
 
       - name: Build
         id: build
