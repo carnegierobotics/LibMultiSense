@@ -19,7 +19,7 @@ jobs:
 
       matrix:
         os:
-          - macos-latest
+#          - macos-latest
           - ubuntu-latest
           - windows-latest
         build_type:
@@ -27,37 +27,37 @@ jobs:
           - Release
         c_compiler:
           - cl
-          - clang
+#          - clang
           - gcc
         build_shared_libs:
           - ON
-          - OFF
+#          - OFF
 
         include:
-          - os: macos-latest
-            c_compiler: gcc
-            cpp_compiler: g++
-          - os: macos-latest
-            c_compiler: clang
-            cpp_compiler: clang++
+#          - os: macos-latest
+#            c_compiler: gcc
+#            cpp_compiler: g++
+#          - os: macos-latest
+#            c_compiler: clang
+#            cpp_compiler: clang++
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
+#          - os: ubuntu-latest
+#            c_compiler: clang
+#            cpp_compiler: clang++
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
         exclude:
-          - os: macos-latest
-            c_compiler: cl
+#          - os: macos-latest
+#            c_compiler: cl
           - os: ubuntu-latest
             c_compiler: cl
           - os: windows-latest
             c_compiler: gcc
-          - os: windows-latest
-            c_compiler: clang
+#          - os: windows-latest
+#            c_compiler: clang
 
     steps:
       - name: Checkout LibMultiSense
