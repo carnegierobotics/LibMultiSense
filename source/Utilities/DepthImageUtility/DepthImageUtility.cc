@@ -405,7 +405,8 @@ int main(int    argc,
 
     if (useColor &&
         (system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 == deviceInfo.hardwareRevision ||
-        system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 == deviceInfo.hardwareRevision)) {
+        system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 == deviceInfo.hardwareRevision ||
+        system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i == deviceInfo.hardwareRevision)) {
 
         streams = Source_Luma_Rectified_Aux | Source_Chroma_Rectified_Aux | Source_Disparity_Left;
         hasAux = true;
