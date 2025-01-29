@@ -63,14 +63,14 @@ jobs:
       - name: Checkout LibMultiSense
         uses: actions/checkout@v4
 
+      - name: Install newer CMake
+        uses: lukka/get-cmake@latest
+
       - name: Install GTest
         uses: LazyPanda07/get-gtest@v1.1
         with:
           branch-name: v1.15.2
           install-path: gtest
-
-      - name: Install newer CMake
-        uses: lukka/get-cmake@latest
 
       - name: Set reusable strings
         id: strings
