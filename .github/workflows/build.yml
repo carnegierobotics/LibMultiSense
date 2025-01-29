@@ -79,23 +79,10 @@ jobs:
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
       - name: Configure CMake
-        id: configure-unix
-        if: matrix.os != 'windows-latest'
+        id: configure
         run: >
           cmake
           -S ${{ github.workspace }}
-          -B ${{ steps.strings.outputs.build-output-dir }}
-          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }}
-          -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
-
-      - name: Configure CMake
-        id: configure-windows
-        if: matrix.os == 'windows-latest'
-        run: >
-          cmake
           -B ${{ steps.strings.outputs.build-output-dir }}
           -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
