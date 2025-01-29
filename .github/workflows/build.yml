@@ -69,6 +69,9 @@ jobs:
           branch-name: v1.15.2
           install-path: gtest
 
+      - name: Install newer CMake
+        uses: lukka/get-cmake@latest
+
       - name: Set reusable strings
         id: strings
         shell: bash
