@@ -16,18 +16,15 @@ jobs:
       group: ${{ github.ref_name }}-build
       cancel-in-progress: ${{ github.ref_name != 'main' }}
     steps:
-      - id: update-apt
-        run: |
-          sudo apt-get update
       - id: setup
         run: |
-          sudo apt-get install libgtest-dev cmake -y
+          sudo apt-get install libgtest-dev -y
       - uses: actions/checkout@v4
       - id: build-release
         run: |
           cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=install-release
           cmake --build build -j "$(nproc)"
-          make -C build test
+          make -C build test ARGS=--verbose
           cmake --install build
       - id: build-debug
         run: |
