@@ -74,7 +74,7 @@ jobs:
 
       - name: Install GTest
         uses: LazyPanda07/get-gtest@v1.1
-        if: ${{ steps.strings.outputs.run-tests }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         with:
           branch-name: v1.15.2
           install-path: gtest
