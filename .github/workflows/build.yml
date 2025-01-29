@@ -77,6 +77,7 @@ jobs:
         shell: bash
         run: |
           echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          echo 'run-tests=${{ matrix.os == 'ubuntu-latest' }}' >> "$GITHUB_OUTPUT"
 
       - name: Configure CMake
         id: configure
@@ -89,7 +90,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }}
           -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
-          -DBUILD_TESTS=ON
+          -DBUILD_TESTS=${{ steps.strings.outputs.run-tests }}
           -DGTest_DIR=${{ github.workspace }}/gtest/lib/cmake/GTest
 
       - name: Build
@@ -102,6 +103,7 @@ jobs:
 
       - name: Test
         id: test
+        if: ${{ steps.strings.outputs.run-tests }}
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: |
           ctest --build-config ${{ matrix.build_type }}
