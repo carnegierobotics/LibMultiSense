@@ -60,6 +60,13 @@ jobs:
           #  c_compiler: clang
 
     steps:
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+          echo 'run-tests=${{ matrix.os == 'ubuntu-latest' }}' >> "$GITHUB_OUTPUT"
+
       - name: Checkout LibMultiSense
         uses: actions/checkout@v4
 
@@ -68,16 +75,10 @@ jobs:
 
       - name: Install GTest
         uses: LazyPanda07/get-gtest@v1.1
+        if: steps.strings.outputs.run-tests
         with:
           branch-name: v1.15.2
           install-path: gtest
-
-      - name: Set reusable strings
-        id: strings
-        shell: bash
-        run: |
-          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-          echo 'run-tests=${{ matrix.os == 'ubuntu-latest' }}' >> "$GITHUB_OUTPUT"
 
       - name: Configure CMake
         id: configure
@@ -103,14 +104,14 @@ jobs:
 
       - name: TEMPORARY - Run failing test manually
         id: test-timestamp
-        if: ${{ steps.strings.outputs.run-tests }}
+        if: steps.strings.outputs.run-tests
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: |
           ./source/LibMultiSense/test/TestTimestamp
 
       - name: Test
         id: test
-        if: ${{ steps.strings.outputs.run-tests }}
+        if: steps.strings.outputs.run-tests
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: >
           ctest
