@@ -74,7 +74,7 @@ jobs:
 
       - name: Install GTest
         uses: LazyPanda07/get-gtest@v1.1
-        if: ${{ matrix.os == 'ubuntu-22.04' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         with:
           branch-name: v1.15.2
           install-path: gtest
@@ -90,7 +90,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }}
           -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
-          -DBUILD_TESTS=${{ matrix.os == 'ubuntu-22.04' }}
+          -DBUILD_TESTS=${{ startsWith(matrix.os, 'ubuntu-') }}
           -DGTest_DIR=${{ github.workspace }}/gtest/lib/cmake/GTest
 
       - name: Build
@@ -103,7 +103,7 @@ jobs:
 
       - name: Test
         id: test
-        if: ${{ matrix.os == 'ubuntu-22.04' }}
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
         run: >
           ctest
