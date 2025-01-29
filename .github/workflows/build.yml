@@ -105,8 +105,10 @@ jobs:
         id: test
         if: ${{ steps.strings.outputs.run-tests }}
         working-directory: ${{ steps.strings.outputs.build-output-dir }}
-        run: |
-          ctest --build-config ${{ matrix.build_type }}
+        run: >
+          ctest
+          --build-config ${{ matrix.build_type }}
+          --output-on-failure
 
       - name: Install
         id: install
