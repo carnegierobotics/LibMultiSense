@@ -23,15 +23,15 @@ jobs:
           - ubuntu-22.04
           - windows-latest
         build_type:
-          #- Debug
+          - Debug
           - Release
         c_compiler:
           - cl
-          #- clang
+          - clang
           - gcc
         build_shared_libs:
           - ON
-          #- OFF
+          - OFF
 
         include:
           #- os: macos-latest
@@ -43,9 +43,9 @@ jobs:
           - os: ubuntu-22.04
             c_compiler: gcc
             cpp_compiler: g++
-          #- os: ubuntu-22.04
-          #  c_compiler: clang
-          #  cpp_compiler: clang++
+          - os: ubuntu-22.04
+            c_compiler: clang
+            cpp_compiler: clang++
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
@@ -56,8 +56,8 @@ jobs:
             c_compiler: cl
           - os: windows-latest
             c_compiler: gcc
-          #- os: windows-latest
-          #  c_compiler: clang
+          - os: windows-latest
+            c_compiler: clang
 
     steps:
       - name: Set reusable strings
