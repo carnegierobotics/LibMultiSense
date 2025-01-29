@@ -108,6 +108,7 @@ jobs:
         run: >
           ctest
           --build-config ${{ matrix.build_type }}
+          --timeout 180
           --output-on-failure
 
       - name: Install
