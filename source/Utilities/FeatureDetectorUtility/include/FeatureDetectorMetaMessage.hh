@@ -139,7 +139,6 @@ public:
 
         if (version >= 2)
         {
-          printf("[%s] version 2 message\n", __FUNCTION__ );
           message & observerStatus;
           message & observerNum;
           message & observerIndex;
