@@ -119,6 +119,7 @@ public:
         void serialize(Archive&          message,
                        const wire::VersionType _version)
     {
+        (void) _version;
         message & version;
         message & length;
         message & source;
@@ -136,8 +137,9 @@ public:
         message & numFeatures;
         message & numDescriptors;
 
-        if (_version >= 2)
+        if (version >= 2)
         {
+          printf("[%s] version 2 message\n", __FUNCTION__ );
           message & observerStatus;
           message & observerNum;
           message & observerIndex;
