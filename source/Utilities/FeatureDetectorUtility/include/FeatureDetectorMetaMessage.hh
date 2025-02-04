@@ -64,6 +64,9 @@ class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
       uint16_t               averageYMotion;
       uint16_t               numFeatures;
       uint16_t               numDescriptors;
+
+      //
+      // Version 2 additions
       uint16_t               observerStatus;
       uint16_t               observerNum;
       uint16_t               observerIndex;
@@ -116,8 +119,6 @@ public:
         void serialize(Archive&          message,
                        const wire::VersionType _version)
     {
-        (void) _version;
-
         message & version;
         message & length;
         message & source;
@@ -134,12 +135,16 @@ public:
         message & averageYMotion;
         message & numFeatures;
         message & numDescriptors;
-        message & observerStatus;
-        message & observerNum;
-        message & observerIndex;
-        message & observerDy;
-        message & observerTheta;
-        message & affineCalCount;
+
+        if (_version >= 2)
+        {
+          message & observerStatus;
+          message & observerNum;
+          message & observerIndex;
+          message & observerDy;
+          message & observerTheta;
+          message & affineCalCount;
+        }
     }
 };
 
