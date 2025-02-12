@@ -32,14 +32,15 @@
  *
  * Significant history (date, user, job code, action):
  *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2025-14-01, hshibata@carnegierobotics.com, IRAD, options added
  **/
 
 
 #ifndef __FEATURE_DETECTOR_CONFIG_H__
 #define __FEATURE_DETECTOR_CONFIG_H__
 
-#include "MultiSense/details/utility/Portability.hh"
-#include "MultiSense/MultiSenseTypes.hh"
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseTypes.hh>
 
 using namespace crl::multisense::details;
 
@@ -47,7 +48,15 @@ using namespace crl::multisense::details;
 
 struct FeatureDetectorConfigParams {
 
-    static CRL_CONSTEXPR wire::VersionType VERSION    = 1;
+    static CRL_CONSTEXPR wire::VersionType VERSION    = 2;
+
+    static CRL_CONSTEXPR uint32_t OPT_USE_OBSERVER = 2;
+    static CRL_CONSTEXPR uint32_t OPT_HYBRID_FULLRES = 4;
+    static CRL_CONSTEXPR uint32_t OPT_HYBRID_LEFT_OFF = 8;
+    static CRL_CONSTEXPR uint32_t OPT_HYBRID_RIGHT_OFF = 16;
+    static CRL_CONSTEXPR uint32_t OPT_OBSERVER_INCREMENTAL = 32;
+    static CRL_CONSTEXPR uint32_t OPT_HYBRID_MODE = 64;
+    static CRL_CONSTEXPR uint32_t OPT_AUTO_AFFINE_CAL = 128;
 
     //
     // The message version
@@ -68,11 +77,15 @@ struct FeatureDetectorConfigParams {
     // Current Octave: 3
     uint32_t motion;
 
+    // Feature detector's internal options
+    uint32_t options;
+
     FeatureDetectorConfigParams ( ) :
       version(VERSION),
       numberOfFeatures(1500),
       grouping(true),
-      motion(1)
+      motion(1),
+      options(0)
     {    }
 };
 

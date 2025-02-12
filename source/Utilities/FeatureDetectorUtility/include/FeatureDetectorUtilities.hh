@@ -87,6 +87,8 @@ class FeatureDetectorConfig: public crl::multisense::system::SecondaryAppConfig 
          */
         bool motion() const { return mConfigItems.motion; };
 
+        uint32_t options() const { return mConfigItems.options; };
+
         /**
          * Set the maximum number of features applied to the camera feature detector.
          * Current recommended settings.
@@ -131,12 +133,18 @@ class FeatureDetectorConfig: public crl::multisense::system::SecondaryAppConfig 
             mConfigItems.motion = m;
         }
 
+        void setOptions(const uint32_t &opt)
+        {
+            mConfigItems.options = opt;
+        }
+
         /** Default constructor */
         FeatureDetectorConfig()
         {
             mConfigItems.numberOfFeatures = RECOMMENDED_MAX_FEATURES_QUARTER_RES;
             mConfigItems.grouping = true;
             mConfigItems.motion = 1;
+            mConfigItems.options = 0;
         };
 
         void serialize( void )
@@ -182,6 +190,12 @@ public:
     uint16_t averageYMotion;
     uint16_t numFeatures;
     uint16_t numDescriptors;
+    uint16_t observerStatus;
+    uint16_t observerNum;
+    uint16_t observerIndex;
+    int16_t observerDy;
+    int16_t observerTheta;
+    uint16_t affineCalCount;
     std::vector<Feature> * features;
     std::vector<Descriptor> * descriptors;
 
@@ -233,6 +247,12 @@ Status secondaryAppDataExtract(feature_detector::Header &header, const secondary
   header.motionStatus   = _meta.motionStatus;
   header.averageXMotion = _meta.averageXMotion;
   header.averageYMotion = _meta.averageYMotion;
+  header.observerStatus = _meta.observerStatus;
+  header.observerNum    = _meta.observerNum;
+  header.observerIndex  = _meta.observerIndex;
+  header.observerDy     = _meta.observerDy;
+  header.observerTheta  = _meta.observerTheta;
+  header.affineCalCount = _meta.affineCalCount;
   header.numFeatures    = featureDetector.numFeatures;
   header.numDescriptors = featureDetector.numDescriptors;
 

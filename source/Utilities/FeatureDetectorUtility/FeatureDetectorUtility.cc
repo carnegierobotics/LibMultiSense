@@ -73,6 +73,10 @@ namespace {  // anonymous
 
 volatile bool doneG = false;
 
+volatile int affineCalib = 0;
+volatile uint16_t affineCalCount0 = 0;
+volatile bool affineCalCount0Set = false;
+
 struct featureDetectionTime
 {
   std::chrono::time_point<std::chrono::system_clock> imageTime;
@@ -86,6 +90,12 @@ struct UserData
     system::DeviceInfo deviceInfo;
     image::Calibration calibration;
     std::map<int64_t, featureDetectionTime> elapsedTime;
+    uint16_t observerStatus;
+    uint16_t observerNum;
+    uint16_t observerIndex;
+    int16_t observerDy;
+    int16_t observerTheta;
+    uint16_t affineCalCount;
 };
 
 void usage(const char *programNameP)
@@ -94,8 +104,9 @@ void usage(const char *programNameP)
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>                : MTU to set the camera to (default=1500)" << std::endl;
-    std::cerr << "\t-r <head_id>    : remote head ID (default=0)" << std::endl;
-
+    std::cerr << "\t-r <head_id>            : remote head ID (default=0)" << std::endl;
+    std::cerr << "\t-c                      : Perform affine calibration (from scratch, discard previous affine calibration)" << std::endl;
+    std::cerr << "\t-i                      : Perform affine calibration (incremental, keep previous affine calibration)" << std::endl;
     exit(1);
 }
 
@@ -348,6 +359,23 @@ void imageCallback(const image::Header& header,
         std::cerr << "failed to get histogram for frame " << header.frameId << std::endl;
 }
 
+
+const char *observerStatus(uint16_t x)
+{
+    switch(x)
+    {
+    case    0: return "IDLE";
+    case    10: return "NOT ENOUGH MATCH";
+    case    11: return "SVD FAILED";
+    case    12: return "BAD DISTRIBUTION";
+    case    13: return "IDLE 0";
+    case    14: return "IDLE 1";
+    case    15: return "IDLE 01";
+    case    0xffff: return "IN PROGRESS";
+    }
+    return "unknown";
+}
+
 void featureDetectorCallback(const secondary_app::Header& header,
                    void                *userDataP)
 {
@@ -363,38 +391,116 @@ void featureDetectorCallback(const secondary_app::Header& header,
       return;
     }
 
-    if ((fHeader.source == feature_detector::Source_Feature_Left)
-        || (fHeader.source == feature_detector::Source_Feature_Rectified_Left)) {
+    
+    userData->channelP->releaseCallbackBuffer(buffer);
 
-        auto it = userData->elapsedTime.find(fHeader.frameId);
-        if (it == userData->elapsedTime.end()) {
-            std::cout << "Unexpected result, image not yet received for frame: " << fHeader.frameId << "\n";
-            featureDetectionTime t;
-            t.featureTime = std::chrono::system_clock::now();
-            userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(fHeader.frameId, t));
+    if(affineCalib)
+    {
+        if(affineCalCount0Set)
+        {
+            std::cout << "\033[H";
+            std::cout << "Frame:  " << fHeader.frameId << " \n";
+            std::cout << "Motion X: " << fHeader.averageXMotion << " \n";
+            std::cout << "Motion Y: " << fHeader.averageYMotion << " \n";
+            std::cout << "Number of features:     " << fHeader.numFeatures    << " \n";
+            std::cout << "Number of descriptors:  " << fHeader.numDescriptors << " \n";
+            std::cout << "Octave Width:    " << fHeader.octaveWidth << " \n";
+            std::cout << "Octave Height:   " << fHeader.octaveHeight << " \n";
+            std::cout << "timeSeconds:     " << fHeader.timeSeconds << " \n";
+            std::cout << "timeNanoSeconds: " << fHeader.timeNanoSeconds << " \n";
+            std::cout << "ptpNanoSeconds:  " << fHeader.ptpNanoSeconds << " \n";
+
+            if(fHeader.observerStatus==0xffff)
+            {
+                std::cout << "observerStatus:  " << observerStatus(fHeader.observerStatus) << "                     \n";
+                std::cout << "observerIndex:   " << fHeader.observerIndex << "        \n";
+                std::cout << "observerNum:     " << fHeader.observerNum << "        \n";
+                std::cout << "observerDy:      " << fHeader.observerDy * 0.001 << "        \n";
+                std::cout << "observerTheta:   " << fHeader.observerTheta * 0.001 << "        \n";
+                std::cout << "affineCalCount:  " << fHeader.affineCalCount << "        \n";
+                userData->observerStatus = fHeader.observerStatus;
+                userData->observerIndex = fHeader.observerIndex;
+                userData->observerNum = fHeader.observerNum;
+                userData->observerDy = fHeader.observerDy;
+                userData->observerTheta = fHeader.observerTheta;
+                userData->affineCalCount = fHeader.affineCalCount;
+            }
+            else if(fHeader.observerStatus==0)
+            {
+                std::cout << "observerStatus:  IDLE             ";
+            }
+            else if(fHeader.observerStatus==9)
+            {
+                std::cout << "observerStatus:  INITIALIZING " << fHeader.observerNum << "   \n";
+            }
+            else
+            {
+                if(userData->observerStatus==0xffff)
+                {
+                    std::cout << "observerStatus:  " << observerStatus(userData->observerStatus) << " (" << observerStatus(fHeader.observerStatus) << ")                     \n";
+                    std::cout << "observerIndex:   " << userData->observerIndex <<         "        \n";
+                    std::cout << "observerNum:     " << userData->observerNum <<           "        \n";
+                    std::cout << "observerDy:      " << userData->observerDy * 0.001 <<    "        \n";
+                    std::cout << "observerTheta:   " << userData->observerTheta * 0.001 << "        \n";
+                    std::cout << "affineCalCount:  " << userData->affineCalCount << "\n";
+                }
+            }
+            
+            if(affineCalCount0 != fHeader.affineCalCount)
+            {
+                doneG = true;
+                std::cout << std::endl << "affine calibration is finished" << std::endl << std::endl;
+            }
         }
         else
         {
-            it->second.featureTime = std::chrono::system_clock::now();
-            std::cout << "Feature received after image " << fHeader.frameId
-              << " Delta: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
-              << "ms\n";
-            userData->elapsedTime.erase(it);
+            affineCalCount0 = fHeader.affineCalCount;
+            affineCalCount0Set = true;
+            std::cout << "\033[2J\033[H";
         }
     }
-    std::cout << "Source: " << fHeader.source << "\n";
-    std::cout << "Frame:  " << fHeader.frameId << "\n";
-    std::cout << "Motion X: " << fHeader.averageXMotion << "\n";
-    std::cout << "Motion Y: " << fHeader.averageYMotion << "\n";
-    std::cout << "Number of features:     " << fHeader.numFeatures    << "\n";
-    std::cout << "Number of descriptors:  " << fHeader.numDescriptors << "\n";
-    std::cout << "Octave Width:    " << fHeader.octaveWidth << "\n";
-    std::cout << "Octave Height:   " << fHeader.octaveHeight << "\n";
-    std::cout << "timeSeconds:     " << fHeader.timeSeconds << "\n";
-    std::cout << "timeNanoSeconds: " << fHeader.timeNanoSeconds << "\n";
-    std::cout << "ptpNanoSeconds:  " << fHeader.ptpNanoSeconds << "\n";
-    userData->channelP->releaseCallbackBuffer(buffer);
+    else
+    {
+        if ((fHeader.source == feature_detector::Source_Feature_Left)
+        || (fHeader.source == feature_detector::Source_Feature_Rectified_Left))
+         {
+            auto it = userData->elapsedTime.find(fHeader.frameId);
+            if (it == userData->elapsedTime.end()) {
+                std::cout << "Unexpected result, image not yet received for frame: " << fHeader.frameId << "\n";
+                featureDetectionTime t;
+                t.featureTime = std::chrono::system_clock::now();
+                userData->elapsedTime.insert(std::pair<int64_t, featureDetectionTime>(fHeader.frameId, t));
+            }
+            else
+            {
+                it->second.featureTime = std::chrono::system_clock::now();
+                std::cout << "Feature received after image " << fHeader.frameId
+                << " Delta: "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(it->second.featureTime - it->second.imageTime).count()
+                << "ms\n";
+                userData->elapsedTime.erase(it);
+            }
+        }
+        
+        std::cout << "Source: " << fHeader.source << " \n";
+        std::cout << "Frame:  " << fHeader.frameId << " \n";
+        std::cout << "Motion X: " << fHeader.averageXMotion << " \n";
+        std::cout << "Motion Y: " << fHeader.averageYMotion << " \n";
+        std::cout << "Number of features:     " << fHeader.numFeatures    << " \n";
+        std::cout << "Number of descriptors:  " << fHeader.numDescriptors << " \n";
+        std::cout << "Octave Width:    " << fHeader.octaveWidth << " \n";
+        std::cout << "Octave Height:   " << fHeader.octaveHeight << " \n";
+        std::cout << "timeSeconds:     " << fHeader.timeSeconds << " \n";
+        std::cout << "timeNanoSeconds: " << fHeader.timeNanoSeconds << " \n";
+        std::cout << "ptpNanoSeconds:  " << fHeader.ptpNanoSeconds << " \n";
+
+        std::cout << "observerStatus:  " << fHeader.observerStatus << " \n";
+        std::cout << "observerIndex:   " << fHeader.observerIndex << " \n";
+        std::cout << "observerNum:     " << fHeader.observerNum << " \n";
+        std::cout << "observerDy:      " << fHeader.observerDy * 0.001 << " \n";
+        std::cout << "observerTheta:   " << fHeader.observerTheta * 0.001 << " \n";
+        std::cout << "affineCalCount:  " << fHeader.affineCalCount << "\n";
+    }
 }
 
 } // anonymous
@@ -417,11 +523,13 @@ int main(int    argc,
 
     int opt;
 
-    while(-1 != (opt = getopt(argc, argvPP, "a:m:r:")))
+    while(-1 != (opt = getopt(argc, argvPP, "a:m:r:ci")))
         switch(opt) {
         case 'a': currentAddress = std::string(optarg);               break;
         case 'm': mtu            = atoi(optarg);                      break;
         case 'r': head_id        = getRemoteHeadIdFromString(optarg); break;
+        case 'c': affineCalib    = 1;                                 break;
+        case 'i': affineCalib    = 2;                                 break;
         default: usage(*argvPP);                                      break;
         }
 
@@ -447,6 +555,7 @@ int main(int    argc,
     UserData userData;
     bool quarter_res = false;
 
+    userData.observerStatus=0;
 
     status = channelP->getSensorVersion(version);
     status = channelP->getVersionInfo(v);
@@ -484,6 +593,13 @@ int main(int    argc,
             std::cerr << "Failed to get image config: " << Channel::statusString(status) << std::endl;
             goto clean_out;
         } else {
+            if(affineCalib)
+            {
+                operatingMode.width = 1920;
+                operatingMode.height = 1200;
+                operatingMode.disparities = 256;
+                std::cout << "Affine calibration uses full-res" << std::endl;    
+            }
 
             std::cout << "Setting resolution to: " << operatingMode.width << "x" <<
                                                       operatingMode.height << "x" <<
@@ -528,9 +644,25 @@ int main(int    argc,
         fprintf(stderr, "%s got registered app: %s activated\n", __func__, s.apps[0].appName.c_str() );
 
         feature_detector::FeatureDetectorConfig fcfg;
-        fcfg.setNumberOfFeatures(5000);
-        fcfg.setGrouping(1);
-        fcfg.setMotion(0);
+        
+        if (quarter_res)
+            fcfg.setNumberOfFeatures(1500);
+        else
+            fcfg.setNumberOfFeatures(5000);
+        fcfg.setGrouping(true);
+        fcfg.setMotion(1);
+
+        uint32_t fd_opts = 0;   // USE HLS
+        if(affineCalib)
+        {
+            fd_opts |= FeatureDetectorConfigParams::OPT_USE_OBSERVER | FeatureDetectorConfigParams::OPT_AUTO_AFFINE_CAL;
+            if(affineCalib>1)
+            {
+                fd_opts |= FeatureDetectorConfigParams::OPT_OBSERVER_INCREMENTAL;
+            }
+        }
+        fcfg.setOptions(fd_opts);
+
         status = channelP->setSecondaryAppConfig(fcfg);
         if (Status_Ok != status)
         {
@@ -550,19 +682,8 @@ int main(int    argc,
         std::cout << "Current feature detector settings: "
           << fcfg.numberOfFeatures() << " : "
           << fcfg.grouping() << " : "
-          << fcfg.motion() << "\n";
-
-        if (quarter_res)
-            fcfg.setNumberOfFeatures(1500);
-        else
-            fcfg.setNumberOfFeatures(5000);
-        fcfg.setGrouping(true);
-        fcfg.setMotion(1);
-
-        status = channelP->setSecondaryAppConfig(fcfg);
-        if (Status_Ok != status) {
-          std::cerr << "Failed to set feature detector config\n";
-        }
+          << fcfg.motion() << " : " 
+          << fcfg.options() << "\n";        
     }
 
     //
@@ -612,15 +733,28 @@ int main(int    argc,
     //
     // Add callbacks
 
-    channelP->addIsolatedCallback(imageCallback, Source_All, &userData);
+    if(!affineCalib)
+    {
+        channelP->addIsolatedCallback(imageCallback, Source_All, &userData);
+    }
     channelP->addIsolatedCallback(featureDetectorCallback, &userData);
 
     //
     // Start streaming
+    
 
-    status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
-                                    (operatingMode.supportedDataSources & Source_Luma_Right) |
-                                    feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+    if(!affineCalib)
+    {
+        status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
+                                        (operatingMode.supportedDataSources & Source_Luma_Right) |
+                                        feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+    }
+    else
+    {
+        status = channelP->startStreams(feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+    }
+
+
     if (Status_Ok != status) {
 		std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         goto clean_out;
@@ -648,7 +782,8 @@ int main(int    argc,
     }
 
     status = channelP->stopStreams(Source_All);
-    if (Status_Ok != status) {
+    if (Status_Ok != status)
+    {
 		std::cerr << "Failed to stop streams: " << Channel::statusString(status) << std::endl;
     }
 
