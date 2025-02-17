@@ -1876,46 +1876,6 @@ Status impl::setDeviceInfo(const std::string& key,
 }
 
 //
-// Flash the bitstream file (dangerous!)
-
-Status impl::flashBitstream(const std::string& filename)
-{
-    return doFlashOp(filename,
-                     wire::SysFlashOp::OP_PROGRAM,
-                     wire::SysFlashOp::RGN_BITSTREAM);
-}
-
-//
-// Flash the firmware file (dangerous!)
-
-Status impl::flashFirmware(const std::string& filename)
-{
-    return doFlashOp(filename,
-                     wire::SysFlashOp::OP_PROGRAM,
-                     wire::SysFlashOp::RGN_FIRMWARE);
-}
-
-//
-// Verify the bitstream file
-
-Status impl::verifyBitstream(const std::string& filename)
-{
-    return doFlashOp(filename,
-                     wire::SysFlashOp::OP_VERIFY,
-                     wire::SysFlashOp::RGN_BITSTREAM);
-}
-
-//
-// Verify the firmware file
-
-Status impl::verifyFirmware(const std::string& filename)
-{
-    return doFlashOp(filename,
-                     wire::SysFlashOp::OP_VERIFY,
-                     wire::SysFlashOp::RGN_FIRMWARE);
-}
-
-//
 // Get IMU information
 
 Status impl::getImuInfo(uint32_t& maxSamplesPerMessage,

@@ -48,7 +48,6 @@ set(MACOS_HEADERS include/MultiSense/details/utility/macos/Thread.hh)
 set(DETAILS_SRC details/channel.cc
                 details/public.cc
                 details/constants.cc
-                details/flash.cc
                 details/dispatch.cc
                 details/utility/Constants.cc)
 
