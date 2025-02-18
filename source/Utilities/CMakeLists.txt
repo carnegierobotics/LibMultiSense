@@ -5,7 +5,13 @@
 include (CheckFunctionExists)
 check_function_exists (getopt HAVE_GETOPT)
 
-include_directories(portability)
+if (HAVE_GETOPT)
+    add_definitions (-DCRL_HAVE_GETOPT=1)
+else ()
+    add_subdirectory (portability/getopt)
+    include_directories(portability)
+    set (MULTISENSE_UTILITY_LIBS ${MULTISENSE_UTILITY_LIBS} getopt)
+endif ()
 
 if (HAVE_GETOPT)
     add_definitions (-DCRL_HAVE_GETOPT=1)
