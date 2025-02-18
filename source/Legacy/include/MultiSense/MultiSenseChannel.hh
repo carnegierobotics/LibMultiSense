@@ -1116,7 +1116,6 @@ public:
      */
     virtual Status secondaryAppActivate  (const std::string & name) = 0;
 
-
     /**
      * Deactivate the secondary application for use with the MultiSense device
      *
