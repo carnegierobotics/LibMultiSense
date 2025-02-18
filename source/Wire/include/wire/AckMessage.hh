@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/AckMessage.hh
+ * @file AckMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

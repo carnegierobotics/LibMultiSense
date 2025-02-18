@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/AuxCamConfigMessage.hh
+ * @file AuxCamConfigMessage.hh
  *
  * This message contains the current camera configuration.
  *

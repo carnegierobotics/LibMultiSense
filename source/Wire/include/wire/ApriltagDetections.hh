@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/ApriltagDetections.hh
+ * @file ApriltagDetections.hh
  *
  * This message contains apriltag detection data.
  *

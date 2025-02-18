@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/CamControlMessage.hh
+ * @file CamControlMessage.hh
  *
  * This message contains the current camera configuration.
  *

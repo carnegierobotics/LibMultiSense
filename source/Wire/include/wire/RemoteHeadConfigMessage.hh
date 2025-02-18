@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/RemoteHeadConfig.hh
+ * @file RemoteHeadConfig.hh
  *
  * This message contains the current remote head vpb configuration.
  *
@@ -40,7 +40,6 @@
 #define LibMultiSense_RemoteHeadConfigMessage
 
 #include "utility/Portability.hh"
-//#include "wire/Protocol.hh"
 
 namespace crl {
 namespace multisense {
