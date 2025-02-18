@@ -3,38 +3,32 @@
 #
 
 #
-# Search the source directory for header files.
-#
-
-include_directories (
-    shared
-    ${BASE_DIRECTORY}${SOURCE_DIRECTORY}/source
-)
-
-#
 # Common libraries that each utility needs to link with.
 #
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 set (MULTISENSE_UTILITY_LIBS
-    MultiSense
-    ws2_32
+     ${MULTISENSE_UTILITY_LIBS}
+     MultiSense
+     ws2_32
 )
 
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 set (MULTISENSE_UTILITY_LIBS
-    MultiSense
-    pthread
+     ${MULTISENSE_UTILITY_LIBS}
+     MultiSense
+     pthread
 )
 
 else ()
 
 set (MULTISENSE_UTILITY_LIBS
-    MultiSense
-    pthread
-    rt
+     ${MULTISENSE_UTILITY_LIBS}
+     MultiSense
+     pthread
+     rt
 )
 
 endif ()
