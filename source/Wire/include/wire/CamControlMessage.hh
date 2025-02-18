@@ -40,6 +40,8 @@
 #ifndef LibMultiSense_CamControlMessage
 #define LibMultiSense_CamControlMessage
 
+#include <vector>
+
 #include "utility/Portability.hh"
 #include "wire/ExposureConfigMessage.hh"
 #include "wire/Protocol.hh"
@@ -53,6 +55,8 @@ class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 10;
+
+    static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
 
     //
     // Parameters representing the current camera configuration
@@ -85,12 +89,12 @@ public:
     //
     // Additions in version 4
 
-    bool  storeSettingsInFlash;  // boolean
+    bool  storeSettingsInFlash = false;  // boolean
 
     //
     // Additions in version 5
 
-    uint16_t autoExposureRoiX;
+    uint16_t autoExposureRoiX ;
     uint16_t autoExposureRoiY;
     uint16_t autoExposureRoiWidth;
     uint16_t autoExposureRoiHeight;
@@ -98,12 +102,12 @@ public:
     //
     // Additions in version 6
 
-    uint32_t cameraProfile;
+    uint32_t cameraProfile = 0;
 
     //
     // Additions in version 7
 
-    uint32_t exposureSource; // Deprecated
+    uint32_t exposureSource = 0; // Deprecated
     std::vector<ExposureConfig> secondaryExposureConfigs; // Deprecated
 
     //
@@ -115,9 +119,9 @@ public:
     //
     // Additions in version 9
 
-    bool  sharpeningEnable; // Deprecated
-    float sharpeningPercentage; // Deprecated
-    uint8_t sharpeningLimit; // Deprecated
+    bool  sharpeningEnable = false; // Deprecated
+    float sharpeningPercentage = 0.0f; // Deprecated
+    uint8_t sharpeningLimit = 0; // Deprecated
 
     //
     // Additions in version 10
@@ -143,15 +147,12 @@ public:
         message & exposure;
         message & autoExposure;
         message & autoExposureMax;
-        message & autoExposureDecay;
-        message & autoExposureThresh;
+        message & autoExposureDecay; message & autoExposureThresh;
 
-        message & whiteBalanceRed;
-        message & whiteBalanceBlue;
+        message & whiteBalanceRed; message & whiteBalanceBlue;
         message & autoWhiteBalance;
         message & autoWhiteBalanceDecay;
         message & autoWhiteBalanceThresh;
-
         if (version >= 2)
             message & stereoPostFilterStrength;
         else
@@ -178,8 +179,8 @@ public:
         {
             autoExposureRoiX = 0;
             autoExposureRoiY = 0;
-            autoExposureRoiWidth = crl::multisense::Roi_Full_Image;
-            autoExposureRoiHeight = crl::multisense::Roi_Full_Image;
+            autoExposureRoiWidth = 0;
+            autoExposureRoiHeight = 0;
         }
 
         if (version >= 6)
@@ -232,7 +233,7 @@ public:
         }
         else
         {
-            gainMax = ImagerGainMax;
+            gainMax = WIRE_IMAGER_GAIN_MAX;
         }
 
     }

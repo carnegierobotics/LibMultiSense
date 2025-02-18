@@ -40,6 +40,8 @@
 #ifndef LibMultiSense_CamConfigMessage
 #define LibMultiSense_CamConfigMessage
 
+#include <vector>
+
 #include "utility/Portability.hh"
 #include "wire/ExposureConfigMessage.hh"
 #include "wire/Protocol.hh"
@@ -53,6 +55,8 @@ class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
     static CRL_CONSTEXPR VersionType VERSION = 10;
+
+    static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
 
     //
     // Parameters representing the current camera configuration
@@ -164,8 +168,8 @@ public:
         hdrEnabled(false),
         autoExposureRoiX(0),
         autoExposureRoiY(0),
-        autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
-        autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
+        autoExposureRoiWidth(0),
+        autoExposureRoiHeight(0),
         cameraProfile(0),
         exposureSource(Default_Exposure_Source),
         secondaryExposureConfigs(),
@@ -174,7 +178,7 @@ public:
         sharpeningEnable(false),
         sharpeningPercentage(0.0f),
         sharpeningLimit(0),
-        gainMax(ImagerGainMax)
+        gainMax(WIRE_IMAGER_GAIN_MAX)
         {};
 
     //
@@ -241,8 +245,8 @@ public:
         {
             autoExposureRoiX = 0;
             autoExposureRoiY = 0;
-            autoExposureRoiWidth = crl::multisense::Roi_Full_Image;
-            autoExposureRoiHeight = crl::multisense::Roi_Full_Image;
+            autoExposureRoiWidth = 0;
+            autoExposureRoiHeight = 0;
         }
 
         if (version >= 6)
@@ -295,7 +299,7 @@ public:
         }
         else
         {
-            gainMax = ImagerGainMax;
+            gainMax = WIRE_IMAGER_GAIN_MAX;
         }
 
     }

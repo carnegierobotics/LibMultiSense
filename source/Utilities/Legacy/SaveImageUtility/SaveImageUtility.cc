@@ -59,7 +59,7 @@
 #include <string>
 
 #include <Utilities/portability/getopt/getopt.h>
-#include <Utilities/shared/Io.hh>
+#include <Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>

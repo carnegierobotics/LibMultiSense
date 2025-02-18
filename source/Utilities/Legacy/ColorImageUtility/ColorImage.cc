@@ -59,8 +59,8 @@
 #include <array>
 
 #include <Utilities/portability/getopt/getopt.h>
-#include <Utilities/shared/ChannelUtilities.hh>
-#include <Utilities/shared/Io.hh>
+#include <ChannelUtilities.hh>
+#include <Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>

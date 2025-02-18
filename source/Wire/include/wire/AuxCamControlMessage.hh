@@ -53,6 +53,8 @@ public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_AUX_CONTROL;
     static CRL_CONSTEXPR VersionType VERSION = 2;
 
+    static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
+
     //
     // Parameters representing the current camera configuration
 
@@ -142,7 +144,7 @@ public:
         }
         else
         {
-            gainMax = ImagerGainMax;
+            gainMax = WIRE_IMAGER_GAIN_MAX;
         }
 
     }

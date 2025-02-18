@@ -7,21 +7,15 @@
 # Make sure there is a reasonable version of CMAKE installed.
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
-set(CPACK_PACKAGE_VERSION "6.2.0")
+set(CPACK_PACKAGE_VERSION "7.0.0")
 
-if (${CMAKE_VERSION} VERSION_LESS "3.12")
-    project(LibMultiSense
-      LANGUAGES C CXX
-      VERSION ${CPACK_PACKAGE_VERSION})
-else()
-    project(LibMultiSense
-      LANGUAGES C CXX
-      HOMEPAGE_URL https://carnegierobotics.com
-      DESCRIPTION "The CRL Multisense Interface Library"
-      VERSION ${CPACK_PACKAGE_VERSION})
-endif ()
+project(LibMultiSense
+  LANGUAGES C CXX
+  HOMEPAGE_URL https://carnegierobotics.com
+  DESCRIPTION "The CRL Multisense Interface Library"
+  VERSION ${CPACK_PACKAGE_VERSION})
 
 include (CheckCXXSourceCompiles)
 
@@ -35,7 +29,7 @@ else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     #
     # Fix warnings with __VA__OPT__ when we port to c++2a
     # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
@@ -43,9 +37,13 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 endif()
 
-option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
-option (BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
-option (BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
+option(BUILD_LEGACY_API "Build the legacy MultiSense API. Defaults to On for backwards compatibility." ON)
+option(MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
+option(BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
+option(BUILD_TESTS "Build LibMultiSense GTests. Defaults to ON." ON)
+option(BUILD_OPENCV "Use OpenCV if found on the host system" OFF)
+option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
+option(BUILD_JSON_SERIALIZATION "Build json type serialization with nlohmann json." OFF)
 
 if (BUILD_TESTS)
     enable_testing()
@@ -59,6 +57,14 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Selecting default build type: Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
 endif ()
+
+#
+# The new API requires C++17
+#
+if (NOT BUILD_LEGACY_API)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 #
 # Check if the compiler supports constexpr
@@ -89,10 +95,36 @@ set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #
+# Setup optional dependencies
+#
+if (BUILD_OPENCV)
+   find_package(OpenCV QUIET)
+
+  if(OpenCV_FOUND)
+    message(STATUS "OpenCV found. Enabling OpenCV-specific code.")
+  else()
+    message(STATUS "OpenCV not found. Building without OpenCV support.")
+  endif()
+endif()
+
+if (BUILD_JSON_SERIALIZATION)
+    find_package(nlohmann_json 3.9)
+    if(nlohmann_json_FOUND)
+        message(STATUS "Building JSON serialization helper functions")
+    else()
+        message(STATUS "Could not find nlohmann json. Skipping JSON serialization helpers")
+    endif()
+endif()
+
+#
 # Dispatch to subordinate CMakeList.txt files.
 #
 
 add_subdirectory(source)
+
+if (NOT BUILD_LEGACY_API AND BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
+endif()
 
 #
 # Generate pc file, for pkgconfig compatibility

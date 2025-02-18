@@ -1,10 +1,10 @@
 /**
- * @file PointCloudUtility/PointCloudUtility.cc
+ * @file DepthImageUtility/DepthImageUtility.cc
  *
  * Copyright 2020-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
- * http://www.carnegierobotics.com
+ * https://www.carnegierobotics.com
  *
  * All rights reserved.
  *
@@ -31,8 +31,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2020-09-28, malvarado@carnegierobotics.com, PR1044, Created file.
+ *   2023-10-12, malvarado@carnegierobotics.com, PR1044, Created file.
  **/
+
+#include <MultiSense/details/utility/Portability.hh>
+#include <MultiSense/MultiSenseChannel.hh>
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -49,6 +52,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <signal.h>
@@ -58,10 +62,8 @@
 #include <string>
 
 #include <Utilities/portability/getopt/getopt.h>
-#include <Utilities/shared/ChannelUtilities.hh>
-
-#include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/MultiSenseChannel.hh>
+#include <ChannelUtilities.hh>
+#include <Io.hh>
 
 using namespace crl::multisense;
 
@@ -75,7 +77,7 @@ void usage(const char *programNameP)
     std::cerr << "Where <options> are:" << std::endl;
     std::cerr << "\t-a <current_address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-m <mtu>                : CURRENT MTU (default=1500)" << std::endl;
-    std::cerr << "\t-d <min_disparity>      : CURRENT MINIMUM DISPARITY (default=5.0)" << std::endl;
+    std::cerr << "\t-c                      : Save color images and depth in the color image frame" << std::endl;
 
     exit(1);
 }
@@ -95,32 +97,23 @@ void signalHandler(int sig)
 }
 #endif
 
-struct WorldPoint
-{
-    float x = 0.0;
-    float y = 0.0;
-    float z = 0.0;
-    uint8_t luma = 0u;
-};
-
 struct UserData
 {
     Channel *driver = nullptr;
-    std::shared_ptr<const ImageBufferWrapper> disparity = nullptr;
-    std::shared_ptr<const ImageBufferWrapper> leftRectified = nullptr;
+    std::shared_ptr<const ImageBufferWrapper> auxLumaRectified = nullptr;
+    std::shared_ptr<const ImageBufferWrapper> auxChromaRectified = nullptr;
     crl::multisense::image::Calibration calibration;
     crl::multisense::system::DeviceInfo deviceInfo;
-    double minDisparity = 0.0;
+    bool hasAux = false;
 };
 
-std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBufferWrapper> &disparity,
-                                           const std::shared_ptr<const ImageBufferWrapper> &leftRectified,
-                                           const image::Calibration &calibration,
-                                           const system::DeviceInfo &deviceInfo,
-                                           double minDisparity)
+std::vector<uint16_t> createDepthImage(const image::Header &disparity,
+                                       const image::Calibration &calibration,
+                                       const system::DeviceInfo &deviceInfo,
+                                       bool auxFrame)
 {
-    const size_t width = leftRectified->data().width;
-    const size_t height = leftRectified->data().height;
+    const size_t width = disparity.width;
+    const size_t height = disparity.height;
 
     //
     // Scale our calibration based on the current sensor resolution. Calibrations stored on the camera
@@ -147,11 +140,20 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBuff
     const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
     const double cxRight = calibration.right.P[0][2] * xScale;
 
-    const uint16_t *disparityP = reinterpret_cast<const uint16_t*>(disparity->data().imageDataP);
-    const uint8_t *leftRectifiedP = reinterpret_cast<const uint8_t*>(leftRectified->data().imageDataP);
+    const double auxFx = calibration.aux.P[0][0] * xScale;
+    const double auxFy = calibration.aux.P[1][1] * yScale;
+    const double auxCx = calibration.aux.P[0][2] * xScale;
+    const double auxCy = calibration.aux.P[1][2] * yScale;
+    const double auxFxTx = calibration.aux.P[0][3] * xScale;
+    const double auxFyTy = calibration.aux.P[1][3] * yScale;
+    const double auxTz = calibration.aux.P[2][3];
 
-    std::vector<WorldPoint> points;
-    points.reserve(height * width);
+
+    const uint16_t *disparityP = reinterpret_cast<const uint16_t*>(disparity.imageDataP);
+
+    std::vector<uint16_t> pixels(height * width, 0);
+
+    const double max_ni_depth = std::numeric_limits<uint16_t>::max();
 
     for (size_t h = 0 ; h < height ; ++h) {
         for (size_t w = 0 ; w < width ; ++w) {
@@ -164,7 +166,7 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBuff
 
             const double d = static_cast<double>(disparityP[index]) / 16.0;
 
-            if (d < minDisparity) {
+            if (d == 0) {
                 continue;
             }
 
@@ -182,40 +184,56 @@ std::vector<WorldPoint> reprojectDisparity(const std::shared_ptr<const ImageBuff
             const double zB = (fx * fy * tx);
             const double invB = 1. / (-fy * d) + (fy * (cx - cxRight));
 
-            points.emplace_back(WorldPoint{static_cast<float>(xB * invB),
-                                           static_cast<float>(yB * invB),
-                                           static_cast<float>(zB * invB),
-                                           leftRectifiedP[index]});
+            uint16_t depth = 0;
+            size_t depthIndex = 0;
+            if (auxFrame) {
+
+                //
+                // Take our disparity, convert it into 3D point, and project the 3D  point into the rectified aux
+                // image using the aux P matrix which has the form:
+                //
+                // Fx  0   Cx  FxTx
+                // 0   Fy  Cy  FyTy
+                // 0   0   1   Tz
+
+                const double x = xB * invB;
+                const double y = yB * invB;
+                const double z = zB * invB;
+
+                depth = static_cast<uint16_t>(std::min(max_ni_depth, std::max(0.0, (z + auxTz) * 1000)));
+
+                const double u = ((auxFx * x) + (auxCx * z) + auxFxTx) / (z + auxTz);
+                const double v = ((auxFy * y) + (auxCy * z) + auxFyTy) / (z + auxTz);
+
+                depthIndex = static_cast<int>(v) * width + static_cast<int>(u);
+
+                if (u < 0 || v < 0 || u >= width || v >= height || depthIndex >= (width * height)) {
+                    continue;
+                }
+
+            }
+            else {
+
+                depth = static_cast<uint16_t>(std::min(max_ni_depth, std::max(0.0, (zB * invB) * 1000)));
+
+                depthIndex = index;
+            }
+
+            pixels[depthIndex] = depth;
         }
     }
 
-    return points;
+    return pixels;
 }
 
-bool savePly(const std::string& fileName,
-             const std::vector<WorldPoint> &points)
+bool saveColor(const std::string& fileName,
+        std::shared_ptr<const ImageBufferWrapper> leftRect,
+        std::shared_ptr<const ImageBufferWrapper> leftChromaRect)
 {
-    std::stringstream ss;
+    std::vector<uint8_t> output(leftRect->data().width * leftRect->data().height * 3);
+    ycbcrToBgr(leftRect->data(), leftChromaRect->data(), output.data());
 
-    ss << "ply\n";
-    ss << "format ascii 1.0\n";
-    ss << "element vertex " << points.size() << "\n";
-    ss << "property float x\n";
-    ss << "property float y\n";
-    ss << "property float z\n";
-    ss << "property uchar red\n";
-    ss << "property uchar green\n";
-    ss << "property uchar blue\n";
-    ss << "end_header\n";
-
-    for (const auto &point : points) {
-        const uint32_t luma = static_cast<uint32_t>(point.luma);
-        ss << point.x << " " << point.y << " " << point.z << " " << luma << " " << luma << " " << luma << "\n";
-    }
-
-    std::ofstream ply(fileName.c_str());
-    ply << ss.str();
-
+    io::savePpm(fileName, leftRect->data().width, leftRect->data().height, output.data());
     return true;
 }
 
@@ -232,13 +250,12 @@ void imageCallback(const image::Header& header,
     switch (header.source) {
         case Source_Luma_Rectified_Left:
         {
-            userData->leftRectified = std::make_shared<ImageBufferWrapper>(userData->driver, header);
-            if (userData->disparity && userData->disparity->data().frameId == header.frameId) {
-                //
-                // Our disparity and left recitified images match, we have enough info to create a pointcloud
-                break;
-            }
-
+            io::savePgm(std::to_string(header.frameId) + "_left_rectified.pgm",
+                        header.width,
+                        header.height,
+                        header.bitsPerPixel,
+                        "",
+                        header.imageDataP);
             return;
         }
         case Source_Disparity_Left:
@@ -248,14 +265,38 @@ void imageCallback(const image::Header& header,
                 return;
             }
 
+            //
+            // Create a depth image using a OpenNI Depth format (i.e. quantizing depth in mm to 16 bits)
 
-            userData->disparity = std::make_shared<ImageBufferWrapper>(userData->driver, header);
-            if (userData->leftRectified && userData->leftRectified->data().frameId == header.frameId) {
-                //
-                // Our disparity and left recitified images match, we have enough info to create a pointcloud
-                break;
+            io::savePgm(std::to_string(header.frameId) + "depth.pgm",
+                        header.width,
+                        header.height,
+                        16,
+                        "",
+                        createDepthImage(header, userData->calibration, userData->deviceInfo, userData->hasAux).data());
+
+            return;
+        }
+        case Source_Chroma_Rectified_Aux:
+        {
+            userData->auxChromaRectified = std::make_shared<ImageBufferWrapper>(userData->driver, header);
+
+            if (userData->auxLumaRectified && userData->auxLumaRectified->data().frameId == header.frameId) {
+                saveColor(std::to_string(header.frameId) + "_rectified_color.ppm",
+                          userData->auxLumaRectified,
+                          userData->auxChromaRectified);
             }
+            return;
+        }
+        case Source_Luma_Rectified_Aux:
+        {
+            userData->auxLumaRectified = std::make_shared<ImageBufferWrapper>(userData->driver, header);
 
+            if (userData->auxChromaRectified && userData->auxChromaRectified->data().frameId == header.frameId) {
+                saveColor(std::to_string(header.frameId) + "_rectified_color.ppm",
+                          userData->auxLumaRectified,
+                          userData->auxChromaRectified);
+            }
             return;
         }
         default:
@@ -263,17 +304,7 @@ void imageCallback(const image::Header& header,
             std::cerr << "Unknown image source: " << header.source << std::endl;
             return;
         }
-    };
-
-    //
-    // Note this implementation of writing ply files can be slow since they are written in ascii
-
-    std::cout << "Saving pointcloud for image header " << header.frameId << std::endl;
-    savePly(std::to_string(header.frameId) + ".ply", reprojectDisparity(userData->disparity,
-                                                                        userData->leftRectified,
-                                                                        userData->calibration,
-                                                                        userData->deviceInfo,
-                                                                        userData->minDisparity));
+    }
 }
 
 } // anonymous
@@ -283,7 +314,7 @@ int main(int    argc,
 {
     std::string currentAddress = "10.66.171.21";
     int32_t mtu = 0;
-    double minDisparity = 5.0;
+    bool useColor = false;
 
 #if WIN32
     SetConsoleCtrlHandler (signalHandler, TRUE);
@@ -296,11 +327,11 @@ int main(int    argc,
 
     int c;
 
-    while(-1 != (c = getopt(argc, argvPP, "a:m:d:")))
+    while(-1 != (c = getopt(argc, argvPP, "a:m:c")))
         switch(c) {
         case 'a': currentAddress = std::string(optarg);    break;
         case 'm': mtu            = atoi(optarg);           break;
-        case 'd': minDisparity   = std::stod(optarg);      break;
+        case 'c': useColor       = true;                   break;
         default: usage(*argvPP);                           break;
         }
 
@@ -317,13 +348,13 @@ int main(int    argc,
 
     //
     // Change MTU
+
     if (mtu >= 1500)
         status = channelP->ptr()->setMtu(mtu);
     else 
         status = channelP->ptr()->setBestMtu();
     if (Status_Ok != status) {
         std::cerr << "Failed to set MTU: " << Channel::statusString(status) << std::endl;
-        return EXIT_FAILURE;
     }
 
     //
@@ -367,19 +398,41 @@ int main(int    argc,
     }
 
     //
+    // If we have a aux camera, stream aux color data instead of left rectified images
+
+    bool hasAux = false;
+    DataSource streams = Source_Luma_Rectified_Left | Source_Disparity_Left;
+
+    if (useColor &&
+        (system::DeviceInfo::HARDWARE_REV_MULTISENSE_C6S2_S27 == deviceInfo.hardwareRevision ||
+        system::DeviceInfo::HARDWARE_REV_MULTISENSE_S30 == deviceInfo.hardwareRevision ||
+        system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i == deviceInfo.hardwareRevision)) {
+
+        streams = Source_Luma_Rectified_Aux | Source_Chroma_Rectified_Aux | Source_Disparity_Left;
+        hasAux = true;
+    }
+
+
+    //
     // Setup user data to store camera state for pointcloud reprojection
 
-    UserData userData{channelP->ptr(), nullptr, nullptr, calibration, deviceInfo, minDisparity};
+    UserData userData{channelP->ptr(), nullptr, nullptr, calibration, deviceInfo, hasAux};
 
     //
     // Add callbacks
 
-    channelP->ptr()->addIsolatedCallback(imageCallback, Source_Luma_Rectified_Left | Source_Disparity_Left, &userData);
+    channelP->ptr()->addIsolatedCallback(imageCallback,
+                                         Source_Luma_Rectified_Left |
+                                         Source_Disparity_Left |
+                                         Source_Luma_Rectified_Aux |
+                                         Source_Chroma_Rectified_Aux,
+                                         &userData);
+
 
     //
     // Start streaming
 
-    status = channelP->ptr()->startStreams(Source_Luma_Rectified_Left | Source_Disparity_Left);
+    status = channelP->ptr()->startStreams(streams);
     if (Status_Ok != status) {
         std::cerr << "Failed to start streams: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;

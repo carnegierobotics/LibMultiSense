@@ -1126,7 +1126,6 @@ public:
      */
     virtual Status secondaryAppDeactivate(const std::string & s) = 0;
 
-
     //
     // IMU configuration.
     //

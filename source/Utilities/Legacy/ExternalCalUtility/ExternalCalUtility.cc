@@ -1,7 +1,7 @@
 /**
- * @file LidarCalUtility/LidarCalUtility.cc
+ * @file LidarCalUtility/ExternalCalibrationUtility.cc
  *
- * Copyright 2013-2025
+ * Copyright 2016-2025
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,7 +31,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2013-05-23, ekratzer@carnegierobotics.com, PR1044, Created file.
+ *   2016-02-01, malvarado@carnegierobotics.com, PR1044, Created file.
  **/
 
 #ifdef WIN32
@@ -54,7 +54,7 @@
 #include <string.h>
 
 #include <Utilities/portability/getopt/getopt.h>
-#include <Utilities/shared/CalibrationYaml.hh>
+#include <CalibrationYaml.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;
@@ -68,7 +68,7 @@ void usage(const char *programNameP)
             programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
-    fprintf(stderr, "\t-s                   : set the calibration (default is query)\n");
+    fprintf(stderr, "\t-s                   : set the external calibration (default is query)\n");
     fprintf(stderr, "\t-y                   : disable confirmation prompts\n");
 
     exit(-1);
@@ -80,15 +80,22 @@ bool fileExists(const std::string& name)
     return (0 == stat(name.c_str(), &sbuf));
 }
 
-const char *laserToSpindleNameP       = "laser_T_spindle";
-const char *cameraToSpindleFixedNameP = "camera_T_spindle_fixed";
+const char *externalCalibrationNameP       = "external_calibration";
 
 
-std::ostream& writeLaserCal (std::ostream& stream, lidar::Calibration const& calibration)
+std::ostream& writeCal (std::ostream& stream, system::ExternalCalibration const& calibration)
 {
     stream << "%YAML:1.0\n";
-    writeMatrix (stream, laserToSpindleNameP, 4, 4, &calibration.laserToSpindle[0][0]);
-    writeMatrix (stream, cameraToSpindleFixedNameP, 4, 4, &calibration.cameraToSpindleFixed[0][0]);
+
+    float tmpCal[6];
+    tmpCal[0] = calibration.x;
+    tmpCal[1] = calibration.y;
+    tmpCal[2] = calibration.z;
+    tmpCal[3] = calibration.roll;
+    tmpCal[4] = calibration.pitch;
+    tmpCal[5] = calibration.yaw;
+
+    writeMatrix (stream, externalCalibrationNameP, 1, 6, &tmpCal[0]);
     return stream;
 }
 
@@ -175,11 +182,11 @@ int main(int    argc,
 
     if (false == setCal) {
 
-        lidar::Calibration calibration;
+        system::ExternalCalibration calibration;
 
-        status = channelP->getLidarCalibration(calibration);
+        status = channelP->getExternalCalibration(calibration);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to query lidar calibration: %s\n",
+            fprintf(stderr, "failed to query external calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }
@@ -192,7 +199,7 @@ int main(int    argc,
             goto clean_out;
         }
 
-        writeLaserCal (cvFile, calibration);
+        writeCal (cvFile, calibration);
 
         cvFile.flush ();
 
@@ -211,27 +218,30 @@ int main(int    argc,
 
         cvFile.close ();
 
-        if (data[laserToSpindleNameP].size () != 4 * 4 ||
-            data[cameraToSpindleFixedNameP].size () != 4 * 4) {
+        if (data[externalCalibrationNameP].size () != 6 ) {
 
             fprintf(stderr, "calibration matrices incomplete in %s, "
                     "expecting two 4x4 matrices\n", calFile.c_str());
             goto clean_out;
         }
 
-        lidar::Calibration calibration;
+        system::ExternalCalibration calibration;
 
-        memcpy (&calibration.laserToSpindle[0][0], &data[laserToSpindleNameP].front (), data[laserToSpindleNameP].size () * sizeof (float));
-        memcpy (&calibration.cameraToSpindleFixed[0][0], &data[cameraToSpindleFixedNameP].front (), data[cameraToSpindleFixedNameP].size () * sizeof (float));
+        calibration.x = data[externalCalibrationNameP][0];
+        calibration.y = data[externalCalibrationNameP][1];
+        calibration.z = data[externalCalibrationNameP][2];
+        calibration.roll = data[externalCalibrationNameP][3];
+        calibration.pitch = data[externalCalibrationNameP][4];
+        calibration.yaw = data[externalCalibrationNameP][5];
 
-        status = channelP->setLidarCalibration(calibration);
+        status = channelP->setExternalCalibration(calibration);
         if (Status_Ok != status) {
-            fprintf(stderr, "failed to set lidar calibration: %s\n",
+            fprintf(stderr, "failed to set external calibration: %s\n",
                     Channel::statusString(status));
             goto clean_out;
         }
 
-        fprintf(stdout, "Lidar calibration successfully updated\n");
+        fprintf(stdout, "External calibration successfully updated\n");
     }
 
 clean_out:

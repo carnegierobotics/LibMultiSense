@@ -333,6 +333,8 @@ static CRL_CONSTEXPR SourceType Default_Exposure_Source = SOURCE_LUMA_LEFT;
 static CRL_CONSTEXPR float Default_Target_Intensity = 0.5f;
 static CRL_CONSTEXPR float Default_Gamma = 2.0f;
 static CRL_CONSTEXPR float Default_Gain = 1.0f;
+
+static CRL_CONSTEXPR uint32_t MAX_LIGHTS = 8;
 //
 // Some helper macros
 

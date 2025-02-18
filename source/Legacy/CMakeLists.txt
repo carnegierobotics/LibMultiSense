@@ -17,10 +17,6 @@ option(MULTISENSE_BUILD_API_DATE "Build in the API date into LibMultiSense. Defa
 # Include all of our child directories.
 #
 
-include_directories ( .
-                      ${BASE_DIRECTORY}/external/include
-                    )
-
 set(MULTISENSE_HEADERS include/MultiSense/MultiSenseChannel.hh
                        include/MultiSense/MultiSenseTypes.hh)
 
