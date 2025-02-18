@@ -11,39 +11,107 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    concurrency:
-      group: ${{ github.ref_name }}-build
-      cancel-in-progress: ${{ github.ref_name != 'main' }}
-    steps:
-      - id: setup
-        run: |
-          sudo apt-get install libgtest-dev -y
-      - uses: actions/checkout@v4
-      - id: build-release
-        run: |
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=install-release
-          cmake --build build -j "$(nproc)"
-          make -C build test
-          cmake --install build
-      - id: build-debug
-        run: |
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=install-debug
-          cmake --build build -j "$(nproc)"
-          make -C build test
-          cmake --install build
+    runs-on: ${{ matrix.os }}
 
-  buildwindows:
-    name: build for windows
-    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+
+      matrix:
+        os:
+          #- macos-latest
+          - ubuntu-22.04
+          - windows-latest
+        build_type:
+          - Debug
+          - Release
+        c_compiler:
+          - cl
+          - clang
+          - gcc
+        build_shared_libs:
+          - ON
+          - OFF
+
+        include:
+          #- os: macos-latest
+          #  c_compiler: gcc
+          #  cpp_compiler: g++
+          #- os: macos-latest
+          #  c_compiler: clang
+          #  cpp_compiler: clang++
+          - os: ubuntu-22.04
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-22.04
+            c_compiler: clang
+            cpp_compiler: clang++
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+        exclude:
+          #- os: macos-latest
+          #  c_compiler: cl
+          - os: ubuntu-22.04
+            c_compiler: cl
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
 
     steps:
-    - uses: actions/checkout@v4
-    - id: build-release
-      run: |
-          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
-          cmake --build ${{github.workspace}}/build --config Release --target install -- /m:10
-    - id: build-debug
-      run: |
-          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Debug
-          cmake --build ${{github.workspace}}/build --config Debug --target install -- /m:10
+      - name: Set reusable strings
+        id: strings
+        shell: bash
+        run: |
+          echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout LibMultiSense
+        uses: actions/checkout@v4
+
+      - name: Install newer CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Install GTest
+        uses: LazyPanda07/get-gtest@v1.1
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        with:
+          branch-name: v1.15.2
+          install-path: gtest
+
+      - name: Configure CMake
+        id: configure
+        run: >
+          cmake
+          -S ${{ github.workspace }}
+          -B ${{ steps.strings.outputs.build-output-dir }}
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DBUILD_SHARED_LIBS=${{ matrix.build_shared_libs }}
+          -DCMAKE_INSTALL_PREFIX=install-${{ matrix.os }}-${{ matrix.c_compiler }}-${{ matrix.build_type }}-${{ matrix.build_shared_libs }}
+          -DBUILD_TESTS=${{ startsWith(matrix.os, 'ubuntu-') }}
+          -DGTest_DIR=${{ github.workspace }}/gtest/lib/cmake/GTest
+
+      - name: Build
+        id: build
+        run: >
+          cmake
+          --build ${{ steps.strings.outputs.build-output-dir }}
+          --config ${{ matrix.build_type }}
+          -j $(nproc)
+
+      - name: Test
+        id: test
+        if: ${{ startsWith(matrix.os, 'ubuntu-') }}
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: >
+          ctest
+          --build-config ${{ matrix.build_type }}
+          --timeout 180
+          --output-on-failure
+
+      - name: Install
+        id: install
+        working-directory: ${{ steps.strings.outputs.build-output-dir }}
+        run: |
+          cmake --install ${{ steps.strings.outputs.build-output-dir }}
