@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/LidarSetMotorMessage.hh
+ * @file LidarSetMotorMessage.hh
  *
  * This message contains the current camera configuration.
  *

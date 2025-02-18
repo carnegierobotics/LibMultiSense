@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/PtpStatusResponseMessage.hh
+ * @file PtpStatusResponseMessage.hh
  *
  * This message contains status information.
  *

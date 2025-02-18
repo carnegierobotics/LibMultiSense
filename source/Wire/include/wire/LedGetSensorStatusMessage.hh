@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/LedGetSensorStatusMessage.hh
+ * @file LedGetSensorStatusMessage.hh
  *
  * This message contains a request for camera configuration.
  *

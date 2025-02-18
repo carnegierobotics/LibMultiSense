@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/StatusResponseMessage.hh
+ * @file StatusResponseMessage.hh
  *
  * This message contains status information.
  *

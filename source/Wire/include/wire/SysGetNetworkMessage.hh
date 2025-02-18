@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysGetNetworkMessage.hh
+ * @file SysGetNetworkMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

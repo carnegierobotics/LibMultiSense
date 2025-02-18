@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysGroundSurfaceParamsMessage.hh
+ * @file SysGroundSurfaceParamsMessage.hh
  *
  * This message contains general device information
  *

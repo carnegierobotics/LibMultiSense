@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysSetPtpMessage.hh
+ * @file SysSetPtpMessage.hh
  *
  * This message enables PTP syncronization on the camera
  *

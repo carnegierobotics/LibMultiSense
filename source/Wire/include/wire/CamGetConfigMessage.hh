@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/CamGetConfigMessage.hh
+ * @file CamGetConfigMessage.hh
  *
  * This message contains a request for camera configuration.
  *

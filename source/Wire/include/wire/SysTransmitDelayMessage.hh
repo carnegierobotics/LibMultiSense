@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysTransmitDelayMessage.hh
+ * @file SysTransmitDelayMessage.hh
  *
  * This message contains network delay settings
  *

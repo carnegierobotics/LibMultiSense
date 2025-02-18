@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysFlashResponseMessage.hh
+ * @file SysFlashResponseMessage.hh
  *
  * This message contains status information about requested or ongoing flash
  * operations.

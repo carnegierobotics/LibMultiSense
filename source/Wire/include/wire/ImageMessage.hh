@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/ImageMessage.hh
+ * @file ImageMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/details/utility/TimeStamp.cc
+ * @file TimeStamp.cc
  *
  * The timestamp class gives some type-safety and helper routines for
  * managing time stamps.  This is derived from Dan Tascione's and Eric

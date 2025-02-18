@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/test/TestTimestamp.hh
+ * @file TestTimestamp.hh
  *
  * Copyright 2023
  * Carnegie Robotics, LLC

@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/StreamControlMessage.hh
+ * @file StreamControlMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

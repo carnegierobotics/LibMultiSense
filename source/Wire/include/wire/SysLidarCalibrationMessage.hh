@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysLidarCalibrationMessage.hh
+ * @file SysLidarCalibrationMessage.hh
  *
  * This message contains camera calibration
  *

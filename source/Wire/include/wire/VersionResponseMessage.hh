@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/VersionResponseMessage.hh
+ * @file VersionResponseMessage.hh
  *
  * This message contains versioning information.
  *

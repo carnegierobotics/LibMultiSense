@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/CompressedImageMessage.hh
+ * @file CompressedImageMessage.hh
  *
  * Copyright 2021-2025
  * Carnegie Robotics, LLC

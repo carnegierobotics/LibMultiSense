@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/details/utility/ReferenceCount.hh
+ * @file ReferenceCount.hh
  *
  * Declares a ReferenceCount class for tracking resources.  This is
  * derived from Eric Kratzer's ReferenceCount class, which was

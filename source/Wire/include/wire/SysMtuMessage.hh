@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysMtuMessage.hh
+ * @file SysMtuMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

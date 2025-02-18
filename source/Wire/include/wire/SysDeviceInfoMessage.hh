@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysDeviceInfoMessage.hh
+ * @file SysDeviceInfoMessage.hh
  *
  * This message contains general device information
  *

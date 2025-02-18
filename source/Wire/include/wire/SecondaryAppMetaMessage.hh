@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SecondaryAppMetaMessage.hh
+ * @file SecondaryAppMetaMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

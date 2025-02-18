@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/CamGetHistoryMessage.hh
+ * @file CamGetHistoryMessage.hh
  *
  * This message contains a request for a history of what camera frames
  * were sent recently.

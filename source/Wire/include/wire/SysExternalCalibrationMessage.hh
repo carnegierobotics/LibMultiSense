@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysExternalCalibrationMessage.hh
+ * @file SysExternalCalibrationMessage.hh
  *
  * This message contains general device information
  *

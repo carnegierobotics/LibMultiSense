@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/details/utility/BufferStream.hh
+ * @file BufferStream.hh
  *
  * A generic I/O stream buffer
  *

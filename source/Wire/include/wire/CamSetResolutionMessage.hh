@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/CamSetResolutionMessage.hh
+ * @file CamSetResolutionMessage.hh
  *
  * This message sets the output resolution of the camera.
  *

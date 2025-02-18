@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/ImuGetConfigMessage.hh
+ * @file ImuGetConfigMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

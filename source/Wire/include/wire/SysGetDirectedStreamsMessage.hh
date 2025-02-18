@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysGetDirectedStreamsMessage.hh
+ * @file SysGetDirectedStreamsMessage.hh
  *
  * Copyright 2014-2025
  * Carnegie Robotics, LLC

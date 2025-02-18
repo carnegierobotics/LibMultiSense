@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/details/utility/Exception.hh
+ * @file Exception.hh
  *
  * This header file is adapted from Eric Kratzer's (and Dan
  * Tascione's?) StandardException.h file, which was developed under

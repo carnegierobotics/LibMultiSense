@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/JpegMessage.hh
+ * @file JpegMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC

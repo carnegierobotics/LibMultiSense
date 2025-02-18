@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SecondaryAppConfig.hh
+ * @file SecondaryAppConfig.hh
  *
  * This message contains the current camera configuration.
  *

@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysFlashOpMessage.hh
+ * @file SysFlashOpMessage.hh
  *
  * This message contains information on the number and layout of non-volatile
  * memory devices in the system.

@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/LidarPollMotorMessage.hh
+ * @file LidarPollMotorMessage.hh
  *
  * This message requests the current motor encoder position of the SLB
  *

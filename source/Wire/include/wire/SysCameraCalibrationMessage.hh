@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysCameraCalibrationMessage.hh
+ * @file SysCameraCalibrationMessage.hh
  *
  * This message contains camera calibration
  *

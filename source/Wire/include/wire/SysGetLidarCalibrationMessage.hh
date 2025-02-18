@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysGetLidarCalibrationMessage.hh
+ * @file SysGetLidarCalibrationMessage.hh
  *
  * This message contains a request for lidar calibration
  *

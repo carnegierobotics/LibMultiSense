@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/ImuDataMessage.hh
+ * @file ImuDataMessage.hh
  *
  * This message contains raw IMU data.
  *

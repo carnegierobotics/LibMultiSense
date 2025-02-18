@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SecondaryAppGetRegisteredAppsMessage.hh
+ * @file SecondaryAppGetRegisteredAppsMessage.hh
  *
  * This message contains a request for camera configuration.
  *

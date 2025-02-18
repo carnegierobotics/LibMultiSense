@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/LidarDataMessage.hh
+ * @file LidarDataMessage.hh
  *
  * This message contains raw LIDAR data.
  *

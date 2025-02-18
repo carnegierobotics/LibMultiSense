@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysGetDeviceInfoMessage.hh
+ * @file SysGetDeviceInfoMessage.hh
  *
  * This message contains a request for the motor encoder position
  *

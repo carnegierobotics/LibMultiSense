@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/GroundSurfaceModel.hh
+ * @file GroundSurfaceModel.hh
  *
  * This message contains ground surface spline data.
  *

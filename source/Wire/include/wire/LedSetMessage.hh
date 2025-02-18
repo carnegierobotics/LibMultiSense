@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/LedSetMessage.hh
+ * @file LedSetMessage.hh
  *
  * This message contains the current camera configuration.
  *

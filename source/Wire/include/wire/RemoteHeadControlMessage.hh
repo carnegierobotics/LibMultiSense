@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/RemoteHeadConfig.hh
+ * @file RemoteHeadConfig.hh
  *
  * This message contains the current controls to configure a remote head vpb
  * sync pair.

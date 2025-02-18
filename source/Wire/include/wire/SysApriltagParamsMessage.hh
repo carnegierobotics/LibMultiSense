@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/SysApriltagParamsMessage.hh
+ * @file SysApriltagParamsMessage.hh
  *
  * This message contains general device information
  *

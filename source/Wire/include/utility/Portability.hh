@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/details/utility/Portability.hh
+ * @file Portability.hh
  *
  * Macros and symbols to help portability between different compiler
  * versions.

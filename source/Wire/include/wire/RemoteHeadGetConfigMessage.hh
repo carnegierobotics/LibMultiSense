@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/RemoteHeadGetConfig.hh
+ * @file RemoteHeadGetConfig.hh
  *
  * This message contains the current remote head vpb configuration.
  *
