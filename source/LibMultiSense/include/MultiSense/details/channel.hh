@@ -46,12 +46,12 @@
 #include "MultiSense/details/listeners.hh"
 #include "MultiSense/details/signal.hh"
 #include "MultiSense/details/storage.hh"
-#include "wire/Protocol.hh"
-#include "wire/ImageMetaMessage.hh"
-#include "wire/SecondaryAppMetaMessage.hh"
-#include "wire/StatusResponseMessage.hh"
-#include "wire/PtpStatusResponseMessage.hh"
-#include "wire/VersionResponseMessage.hh"
+#include <wire/Protocol.hh>
+#include <wire/ImageMetaMessage.hh>
+#include <wire/SecondaryAppMetaMessage.hh>
+#include <wire/StatusResponseMessage.hh>
+#include <wire/PtpStatusResponseMessage.hh>
+#include <wire/VersionResponseMessage.hh>
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
