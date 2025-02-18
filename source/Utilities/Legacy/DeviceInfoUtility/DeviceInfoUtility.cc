@@ -53,7 +53,7 @@
 
 #include <MultiSense/MultiSenseChannel.hh>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 
 using namespace crl::multisense;
 

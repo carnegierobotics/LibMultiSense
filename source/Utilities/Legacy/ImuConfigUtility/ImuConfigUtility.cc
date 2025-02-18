@@ -54,7 +54,7 @@
 
 #include <MultiSense/MultiSenseChannel.hh>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 
 #ifdef WIN32
 #define strcasecmp _stricmp

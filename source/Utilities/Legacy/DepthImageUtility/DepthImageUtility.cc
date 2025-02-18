@@ -61,7 +61,7 @@
 #include <string.h>
 #include <string>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 #include <ChannelUtilities.hh>
 #include <Io.hh>
 

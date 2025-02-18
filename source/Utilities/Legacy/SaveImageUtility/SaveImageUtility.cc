@@ -58,7 +58,7 @@
 #include <string.h>
 #include <string>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 #include <Io.hh>
 
 #include <MultiSense/details/utility/Portability.hh>

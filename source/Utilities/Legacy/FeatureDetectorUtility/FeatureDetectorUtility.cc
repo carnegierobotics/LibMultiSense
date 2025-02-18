@@ -60,7 +60,7 @@
 #include <chrono>
 #include <ctime>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>

@@ -2,6 +2,8 @@
 # MultiSense - Makefile
 #
 
+include_directories(shared)
+
 #
 # Common libraries that each utility needs to link with.
 #

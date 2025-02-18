@@ -53,7 +53,7 @@
 #include <map>
 #include <string.h>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 #include <CalibrationYaml.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseTypes.hh>

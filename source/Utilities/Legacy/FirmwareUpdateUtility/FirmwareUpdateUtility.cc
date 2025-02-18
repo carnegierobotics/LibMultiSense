@@ -42,7 +42,7 @@
 #include <thread>
 #include <atomic>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 
 #include "Messages.hh"
 #include "Updater.hh"

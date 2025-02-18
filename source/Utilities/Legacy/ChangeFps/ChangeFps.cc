@@ -65,7 +65,7 @@
 #include <wire/Protocol.hh>
 #include <wire/SysNetworkMessage.hh>
 
-#include <Utilities/portability/getopt/getopt.h>
+#include <getopt/getopt.h>
 
 namespace {  // anonymous
 
