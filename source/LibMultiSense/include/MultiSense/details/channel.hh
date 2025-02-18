@@ -41,7 +41,7 @@
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/utility/Thread.hh"
-#include "utility/BufferStream.hh"
+#include <utility/BufferStream.hh>
 #include "MultiSense/details/utility/Units.hh"
 #include "MultiSense/details/listeners.hh"
 #include "MultiSense/details/signal.hh"
