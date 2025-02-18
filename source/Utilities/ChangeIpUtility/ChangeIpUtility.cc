@@ -59,9 +59,9 @@
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
 
-#include <MultiSense/details/utility/BufferStream.hh>
-#include <MultiSense/details/wire/Protocol.hh>
-#include <MultiSense/details/wire/SysNetworkMessage.hh>
+#include <utility/BufferStream.hh>
+#include <wire/Protocol.hh>
+#include <wire/SysNetworkMessage.hh>
 
 #include <Utilities/portability/getopt/getopt.h>
 
