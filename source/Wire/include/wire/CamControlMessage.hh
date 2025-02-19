@@ -147,9 +147,11 @@ public:
         message & exposure;
         message & autoExposure;
         message & autoExposureMax;
-        message & autoExposureDecay; message & autoExposureThresh;
+        message & autoExposureDecay;
+        message & autoExposureThresh;
 
-        message & whiteBalanceRed; message & whiteBalanceBlue;
+        message & whiteBalanceRed;
+        message & whiteBalanceBlue;
         message & autoWhiteBalance;
         message & autoWhiteBalanceDecay;
         message & autoWhiteBalanceThresh;
