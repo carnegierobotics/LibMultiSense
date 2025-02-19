@@ -335,6 +335,9 @@ static CRL_CONSTEXPR float Default_Gamma = 2.0f;
 static CRL_CONSTEXPR float Default_Gain = 1.0f;
 
 static CRL_CONSTEXPR uint32_t MAX_LIGHTS = 8;
+
+static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
+
 //
 // Some helper macros
 

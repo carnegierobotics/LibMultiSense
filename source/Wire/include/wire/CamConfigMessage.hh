@@ -56,8 +56,6 @@ public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
     static CRL_CONSTEXPR VersionType VERSION = 10;
 
-    static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
-
     //
     // Parameters representing the current camera configuration
 
