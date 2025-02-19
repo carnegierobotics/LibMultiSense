@@ -75,8 +75,8 @@ public:
           autoExposureThresh(0.0),
           autoExposureRoiX(0),
           autoExposureRoiY(0),
-          autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
-          autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
+          autoExposureRoiWidth(0),
+          autoExposureRoiHeight(0),
           exposureSource(Default_Exposure_Source),
           autoExposureTargetIntensity(Default_Target_Intensity),
           gain(Default_Gain)
