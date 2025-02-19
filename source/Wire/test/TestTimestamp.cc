@@ -50,9 +50,9 @@ TEST(Construction, default_)
 
 TEST(Construction, second_microsecond)
 {
-    for (int32_t sec = -1000000; sec <= 1000000; sec += 100000)
+    for (volatile int32_t sec = -1000000; sec <= 1000000; sec += 100000)
     {
-        for (int32_t usec = -1000000; usec <= 1100000; usec += 10000)
+        for (volatile int32_t usec = -1000000; usec <= 1100000; usec += 10000)
         {
             const TimeStamp time(sec, usec);
 
@@ -70,9 +70,9 @@ TEST(Construction, second_microsecond)
 
 TEST(Construction, timeval)
 {
-    for (int32_t sec = -1000000; sec <= 1000000; sec += 100000)
+    for (volatile int32_t sec = -1000000; sec <= 1000000; sec += 100000)
     {
-        for (int32_t usec = -1000000; usec <= 1100000; usec += 10000)
+        for (volatile int32_t usec = -1000000; usec <= 1100000; usec += 10000)
         {
             struct timeval tv;
             tv.tv_sec = sec;
@@ -95,9 +95,9 @@ TEST(Construction, timeval)
 TEST(Construction, nanoseconds)
 {
     // numbers are large enough to check for rollover of int32_t when convering seconds to nanoseconds
-    for (int64_t sec = -1000000; sec <= 1000000; sec += 100000)
+    for (volatile int64_t sec = -1000000; sec <= 1000000; sec += 100000)
     {
-        for (int64_t usec = -1000000; usec <= 1100000; usec += 10000)
+        for (volatile int64_t usec = -1000000; usec <= 1100000; usec += 10000)
         {
             const int64_t nsec = sec * 1000000000 + usec * 1000;
 
@@ -122,7 +122,7 @@ TEST(GetNanoSeconds, getNanoSeconds)
     // handle values larger than a uint32_t (2,147,483,647) to check rollover
     // increment by 0.1 seconds
     //
-    for (int64_t nsec = -100000000000; nsec <= 100000000000; nsec += 100000000)
+    for (volatile int64_t nsec = -100000000000; nsec <= 100000000000; nsec += 100000000)
     {
         const TimeStamp time(nsec);
         EXPECT_EQ(time.getNanoSeconds(), nsec);
@@ -135,9 +135,9 @@ TEST(Operators, add)
     // increment by 0.1 seconds
     const int64_t max_nsec = 10000000000;
     const int64_t step_nsec = 100000000;
-    for (int64_t a_nsec = -max_nsec; a_nsec <= max_nsec; a_nsec += step_nsec)
+    for (volatile int64_t a_nsec = -max_nsec; a_nsec <= max_nsec; a_nsec += step_nsec)
     {
-        for (int64_t b_nsec = -max_nsec; b_nsec <= max_nsec; b_nsec += step_nsec)
+        for (volatile int64_t b_nsec = -max_nsec; b_nsec <= max_nsec; b_nsec += step_nsec)
         {
             const TimeStamp a(a_nsec);
             const TimeStamp b(b_nsec);
@@ -153,9 +153,9 @@ TEST(Operators, subtract)
     // increment by 0.1 seconds
     const int64_t max_nsec = 10000000000;
     const int64_t step_nsec = 100000000;
-    for (int64_t a_nsec = -max_nsec; a_nsec <= max_nsec; a_nsec += step_nsec)
+    for (volatile int64_t a_nsec = -max_nsec; a_nsec <= max_nsec; a_nsec += step_nsec)
     {
-        for (int64_t b_nsec = -max_nsec; b_nsec <= max_nsec; b_nsec += step_nsec)
+        for (volatile int64_t b_nsec = -max_nsec; b_nsec <= max_nsec; b_nsec += step_nsec)
         {
             const TimeStamp a(a_nsec);
             const TimeStamp b(b_nsec);

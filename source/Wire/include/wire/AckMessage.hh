@@ -49,14 +49,27 @@ public:
     static CRL_CONSTEXPR IdType      ID      = ID_ACK;
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
+    typedef int32_t  AckStatus;
+
+    //
+    // General status codes
+
+    static CRL_CONSTEXPR AckStatus Status_Ok          =  0;
+    static CRL_CONSTEXPR AckStatus Status_TimedOut    = -1;
+    static CRL_CONSTEXPR AckStatus Status_Error       = -2;
+    static CRL_CONSTEXPR AckStatus Status_Failed      = -3;
+    static CRL_CONSTEXPR AckStatus Status_Unsupported = -4;
+    static CRL_CONSTEXPR AckStatus Status_Unknown     = -5;
+    static CRL_CONSTEXPR AckStatus Status_Exception   = -6;
+
     IdType command; // the command being [n]ack'd
-    Status status;
+    AckStatus status;
 
     //
     // Constructors
 
     Ack(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
-    Ack(IdType c=0, Status s=Status_Ok) : command(c), status(s) {};
+    Ack(IdType c=0, AckStatus s=Status_Ok) : command(c), status(s) {};
 
     //
     // Serialization routine

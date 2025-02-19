@@ -117,15 +117,15 @@ public:
         hdrEnabled(false),
         autoExposureRoiX(0),
         autoExposureRoiY(0),
-        autoExposureRoiWidth(crl::multisense::Roi_Full_Image),
-        autoExposureRoiHeight(crl::multisense::Roi_Full_Image),
+        autoExposureRoiWidth(0),
+        autoExposureRoiHeight(0),
         cameraProfile(0),
         autoExposureTargetIntensity(Default_Target_Intensity),
         gamma(Default_Gamma),
         sharpeningEnable(false),
         sharpeningPercentage(0.0f),
         sharpeningLimit(0),
-        gainMax(ImagerGainMax)
+        gainMax(WIRE_IMAGER_GAIN_MAX)
         {};
 
     //
@@ -180,7 +180,7 @@ public:
         }
         else
         {
-            gainMax = ImagerGainMax;
+            gainMax = WIRE_IMAGER_GAIN_MAX;
         }
 
     }

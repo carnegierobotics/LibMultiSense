@@ -116,6 +116,9 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0234_GREY    = 200;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0239_COLOR   = 202;
 
+    static CRL_CONSTEXPR uint32_t LENS_TYPE_STANDARD   = 1;
+    static CRL_CONSTEXPR uint32_t LENS_TYPE_FISHEYE    = 2;
+
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_SL_INTERNAL = 1;
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_S21_EXTERNAL = 2;
@@ -185,7 +188,7 @@ public:
 
         message & numberOfPcbs;
 
-        uint8_t num = std::min(numberOfPcbs, (uint8_t) MAX_PCBS);
+        uint8_t num = numberOfPcbs <= MAX_PCBS ? numberOfPcbs : MAX_PCBS;
         for(uint8_t i=0; i<num; i++)
             pcbs[i].serialize(message, version);
 

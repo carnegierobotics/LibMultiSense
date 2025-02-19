@@ -142,7 +142,7 @@ public:
         }
         else
         {
-            gainMax = ImagerGainMax;
+            gainMax = WIRE_IMAGER_GAIN_MAX;
         }
 
     }

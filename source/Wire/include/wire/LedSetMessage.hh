@@ -60,7 +60,7 @@ public:
     //
     // LED duty cycles; 0 = off; 255 = 100%
 
-    uint8_t intensity[lighting::MAX_LIGHTS];
+    uint8_t intensity[MAX_LIGHTS];
 
     //
     // If non-zero, LEDs are only on while sensors are exposing
@@ -108,7 +108,7 @@ public:
     {
         (void) version;
         archive & mask;
-        for(uint32_t i=0; i<lighting::MAX_LIGHTS; i++)
+        for(uint32_t i=0; i<MAX_LIGHTS; i++)
             archive & intensity[i];
         archive & flash;
 
