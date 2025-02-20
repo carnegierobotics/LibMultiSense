@@ -722,7 +722,7 @@ struct MultiSenseConfig
         bool sharpening_enabled = false;
 
         ///
-        /// @brief The percentage of the aux image to sharpen
+        /// @brief The percentage strength of the sharpening gain to apply to the aux image
         ///        Valid range is [0, 100]
         ///
         float sharpening_percentage = 50.0f;
@@ -1272,7 +1272,13 @@ struct MultiSenseInfo
         ///
         struct PcbInfo
         {
+            ///
+            /// @brief The name of the PCB
+            ///        This value can store at most 32 characters
             std::string name;
+            ///
+            /// @brief The revision number of the PCB
+            ///
             uint32_t revision;
         };
 
@@ -1344,17 +1350,20 @@ struct MultiSenseInfo
         };
 
         ///
-        /// @brief The name of the MultiSense variant
+        /// @brief The name of the MultiSense variant.
+        ///        This value can store at most 32 characters
         ///
         std::string camera_name{};
 
         ///
         /// @brief The date the MultiSense was manufactured
+        ///        This value can store at most 32 characters
         ///
         std::string build_date{};
 
         ///
         /// @brief The unique serial number of the MultiSense
+        ///        This value can store at most 32 characters
         ///
         std::string serial_number{};
 
@@ -1371,6 +1380,7 @@ struct MultiSenseInfo
         ///
         /// @brief The name of the imager used by the primary camera. For stereo cameras this is the
         ///        Left/Right stereo pair. For mono cameras this is the single imager
+        ///        This value can store at most 32 characters
         ///
         std::string imager_name{};
 
@@ -1392,6 +1402,7 @@ struct MultiSenseInfo
         ///
         /// @brief The name of the lens used for the primary camera For stereo cameras this is the
         ///        Left/Right stereo pair. For mono cameras this is the single camera
+        ///        This value can store at most 32 characters
         ///
         std::string lens_name{};
 
