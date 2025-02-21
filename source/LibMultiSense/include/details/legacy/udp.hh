@@ -94,7 +94,7 @@ private:
     std::thread m_rx_thread;
 
     ///
-    /// @brief Atomic flag to stop the rx_tread on destruction
+    /// @brief Atomic flag to stop the rx_thread on destruction
     ///
     std::atomic_bool m_stop{false};
 

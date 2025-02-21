@@ -44,22 +44,15 @@
 
 #ifdef WIN32
 #include <ws2tcpip.h>
-#else
-#include <netdb.h>
-#endif
-
-#ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
-
 #include <windows.h>
 #include <winsock2.h>
-
 #else
+#include <netdb.h>
 #include <netinet/ip.h>
 #include <unistd.h>
-
 #ifndef INVALID_SOCKET
 #define INVALID_SOCKET (-1)
 #endif
