@@ -89,7 +89,7 @@ crl::multisense::details::wire::CameraCalData convert(const CameraCalibration &c
 
     if (cal.D.size() > (sizeof(output.D)/sizeof(float)))
     {
-        CRL_EXCEPTION("Invalid input disparity size");
+        CRL_EXCEPTION("Invalid input distortion size");
     }
 
     CPY_ARRAY_2(output.M, cal.K, 3, 3);
