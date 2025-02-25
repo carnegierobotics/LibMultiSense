@@ -71,8 +71,8 @@ endif()
 #
 # Versioning...someday lets automate this somehow
 #
-set(version "6.1.0")
-set_target_properties(MultiSense PROPERTIES VERSION "${version}")
+
+set_target_properties(MultiSense PROPERTIES VERSION "${CMAKE_PROJECT_VERSION}")
 
 if (MULTISENSE_BUILD_API_DATE)
     target_compile_definitions(MultiSense PRIVATE BUILD_API_DATE="True")
@@ -114,7 +114,7 @@ install(EXPORT MultiSenseTargets
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake"
-  VERSION "${version}"
+  VERSION "${CMAKE_PROJECT_VERSION}"
   COMPATIBILITY AnyNewerVersion
   )
 
