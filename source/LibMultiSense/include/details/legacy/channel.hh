@@ -127,7 +127,7 @@ public:
     virtual ~LegacyChannel();
 
     ///
-    /// @brief Start a collection of image streams. Repeated calls to this function will not stop implicitly
+    /// @brief Start a collection of image streams. Repeated calls to this function will not implicitly
     ///        stop the previously started streams. For example if a user started a left_raw stream in one
     ///        call and a disparity stream in a second call, both streams would be active until stop_streams
     ///        is called for either
