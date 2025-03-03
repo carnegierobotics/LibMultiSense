@@ -141,7 +141,7 @@ public:
 
     ///
     /// @brief Add a image frame callback to get serviced inline with the receipt of a new frame. Only
-    ///        a single frame callback can be added to the channel
+    ///        a single image frame callback can be added to the channel
     ///        NOTE: Perform minimal work in this callback, and ideally copy the lightweight
     ///        ImageFrame object out to another processing thread
     ///
@@ -149,7 +149,7 @@ public:
 
     ///
     /// @brief Add a imu frame callback to get serviced inline with the receipt of a new frame. Only
-    ///        a single frame callback can be added to the channel
+    ///        a single imu frame callback can be added to the channel
     ///        NOTE: Perform minimal work in this callback, and ideally copy the lightweight
     ///        ImuFrame object out to another processing thread
     ///
