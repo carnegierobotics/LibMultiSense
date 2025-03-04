@@ -235,7 +235,7 @@ Status LegacyChannel::connect(const Channel::Config &config)
     if (m_connected)
     {
         CRL_DEBUG("Channel is already connected to the MultiSense\n");
-        return Status::UNINITIALIZED;
+        return Status::FAILED;
     }
 
     std::lock_guard<std::mutex> lock(m_mutex);
