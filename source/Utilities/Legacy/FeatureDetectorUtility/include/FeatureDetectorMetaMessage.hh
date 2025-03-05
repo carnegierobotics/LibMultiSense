@@ -47,7 +47,7 @@ using namespace crl::multisense::details;
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
-      static CRL_CONSTEXPR wire::VersionType VERSION    = 1;
+      static CRL_CONSTEXPR wire::VersionType VERSION    = 2;
       wire::VersionType      version;
       uint32_t               length;
       uint32_t               source;
@@ -65,6 +65,15 @@ class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
       uint16_t               numFeatures;
       uint16_t               numDescriptors;
 
+      //
+      // Version 2 additions
+      uint16_t               observerStatus;
+      uint16_t               observerNum;
+      uint16_t               observerIndex;
+      int16_t                observerDy;
+      int16_t                observerTheta;
+      uint16_t               affineCalCount;
+
     FeatureDetectorMetaHeader() :
         version(VERSION),
         length(0),
@@ -81,7 +90,13 @@ class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
         averageXMotion(0),
         averageYMotion(0),
         numFeatures(0),
-        numDescriptors(0)
+        numDescriptors(0),
+        observerStatus(0),
+        observerNum(0),
+        observerIndex(0),
+        observerDy(0),
+        observerTheta(0),
+        affineCalCount(0)
      {};
 
 };
@@ -105,7 +120,6 @@ public:
                        const wire::VersionType _version)
     {
         (void) _version;
-
         message & version;
         message & length;
         message & source;
@@ -122,6 +136,16 @@ public:
         message & averageYMotion;
         message & numFeatures;
         message & numDescriptors;
+
+        if (version >= 2)
+        {
+          message & observerStatus;
+          message & observerNum;
+          message & observerIndex;
+          message & observerDy;
+          message & observerTheta;
+          message & affineCalCount;
+        }
     }
 };
 

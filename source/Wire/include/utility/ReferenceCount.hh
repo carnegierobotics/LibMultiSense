@@ -90,7 +90,7 @@ private:
 
     void share() {
         if (m_countP)
-#if WIN32
+#ifdef WIN32
             InterlockedIncrement((LONG*)m_countP);
 #else
             __sync_fetch_and_add(m_countP, 1);
@@ -99,7 +99,7 @@ private:
 
     void release() {
         if (m_countP) {
-#if WIN32
+#ifdef WIN32
             int32_t count = InterlockedDecrement((LONG*)m_countP);
 #else
             int32_t count = __sync_sub_and_fetch(m_countP, 1);
