@@ -287,7 +287,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
 }
 
 
-std::optional<Image> create_bgr_image(const Image &luma, const Image &chroma, const DataSource &output_source)
+std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &chroma, const DataSource &output_source)
 {
     if (luma.format != Image::PixelFormat::MONO8 || chroma.format != Image::PixelFormat::MONO16)
     {
@@ -334,6 +334,39 @@ std::optional<Image> create_bgr_image(const Image &luma, const Image &chroma, co
                  output_source,
                  luma.calibration};
 }
+
+std::optional<Image> create_bgr_image(const ImageFrame &frame, const DataSource &output_source)
+{
+    if (frame.aux_color_encoding == ColorImageEncoding::YCBCR420)
+    {
+        DataSource luma_source = DataSource::UNKNOWN;
+        DataSource chroma_source = DataSource::UNKNOWN;
+        switch (output_source)
+        {
+            case DataSource::AUX_RAW:
+            {
+                luma_source = DataSource::AUX_LUMA_RAW;
+                chroma_source = DataSource::AUX_CHROMA_RAW;
+                break;
+            }
+            case DataSource::AUX_RECTIFIED_RAW:
+            {
+                luma_source = DataSource::AUX_LUMA_RECTIFIED_RAW;
+                chroma_source = DataSource::AUX_CHROMA_RECTIFIED_RAW;
+                break;
+            }
+            default: {return std::nullopt;}
+        }
+
+        if (frame.has_image(luma_source) && frame.has_image(chroma_source))
+        {
+            return create_bgr_from_ycbcr420(frame.get_image(luma_source), frame.get_image(chroma_source), output_source);
+        }
+    }
+
+    return std::nullopt;
+}
+
 
 std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
                                                   double max_range,

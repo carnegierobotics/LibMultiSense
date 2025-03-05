@@ -1140,7 +1140,8 @@ void LegacyChannel::handle_and_dispatch(Image image,
                          std::map<DataSource, Image>{std::make_pair(source, std::move(image))},
                          calibration,
                          capture_time,
-                         ptp_capture_time};
+                         ptp_capture_time,
+                         m_calibration.aux ? ColorImageEncoding::YCBCR420 : ColorImageEncoding::NONE};
 
         m_frame_buffer.emplace(frame_id, std::move(frame));
     }

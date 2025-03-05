@@ -53,6 +53,9 @@ namespace multisense
 ///
 #pragma pack(push, 1)
 
+///
+/// @brief Single point definition with a custom color type
+///
 template<typename Color>
 struct Point
 {
@@ -62,6 +65,9 @@ struct Point
     Color color;
 };
 
+///
+/// @brief Single point definition with no color
+///
 template<>
 struct Point<void>
 {
@@ -103,12 +109,15 @@ MULTISENSE_API std::optional<Image> create_depth_image(const ImageFrame &frame,
 ///
 /// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
 ///
-MULTISENSE_API std::optional<Image> create_bgr_image(const Image &luma, const Image &chroma, const DataSource &output_source);
+MULTISENSE_API std::optional<Image> create_bgr_from_ycbcr420(const Image &luma,
+                                                              const Image &chroma,
+                                                              const DataSource &output_source);
 
 ///
 /// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
 ///
-MULTISENSE_API std::optional<Image> create_bgr(const ImageFrame &frame, const DataSource &output_source);
+MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
+                                                     const DataSource &output_source);
 
 ///
 /// @brief Create a point cloud from a image frame and a color source.

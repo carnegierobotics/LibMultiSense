@@ -52,6 +52,7 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
             }
             catch(...)
             {
+                CRL_DEBUG("Unable to create legacy channel");
                 return nullptr;
             }
         }
