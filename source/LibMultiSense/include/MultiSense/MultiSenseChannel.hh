@@ -82,7 +82,7 @@ public:
         size_t large_buffer_size = 1920*1200*3;
     };
 
-    struct ChannelConfig
+    struct Config
     {
         ///
         /// @brief the IP address of the MultiSense camera to connect to
@@ -124,7 +124,7 @@ public:
     /// @brief Factory create function which allows for switching between different channel
     ///        implementations
     ///
-    static std::unique_ptr<Channel> create(const ChannelConfig &config,
+    static std::unique_ptr<Channel> create(const Config &config,
                                            const ChannelImplementation &impl = ChannelImplementation::LEGACY);
 
     Channel() = default;
@@ -167,7 +167,7 @@ public:
     ///
     /// @brief Initialize the connection to the camera
     ///
-    virtual Status connect(const ChannelConfig &config) = 0;
+    virtual Status connect(const Config &config) = 0;
 
     ///
     /// @brief Disconnect from the camera
@@ -177,7 +177,7 @@ public:
     ///
     /// @brief A blocking call that waits for one image frame from the camera.
     ///
-    /// If you’ve set a receive timeout (via ChannelConfig), it will block until that timeout expires;
+    /// If you’ve set a receive timeout (via Config), it will block until that timeout expires;
     /// otherwise, it blocks indefinitely until data arrives.
     ///
     /// @return The newly received ImageFrame, or std::nullopt if timed out (and you used a timeout).
@@ -187,7 +187,7 @@ public:
     ///
     /// @brief A blocking call that waits for one imu frame from the camera.
     ///
-    /// If you’ve set a receive timeout (via ChannelConfig), it will block until that timeout expires;
+    /// If you’ve set a receive timeout (via Config), it will block until that timeout expires;
     /// otherwise, it blocks indefinitely until data arrives.
     ///
     /// @return The newly received ImuFrame, or std::nullopt if timed out (and you used a timeout).

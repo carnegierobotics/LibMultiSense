@@ -56,7 +56,7 @@ bool is_valid(const crl::multisense::details::wire::CameraCalData &cal)
 CameraCalibration convert(const crl::multisense::details::wire::CameraCalData &cal)
 {
     const auto distortion_type = (cal.D[5] == 0.f && cal.D[6] == 0.f && cal.D[7] == 0.f) ?
-                                 CameraCalibration::DistortionType::PLUMBOB :
+                                 CameraCalibration::DistortionType::PLUMBBOB :
                                  CameraCalibration::DistortionType::RATIONAL_POLYNOMIAL;
 
     CameraCalibration output{};
@@ -67,7 +67,7 @@ CameraCalibration convert(const crl::multisense::details::wire::CameraCalData &c
 
     output.distortion_type = distortion_type;
 
-    if (distortion_type == CameraCalibration::DistortionType::PLUMBOB)
+    if (distortion_type == CameraCalibration::DistortionType::PLUMBBOB)
     {
         output.D.resize(5);
         memcpy(&output.D[0], cal.D, sizeof(float) * 5);
