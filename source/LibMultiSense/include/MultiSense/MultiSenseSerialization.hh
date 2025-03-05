@@ -175,7 +175,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseConfig::MaxDisparities, {
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode, {
     {MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode::NONE, "NONE"},
     {MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode::SYNC_WITH_MAIN_STEREO, "SYNC_WITH_MAIN_STEREO"},
-    {MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode::SYNC_WITH_AUX, "SYNC_WITH_AUXx"}
+    {MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode::SYNC_WITH_AUX, "SYNC_WITH_AUX"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::HardwareRevision, {
