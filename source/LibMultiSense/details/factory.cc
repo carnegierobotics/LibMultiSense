@@ -39,7 +39,7 @@
 namespace multisense
 {
 
-std::unique_ptr<Channel> Channel::create(const Channel::Config &config,
+std::unique_ptr<Channel> Channel::create(const Config &config,
                                          const ChannelImplementation &impl)
 {
     switch (impl)

@@ -117,7 +117,7 @@ namespace {
     constexpr std::array<uint16_t, 10> MTUS_TO_TEST{9000, 8167, 7333, 6500, 5667, 4833, 4000, 3167, 2333, 1500};
 }
 
-LegacyChannel::LegacyChannel(const Channel::Config &config):
+LegacyChannel::LegacyChannel(const Config &config):
     m_config(config),
     m_buffer_pool(std::make_shared<BufferPool>(BufferPoolConfig{config.receive_buffer_configuration.num_small_buffers,
                                                                 config.receive_buffer_configuration.small_buffer_size,
@@ -228,7 +228,7 @@ void LegacyChannel::add_imu_frame_callback(std::function<void(const ImuFrame&)> 
     m_user_imu_frame_callback = callback;
 }
 
-Status LegacyChannel::connect(const Channel::Config &config)
+Status LegacyChannel::connect(const Config &config)
 {
     using namespace crl::multisense::details;
 
