@@ -78,11 +78,7 @@
 
 #if !defined(MULTISENSE_API)
 #if defined (_MSC_VER)
-#if defined (MultiSense_EXPORTS)
 #define MULTISENSE_API __declspec(dllexport)
-#else
-#define MULTISENSE_API __declspec(dllimport)
-#endif
 #else
 #define MULTISENSE_API
 #endif

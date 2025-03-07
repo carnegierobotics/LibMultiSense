@@ -1,12 +1,12 @@
 # LibMultiSense
 
 - [Hello World](#hello-world)
-  - [OpenCV Integration](#opencv-integration)
-  - [Copy-Free Buffer Reservations](#copy-free-operations-image-buffer-reservations)
-  - [Camera Configuration](#camera-configuration)
+  - [Point Cloud Generation](#point-cloud-generation)
   - [Depth Image Generation](#depth-image-generation)
+  - [Camera Configuration](#camera-configuration)
+- [Optional Dependencies](#optional-dependencies)
 - [Installation](#installation)
-- [Doccumentation](#doccumentation)
+- [Documentation](#documentation)
 - [Support](#support)
 
 LibMultiSense is a C++ library used to interface with the MultiSense S
@@ -16,11 +16,97 @@ https://carnegierobotics.com/products
 
 For more detailed documentation on general MultiSense operation
 please visit
-https://docs.carnegierobotics.com/docs/index.html
+https://docs.carnegierobotics.com/
+
+LibMultiSense was recently refactored to have a new API. The following examples in the README all assume the user
+is using the new API. To build with the new API, the following CMake arguments should be set.
+
+    -DBUILD_LEGACY_API=0FF
+
+### Hello World
+
+#### Python
+
+```python
+import libmultisense as lms
+
+channel_config = lms.ChannelConfig()
+channel_config.ip_address = "10.66.171.21"
+channel = lms.Channel.create(channel_config)
+
+channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW])
+
+while True:
+    frame = channel.get_next_image_frame()
+    if frame:
+        for source, image in frame.images.items():
+            cv2.imwrite(str(source) + ".png", image.as_array)
+```
+
+#### C++
+
+```c++
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+int main()
+{
+    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW});
+
+    while(true):
+    {
+        if (const auto image_frame = channel->get_next_image_frame(); image_frame)
+        {
+            for (const auto &[source, image]: image_frame->images)
+            {
+                const auto path = std::to_string(image_frame->frame_id) +  "_" +
+                                  std::to_string(static_cast<int>(source)) + ".png";
+                lms::write_image(image, path);
+            }
+        }
+    }
+    return 0;
+}
+```
+
+### Optional Dependencies
+
+#### OpenCV
+
+LibMultiSense optionally has OpenCV utility functions to make the LibMultiSense client API easier to integrate
+with existing systems. To build build the OpenCV helpers the following CMake argument should be set
+
+    -DBUILD_OPENCV=ON
+
+This will require a system installation of OpenCV, or an installation which can be pointed to with CMake's
+`CMAKE_PREFIX_PATH` argument
+
+#### nlohmann json
+
+LibMultiSense optionally uses nlohmann_json for serialization of base LibMultiSense types. To build build the 
+nlohmann_json serialization helpers the following CMake argument should be set
+
+    -DBUILD_JSON_SERIALIZATION=ON
+
+This will require a system installation of nlohmann_json, or an installation which can be pointed to with CMake's
+`CMAKE_PREFIX_PATH` argument
 
 ### Installation
 
 #### Linux
+
+##### Python
+
+LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API
+
+To install the LibMultiSense python bindings
+
+    > git clone https://github.com/carnegierobotics/LibMultiSense.git
+    > cd LibMultiSense
+    > pip install .
+
+##### C++
 
 LibMultiSense uses CMake for its build system.
 
@@ -32,7 +118,7 @@ To build the standalone LibMultiSense library and demonstration applications.
     > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > mkdir build
-    > cd build && cmake -DCMAKE_INSTALL_PREFIX=../install ..
+    > cd build && cmake -DBUILD_LEGACY_API=OFF -DCMAKE_INSTALL_PREFIX=../install ..
     > make install
     > cd ../install
 
@@ -43,7 +129,7 @@ Integrating LibMultiSense into an existing CMake project is easy. There are two
 primary methods for integration: a local install on your system, or a submodule
 clone within your repository
 
-##### Local Installation
+###### Local Installation
 
 LibMultiSense is installed on your system (i.e. in a location like /opt/multisense)
 
@@ -84,7 +170,7 @@ and build the Solution.
 
 ### Documentation
 
-Doccumentation of high-level LibMutliSense concepts can be found
+Documentation of high-level LibMutliSense concepts can be found
 [here](https://docs.carnegierobotics.com/docs/software/libmultisense.html)
 
 Doxygen documentation can be built for LibMultisense by running the Doxygen
@@ -105,506 +191,231 @@ please use the [GitHub issues system](https://github.com/carnegierobotics/LibMul
 For product support, please see the [support section of our website](https://carnegierobotics.com/support)
 Individual support requests can be created in our [support portal](https://carnegierobotics.com/submitaticket)
 
-### Hello World
-
-LibMultiSense builds as a single shared library which can be linked into
-any existing project.
-
-The two header files MultiSenseChannel.hh and MultiSenseTypes.hh contain
-all the declarations necessary to interface with a MultiSense sensor.
-
-The following example demonstrates how to connect, stream, and receive image
-for the MultiSense camera.
-
-#### test.cpp
-
-```c++
-#include <iostream>
-#include <unistd.h>
-
-#include <MultiSense/MultiSenseTypes.hh>
-#include <MultiSense/MultiSenseChannel.hh>
-
-using namespace crl::multisense;
-
-struct UserData
-{
-    size_t count = 0;
-};
-
-void image_callback(const image::Header& header, void* user_data)
-{
-    UserData* meta = reinterpret_cast<UserData*>(user_data);
-    meta->count++;
-
-    switch (header.source) {
-        case Source_Luma_Left: std::cout << "luma left" << std::endl; break;
-        case Source_Luma_Right: std::cout << "luma right" << std::endl; break;
-        case Source_Disparity: std::cout << "disparity" << std::endl; break;
-    }
-
-    std::cout << "frame_id: " << header.frameId <<
-                 ", seconds: " << header.timeSeconds <<
-                 ", microseconds: " << header.timeMicroSeconds << std::endl;
-}
-
-int main()
-{
-    //
-    // Instantiate a channel connecting to a sensor at the factory default
-    // IP address
-    Channel* channel = nullptr;
-    channel = Channel::Create("10.66.171.21");
-    channel->setMtu(1500);
-
-    Status status;
-
-    //
-    // Data which can be shared among callbacks
-    UserData meta;
-
-    //
-    // Attached a callback to the Channel which will get called when certain image types
-    // are received by the camera. Multiple image callbacks can be attached to a
-    // Channel
-    status = channel->addIsolatedCallback(image_callback, Source_Luma_Left, &meta);
-    status = channel->startStreams(Source_Luma_Left);
-    if(Status_Ok != status) {
-        std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
-    }
-
-    //
-    // Spin until the user wants to exit. Images will be serviced in the image_callback
-    // as they are received by the camera
-    while(true)
-    {
-        usleep(100000);
-    }
-
-    //
-    // Stop streams and remove our callback
-    status = channel->stopStreams(Source_All);
-    status = channel->removeIsolatedCallback(image_callback);
-
-    if(Status_Ok != status) {
-        std::cerr << "unable to stop streams and remove isolated callback" << std::endl;
-    }
-
-    //
-    // Destroy the channel instance
-    Channel::Destroy(channel);
-}
-
-```
-
-#### CMakeLists.txt
-
-```
-cmake_minimum_required(VERSION 3.0)
-project(multisense_example VERSION 0.0.0.0 LANGUAGES C CXX)
-
-find_package(MultiSense REQUIRED)
-add_executable(test test.cpp)
-target_link_libraries(test MultiSense)
-
-install(TARGETS test
-        RUNTIME DESTINATION bin)
-```
-
-#### Build Hello World
-
-    > mkdir build && cd build
-    > cmake -DCMAKE_PREFIX_PATH=<path-to-libmultisense-install> ..
-    > make
-
-### OpenCV Integration
-
-To display the images received from the camera in a OpenCV window, the image callback function
-and CMakeLists.txt outlined in the [Hello World](#hello-world) example can be
-updated to the following
-
-#### image_callback function
-
-```c++
-#include <opencv2/highgui.hpp>
-
-void image_callback(const image::Header& header, void* user_data)
-{
-    //
-    // Create a OpenCV matrix using our image container
-    uint8_t* raw_image_data =
-        const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(header.imageDataP));
-    const cv::Mat_<uint8_t> image(header.height, header.width, raw_image_data);
-
-    //
-    // Display the image using OpenCV
-    cv::namedWindow("example");
-    cv::imshow("example", image);
-    cv::waitKey(1);
-}
-```
-
-#### CMakeLists.txt
-
-```
-find_package(MultiSense REQUIRED)
-find_package(OpenCV REQUIRED core highgui imgproc)
-add_executable(test test.cpp)
-target_link_libraries(test MultiSense
-                           opencv_core
-                           opencv_highgui
-                           opencv_imgproc)
-```
-
-### Copy-free Operations Image Buffer Reservations
-
-Many use cases require multiple MultiSense image sources to be combined into artifacts
-like color images or point clouds. By default, the memory underlying a Header object
-is only valid in the scope of a callback. LibMultiSense offers a reservation mechanism
-to extend the lifetime of data underlying Header objects for as long as the user would like.
-
-The following modified version of the [Hello World](#hello-world) example,
-highlights how to perform this reservation operation to create and display color aux images.
-
-Note, there are a limited number of buffers which LibMultiSense internally manages to store
-large image data. Depending on the processing speed of the host machine, and the streaming
-frequency of the MultiSense, there could be situations where all the internal buffers are
-actively reserved. The `Channel::setLargeBuffers` member function can be used to increased
-the number of available internal buffers.
-
-#### test.cc
-
-```c++
-#include <iostream>
-#include <unistd.h>
-
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-
-#include <MultiSense/MultiSenseTypes.hh>
-#include <MultiSense/MultiSenseChannel.hh>
-
-using namespace crl::multisense;
-
-struct UserData
-{
-    Channel* channel = nullptr;
-
-    image::Header mono_image;
-    image::Header chroma_image;
-
-    void* mono_image_ref = nullptr;
-    void* chroma_image_ref = nullptr;
-};
-
-void image_callback(const image::Header& header, void* user_data)
-{
-    UserData* meta = reinterpret_cast<UserData*>(user_data);
-
-    if (!meta->channel) return;
-
-    //
-    // Reserve our header for color processing. If there is already a valid
-    // ref for the image, it means the corresponding luma or chroma image
-    // was dropped, and we should release the existing buffer before reserving
-    switch (header.source) {
-        case Source_Luma_Aux:
-            if (meta->mono_image_ref) {
-                meta->channel->releaseCallbackBuffer(meta->mono_image_ref);
-            }
-
-            meta->mono_image_ref = meta->channel->reserveCallbackBuffer();
-            meta->mono_image = header;
-
-            break;
-        case Source_Chroma_Aux:
-            if (meta->chroma_image_ref) {
-                meta->channel->releaseCallbackBuffer(meta->chroma_image_ref);
-            }
-
-            meta->chroma_image_ref = meta->channel->reserveCallbackBuffer();
-            meta->chroma_image = header;
-            break;
-    }
-
-    //
-    // If we have a valid luma and chroma pair create a color image
-    if (meta->mono_image_ref &&
-        meta->chroma_image_ref &&
-        meta->mono_image.frameId == meta->chroma_image.frameId) {
-
-        //
-        // Create a OpenCV images using our stored image headers.
-        uint8_t* raw_luma =
-            const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(meta->mono_image.imageDataP));
-        const cv::Mat_<uint8_t> luma(meta->mono_image.height,
-                                     meta->mono_image.width,
-                                     raw_luma);
-
-        uint16_t* raw_chroma =
-            const_cast<uint16_t*>(reinterpret_cast<const uint16_t*>(meta->chroma_image.imageDataP));
-        const cv::Mat_<uint16_t> chroma(meta->chroma_image.height,
-                                        meta->chroma_image.width,
-                                        raw_chroma);
-
-        cv::Mat bgr;
-        cv::cvtColorTwoPlane(luma, chroma, bgr, cv::COLOR_YUV2BGR_NV12);
-
-        cv::namedWindow("example");
-        cv::imshow("example", bgr);
-        cv::waitKey(1);
-
-        //
-        // Release and invalidate our buffers
-        meta->channel->releaseCallbackBuffer(meta->mono_image_ref);
-        meta->channel->releaseCallbackBuffer(meta->chroma_image_ref);
-        meta->mono_image_ref = nullptr;
-        meta->chroma_image_ref = nullptr;
-    }
-}
-
-int main()
-{
-    //
-    // Instantiate a channel connecting to a sensor at the factory default
-    // IP address
-    Channel* channel = nullptr;
-    channel = Channel::Create("10.66.171.21");
-    channel->setMtu(1500);
-
-    Status status;
-
-    //
-    // Data which can be shared among callbacks
-    UserData meta{channel, {}, {}, nullptr, nullptr};
-
-    //
-    // Attached a callback to the Channel which will get called when certain image types
-    // are received by the camera. Multiple image callbacks can be attached to a
-    // Channel
-    status = channel->addIsolatedCallback(image_callback,
-                                           Source_Luma_Aux |
-                                           Source_Chroma_Aux,
-                                           &meta);
-    status = channel->startStreams(Source_Luma_Aux | Source_Chroma_Aux);
-    if(Status_Ok != status) {
-        std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
-    }
-
-    //
-    // Spin until the user wants to exit. Images will be serviced in the image_callback
-    // as they are received by the camera
-    while(true)
-    {
-        usleep(100000);
-    }
-
-    //
-    // Stop streams and remove our callback
-    status = channel->stopStreams(Source_All);
-    status = channel->removeIsolatedCallback(image_callback);
-
-    if(Status_Ok != status) {
-        std::cerr << "unable to stop streams and remove isolated callback" << std::endl;
-    }
-
-    //
-    // Destroy the channel instance
-    Channel::Destroy(channel);
-}
-```
 
 ### Camera Configuration
 
 Camera settings like resolution, exposure, FPS, gain, gamma, and white balance can be configured
 via the LibMultiSense `image::Config`
 
-#### test.cc
+#### configuration.py
+
+```python
+import libmultisense as lms
+
+def main(args):
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    channel = lms.Channel.create(channel_config)
+    if not channel:
+        print("Invalid channel")
+        exit(1)
+
+    config = channel.get_configuration()
+    config.frames_per_second = 10.0
+    config.width = 960
+    config.height = 600
+    config.disparities = lms.MaxDisparities.D256
+    config.image_config.auto_exposure_enabled = True
+    config.image_config.gamma = 2.2
+    if channel.set_configuration(config) != lms.Status.OK:
+        print("Cannot set configuration")
+        exit(1)
+```
+
+#### configuration.cc
 
 ```c++
-int main()
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
 {
-    //
-    // Instantiate a channel connecting to a sensor at the factory default
-    // IP address. Note jumbo frames are suggested when running at 30 FPS
-    Channel* channel = nullptr;
-    channel = Channel::Create("10.66.171.21");
-    channel->setMtu(9000);
-
-    Status status;
-
-    //
-    // Query the current camera's image configuration, and update the desired
-    // configuration settings
-    image::Config image_config;
-    status = channel->getImageConfig(image_config);
-    if (Status_Ok != status) {
-        std::cerr << "Failed to get image config"  << std::endl;
+    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;;
+        return 1;
     }
 
-    image_config.setResolution(960, 600);
-    image_config.setDisparities(256);
-    image_config.setFps(30.0);
-
-    status = channel->setImageConfig(image_config);
-    if (Status_Ok != status) {
-        std::cerr << "Failed to set image config" << std::endl;
+    auto config = channel->get_configuration();
+    config.frames_per_second = 10.0;
+    config.width = 960;
+    config.height = 600;
+    config.disparities = lms::MultiSenseConfiguration::MaxDisparities::D256;
+    config.image_config.auto_exposure_enabled = True;
+    config.image_config.gamma = 2.2;
+    if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
+    {
+        std::cerr << "Cannot set config" << std::endl;
+        return 1;
     }
 
-    Channel::Destroy(channel);
+    return 0;
+}
+```
+
+### Point Cloud Generation
+
+Disparity images can be converted to 3D point cloud images using the client API.
+
+The following modified version of the [Hello World](#hello-world) example,
+converts disparity images to 3D point clouds colorized using the left rectified image.
+
+#### point_cloud.py
+
+```python
+import libmultisense as lms
+
+def main(args):
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    channel = lms.Channel.create(channel_config)
+    if not channel:
+        print("Invalid channel")
+        exit(1)
+
+    if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW, lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
+        print("Unable to start streams")
+        exit(1)
+
+    while True:
+        frame = channel.get_next_image_frame()
+        if frame:
+            point_cloud = lms.create_gray8_pointcloud(frame,
+                                                     args.max_range,
+                                                     lms.DataSource.LEFT_RECTIFIED_RAW,
+                                                     lms.DataSource.LEFT_DISPARITY_RAW)
+
+            print("Saving pointcloud for frame id: ", frame.frame_id)
+            lms.write_pointcloud_ply(point_cloud, str(frame.frame_id) + ".ply")
+
+```
+
+#### point_cloud.cpp
+
+```c++
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;;
+        return 1;
+    }
+
+    if (const auto status = channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW,
+                                                    lms::DataSource::LEFT_DISPARITY_RAW}); status != lms::Status::OK)
+    {
+        std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
+        return 1;
+    }
+
+    while(!done)
+    {
+        if (const auto image_frame = channel->get_next_image_frame(); image_frame)
+        {
+            if (const auto point_cloud = lms::create_color_pointcloud<uint8_t>(image_frame.value(),
+                                                                               max_range,
+                                                                               lms::DataSource::LEFT_RECTIFIED_RAW,
+                                                                               lms::DataSource::LEFT_DISPARITY_RAW); point_cloud)
+            {
+                std::cout << "Saving pointcloud for frame id: " << image_frame->frame_id << std::endl;
+                lms::write_pointcloud_ply(point_cloud.value(), std::to_string(image_frame->frame_id) + ".ply");
+            }
+        }
+    }
+
+    return 0;
 }
 ```
 
 ### Depth Image Generation
 
-Disparity images can be converted to depth images using the camera's onboard calibration.
+Disparity images can be converted to depth images using the client API
 
 The following modified version of the [Hello World](#hello-world) example,
 converts disparity images to openni depth images and saves them to disk using OpenCV.
 
-#### test.cpp
+#### depth.py
+
+```python
+import libmultisense as lms
+
+def main(args):
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    channel = lms.Channel.create(channel_config)
+    if not channel:
+        print("Invalid channel")
+        exit(1)
+
+    if channel.start_streams([lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
+        print("Unable to start streams")
+        exit(1)
+
+    while True:
+        frame = channel.get_next_image_frame()
+        if frame:
+            # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard
+            depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
+            if depth_image:
+                print("Saving depth image for frame id: ", frame.frame_id)
+                cv2.imwrite(str(frame.frame_id) + ".png", depth_image.as_array)
+```
+
+#### depth.cpp
 
 ```c++
-#include <iostream>
-#include <limits>
-#include <unistd.h>
 
-#include <opencv2/highgui.hpp>
-#include <opencv2/imgproc.hpp>
-
-#include <MultiSense/MultiSenseTypes.hh>
 #include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
 
-using namespace crl::multisense;
+namespace lms = multisense;
 
-struct UserData
+int main(int argc, char** argv)
 {
-    image::Calibration calibration;
-
-    crl::multisense::system::DeviceInfo device_info;
-};
-
-void image_callback(const image::Header& header, void* user_data)
-{
-    UserData* meta = reinterpret_cast<UserData*>(user_data);
-
-    //
-    // Scale the full resolution calibration based on the current operating resolution
-    // Also negate the tx estimate to get the raw baseline
-    // See https://docs.carnegierobotics.com/docs/calibration/stereo.html
-    const double x_scale = static_cast<double>(header.width) /
-                           static_cast<double>(meta->device_info.imagerWidth);
-
-    const double f = meta->calibration.left.P[0][0] * x_scale;
-    const double b = -1.0 * meta->calibration.right.P[0][3] /
-                     meta->calibration.right.P[0][0];
-
-    const uint16_t* raw_disparity = reinterpret_cast<const uint16_t*>(header.imageDataP);
-
-    //
-    // Convert each quantized disparity pixel to depth using: z = (f * b) / d.
-    // Store the output in the quantized openni depth image format
-    const double max_ni_depth = std::numeric_limits<uint16_t>::max();
-    std::vector<uint16_t> output_depth_buffer(header.width * header.height, 0);
-    for (size_t i = 0 ; i < (header.width * header.height) ; ++i)
+    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    if (!channel)
     {
-        const uint16_t d = raw_disparity[i];
-        if (d == 0) continue;
-
-        //
-        // Disparity images are quantized to 1/16 of a pixel
-        const double z = (f * b) / (static_cast<double>(d) / 16.0);
-
-        //
-        // OpenNI Depth images are quantized to millimeters
-        output_depth_buffer[i] =
-            static_cast<uint16_t>(std::min(max_ni_depth, std::max(0.0, z * 1000)));
+        std::cerr << "Failed to create channel" << std::endl;;
+        return 1;
     }
 
-    //
-    // Save the output depth image with OpenCV
-    const cv::Mat_<uint16_t> depth_image(header.height, header.width,
-                                         output_depth_buffer.data());
-    cv::imwrite(std::to_string(header.frameId) + ".png", depth_image);
-}
-
-int main()
-{
-    //
-    // Instantiate a channel connecting to a sensor at the factory default
-    // IP address
-    Channel* channel = nullptr;
-    channel = Channel::Create("10.66.171.21");
-    channel->setMtu(1500);
-
-    Status status;
-
-    //
-    // Query calibration
-    image::Calibration calibration;
-    status = channel->getImageCalibration(calibration);
-    if (Status_Ok != status) {
-        std::cerr << "Failed to query calibraiton" << std::endl;
-    }
-
-    //
-    // Query device info
-    system::DeviceInfo device_info;
-    status = channel->getDeviceInfo(device_info);
-    if (Status_Ok != status) {
-        std::cerr << "Failed to query device info" << std::endl;
-    }
-
-    //
-    // Query and set the image config to 1/4 resolution
-    image::Config image_config;
-    status = channel->getImageConfig(image_config);
-    if (Status_Ok != status) {
-        std::cerr << "Failed to get image config" << std::endl;
-    }
-
-    image_config.setResolution(device_info.imagerWidth / 2, device_info.imagerHeight / 2);
-    image_config.setDisparities(256);
-    image_config.setFps(10.0);
-
-    status = channel->setImageConfig(image_config);
-    if (Status_Ok != status) {
-        std::cerr << "Failed to set image config" << std::endl;
-    }
-
-    //
-    // Data which can be shared among callbacks
-    UserData meta{calibration, device_info};
-
-    //
-    // Attached a callback to the Channel which will get called when certain image types
-    // are received by the camera. Multiple image callbacks can be attached to a
-    // Channel
-    status = channel->addIsolatedCallback(image_callback, Source_Disparity, &meta);
-    status = channel->startStreams(Source_Disparity);
-    if(Status_Ok != status) {
-        std::cerr << "unable to add isolated callbacks and start image streams" << std::endl;
-    }
-
-    //
-    // Spin until the user wants to exit. Images will be serviced in the image_callback
-    // as they are received by the camera
-    while(true)
+    if (const auto status = channel->start_streams({lms::DataSource::LEFT_DISPARITY_RAW}); status != lms::Status::OK)
     {
-        usleep(100000);
+        std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
+        return 1;
     }
 
-    //
-    // Stop streams and remove our callback
-    status = channel->stopStreams(Source_All);
-    status = channel->removeIsolatedCallback(image_callback);
-
-    if(Status_Ok != status) {
-        std::cerr << "unable to stop streams and remove isolated callback" << std::endl;
+    while(!done)
+    {
+        if (const auto image_frame = channel->get_next_image_frame(); image_frame)
+        {
+            //
+            // MONO16 depth will be quantized to mm to match OpenNI's depth format
+            //
+            if (const auto depth_image = lms::create_depth_image(image_frame.value(),
+                                                                 lms::Image::PixelFormat::MONO16,
+                                                                 lms::DataSource::LEFT_DISPARITY_RAW,
+                                                                 65535); depth_image)
+            {
+                std::cout << "Saving depth image for frame id: " << image_frame->frame_id << std::endl;
+                cv::imwrite(std::to_string(image_frame->frame_id) + ".png", depth_image->cv_mat());
+            }
+        }
     }
 
-    //
-    // Destroy the channel instance
-    Channel::Destroy(channel);
+    return 0;
 }
 ```

@@ -34,6 +34,9 @@
  *   2025-01-10, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <chrono>
+#include <optional>
+
 #include <gtest/gtest.h>
 
 #include <details/legacy/message.hh>
