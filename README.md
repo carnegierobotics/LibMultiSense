@@ -32,16 +32,15 @@ import libmultisense as lms
 
 channel_config = lms.ChannelConfig()
 channel_config.ip_address = "10.66.171.21"
-channel = lms.Channel.create(channel_config)
+with lms.Channel.create(channel_config) as channel:
+    channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW])
 
-channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW])
-
-while True:
-    frame = channel.get_next_image_frame()
-    if frame:
-        for source, image in frame.images.items():
-            cv2.imwrite(str(source) + ".png", image.as_array)
-```
+    while True:
+        frame = channel.get_next_image_frame()
+        if frame:
+            for source, image in frame.images.items():
+                cv2.imwrite(str(source) + ".png", image.as_array)
+    ```
 
 #### C++
 
@@ -206,21 +205,21 @@ def main(args):
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        exit(1)
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
 
-    config = channel.get_configuration()
-    config.frames_per_second = 10.0
-    config.width = 960
-    config.height = 600
-    config.disparities = lms.MaxDisparities.D256
-    config.image_config.auto_exposure_enabled = True
-    config.image_config.gamma = 2.2
-    if channel.set_configuration(config) != lms.Status.OK:
-        print("Cannot set configuration")
-        exit(1)
+        config = channel.get_configuration()
+        config.frames_per_second = 10.0
+        config.width = 960
+        config.height = 600
+        config.disparities = lms.MaxDisparities.D256
+        config.image_config.auto_exposure_enabled = True
+        config.image_config.gamma = 2.2
+        if channel.set_configuration(config) != lms.Status.OK:
+            print("Cannot set configuration")
+            exit(1)
 ```
 
 #### configuration.cc
@@ -273,25 +272,25 @@ def main(args):
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        exit(1)
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
 
-    if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW, lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
-        print("Unable to start streams")
-        exit(1)
+        if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW, lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
 
-    while True:
-        frame = channel.get_next_image_frame()
-        if frame:
-            point_cloud = lms.create_gray8_pointcloud(frame,
-                                                     args.max_range,
-                                                     lms.DataSource.LEFT_RECTIFIED_RAW,
-                                                     lms.DataSource.LEFT_DISPARITY_RAW)
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame:
+                point_cloud = lms.create_gray8_pointcloud(frame,
+                                                         args.max_range,
+                                                         lms.DataSource.LEFT_RECTIFIED_RAW,
+                                                         lms.DataSource.LEFT_DISPARITY_RAW)
 
-            print("Saving pointcloud for frame id: ", frame.frame_id)
-            lms.write_pointcloud_ply(point_cloud, str(frame.frame_id) + ".ply")
+                print("Saving pointcloud for frame id: ", frame.frame_id)
+                lms.write_pointcloud_ply(point_cloud, str(frame.frame_id) + ".ply")
 
 ```
 
@@ -355,24 +354,24 @@ def main(args):
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        exit(1)
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
 
-    if channel.start_streams([lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
-        print("Unable to start streams")
-        exit(1)
+        if channel.start_streams([lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
 
-    while True:
-        frame = channel.get_next_image_frame()
-        if frame:
-            # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard
-            depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
-            if depth_image:
-                print("Saving depth image for frame id: ", frame.frame_id)
-                cv2.imwrite(str(frame.frame_id) + ".png", depth_image.as_array)
-```
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame:
+                # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard
+                depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
+                if depth_image:
+                    print("Saving depth image for frame id: ", frame.frame_id)
+                    cv2.imwrite(str(frame.frame_id) + ".png", depth_image.as_array)
+    ```
 
 #### depth.cpp
 
