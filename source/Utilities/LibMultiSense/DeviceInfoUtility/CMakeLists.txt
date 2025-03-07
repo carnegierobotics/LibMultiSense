@@ -1,5 +1,3 @@
-find_package(nlohmann_json)
-
 if(nlohmann_json_FOUND)
     add_executable(DeviceInfoUtility DeviceInfoUtility.cc)
 

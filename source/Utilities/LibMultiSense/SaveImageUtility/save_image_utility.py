@@ -62,51 +62,78 @@ def get_status_string(status):
 
     return output + temp + power + stats
 
+def save_image(frame, source):
+    base_path = str(frame.frame_id) + "_" + str(source);
+
+    if source == lms.DataSource.LEFT_DISPARITY_RAW:
+        depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
+        if depth_image:
+            lms.write_image(depth_image, base_path + ".pgm")
+    elif source == lms.DataSource.LEFT_RECTIFIED_RAW:
+        lms.write_image(frame.get_image(source), base_path + ".pgm")
+    elif source == lms.DataSource.AUX_RAW:
+        bgr = lms.create_bgr_image(frame, lms.DataSource.AUX_RAW)
+        if bgr:
+            lms.write_image(bgr, base_path + ".ppm")
+
 def main(args):
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        return
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            return
 
-    info = channel.get_info()
+        info = channel.get_info()
 
-    print("Firmware build date :  ", info.version.firmware_build_date)
-    print("Firmware version    :  ", info.version.firmware_version.to_string())
-    print("Hardware version    :  ", hex(info.version.hardware_version))
+        print("Firmware build date :  ", info.version.firmware_build_date)
+        print("Firmware version    :  ", info.version.firmware_version.to_string())
+        print("Hardware version    :  ", hex(info.version.hardware_version))
 
-    config = channel.get_configuration()
-    config.frames_per_second = 30.0
-    if channel.set_configuration(config) != lms.Status.OK:
-        print("Cannot set configuration")
-        exit(1)
+        config = channel.get_configuration()
+        config.frames_per_second = 30.0
+        if channel.set_configuration(config) != lms.Status.OK:
+            print("Cannot set configuration")
+            exit(1)
 
-    if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW]) != lms.Status.OK:
-        print("Unable to start streams")
-        exit(1)
+        streams = []
+        if args.save_depth:
+            streams.append(lms.DataSource.LEFT_DISPARITY_RAW)
+        if args.save_left_rect:
+            streams.append(lms.DataSource.LEFT_RECTIFIED_RAW)
+        if args.save_color:
+            streams.append(lms.DataSource.AUX_RAW)
 
-    #Only save the first image
-    saved = False
+        if channel.start_streams(streams) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
 
-    while True:
-        if not saved:
-            frame = channel.get_next_image_frame()
-            if frame:
-                for source, image in frame.images.items():
-                    cv2.imwrite(str(source) + ".png", image.as_array)
-                    saved = True
+        #Only save the first image
+        saved_images = 0
 
-        status = channel.get_system_status()
-        if status:
-            print(get_status_string(status))
+        while True:
+            if saved_images < args.number_of_images:
+                frame = channel.get_next_image_frame()
+                if frame:
+                    for stream in streams:
+                        save_image(frame, stream)
 
-        time.sleep(1)
+                saved_images += 1
+
+            status = channel.get_system_status()
+            if status:
+                print(get_status_string(status))
+
+            time.sleep(1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense save image utility")
     parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
     parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-n", "--number-of-images", type=int, default=1, help="The number of images to save.")
+    parser.add_argument("-d", "--save-depth", action='store_true', help="Save a 16 bit depth image.")
+    parser.add_argument("-l", "--save-left-rect", action='store_true', help="Save a left rectified image.")
+    parser.add_argument("-c", "--save-color", action='store_true', help="Save a color image.")
     main(parser.parse_args())

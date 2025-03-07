@@ -44,16 +44,16 @@ def main(args):
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        exit(1)
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
 
-    info = channel.get_info();
+        info = channel.get_info();
 
-    print("Firmware build date :  ", info.version.firmware_build_date)
-    print("Firmware version    :  ", info.version.firmware_version.to_string())
-    print("Hardware version    :  ", hex(info.version.hardware_version))
+        print("Firmware build date :  ", info.version.firmware_build_date)
+        print("Firmware version    :  ", info.version.firmware_version.to_string())
+        print("Hardware version    :  ", hex(info.version.hardware_version))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense save image utility")

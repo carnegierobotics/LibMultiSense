@@ -26,8 +26,6 @@ set (MULTISENSE_UTILITY_LIBS
 
 endif ()
 
-add_subdirectory(ColorImageUtility)
-add_subdirectory(DepthImageUtility)
 add_subdirectory(DeviceInfoUtility)
 add_subdirectory(PointCloudUtility)
 add_subdirectory(SaveImageUtility)

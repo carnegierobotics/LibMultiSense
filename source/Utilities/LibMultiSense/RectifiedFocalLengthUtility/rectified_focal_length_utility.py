@@ -66,19 +66,19 @@ def main(args):
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        exit(1)
-
-    current_calibration = channel.get_calibration();
-
-    new_calibration = update_calibration(current_calibration, args.rectified_focal_length)
-
-    if args.set:
-        if channel.set_calibration(new_calibration) != lms.Status.OK:
-            print("Failed to set the updated calibration")
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
             exit(1)
+
+        current_calibration = channel.get_calibration();
+
+        new_calibration = update_calibration(current_calibration, args.rectified_focal_length)
+
+        if args.set:
+            if channel.set_calibration(new_calibration) != lms.Status.OK:
+                print("Failed to set the updated calibration")
+                exit(1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense save image utility")

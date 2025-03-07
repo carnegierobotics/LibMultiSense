@@ -45,15 +45,15 @@ def main(args):
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
 
-    channel = lms.Channel.create(channel_config)
-    if not channel:
-        print("Invalid channel")
-        exit(1)
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
 
-    print(json.dumps(channel.get_info().device.json,
-                     sort_keys=True,
-                     indent=4,
-                     separators=(',', ': ')))
+        print(json.dumps(channel.get_info().device.json,
+                         sort_keys=True,
+                         indent=4,
+                         separators=(',', ': ')))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense save image utility")

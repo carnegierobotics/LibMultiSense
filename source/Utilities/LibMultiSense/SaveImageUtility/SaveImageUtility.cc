@@ -66,9 +66,47 @@ void usage(const char *name)
 {
     std::cerr << "USAGE: " << name << " [<options>]" << std::endl;
     std::cerr << "Where <options> are:" << std::endl;
-    std::cerr << "\t-a <current_address> : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>             : MTU to use to communicate with the camera (default=1500)" << std::endl;
+    std::cerr << "\t-a <current-address>    : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-m <mtu>                : MTU to use to communicate with the camera (default=1500)" << std::endl;
+    std::cerr << "\t-n <number-of-images>   : Number of images to save (default=1)" << std::endl;
+    std::cerr << "\t-d                      : Save depth images" << std::endl;
+    std::cerr << "\t-l                      : Save left rectified images" << std::endl;
+    std::cerr << "\t-c                      : Save color images" << std::endl;
     exit(1);
+}
+
+void save_image(const lms::ImageFrame &frame, const lms::DataSource &source)
+{
+    const auto base_path = std::to_string(frame.frame_id) +  "_" +
+                          std::to_string(static_cast<int>(source));
+    switch (source)
+    {
+        case lms::DataSource::LEFT_DISPARITY_RAW:
+        {
+            if (const auto depth_image = lms::create_depth_image(frame,
+                                                                 lms::Image::PixelFormat::MONO16,
+                                                                 source,
+                                                                 65535); depth_image)
+            {
+                lms::write_image(depth_image.value(), base_path + ".pgm");
+            }
+            break;
+        }
+        case lms::DataSource::LEFT_RECTIFIED_RAW:
+        {
+            lms::write_image(frame.get_image(source), base_path + ".pgm");
+            break;
+        }
+        case lms::DataSource::AUX_RAW:
+        {
+            if (const auto bgr = create_bgr_image(frame, source); bgr)
+            {
+                lms::write_image(bgr.value(), base_path+".ppm");
+            }
+            break;
+        }
+        default: return;
+    }
 }
 
 #ifdef WIN32
@@ -100,14 +138,22 @@ int main(int argc, char** argv)
 
     std::string ip_address = "10.66.171.21";
     int16_t mtu = 1500;
+    size_t number_of_images = 1;
+    bool save_depth = false;
+    bool save_left_rect = false;
+    bool save_color = false;
 
     int c;
-    while(-1 != (c = getopt(argc, argv, "a:m:")))
+    while(-1 != (c = getopt(argc, argv, "a:m:n:dlc")))
     {
         switch(c)
         {
             case 'a': ip_address = std::string(optarg); break;
             case 'm': mtu = static_cast<uint16_t>(atoi(optarg)); break;
+            case 'n': number_of_images = static_cast<size_t>(atoi(optarg)); break;
+            case 'd': save_depth = true; break;
+            case 'l': save_left_rect = true; break;
+            case 'c': save_color = true; break;
             default: usage(*argv); break;
         }
     }
@@ -140,10 +186,21 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    std::vector<lms::DataSource> image_streams{};
+    if (save_depth) image_streams.push_back(lms::DataSource::LEFT_DISPARITY_RAW);
+    if (save_left_rect) image_streams.push_back(lms::DataSource::LEFT_RECTIFIED_RAW);
+    if (save_color) image_streams.push_back(lms::DataSource::AUX_RAW);
+
+    if (image_streams.empty())
+    {
+        std::cerr << "No image streams requested" << std::endl;
+        return 0;
+    }
+
     //
     // Start a single image stream
     //
-    if (const auto status = channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW}); status != lms::Status::OK)
+    if (const auto status = channel->start_streams(image_streams); status != lms::Status::OK)
     {
         std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
         return 1;
@@ -152,23 +209,20 @@ int main(int argc, char** argv)
     //
     // Only save the first image
     //
-    bool saved_image = false;
+    size_t saved_images = 0;
 
     while(!done)
     {
-        if (!saved_image)
+        if (saved_images < number_of_images)
         {
             if (const auto image_frame = channel->get_next_image_frame(); image_frame)
             {
-                for (const auto &[source, image]: image_frame->images)
+                for (const auto &stream : image_streams)
                 {
-
-                    const auto path = std::to_string(image_frame->frame_id) +  "_" +
-                                      std::to_string(static_cast<int>(source)) + ".pgm";
-                    lms::write_image(image, path);
-                    saved_image = true;
+                    save_image(image_frame.value(), stream);
                 }
             }
+            ++saved_images;
         }
 
         if (const auto status = channel->get_system_status(); status)
