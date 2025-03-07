@@ -48,9 +48,7 @@
 
 #ifdef BUILD_JSON
 #include <MultiSense/MultiSenseSerialization.hh>
-#endif
 
-#ifdef BUILD_JSON
 #define PYBIND11_JSON_SUPPORT(Type)                                                     \
     .def(py::init([](const py::dict &d) {                                               \
         py::module json = py::module::import("json");                                   \
