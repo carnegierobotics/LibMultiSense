@@ -1,0 +1,7 @@
+{
+    "dependencies": [
+        "gtest",
+        "nlohmann-json",
+        "pybind11"
+    ]
+}
