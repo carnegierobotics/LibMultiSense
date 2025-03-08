@@ -10,7 +10,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
 endif()
 
 set(CPACK_PACKAGE_VERSION "7.0.0")
