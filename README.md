@@ -15,7 +15,45 @@ is using the new API. To build with the new API, the following CMake arguments s
 
 ## Table of Contents
 
-## Networking Prerequisite
+- [Overview](#overview)
+- [Client Networking Prerequisite](#client-networking-prerequisite)
+- [Quickstart Guide](#quickstart-guide)
+  - [Python](#python)
+  - [C++](#c)
+- [Optional Dependencies](#optional-dependencies)
+  - [OpenCV](#opencv)
+  - [nlohmann_json](#nlohmann_json)
+  - [pybind11](#pybind11)
+  - [googletest](#googletest)
+- [Installation](#installation)
+  - [Linux](#linux)
+    - [Python](#python-1)
+    - [C++](#c-1)
+  - [MacOS](#macos)
+    - [Python](#python-2)
+    - [C++](#c-2)
+  - [Windows](#windows)
+    - [Python](#python-3)
+    - [C++](#c-3)
+- [CMake Project Integration](#cmake-project-integration)
+  - [Local Installation](#local-installation)
+  - [Git Submodule](#git-submodule)
+- [Documentation](#documentation)
+- [Support](#support)
+- [Camera Configuration](#camera-configuration)
+  - [Python](#python-4)
+  - [C++](#c-4)
+- [Point Cloud Generation](#point-cloud-generation)
+  - [Python](#python-5)
+  - [C++](#c-5)
+- [Depth Image Generation](#depth-image-generation)
+  - [Python](#python-6)
+  - [C++](#c-6)
+- [Color Image Generation](#color-image-generation)
+  - [Python](#python-7)
+  - [C++](#c-7)
+
+## Client Networking Prerequisite
 
 The MultiSense comes preconfigured with a static 10.66.171.21 IP address with a /24 subent. To connect to the
 MultiSense, a client machine must be updated with an IP address on the 10.66.171 subnet.
@@ -433,6 +471,8 @@ int main(int argc, char** argv)
 }
 ```
 
+---
+
 ## Depth Image Generation
 
 Disparity images can be converted to depth images using the client API
@@ -513,6 +553,8 @@ int main(int argc, char** argv)
     return 0;
 }
 ```
+
+---
 
 ## Color Image Generation
 
