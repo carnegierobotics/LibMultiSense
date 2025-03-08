@@ -139,7 +139,7 @@ jobs:
             ${{ runner.os }}-vcpkg-
 
       - name: Install vcpkg dependencies
-        run: ${{ github.workspace }}\vcpkg\vcpkg install --triplet x64-windows
+        run: ${{ github.workspace }}/vcpkg/vcpkg install --triplet x64-windows
 
       - name: Build Release
         shell: cmd
@@ -149,8 +149,9 @@ jobs:
             -DBUILD_PYTHON_BINDINGS=ON ^
             -DBUILD_LEGACY_API=OFF ^
             -DCMAKE_BUILD_TYPE=Release ^
-            -DBUILD_TESTS=ON
-          cmake --build build --config Release --target install --prefix ${{ github.workspace }}\install-release -- /m:10
+            -DBUILD_TESTS=ON^
+            -DCMAKE_INSTALL_PREFIX= ${{ github.workspace }}/install-release
+          cmake --build build --config Release --target install -- /m:10
           mkdir pip-wheel
           pip wheel -v --wheel-dir pip-wheel ${{ github.workspace }}
           ctest -C Release

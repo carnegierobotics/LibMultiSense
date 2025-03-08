@@ -40,7 +40,7 @@ with lms.Channel.create(channel_config) as channel:
         if frame:
             for source, image in frame.images.items():
                 cv2.imwrite(str(source) + ".png", image.as_array)
-    ```
+```
 
 #### C++
 
@@ -371,7 +371,7 @@ def main(args):
                 if depth_image:
                     print("Saving depth image for frame id: ", frame.frame_id)
                     cv2.imwrite(str(frame.frame_id) + ".png", depth_image.as_array)
-    ```
+```
 
 #### depth.cpp
 
