@@ -15,7 +15,6 @@ is using the new API. To build with the new API, the following CMake arguments s
 
 ## Table of Contents
 
-- [Overview](#overview)
 - [Client Networking Prerequisite](#client-networking-prerequisite)
 - [Quickstart Guide](#quickstart-guide)
   - [Python](#python)
@@ -55,7 +54,7 @@ is using the new API. To build with the new API, the following CMake arguments s
 
 ## Client Networking Prerequisite
 
-The MultiSense comes preconfigured with a static 10.66.171.21 IP address with a /24 subent. To connect to the
+The MultiSense comes preconfigured with a static 10.66.171.21 IP address with a /24 subnet. To connect to the
 MultiSense, a client machine must be updated with an IP address on the 10.66.171 subnet.
 
 Please see the [host network configuration](https://docs.carnegierobotics.com/network/network.html) for details
@@ -70,6 +69,7 @@ Below are minimal examples demonstrating basic usage of LibMultiSense to capture
 
 ```python
 import libmultisense as lms
+import cv2
 
 channel_config = lms.ChannelConfig()
 channel_config.ip_address = "10.66.171.21"
@@ -94,7 +94,7 @@ int main()
     const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
     channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW});
 
-    while(true):
+    while(true)
     {
         if (const auto image_frame = channel->get_next_image_frame(); image_frame)
         {
@@ -117,7 +117,7 @@ int main()
 ### OpenCV
 
 LibMultiSense optionally has OpenCV utility functions to make the LibMultiSense client API easier to integrate
-with existing systems. To build build the OpenCV helpers the following CMake argument should be set
+with existing systems. To build the OpenCV helpers the following CMake argument should be set
 
     -DBUILD_OPENCV=ON
 
@@ -126,7 +126,7 @@ This will require a system installation of OpenCV, or an installation which can 
 
 ### nlohmann json
 
-LibMultiSense optionally uses nlohmann_json for serialization of base LibMultiSense types. To build build the 
+LibMultiSense optionally uses nlohmann_json for serialization of base LibMultiSense types. To build the
 nlohmann_json serialization helpers the following CMake argument should be set
 
     -DBUILD_JSON_SERIALIZATION=ON
@@ -136,7 +136,7 @@ This will require a system installation of nlohmann_json, or an installation whi
 
 ### pybind11
 
-LibMultiSense optionally uses pybind11 to generate python bindings for the C+ API. To build the pybind11 python
+LibMultiSense optionally uses pybind11 to generate python bindings for the C++ API. To build the pybind11 python
 bindings the following CMake argument should be set
 
     -DBUILD_PYTHON_BINDINGS=ON
@@ -146,7 +146,7 @@ This will require a system installation of pybind11, or an installation which ca
 
 ### googletest
 
-LibMultiSense optionally uses googletest to for unit testing the C+ API. To build the googletest unit tests
+LibMultiSense optionally uses googletest for unit testing the C+ API. To build the googletest unit tests
 the following CMake argument should be set
 
     -DBUILD_TESTS=ON
@@ -163,7 +163,7 @@ This will require a system installation of googletest, or an installation which 
 #### Python
 
 LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
-installed via pip into a python virtual enviornment or a local python project.
+installed via pip into a python virtual environment or a local python project.
 
 To install the LibMultiSense python bindings
 
@@ -199,7 +199,7 @@ set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 #### Python
 
 LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
-installed via pip into a python virtual enviornment or a local python project.
+installed via pip into a python virtual environment or a local python project.
 
 To install the LibMultiSense python bindings
 
@@ -332,6 +332,7 @@ via the LibMultiSense `image::Config`
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
@@ -376,7 +377,7 @@ int main(int argc, char** argv)
     config.width = 960;
     config.height = 600;
     config.disparities = lms::MultiSenseConfiguration::MaxDisparities::D256;
-    config.image_config.auto_exposure_enabled = True;
+    config.image_config.auto_exposure_enabled = true;
     config.image_config.gamma = 2.2;
     if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
     {
@@ -400,6 +401,7 @@ converts disparity images to 3D point clouds colorized using the left rectified 
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
@@ -484,6 +486,7 @@ converts disparity images to openni depth images and saves them to disk using Op
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
@@ -567,6 +570,7 @@ converts luma and chroma aux images to BGR images and saves them to disk using O
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
