@@ -183,7 +183,7 @@ int main(int argc, char** argv)
     if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
     {
         std::cerr << "Cannot set config" << std::endl;
-        //return 1;
+        return 1;
     }
 
     std::vector<lms::DataSource> image_streams{};
