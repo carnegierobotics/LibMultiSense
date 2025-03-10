@@ -221,8 +221,9 @@ int main(int argc, char** argv)
                 {
                     save_image(image_frame.value(), stream);
                 }
+
+                ++saved_images;
             }
-            ++saved_images;
         }
 
         if (const auto status = channel->get_system_status(); status)
