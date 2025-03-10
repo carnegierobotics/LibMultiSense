@@ -1,34 +1,75 @@
 # LibMultiSense
 
-- [Hello World](#hello-world)
-  - [Point Cloud Generation](#point-cloud-generation)
-  - [Depth Image Generation](#depth-image-generation)
-  - [Camera Configuration](#camera-configuration)
-- [Optional Dependencies](#optional-dependencies)
-- [Installation](#installation)
-- [Documentation](#documentation)
-- [Support](#support)
+LibMultiSense is a C++ and Python library designed to simplify interaction with the MultiSense S family of stereo
+sensors developed by Carnegie Robotics. It provides a comprehensive, easy-to-use API for capturing and processing
+stereo sensor data an generating depth images, color images, and 3D point clouds.
 
-LibMultiSense is a C++ library used to interface with the MultiSense S
-family of sensors from Carnegie Robotics. For more information on the
-various MultiSense products please visit
-https://carnegierobotics.com/products
+**Official product page:** [Carnegie Robotics MultiSense Products](https://carnegierobotics.com/products)
 
-For more detailed documentation on general MultiSense operation
-please visit
-https://docs.carnegierobotics.com/
+**Detailed documentation:** [LibMultiSense Documentation](https://docs.carnegierobotics.com/docs/software/libmultisense.html)
 
 LibMultiSense was recently refactored to have a new API. The following examples in the README all assume the user
 is using the new API. To build with the new API, the following CMake arguments should be set.
 
     -DBUILD_LEGACY_API=0FF
 
-### Hello World
+## Table of Contents
 
-#### Python
+- [Client Networking Prerequisite](#client-networking-prerequisite)
+- [Quickstart Guide](#quickstart-guide)
+  - [Python](#python)
+  - [C++](#c)
+- [Optional Dependencies](#optional-dependencies)
+  - [OpenCV](#opencv)
+  - [nlohmann_json](#nlohmann_json)
+  - [pybind11](#pybind11)
+  - [googletest](#googletest)
+- [Installation](#installation)
+  - [Linux](#linux)
+    - [Python](#python-1)
+    - [C++](#c-1)
+  - [MacOS](#macos)
+    - [Python](#python-2)
+    - [C++](#c-2)
+  - [Windows](#windows)
+    - [Python](#python-3)
+    - [C++](#c-3)
+- [CMake Project Integration](#cmake-project-integration)
+  - [Local Installation](#local-installation)
+  - [Git Submodule](#git-submodule)
+- [Documentation](#documentation)
+- [Support](#support)
+- [Camera Configuration](#camera-configuration)
+  - [Python](#python-4)
+  - [C++](#c-4)
+- [Point Cloud Generation](#point-cloud-generation)
+  - [Python](#python-5)
+  - [C++](#c-5)
+- [Depth Image Generation](#depth-image-generation)
+  - [Python](#python-6)
+  - [C++](#c-6)
+- [Color Image Generation](#color-image-generation)
+  - [Python](#python-7)
+  - [C++](#c-7)
+
+## Client Networking Prerequisite
+
+The MultiSense comes preconfigured with a static 10.66.171.21 IP address with a /24 subnet. To connect to the
+MultiSense, a client machine must be updated with an IP address on the 10.66.171 subnet.
+
+Please see the [host network configuration](https://docs.carnegierobotics.com/network/network.html) for details
+on how to set a client machine's IP address and MTU.
+
+
+##  Quickstart Guide
+
+Below are minimal examples demonstrating basic usage of LibMultiSense to capture rectified images from the sensor.
+
+### Python
 
 ```python
 import libmultisense as lms
+import cv2
 
 channel_config = lms.ChannelConfig()
 channel_config.ip_address = "10.66.171.21"
@@ -40,9 +81,9 @@ with lms.Channel.create(channel_config) as channel:
         if frame:
             for source, image in frame.images.items():
                 cv2.imwrite(str(source) + ".png", image.as_array)
-    ```
+```
 
-#### C++
+### C++
 
 ```c++
 #include <MultiSense/MultiSenseChannel.hh>
@@ -53,7 +94,7 @@ int main()
     const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
     channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW});
 
-    while(true):
+    while(true)
     {
         if (const auto image_frame = channel->get_next_image_frame(); image_frame)
         {
@@ -69,21 +110,23 @@ int main()
 }
 ```
 
-### Optional Dependencies
+---
 
-#### OpenCV
+## Optional Dependencies
+
+### OpenCV
 
 LibMultiSense optionally has OpenCV utility functions to make the LibMultiSense client API easier to integrate
-with existing systems. To build build the OpenCV helpers the following CMake argument should be set
+with existing systems. To build the OpenCV helpers the following CMake argument should be set
 
     -DBUILD_OPENCV=ON
 
 This will require a system installation of OpenCV, or an installation which can be pointed to with CMake's
 `CMAKE_PREFIX_PATH` argument
 
-#### nlohmann json
+### nlohmann json
 
-LibMultiSense optionally uses nlohmann_json for serialization of base LibMultiSense types. To build build the 
+LibMultiSense optionally uses nlohmann_json for serialization of base LibMultiSense types. To build the
 nlohmann_json serialization helpers the following CMake argument should be set
 
     -DBUILD_JSON_SERIALIZATION=ON
@@ -91,44 +134,149 @@ nlohmann_json serialization helpers the following CMake argument should be set
 This will require a system installation of nlohmann_json, or an installation which can be pointed to with CMake's
 `CMAKE_PREFIX_PATH` argument
 
-### Installation
+### pybind11
 
-#### Linux
+LibMultiSense optionally uses pybind11 to generate python bindings for the C++ API. To build the pybind11 python
+bindings the following CMake argument should be set
 
-##### Python
+    -DBUILD_PYTHON_BINDINGS=ON
 
-LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API
+This will require a system installation of pybind11, or an installation which can be pointed to with CMake's
+`CMAKE_PREFIX_PATH` argument
+
+### googletest
+
+LibMultiSense optionally uses googletest for unit testing the C+ API. To build the googletest unit tests
+the following CMake argument should be set
+
+    -DBUILD_TESTS=ON
+
+This will require a system installation of googletest, or an installation which can be pointed to with CMake's
+`CMAKE_PREFIX_PATH` argument
+
+---
+
+## Installation
+
+### Linux
+
+#### Python
+
+LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
+installed via pip into a python virtual environment or a local python project.
 
 To install the LibMultiSense python bindings
+
+    > sudo apt install build-essential pybind11-dev nlohmann-json3-dev
 
     > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > pip install .
 
-##### C++
+#### C++
 
 LibMultiSense uses CMake for its build system.
 
 To build the standalone LibMultiSense library and demonstration applications.
 
     # Note this only needs to be run once before building
-    > sudo apt install build-essential
+    > sudo apt install build-essential nlohmann-json3-dev
 
     > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
     > mkdir build
-    > cd build && cmake -DBUILD_LEGACY_API=OFF -DCMAKE_INSTALL_PREFIX=../install ..
+    > cd build && cmake -DBUILD_LEGACY_API=OFF -DBUILD_JSON_SERIALIZATION=ON -DCMAKE_INSTALL_PREFIX=../install ..
     > make install
     > cd ../install
 
 To build the standalone LibMultiSense library without the demonstration applications,
 set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
+---
+
+### MacOS
+
+#### Python
+
+LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
+installed via pip into a python virtual environment or a local python project.
+
+To install the LibMultiSense python bindings
+
+    > brew install pybind11 nlohmann-json
+
+    > git clone https://github.com/carnegierobotics/LibMultiSense.git
+    > cd LibMultiSense
+    > pip install .
+
+#### C++
+
+LibMultiSense uses CMake for its build system.
+
+To build the standalone LibMultiSense library and demonstration applications.
+
+    # Note this only needs to be run once before building
+    > brew install nlohmann-json
+
+    > git clone https://github.com/carnegierobotics/LibMultiSense.git
+    > cd LibMultiSense
+    > mkdir build
+    > cd build && cmake -DBUILD_LEGACY_API=OFF -DBUILD_JSON_SERIALIZATION=ON -DCMAKE_INSTALL_PREFIX=../install ..
+    > make install
+    > cd ../install
+
+To build the standalone LibMultiSense library without the demonstration applications,
+set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
+
+---
+
+### Windows
+
+#### Python
+
+LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
+installed via pip into a python virtual environment or a local python project. To ensure Windows has the proper build
+tools installed, please install Microsoft Visual Studio with the C++ and CMake extensions.
+
+Note you will need to have a version of python installed on your Windows system. This was tested with
+python 3.9 installed via the Microsoft Store on Windows 11.
+
+To install the LibMultiSense python bindings open a powershell terminal and execute the following commands
+
+    > git clone https://github.com/carnegierobotics/LibMultiSense.git
+    > cd LibMultiSense
+    > git clone https://github.com/microsoft/vcpkg.git
+    > ./vcpkg/bootstrap-vcpkg.bat
+
+    > $Env:VCPKG_ROOT = ./vcpkg
+
+    > pip install .
+
+#### C++
+
+LibMultiSense uses CMake and vcpkg to build the LibMultiSense library. To ensure Windows has the proper build
+tools installed, please install Microsoft Visual Studio with the C++ and CMake extensions.
+
+Open a powershell terminal and execute the following commands:
+
+    > git clone https://github.com/carnegierobotics/LibMultiSense.git
+    > cd LibMultiSense
+    > git clone https://github.com/microsoft/vcpkg.git
+    > ./vcpkg/bootstrap-vcpkg.bat
+
+    > $Env:VCPKG_ROOT = ./vcpkg
+
+    > cmake --build build --config Release --target install
+
+---
+
+### CMake Project Integration
+
 Integrating LibMultiSense into an existing CMake project is easy. There are two
 primary methods for integration: a local install on your system, or a submodule
 clone within your repository
 
-###### Local Installation
+#### Local Installation
 
 LibMultiSense is installed on your system (i.e. in a location like /opt/multisense)
 
@@ -138,7 +286,7 @@ LibMultiSense is installed on your system (i.e. in a location like /opt/multisen
 When running CMake, make sure to specify the location of the LibMultiSense install
 via `-DCMAKE_PREFIX_PATH`
 
-##### Git Submodule
+#### Git Submodule
 
 Clone the LibMultiSense repository into the existing project's source tree.
 In the main CMakeLists.txt file of the project, add the following lines:
@@ -146,28 +294,9 @@ In the main CMakeLists.txt file of the project, add the following lines:
      include_directories(LibMultiSense/source/LibMultiSense)
      add_subdirectory(LibMultiSense/source/LibMultiSense)
 
-#### Windows
+---
 
-LibMultiSense uses CMake to create a Microsoft Visual Studio project file used
-to build the LibMultiSense DLL.
-
-Download and install CMake on Windows (http://www.cmake.org/download/), making
-sure CMake is included included in the system PATH.
-
-Clone LibMultiSense to the Windows machine using a Windows Git client.
-
-Open a command prompt and execute the following commands:
-
-    > cd <LibMultiSense_checkout_directory>
-    > mkdir build
-    > cd build
-    > cmake ..
-
-This will create a LibMultiSense.sln Visual Studio Solution file in the build directory.
-Open the solution file with Visual Studio (http://msdn.microsoft.com/en-us/vstudio/aa718325.aspx)
-and build the Solution.
-
-### Documentation
+## Documentation
 
 Documentation of high-level LibMutliSense concepts can be found
 [here](https://docs.carnegierobotics.com/docs/software/libmultisense.html)
@@ -182,7 +311,9 @@ HTML and LaTex documentation will be generated in the docs directory.
 
 Usage examples are included in the Doxygen documentation.
 
-### Support
+---
+
+## Support
 
 To report an issue with this library or request a new feature,
 please use the [GitHub issues system](https://github.com/carnegierobotics/LibMultiSense/issues)
@@ -190,16 +321,18 @@ please use the [GitHub issues system](https://github.com/carnegierobotics/LibMul
 For product support, please see the [support section of our website](https://carnegierobotics.com/support)
 Individual support requests can be created in our [support portal](https://carnegierobotics.com/submitaticket)
 
+---
 
-### Camera Configuration
+## Camera Configuration
 
 Camera settings like resolution, exposure, FPS, gain, gamma, and white balance can be configured
 via the LibMultiSense `image::Config`
 
-#### configuration.py
+### Python
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
@@ -222,7 +355,7 @@ def main(args):
             exit(1)
 ```
 
-#### configuration.cc
+### C++
 
 ```c++
 #include <MultiSense/MultiSenseChannel.hh>
@@ -244,7 +377,7 @@ int main(int argc, char** argv)
     config.width = 960;
     config.height = 600;
     config.disparities = lms::MultiSenseConfiguration::MaxDisparities::D256;
-    config.image_config.auto_exposure_enabled = True;
+    config.image_config.auto_exposure_enabled = true;
     config.image_config.gamma = 2.2;
     if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
     {
@@ -255,18 +388,20 @@ int main(int argc, char** argv)
     return 0;
 }
 ```
+---
 
-### Point Cloud Generation
+## Point Cloud Generation
 
 Disparity images can be converted to 3D point cloud images using the client API.
 
-The following modified version of the [Hello World](#hello-world) example,
+The following modified version of the [Quickstart](#quickstart-guide) example,
 converts disparity images to 3D point clouds colorized using the left rectified image.
 
-#### point_cloud.py
+### Python
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
@@ -294,7 +429,7 @@ def main(args):
 
 ```
 
-#### point_cloud.cpp
+### C++
 
 ```c++
 
@@ -338,17 +473,20 @@ int main(int argc, char** argv)
 }
 ```
 
-### Depth Image Generation
+---
+
+## Depth Image Generation
 
 Disparity images can be converted to depth images using the client API
 
-The following modified version of the [Hello World](#hello-world) example,
+The following modified version of the [Quickstart](#quickstart-guide) example,
 converts disparity images to openni depth images and saves them to disk using OpenCV.
 
-#### depth.py
+### Python
 
 ```python
 import libmultisense as lms
+import cv2
 
 def main(args):
     channel_config = lms.ChannelConfig()
@@ -371,9 +509,9 @@ def main(args):
                 if depth_image:
                     print("Saving depth image for frame id: ", frame.frame_id)
                     cv2.imwrite(str(frame.frame_id) + ".png", depth_image.as_array)
-    ```
+```
 
-#### depth.cpp
+### C++
 
 ```c++
 
@@ -411,6 +549,81 @@ int main(int argc, char** argv)
             {
                 std::cout << "Saving depth image for frame id: " << image_frame->frame_id << std::endl;
                 cv::imwrite(std::to_string(image_frame->frame_id) + ".png", depth_image->cv_mat());
+            }
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+## Color Image Generation
+
+Luma and Chroma Aux images can be converted to BGR color images using the client API
+
+The following modified version of the [Quickstart](#quickstart-guide) example,
+converts luma and chroma aux images to BGR images and saves them to disk using OpenCV.
+
+### Python
+
+```python
+import libmultisense as lms
+import cv2
+
+def main(args):
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        if channel.start_streams([lms.DataSource.AUX_RAW]) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
+
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame:
+                bgr = lms.create_bgr_image(frame, lms.DataSource.AUX_RAW)
+                if bgr:
+                    cv2.imwrite(str(frame.frame_id) + ".png", bgr.as_array)
+```
+
+### C++
+
+```c++
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;;
+        return 1;
+    }
+
+    if (const auto status = channel->start_streams({lms::DataSource::LEFT_DISPARITY_RAW}); status != lms::Status::OK)
+    {
+        std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
+        return 1;
+    }
+
+    while(!done)
+    {
+        if (const auto image_frame = channel->get_next_image_frame(); image_frame)
+        {
+            if (const auto bgr = create_bgr_image(frame, source); bgr)
+            {
+                cv::imwrite(std::to_string(image_frame->frame_id) + ".png", bgr->cv_mat());
             }
         }
     }
