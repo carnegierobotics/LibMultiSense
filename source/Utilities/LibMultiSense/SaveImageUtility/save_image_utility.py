@@ -120,7 +120,7 @@ def main(args):
                     for stream in streams:
                         save_image(frame, stream)
 
-                saved_images += 1
+                    saved_images += 1
 
             status = channel.get_system_status()
             if status:
