@@ -1358,7 +1358,16 @@ struct MultiSenseInfo
             ///
             /// @brief A pattern projector
             ///
-            PATTERN_PROJECTOR
+            PATTERN_PROJECTOR,
+            ///
+            /// @brief A GPIO line is used to trigger an external light
+            ///
+            OUTPUT_TRIGGER,
+            ///
+            /// @brief A pattern projector with a GPIO line used to trigger a external light
+            ///
+            PATTERN_PROJECTOR_OUTPUT_TRIGGER
+
         };
 
         ///

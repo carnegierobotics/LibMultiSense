@@ -126,12 +126,12 @@ MultiSenseConfig::AuxConfig convert(const crl::multisense::details::wire::AuxCam
                                                                 config.autoWhiteBalanceThresh};
 
     ms_config::ImageConfig image{config.gamma,
-                                        (config.autoExposure != 0),
-                                        std::move(manual_exposure),
-                                        std::move(auto_exposure),
-                                        (config.autoWhiteBalance != 0),
-                                        std::move(manual_white_balance),
-                                        std::move(auto_white_balance)};
+                                 (config.autoExposure != 0),
+                                 std::move(manual_exposure),
+                                 std::move(auto_exposure),
+                                 (config.autoWhiteBalance != 0),
+                                 std::move(manual_white_balance),
+                                 std::move(auto_white_balance)};
 
     return ms_config::AuxConfig{std::move(image),
                                        config.sharpeningEnable,

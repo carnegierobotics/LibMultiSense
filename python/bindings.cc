@@ -810,6 +810,9 @@ PYBIND11_MODULE(_libmultisense, m) {
                              strides));
         });
 
+
+    m.def("to_string", &multisense::to_string, py::call_guard<py::gil_scoped_release>());
+
     m.def("write_image",
           [](const multisense::Image &image, const std::string &path)
           {
