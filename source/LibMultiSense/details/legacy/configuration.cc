@@ -380,6 +380,10 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
 
     switch (type)
     {
+        case MultiSenseInfo::DeviceInfo::LightingType::NONE:
+        {
+            break;
+        }
         case MultiSenseInfo::DeviceInfo::LightingType::INTERNAL:
         case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR:
         {
