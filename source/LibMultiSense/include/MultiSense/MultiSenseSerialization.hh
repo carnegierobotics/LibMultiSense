@@ -393,7 +393,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo::DeviceInfo,
                                    nominal_stereo_baseline,
                                    nominal_focal_length,
                                    nominal_relative_aperture,
-                                   lens_type,
+                                   lighting_type,
                                    number_of_lights)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo::Version,
