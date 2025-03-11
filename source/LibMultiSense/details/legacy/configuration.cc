@@ -385,6 +385,7 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
         }
         case MultiSenseInfo::DeviceInfo::LightingType::INTERNAL:
         case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR:
+        case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER:
         {
             internal = lighting::InternalConfig{intensity, led.flash != 0};
             break;
@@ -403,6 +404,10 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
             }
 
             external = lighting::ExternalConfig{intensity, mode, led.number_of_pulses, std::chrono::microseconds{led.led_delay_us}};
+            break;
+        }
+        case MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER:
+        {
             break;
         }
         default: {CRL_EXCEPTION("Unsupported lighting type\n");}
