@@ -509,7 +509,9 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("NONE", multisense::MultiSenseInfo::DeviceInfo::LightingType::NONE)
         .value("INTERNAL", multisense::MultiSenseInfo::DeviceInfo::LightingType::INTERNAL)
         .value("EXTERNAL", multisense::MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL)
-        .value("PATTERN_PROJECTOR", multisense::MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR);
+        .value("PATTERN_PROJECTOR", multisense::MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR)
+        .value("OUTPUT_TRIGGER", multisense::MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER)
+        .value("PATTERN_PROJECTOR_OUTPUT_TRIGGER", multisense::MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER);
 
     // MultiSenseInfo::DeviceInfo::LensType
     py::enum_<multisense::MultiSenseInfo::MultiSenseInfo::DeviceInfo::LensType>(m, "LensType")
