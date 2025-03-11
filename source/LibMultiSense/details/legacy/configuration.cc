@@ -377,37 +377,35 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
 
     std::optional<lighting::InternalConfig> internal = std::nullopt;
     std::optional<lighting::ExternalConfig> external = std::nullopt;
-    switch (type)
+
+    if (type == MultiSenseInfo::DeviceInfo::LightingType::INTERNAL ||
+        type == MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR ||
+        type == MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER)
     {
-        case MultiSenseInfo::DeviceInfo::LightingType::NONE:
-        {
-            break;
-        }
-        case MultiSenseInfo::DeviceInfo::LightingType::INTERNAL:
-        case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR:
-        case MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER:
-        case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER:
-        {
-            internal = lighting::InternalConfig{intensity, led.flash != 0};
-            break;
-        }
-        case MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL:
-        {
-            lighting::ExternalConfig::FlashMode mode = lighting::ExternalConfig::FlashMode::NONE;
+        internal = lighting::InternalConfig{intensity, led.flash != 0};
+    }
 
-            if (led.rolling_shutter_led)
-            {
-                mode = lighting::ExternalConfig::FlashMode::SYNC_WITH_AUX;
-            }
-            else if (led.flash)
-            {
-                mode = lighting::ExternalConfig::FlashMode::SYNC_WITH_MAIN_STEREO;
-            }
+    if (type == MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL ||
+        type == MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER ||
+        type == MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER)
+    {
+        lighting::ExternalConfig::FlashMode mode = lighting::ExternalConfig::FlashMode::NONE;
 
-            external = lighting::ExternalConfig{intensity, mode, led.number_of_pulses, std::chrono::microseconds{led.led_delay_us}};
-            break;
+        if (led.rolling_shutter_led)
+        {
+            mode = lighting::ExternalConfig::FlashMode::SYNC_WITH_AUX;
         }
-        default: {CRL_EXCEPTION("Unsupported lighting type\n");}
+        else if (led.flash)
+        {
+            mode = lighting::ExternalConfig::FlashMode::SYNC_WITH_MAIN_STEREO;
+        }
+
+        external = lighting::ExternalConfig{intensity, mode, led.number_of_pulses, std::chrono::microseconds{led.led_delay_us}};
+    }
+
+    if (!internal && !external && type != MultiSenseInfo::DeviceInfo::LightingType::NONE)
+    {
+        CRL_EXCEPTION("Unsupported lighting type\n");
     }
 
     return MultiSenseConfig::LightingConfig{std::move(internal), std::move(external)};
