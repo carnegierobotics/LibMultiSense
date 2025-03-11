@@ -111,7 +111,6 @@ def main(args):
             print("Unable to start streams")
             exit(1)
 
-        #Only save the first image
         saved_images = 0
 
         while True:
