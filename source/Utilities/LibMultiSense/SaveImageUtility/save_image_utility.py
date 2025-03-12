@@ -93,9 +93,10 @@ def main(args):
         print("Hardware version    :  ", hex(info.version.hardware_version))
 
         config = channel.get_configuration()
-        config.frames_per_second = 30.0
-        if channel.set_configuration(config) != lms.Status.OK:
-            print("Cannot set configuration")
+        config.frames_per_second = 9.0
+        status = channel.set_configuration(config)
+        if status != lms.Status.OK:
+            print("Cannot set configuration", lms.to_string(status))
             exit(1)
 
         streams = []
@@ -110,7 +111,6 @@ def main(args):
             print("Unable to start streams")
             exit(1)
 
-        #Only save the first image
         saved_images = 0
 
         while True:
@@ -120,7 +120,7 @@ def main(args):
                     for stream in streams:
                         save_image(frame, stream)
 
-                saved_images += 1
+                    saved_images += 1
 
             status = channel.get_system_status()
             if status:

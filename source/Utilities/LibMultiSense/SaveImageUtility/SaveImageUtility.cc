@@ -182,7 +182,7 @@ int main(int argc, char** argv)
     config.frames_per_second = 9.0;
     if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
     {
-        std::cerr << "Cannot set config" << std::endl;
+        std::cerr << "Cannot set config: " << lms::to_string(status) << std::endl;
         return 1;
     }
 
@@ -221,8 +221,9 @@ int main(int argc, char** argv)
                 {
                     save_image(image_frame.value(), stream);
                 }
+
+                ++saved_images;
             }
-            ++saved_images;
         }
 
         if (const auto status = channel->get_system_status(); status)

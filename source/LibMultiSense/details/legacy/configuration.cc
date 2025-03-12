@@ -126,12 +126,12 @@ MultiSenseConfig::AuxConfig convert(const crl::multisense::details::wire::AuxCam
                                                                 config.autoWhiteBalanceThresh};
 
     ms_config::ImageConfig image{config.gamma,
-                                        (config.autoExposure != 0),
-                                        std::move(manual_exposure),
-                                        std::move(auto_exposure),
-                                        (config.autoWhiteBalance != 0),
-                                        std::move(manual_white_balance),
-                                        std::move(auto_white_balance)};
+                                 (config.autoExposure != 0),
+                                 std::move(manual_exposure),
+                                 std::move(auto_exposure),
+                                 (config.autoWhiteBalance != 0),
+                                 std::move(manual_white_balance),
+                                 std::move(auto_white_balance)};
 
     return ms_config::AuxConfig{std::move(image),
                                        config.sharpeningEnable,
@@ -377,6 +377,7 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
 
     std::optional<lighting::InternalConfig> internal = std::nullopt;
     std::optional<lighting::ExternalConfig> external = std::nullopt;
+
     switch (type)
     {
         case MultiSenseInfo::DeviceInfo::LightingType::NONE:
@@ -389,7 +390,10 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
             internal = lighting::InternalConfig{intensity, led.flash != 0};
             break;
         }
+
         case MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL:
+        case MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER:
+        case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER:
         {
             lighting::ExternalConfig::FlashMode mode = lighting::ExternalConfig::FlashMode::NONE;
 
@@ -405,7 +409,7 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
             external = lighting::ExternalConfig{intensity, mode, led.number_of_pulses, std::chrono::microseconds{led.led_delay_us}};
             break;
         }
-        default: {CRL_EXCEPTION("Unsupported lighting type\n");}
+        default:{CRL_EXCEPTION("Unsupported lighting type\n");}
     }
 
     return MultiSenseConfig::LightingConfig{std::move(internal), std::move(external)};

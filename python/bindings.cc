@@ -509,7 +509,9 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("NONE", multisense::MultiSenseInfo::DeviceInfo::LightingType::NONE)
         .value("INTERNAL", multisense::MultiSenseInfo::DeviceInfo::LightingType::INTERNAL)
         .value("EXTERNAL", multisense::MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL)
-        .value("PATTERN_PROJECTOR", multisense::MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR);
+        .value("PATTERN_PROJECTOR", multisense::MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR)
+        .value("OUTPUT_TRIGGER", multisense::MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER)
+        .value("PATTERN_PROJECTOR_OUTPUT_TRIGGER", multisense::MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER);
 
     // MultiSenseInfo::DeviceInfo::LensType
     py::enum_<multisense::MultiSenseInfo::MultiSenseInfo::DeviceInfo::LensType>(m, "LensType")
@@ -809,6 +811,9 @@ PYBIND11_MODULE(_libmultisense, m) {
                              shape,
                              strides));
         });
+
+
+    m.def("to_string", &multisense::to_string, py::call_guard<py::gil_scoped_release>());
 
     m.def("write_image",
           [](const multisense::Image &image, const std::string &path)

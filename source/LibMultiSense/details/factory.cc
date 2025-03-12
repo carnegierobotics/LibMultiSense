@@ -50,9 +50,9 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
             {
                 return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
             }
-            catch(...)
+            catch(const std::exception &e)
             {
-                CRL_DEBUG("Unable to create legacy channel");
+                CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
                 return nullptr;
             }
         }

@@ -207,7 +207,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::LightingType, {
     {MultiSenseInfo::DeviceInfo::LightingType::NONE, "NONE"},
     {MultiSenseInfo::DeviceInfo::LightingType::INTERNAL, "INTERNAL"},
     {MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL, "EXTERNAL"},
-    {MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR, "PATTERN_PROJECTOR"}
+    {MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR, "PATTERN_PROJECTOR"},
+    {MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER, "OUTPUT_TRIGGER"},
+    {MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER, "PATTERN_PROJECTOR_OUTPUT_TRIGGER"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::LensType, {
@@ -393,7 +395,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo::DeviceInfo,
                                    nominal_stereo_baseline,
                                    nominal_focal_length,
                                    nominal_relative_aperture,
-                                   lens_type,
+                                   lighting_type,
                                    number_of_lights)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo::Version,

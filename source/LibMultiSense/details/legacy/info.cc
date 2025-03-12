@@ -124,12 +124,16 @@ MultiSenseInfo::DeviceInfo convert(const crl::multisense::details::wire::SysDevi
     {
         case wire::SysDeviceInfo::LIGHTING_TYPE_NONE:
             {output.lighting_type = MultiSenseInfo::DeviceInfo::LightingType::NONE; break;}
-        case wire::SysDeviceInfo::LIGHTING_TYPE_SL_INTERNAL:
+        case wire::SysDeviceInfo::LIGHTING_TYPE_INTERNAL:
             {output.lighting_type = MultiSenseInfo::DeviceInfo::LightingType::INTERNAL; break;}
-        case wire::SysDeviceInfo::LIGHTING_TYPE_S21_EXTERNAL:
+        case wire::SysDeviceInfo::LIGHTING_TYPE_EXTERNAL:
             {output.lighting_type = MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL; break;}
-        case wire::SysDeviceInfo::LIGHTING_TYPE_S21_PATTERN_PROJECTOR:
+        case wire::SysDeviceInfo::LIGHTING_TYPE_PATTERN_PROJECTOR:
             {output.lighting_type = MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR; break;}
+        case wire::SysDeviceInfo::LIGHTING_TYPE_OUTPUT_TRIGGER:
+            {output.lighting_type = MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER; break;}
+        case wire::SysDeviceInfo::LIGHTING_TYPE_PATTERN_PROJECTOR_AND_OUTPUT_TRIGGER:
+            {output.lighting_type = MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER; break;}
         default: {CRL_EXCEPTION("Unsupported lighting type");}
     }
 
@@ -226,11 +230,15 @@ crl::multisense::details::wire::SysDeviceInfo convert(const MultiSenseInfo::Devi
         case MultiSenseInfo::DeviceInfo::LightingType::NONE:
             {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_NONE; break;}
         case MultiSenseInfo::DeviceInfo::LightingType::INTERNAL:
-            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_SL_INTERNAL; break;}
+            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_INTERNAL; break;}
         case MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL:
-            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_S21_EXTERNAL; break;}
+            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_EXTERNAL; break;}
         case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR:
-            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_S21_PATTERN_PROJECTOR; break;}
+            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_PATTERN_PROJECTOR; break;}
+        case MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER:
+            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_OUTPUT_TRIGGER; break;}
+        case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER:
+            {output.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_PATTERN_PROJECTOR_AND_OUTPUT_TRIGGER; break;}
         default: {CRL_EXCEPTION("Unsupported lighting type");}
     }
 

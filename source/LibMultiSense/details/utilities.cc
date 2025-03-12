@@ -146,8 +146,10 @@ std::string to_string(const Status &status)
         case Status::UNKNOWN: {return "UNKNOWN";}
         case Status::EXCEPTION: {return "EXCEPTION";}
         case Status::UNINITIALIZED: {return "UNINITIALIZED";}
-        default: {return "UNKNOWN";}
+        case Status::INCOMPLETE_APPLICATION: {return "INCOMPLETE_APPLICATION";}
     }
+
+    return "UNKNOWN";
 }
 
 
