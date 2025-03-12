@@ -66,7 +66,7 @@ crl::multisense::details::wire::SysDeviceInfo create_wire_info(const std::string
     info.nominalBaseline = 0.21;
     info.nominalFocalLength = 0.024;
     info.nominalRelativeAperture = 0.1;
-    info.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_S21_EXTERNAL;
+    info.lightingType = wire::SysDeviceInfo::LIGHTING_TYPE_EXTERNAL;
     info.numberOfLights = 1;
 
     return info;
@@ -266,12 +266,16 @@ void check_equal(const crl::multisense::details::wire::SysDeviceInfo &wire,
     {
         case wire::SysDeviceInfo::LIGHTING_TYPE_NONE:
              ASSERT_EQ(info.lighting_type, MultiSenseInfo::DeviceInfo::LightingType::NONE); break;
-        case wire::SysDeviceInfo::LIGHTING_TYPE_SL_INTERNAL:
+        case wire::SysDeviceInfo::LIGHTING_TYPE_INTERNAL:
              ASSERT_EQ(info.lighting_type, MultiSenseInfo::DeviceInfo::LightingType::INTERNAL); break;
-        case wire::SysDeviceInfo::LIGHTING_TYPE_S21_EXTERNAL:
+        case wire::SysDeviceInfo::LIGHTING_TYPE_EXTERNAL:
             ASSERT_EQ(info.lighting_type, MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL); break;
-        case wire::SysDeviceInfo::LIGHTING_TYPE_S21_PATTERN_PROJECTOR:
+        case wire::SysDeviceInfo::LIGHTING_TYPE_PATTERN_PROJECTOR:
             ASSERT_EQ(info.lighting_type, MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR); break;
+        case wire::SysDeviceInfo::LIGHTING_TYPE_OUTPUT_TRIGGER:
+            ASSERT_EQ(info.lighting_type, MultiSenseInfo::DeviceInfo::LightingType::OUTPUT_TRIGGER); break;
+        case wire::SysDeviceInfo::LIGHTING_TYPE_PATTERN_PROJECTOR_AND_OUTPUT_TRIGGER:
+            ASSERT_EQ(info.lighting_type, MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER); break;
         default: {CRL_EXCEPTION("Unsupported lighting type");}
     }
     ASSERT_EQ(wire.numberOfLights, info.number_of_lights);
