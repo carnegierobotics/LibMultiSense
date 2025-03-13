@@ -278,7 +278,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("decay", &multisense::MultiSenseConfig::AutoExposureConfig::decay)
         .def_readwrite("target_intensity", &multisense::MultiSenseConfig::AutoExposureConfig::target_intensity)
         .def_readwrite("target_threshold", &multisense::MultiSenseConfig::AutoExposureConfig::target_threshold)
-        .def_readwrite("max_gain", &multisense::MultiSenseConfig::AutoExposureConfig::max_gain);
+        .def_readwrite("max_gain", &multisense::MultiSenseConfig::AutoExposureConfig::max_gain)
+        .def_readwrite("roi", &multisense::MultiSenseConfig::AutoExposureConfig::roi);
 
     // MultiSenseConfig::ManualWhiteBalanceConfig
     py::class_<multisense::MultiSenseConfig::ManualWhiteBalanceConfig>(m, "ManualWhiteBalanceConfig")
