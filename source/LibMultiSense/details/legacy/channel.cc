@@ -384,8 +384,6 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
 {
     using namespace crl::multisense::details;
 
-    std::lock_guard<std::mutex> lock(m_mutex);
-
     std::vector<Status> responses{};
 
     //
@@ -547,6 +545,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                                     m_info.imu.has_value(),
                                                     ptp_enabled); new_config)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
         m_multisense_config = new_config.value();
 
         //

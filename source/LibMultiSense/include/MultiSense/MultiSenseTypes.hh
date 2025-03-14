@@ -745,7 +745,7 @@ struct MultiSenseConfig
 
         ///
         /// @brief The percentage strength of the sharpening gain to apply to the aux image
-        ///        Valid range is [0, 100]
+        ///        Valid range is [0, 100] with a step size of 100/255
         ///
         float sharpening_percentage = 50.0f;
 
