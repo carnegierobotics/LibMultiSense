@@ -384,9 +384,12 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
 {
     using namespace crl::multisense::details;
 
-    std::lock_guard<std::mutex> lock(m_mutex);
-
     std::vector<Status> responses{};
+
+    //
+    // For settings that impact camera hardware retry applying them
+    //
+    constexpr size_t setting_retries = 3;
 
     //
     // Set the camera resolution
@@ -396,7 +399,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                       convert<wire::CamSetResolution>(config),
                                       m_transmit_id++,
                                       m_current_mtu,
-                                      m_config.receive_timeout);
+                                      m_config.receive_timeout,
+                                      setting_retries);
 
     if (!res_ack || res_ack->status != wire::Ack::Status_Ok)
     {
@@ -411,7 +415,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                       convert<wire::CamControl>(config),
                                       m_transmit_id++,
                                       m_current_mtu,
-                                      m_config.receive_timeout);
+                                      m_config.receive_timeout,
+                                      setting_retries);
 
     if (!cam_ack || cam_ack->status != wire::Ack::Status_Ok)
     {
@@ -431,7 +436,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                           convert(config.aux_config.value()),
                                           m_transmit_id++,
                                           m_current_mtu,
-                                          m_config.receive_timeout);
+                                          m_config.receive_timeout,
+                                          setting_retries);
         if (!aux_ack || aux_ack->status != wire::Ack::Status_Ok)
         {
             responses.push_back(get_status(aux_ack->status));
@@ -453,7 +459,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                                   m_max_batched_imu_messages),
                                           m_transmit_id++,
                                           m_current_mtu,
-                                          m_config.receive_timeout);
+                                          m_config.receive_timeout,
+                                          setting_retries);
         if (!imu_ack || imu_ack->status != wire::Ack::Status_Ok)
         {
             responses.push_back(get_status(imu_ack->status));
@@ -473,7 +480,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                                convert(config.lighting_config.value()),
                                                m_transmit_id++,
                                                m_current_mtu,
-                                               m_config.receive_timeout);
+                                               m_config.receive_timeout,
+                                               setting_retries);
         if (!lighting_ack || lighting_ack->status != wire::Ack::Status_Ok)
         {
             responses.push_back(get_status(lighting_ack->status));
@@ -537,6 +545,8 @@ Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
                                                     m_info.imu.has_value(),
                                                     ptp_enabled); new_config)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
+
         m_multisense_config = new_config.value();
 
         //
