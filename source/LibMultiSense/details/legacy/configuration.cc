@@ -197,7 +197,7 @@ crl::multisense::details::wire::CamControl convert<crl::multisense::details::wir
     const auto auto_wb = config.image_config.auto_white_balance ? config.image_config.auto_white_balance.value() :
                                                                    MultiSenseConfig::AutoWhiteBalanceConfig{};
 
-    output.autoWhiteBalance = config.image_config.auto_white_balance_enabled;
+    output.autoWhiteBalance = config.image_config.auto_white_balance_enabled ? 1 : 0;
     output.autoWhiteBalanceDecay = auto_wb.decay;
     output.autoWhiteBalanceThresh  = auto_wb.threshold;
 
@@ -247,7 +247,7 @@ crl::multisense::details::wire::AuxCamControl convert(const MultiSenseConfig::Au
     const auto auto_wb = config.image_config.auto_white_balance ? config.image_config.auto_white_balance.value() :
                                                                   MultiSenseConfig::AutoWhiteBalanceConfig{};
 
-    output.autoWhiteBalance = config.image_config.auto_white_balance_enabled;
+    output.autoWhiteBalance = config.image_config.auto_white_balance_enabled ? 1 : 0;
     output.autoWhiteBalanceDecay = auto_wb.decay;
     output.autoWhiteBalanceThresh  = auto_wb.threshold;
 
