@@ -152,7 +152,6 @@ jobs:
             -DBUILD_PYTHON_BINDINGS=ON \
             -DBUILD_LEGACY_API=OFF \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTS=ON \
             -DCMAKE_INSTALL_PREFIX=install-release
 
           cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
@@ -179,8 +178,7 @@ jobs:
             -DBUILD_JSON_SERIALIZATION=ON \
             -DBUILD_PYTHON_BINDINGS=ON \
             -DBUILD_LEGACY_API=OFF \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DBUILD_TESTS=ON
+            -DCMAKE_BUILD_TYPE=Debug
 
           cmake --build build --config Debug -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           mkdir pip-wheel
