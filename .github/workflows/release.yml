@@ -1,0 +1,67 @@
+name: Release LibMultiSense
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  release-assets:
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, macos-latest, windows-2022]
+
+    runs-on: ${{ matrix.os }}
+    env:
+        VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies (Ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nlohmann-json3-dev python3-pip ninja-build
+
+      - name: Install Dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install pybind11 nlohmann-json
+
+      - name: Install Dependencies (Windows)
+        if: matrix.os == 'windows-2022'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+          ./vcpkg/vcpkg install --triplet x64-windows
+
+      - name: Build Release
+        shell: bash
+        run: |
+          cmake -B build -S . \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=install-release
+
+          cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+          mkdir pip-wheel
+          pip wheel --wheel-dir pip-wheel .
+
+      - name: Zip binaries
+        run: |
+          cd install-release
+          zip -r ../libmultisense-${{ matrix.os }}.zip .
+          cd ..
+
+      - name: Upload binaries to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            libmultisense-${{ matrix.os }}.zip
+            pip-wheel/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
