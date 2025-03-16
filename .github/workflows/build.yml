@@ -33,6 +33,7 @@ jobs:
             -DBUILD_JSON_SERIALIZATION=ON \
             -DBUILD_LEGACY_API=OFF \
             -DCMAKE_INSTALL_PREFIX=install-release
+
           cmake --build build -j "$(nproc)"
           make -C build test
           cmake --install build
@@ -59,6 +60,7 @@ jobs:
             -DBUILD_JSON_SERIALIZATION=ON \
             -DBUILD_LEGACY_API=OFF \
             -DCMAKE_INSTALL_PREFIX=install-debug
+
           cmake --build build -j "$(nproc)"
           make -C build test
           cmake --install build
@@ -83,6 +85,7 @@ jobs:
             -DBUILD_LEGACY_API=OFF \
             -DBUILD_TESTS=ON \
             -DCMAKE_INSTALL_PREFIX=install-release
+
           cmake --build build --target install -j "$(sysctl -n hw.ncpu)"
           mkdir pip-wheel
           pip wheel --wheel-dir pip-wheel ${{ github.workspace }}
@@ -108,6 +111,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DBUILD_LEGACY_API=OFF \
             -DBUILD_TESTS=ON
+
           cmake --build build -j "$(sysctl -n hw.ncpu)"
           make -C build test
 
@@ -141,16 +145,17 @@ jobs:
         run: ${{ github.workspace }}/vcpkg/vcpkg install --triplet x64-windows
 
       - name: Build Release
-        shell: cmd
+        shell: bash
         run: |
-          cmake -B build -S . ^
-            -DBUILD_JSON_SERIALIZATION=ON ^
-            -DBUILD_PYTHON_BINDINGS=ON ^
-            -DBUILD_LEGACY_API=OFF ^
-            -DCMAKE_BUILD_TYPE=Release ^
-            -DBUILD_TESTS=ON^
-            -DCMAKE_INSTALL_PREFIX= ${{ github.workspace }}/install-release
-          cmake --build build --config Release --target install -- /m:10
+          cmake -B build -S . \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_INSTALL_PREFIX=install-release
+
+          cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           mkdir pip-wheel
           pip wheel -v --wheel-dir pip-wheel ${{ github.workspace }}
           ctest -C Release
@@ -168,14 +173,16 @@ jobs:
           path: pip-wheel/
 
       - name: Build Debug
-        shell: cmd
+        shell: bash
         run: |
-          cmake -B build -S . ^
-            -DBUILD_JSON_SERIALIZATION=ON ^
-            -DBUILD_PYTHON_BINDINGS=ON ^
-            -DBUILD_LEGACY_API=OFF ^
-            -DCMAKE_BUILD_TYPE=Debug ^
+          cmake -B build -S . \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DBUILD_TESTS=ON
-          cmake --build build --config Debug -- /m:10
+
+          cmake --build build --config Debug -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+          mkdir pip-wheel
           ctest -C Debug
 

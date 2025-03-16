@@ -50,7 +50,15 @@ jobs:
           mkdir pip-wheel
           pip wheel --wheel-dir pip-wheel .
 
-      - name: Zip binaries
+      - name: Zip binaries (Windows)
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path install-release/* -DestinationPath libmultisense-windows-2022.zip
+
+      - name: Zip binaries (Linux/macOS)
+        if: matrix.os != 'windows-2022'
+        shell: bash
         run: |
           cd install-release
           zip -r ../libmultisense-${{ matrix.os }}.zip .
