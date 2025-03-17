@@ -61,9 +61,9 @@ def main(args):
             print("Invalid channel")
             exit(1)
 
-        config = channel.get_configuration()
+        config = channel.get_config()
         config.frames_per_second = 10.0
-        if channel.set_configuration(config) != lms.Status.OK:
+        if channel.set_config(config) != lms.Status.OK:
             print("Cannot set configuration")
             exit(1)
 

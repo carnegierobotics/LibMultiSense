@@ -188,12 +188,12 @@ public:
     ///
     /// @brief Get the current MultiSense configuration
     ///
-    MultiSenseConfig get_configuration() final override;
+    MultiSenseConfig get_config() final override;
 
     ///
     /// @brief Get set the current MultiSense configuration
     ///
-    Status set_configuration(const MultiSenseConfig &config) final override;
+    Status set_config(const MultiSenseConfig &config) final override;
 
     ///
     /// @brief Get the current stereo calibration. The output calibration will correspond to the full-resolution
@@ -227,7 +227,7 @@ public:
     /// @brief Update the network configuration of the MultiSense. This will require a hardware reboot of the
     ///        MultiSense after it's been succeffully applied
     ///
-    Status set_network_configuration(const MultiSenseInfo::NetworkInfo &config) final override;
+    Status set_network_config(const MultiSenseInfo::NetworkInfo &config) final override;
 
 private:
 
