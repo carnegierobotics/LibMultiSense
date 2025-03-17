@@ -92,9 +92,9 @@ def main(args):
         print("Firmware version    :  ", info.version.firmware_version.to_string())
         print("Hardware version    :  ", hex(info.version.hardware_version))
 
-        config = channel.get_configuration()
+        config = channel.get_config()
         config.frames_per_second = 9.0
-        status = channel.set_configuration(config)
+        status = channel.set_config(config)
         if status != lms.Status.OK:
             print("Cannot set configuration", lms.to_string(status))
             exit(1)

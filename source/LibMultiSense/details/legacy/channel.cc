@@ -373,14 +373,14 @@ std::optional<ImuFrame> LegacyChannel::get_next_imu_frame()
     return m_imu_frame_notifier.wait(m_config.receive_timeout);
 }
 
-MultiSenseConfig LegacyChannel::get_configuration()
+MultiSenseConfig LegacyChannel::get_config()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
     return m_multisense_config;
 }
 
-Status LegacyChannel::set_configuration(const MultiSenseConfig &config)
+Status LegacyChannel::set_config(const MultiSenseConfig &config)
 {
     using namespace crl::multisense::details;
 
@@ -698,7 +698,7 @@ std::optional<MultiSenseStatus> LegacyChannel::get_system_status()
                             std::move(time_status)};
 }
 
-Status LegacyChannel::set_network_configuration(const MultiSenseInfo::NetworkInfo &config)
+Status LegacyChannel::set_network_config(const MultiSenseInfo::NetworkInfo &config)
 {
     using namespace crl::multisense::details;
 

@@ -343,14 +343,14 @@ def main(args):
             print("Invalid channel")
             exit(1)
 
-        config = channel.get_configuration()
+        config = channel.get_config()
         config.frames_per_second = 10.0
         config.width = 960
         config.height = 600
         config.disparities = lms.MaxDisparities.D256
         config.image_config.auto_exposure_enabled = True
         config.image_config.gamma = 2.2
-        if channel.set_configuration(config) != lms.Status.OK:
+        if channel.set_config(config) != lms.Status.OK:
             print("Cannot set configuration")
             exit(1)
 ```
@@ -372,14 +372,14 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto config = channel->get_configuration();
+    auto config = channel->get_config();
     config.frames_per_second = 10.0;
     config.width = 960;
     config.height = 600;
     config.disparities = lms::MultiSenseConfiguration::MaxDisparities::D256;
     config.image_config.auto_exposure_enabled = true;
     config.image_config.gamma = 2.2;
-    if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
+    if (const auto status = channel->set_config(config); status != lms::Status::OK)
     {
         std::cerr << "Cannot set config" << std::endl;
         return 1;

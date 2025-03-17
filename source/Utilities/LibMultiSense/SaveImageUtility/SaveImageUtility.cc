@@ -178,9 +178,9 @@ int main(int argc, char** argv)
     //
     // QuerySet dynamic config from the camera
     //
-    auto config = channel->get_configuration();
+    auto config = channel->get_config();
     config.frames_per_second = 9.0;
-    if (const auto status = channel->set_configuration(config); status != lms::Status::OK)
+    if (const auto status = channel->set_config(config); status != lms::Status::OK)
     {
         std::cerr << "Cannot set config: " << lms::to_string(status) << std::endl;
         return 1;

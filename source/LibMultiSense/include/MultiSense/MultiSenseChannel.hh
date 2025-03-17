@@ -197,12 +197,12 @@ public:
     ///
     /// @brief Get the current MultiSense configuration
     ///
-    virtual MultiSenseConfig get_configuration() = 0;
+    virtual MultiSenseConfig get_config() = 0;
 
     ///
     /// @brief Get set the current MultiSense configuration
     ///
-    virtual Status set_configuration(const MultiSenseConfig &config) = 0;
+    virtual Status set_config(const MultiSenseConfig &config) = 0;
 
     ///
     /// @brief Get the current stereo calibration. The output calibration will correspond to the full-resolution
@@ -236,7 +236,7 @@ public:
     /// @brief Update the network configuration of the MultiSense. This will require a hardware reboot of the
     ///        MultiSense after it's been succeffully applied
     ///
-    virtual Status set_network_configuration(const MultiSenseInfo::NetworkInfo &config) = 0;
+    virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config) = 0;
 };
 
 }
