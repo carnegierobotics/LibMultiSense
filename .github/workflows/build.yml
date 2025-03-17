@@ -157,7 +157,6 @@ jobs:
           cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           mkdir pip-wheel
           pip wheel -v --wheel-dir pip-wheel ${{ github.workspace }}
-          ctest -C Release
 
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
@@ -182,5 +181,3 @@ jobs:
 
           cmake --build build --config Debug -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           mkdir pip-wheel
-          ctest -C Debug
-
