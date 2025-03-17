@@ -180,4 +180,3 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug
 
           cmake --build build --config Debug -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
-          mkdir pip-wheel
