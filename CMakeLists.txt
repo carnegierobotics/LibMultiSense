@@ -154,6 +154,6 @@ endif ()
 # Add cpack
 #
 
-if(CMAKE_ENABLE_CPACK)
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
-endif()
+#if(CMAKE_ENABLE_CPACK)
+#    include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
+#endif()
