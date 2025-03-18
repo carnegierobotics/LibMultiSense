@@ -13,6 +13,8 @@ is using the new API. To build with the new API, the following CMake arguments s
 
     -DBUILD_LEGACY_API=0FF
 
+The README for the Legacy API can be found [here](source/Legacy/README.md).
+
 ## Table of Contents
 
 - [Client Networking Prerequisite](#client-networking-prerequisite)
@@ -63,7 +65,10 @@ on how to set a client machine's IP address and MTU.
 
 ##  Quickstart Guide
 
-Below are minimal examples demonstrating basic usage of LibMultiSense to capture rectified images from the sensor.
+Below are minimal examples demonstrating basic usage of LibMultiSense to capture rectified images from the camera.
+
+Before running the examples make sure [LibMultiSense is installed](#Installation), and your machines network is
+[properly configured](#client-networking-prerequisite).
 
 ### Python
 
@@ -74,7 +79,7 @@ import cv2
 channel_config = lms.ChannelConfig()
 channel_config.ip_address = "10.66.171.21"
 with lms.Channel.create(channel_config) as channel:
-    channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW])
+    channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW, lms.DataSource.RIGHT_RECTIFIED_RAW])
 
     while True:
         frame = channel.get_next_image_frame()
@@ -92,7 +97,7 @@ with lms.Channel.create(channel_config) as channel:
 int main()
 {
     const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
-    channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW});
+    channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW, lms::DataSource::RIGHT_RECTIFIED_RAW});
 
     while(true)
     {
@@ -162,10 +167,28 @@ This will require a system installation of googletest, or an installation which 
 
 #### Python
 
-LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
-installed via pip into a python virtual environment or a local python project.
+##### Pre-Compiled Wheel
 
-To install the LibMultiSense python bindings
+The latest [LibMultiSense Release](https://github.com/carnegierobotics/LibMultiSense/releases/latest) includes
+PIP wheels which can be installed on a x86 Linux system in lieu of installing from source. Wheels can be installed with
+pip using the following command:
+
+```
+pip install <path-to-wheel>
+```
+
+
+You must install the LibMultiSense wheel which matches your installed Python version. You can check your current
+Python version with `python --version`.
+
+For example if `python --version` returned `3.12.3`, you would select the released Linux wheel with `cp312` in the name.
+
+##### From Source
+
+LibMultiSense uses pybind11 to generate Python bindings for the base LibMultiSense API. These bindings can be
+installed via pip into a Python virtual environment or a local Python project.
+
+To install the LibMultiSense Python bindings
 
     > sudo apt install build-essential pybind11-dev nlohmann-json3-dev
 
@@ -198,10 +221,28 @@ set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
 #### Python
 
-LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
-installed via pip into a python virtual environment or a local python project.
+##### Pre-Compiled Wheel
 
-To install the LibMultiSense python bindings
+The latest [LibMultiSense Release](https://github.com/carnegierobotics/LibMultiSense/releases/latest) includes
+PIP wheels which can be installed on a ARM64 Mac system in lieu of installing from source. Wheels can be installed with
+pip using the following command:
+
+```
+pip install <path-to-wheel>
+```
+
+
+You must install the LibMultiSense wheel which matches your installed Python version. You can check your current
+Python version with `python --version`.
+
+For example if `python --version` returned `3.13.2`, you would select the released MacOS wheel with `cp313` in the name.
+
+##### From Source
+
+LibMultiSense uses pybind11 to generate Python bindings for the base LibMultiSense API. These bindings can be
+installed via pip into a Python virtual environment or a local Python project.
+
+To install the LibMultiSense Python bindings
 
     > brew install pybind11 nlohmann-json
 
@@ -234,14 +275,33 @@ set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
 #### Python
 
-LibMultiSense uses pybind11 to generate python bindings for the base LibMultiSense API. These bindings can be
-installed via pip into a python virtual environment or a local python project. To ensure Windows has the proper build
+The latest [LibMultiSense Release](https://github.com/carnegierobotics/LibMultiSense/releases/latest) includes
+PIP wheels which can be installed on a x86 Windows system in lieu of installing from source. Wheels can be installed with
+pip using the following command in PowerShell:
+
+```
+pip install <path-to-wheel>
+```
+
+
+You must install the LibMultiSense wheel which matches your installed Python version. You can check your current
+Python version in PowerShell with `python --version`. If Python is not installed on your system, you can use the
+Microsoft Store on Windows 11 to install the correct version of Python.
+
+For example if `python --version` returned `3.9.13`, you would select the released Windows wheel with `cp39` in the name.
+
+##### Pre-Compiled Wheel
+
+##### From Source
+
+LibMultiSense uses pybind11 to generate Python bindings for the base LibMultiSense API. These bindings can be
+installed via pip into a Python virtual environment or a local Python project. To ensure Windows has the proper build
 tools installed, please install Microsoft Visual Studio with the C++ and CMake extensions.
 
-Note you will need to have a version of python installed on your Windows system. This was tested with
-python 3.9 installed via the Microsoft Store on Windows 11.
+Note you will need to have a version of Python installed on your Windows system. This was tested with
+Python 3.9 installed via the Microsoft Store on Windows 11.
 
-To install the LibMultiSense python bindings open a powershell terminal and execute the following commands
+To install the LibMultiSense Python bindings open a powershell terminal and execute the following commands
 
     > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense
