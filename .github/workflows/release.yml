@@ -23,13 +23,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y nlohmann-json3-dev pybind11-dev python3-pip ninja-build
-          pip install 'build<0.10.0'
+          pip install build
 
       - name: Install Dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
           brew install pybind11 nlohmann-json
-          pip install 'build<0.10.0'
+          pip install build
 
       - name: Install Dependencies (Windows)
         if: matrix.os == 'windows-2022'
@@ -37,7 +37,7 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.bat
           ./vcpkg/vcpkg install --triplet x64-windows
-          pip install 'build<0.10.0'
+          pip install build
 
       - name: Build Release
         shell: bash
