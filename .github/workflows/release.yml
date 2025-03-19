@@ -23,11 +23,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y nlohmann-json3-dev pybind11-dev python3-pip ninja-build
+          pip install --upgrade build
 
       - name: Install Dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
           brew install pybind11 nlohmann-json
+          pip install --upgrade build
 
       - name: Install Dependencies (Windows)
         if: matrix.os == 'windows-2022'
@@ -35,6 +37,7 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.bat
           ./vcpkg/vcpkg install --triplet x64-windows
+          pip install --upgrade build
 
       - name: Build Release
         shell: bash
@@ -49,12 +52,14 @@ jobs:
           cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           mkdir pip-wheel
           pip wheel --wheel-dir pip-wheel .
+          python3 -m build
 
       - name: Zip binaries (Windows)
         if: matrix.os == 'windows-2022'
         shell: pwsh
         run: |
           Compress-Archive -Path install-release/* -DestinationPath libmultisense-windows-2022.zip
+          Compress-Archive -Path dist/* -DestinationPath libmultisense-windows-2022_python_dist.zip
 
       - name: Zip binaries (Linux/macOS)
         if: matrix.os != 'windows-2022'
@@ -63,12 +68,16 @@ jobs:
           cd install-release
           zip -r ../libmultisense-${{ matrix.os }}.zip .
           cd ..
+          cd dist
+          zip -r ../libmultisense-${{ matrix.os }}_python_dist.zip .
+          cd ..
 
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             libmultisense-${{ matrix.os }}.zip
+            libmultisense-${{ matrix.os }}_python_dist.zip
             pip-wheel/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
