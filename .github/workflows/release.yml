@@ -50,6 +50,7 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=install-release
 
           cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+          rm -rf build
           mkdir pip-wheel
           pip wheel --wheel-dir pip-wheel .
           python3 -m build
