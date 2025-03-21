@@ -28,7 +28,10 @@ jobs:
       - name: Install Dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install pybind11 nlohmann-json python-build
+          brew install pybind11 nlohmann-json
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install build wheel
 
       - name: Install Dependencies (Windows)
         if: matrix.os == 'windows-2022'
