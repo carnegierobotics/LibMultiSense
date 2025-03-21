@@ -44,6 +44,10 @@ jobs:
       - name: Build Release
         shell: bash
         run: |
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            source venv/bin/activate
+          fi
+
           cmake -B build -S . \
             -DBUILD_JSON_SERIALIZATION=ON \
             -DBUILD_PYTHON_BINDINGS=ON \
