@@ -548,7 +548,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("nominal_relative_aperture", &multisense::MultiSenseInfo::DeviceInfo::nominal_relative_aperture)
         .def_readwrite("lighting_type", &multisense::MultiSenseInfo::DeviceInfo::lighting_type)
         .def_readwrite("number_of_lights", &multisense::MultiSenseInfo::DeviceInfo::number_of_lights)
-        .def("has_aux_camera", &multisense::MultiSenseInfo::DeviceInfo::has_aux_camera);
+        .def("has_aux_camera", &multisense::MultiSenseInfo::DeviceInfo::has_aux_camera)
+        .def("has_main_stereo_color", &multisense::MultiSenseInfo::DeviceInfo::has_main_stereo_color);
 
     // MultiSenseInfo::Version
     py::class_<multisense::MultiSenseInfo::Version>(m, "Version")
