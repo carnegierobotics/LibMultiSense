@@ -57,9 +57,6 @@ jobs:
 
           cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           rm -rf build
-          mkdir pip-wheel
-          pip wheel --wheel-dir pip-wheel .
-          python3 -m build
 
       - name: Zip binaries (Windows)
         if: matrix.os == 'windows-2022'
@@ -79,13 +76,33 @@ jobs:
           zip -r ../libmultisense-${{ matrix.os }}_python_dist.zip .
           cd ..
 
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.18.1
+        env:
+          CIBW_SKIP: "pp* *-musllinux*"
+          CIBW_BEFORE_BUILD: >
+            pip install cmake ninja &&
+            cmake -B build -S .
+              -DBUILD_JSON_SERIALIZATION=ON
+              -DBUILD_PYTHON_BINDINGS=ON
+              -DBUILD_LEGACY_API=OFF
+              -DCMAKE_BUILD_TYPE=Release &&
+            cmake --build build --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+          CIBW_ENVIRONMENT_WINDOWS: "PATH=$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
+          CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.15"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-artifacts-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             libmultisense-${{ matrix.os }}.zip
-            libmultisense-${{ matrix.os }}_python_dist.zip
-            pip-wheel/*.whl
+            dist/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
