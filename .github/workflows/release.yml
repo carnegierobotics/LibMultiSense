@@ -63,7 +63,6 @@ jobs:
         shell: pwsh
         run: |
           Compress-Archive -Path install-release/* -DestinationPath libmultisense-windows-2022.zip
-          Compress-Archive -Path dist/* -DestinationPath libmultisense-windows-2022_python_dist.zip
 
       - name: Zip binaries (Linux/macOS)
         if: matrix.os != 'windows-2022'
@@ -71,9 +70,6 @@ jobs:
         run: |
           cd install-release
           zip -r ../libmultisense-${{ matrix.os }}.zip .
-          cd ..
-          cd dist
-          zip -r ../libmultisense-${{ matrix.os }}_python_dist.zip .
           cd ..
 
       - name: Build wheels
