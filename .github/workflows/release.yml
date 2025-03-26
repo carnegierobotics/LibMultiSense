@@ -77,7 +77,7 @@ jobs:
         env:
           CIBW_SKIP: "pp* *-musllinux*"
           CIBW_BEFORE_BUILD: >
-            pip install cmake ninja &&
+            pip install cmake ninja pybind11 nlohmann-json &&
             cmake -B build -S . \
               -DBUILD_JSON_SERIALIZATION=ON \
               -DBUILD_PYTHON_BINDINGS=ON \
