@@ -68,7 +68,7 @@ jobs:
         env:
           CIBW_SKIP: "pp* *-musllinux*"
           CIBW_BEFORE_ALL_LINUX: >
-            apt-get install -y nlohmann-json3-dev pybind11-dev python3-pip ninja-build
+            yum install -y nlohmann-json3-dev pybind11-dev python3-pip ninja-build
           CIBW_BEFORE_ALL_MACOS: >
             brew install cmake ninja nlohmann-json pybind11
           CIBW_BEFORE_ALL_WINDOWS: >
@@ -81,7 +81,7 @@ jobs:
               -DBUILD_PYTHON_BINDINGS=ON \
               -DBUILD_LEGACY_API=OFF \
               -DCMAKE_BUILD_TYPE=Release &&
-            cmake --build build --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+            cmake --build build -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           CIBW_ENVIRONMENT_WINDOWS: "PATH=$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
           CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.15"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
