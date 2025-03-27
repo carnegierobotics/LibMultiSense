@@ -65,16 +65,22 @@ jobs:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.18.1
+        with:
+          output-dir: wheelhouse
         env:
           CIBW_SKIP: "pp* *-musllinux*"
           CIBW_BEFORE_ALL_LINUX: >
-            yum install -y nlohmann-json3-dev pybind11-dev python3-pip ninja-build
+            yum install -y epel-release cmake3 ninja-build nlohmann-json-devel &&
+            pip install pybind11
           CIBW_BEFORE_ALL_MACOS: >
             brew install cmake ninja nlohmann-json pybind11
           CIBW_BEFORE_ALL_WINDOWS: >
-            git clone https://github.com/microsoft/vcpkg.git
-            ./vcpkg/bootstrap-vcpkg.bat
-            ./vcpkg/vcpkg install --triplet x64-windows
+            choco install cmake ninja &&
+            git clone https://github.com/microsoft/vcpkg.git &&
+            ./vcpkg/bootstrap-vcpkg.bat &&
+            ./vcpkg/vcpkg install pybind11 nlohmann-json --triplet x64-windows &&
+            set PATH=%PATH%;%cd%\vcpkg\installed\x64-windows\bin &&
+            pip install pybind11
           CIBW_ENVIRONMENT_WINDOWS: "PATH=$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
           CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.15"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
@@ -89,7 +95,7 @@ jobs:
         with:
           files: |
             libmultisense-${{ matrix.os }}.zip
-            dist/*.whl
+            wheelhouse/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
