@@ -24,8 +24,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtest-dev nlohmann-json3-dev pybind11-dev python3-pip ninja-build
-          pip install --upgrade scikit-build-core
-          pip install --upgrade packaging
+          pip install --force-reinstall -v "scikit-build-core=0.10"
 
       - name: Build Release
         run: |
