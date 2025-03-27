@@ -75,13 +75,6 @@ jobs:
             git clone https://github.com/microsoft/vcpkg.git
             ./vcpkg/bootstrap-vcpkg.bat
             ./vcpkg/vcpkg install --triplet x64-windows
-          CIBW_BEFORE_BUILD: >
-            cmake -B build -S . \
-              -DBUILD_JSON_SERIALIZATION=ON \
-              -DBUILD_PYTHON_BINDINGS=ON \
-              -DBUILD_LEGACY_API=OFF \
-              -DCMAKE_BUILD_TYPE=Release &&
-            cmake --build build -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
           CIBW_ENVIRONMENT_WINDOWS: "PATH=$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
           CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.15"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
