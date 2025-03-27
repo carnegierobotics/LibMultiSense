@@ -69,6 +69,7 @@ jobs:
           output-dir: wheelhouse
         env:
           CIBW_SKIP: "pp* *-musllinux*"
+          CIBW_ARCHS_MACOS: universal2
           CIBW_BEFORE_ALL_LINUX: >
             pip install pybind11 &&
             git clone https://github.com/nlohmann/json.git &&
@@ -85,7 +86,7 @@ jobs:
             ./vcpkg/vcpkg install pybind11 nlohmann-json --triplet x64-windows &&
             set PATH=%PATH%;%cd%\vcpkg\installed\x64-windows\bin &&
             pip install pybind11
-          CIBW_ENVIRONMENT_WINDOWS: "PATH=%PATH%;${{ github.workspace }}\\vcpkg\\installed\\x64-windows\\bin"
+          CIBW_ENVIRONMENT_WINDOWS: PATH="$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
           CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.15"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 
