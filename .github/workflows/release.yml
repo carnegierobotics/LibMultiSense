@@ -73,7 +73,7 @@ jobs:
             pip install pybind11 &&
             git clone https://github.com/nlohmann/json.git &&
             cd json &&
-            cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr &&
+            cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr -DJSON_BuildTests=OFF &&
             cmake --build build --target install &&
             cmake --install build
           CIBW_BEFORE_ALL_MACOS: >
