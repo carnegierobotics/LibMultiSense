@@ -81,6 +81,7 @@ jobs:
     env:
         VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
