@@ -73,6 +73,7 @@ jobs:
             pip install pybind11 &&
             git clone https://github.com/nlohmann/json.git &&
             cd json &&
+            git checkout v3.11.3 &&
             cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr -DJSON_BuildTests=OFF &&
             cmake --build build --target install &&
             cmake --install build
