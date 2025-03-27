@@ -70,8 +70,13 @@ jobs:
         env:
           CIBW_SKIP: "pp* *-musllinux*"
           CIBW_BEFORE_ALL_LINUX: >
-            yum install -y epel-release cmake3 ninja-build nlohmann-json-devel &&
-            pip install pybind11
+            yum install -y epel-release &&
+            yum install -y cmake3 ninja-build &&
+            pip install pybind11 &&
+            git clone https://github.com/nlohmann/json.git &&
+            cd json &&
+            cmake3 -S . -B build -DCMAKE_INSTALL_PREFIX=/usr &&
+            cmake3 --build build --target install
           CIBW_BEFORE_ALL_MACOS: >
             brew install cmake ninja nlohmann-json pybind11
           CIBW_BEFORE_ALL_WINDOWS: >
@@ -81,21 +86,31 @@ jobs:
             ./vcpkg/vcpkg install pybind11 nlohmann-json --triplet x64-windows &&
             set PATH=%PATH%;%cd%\vcpkg\installed\x64-windows\bin &&
             pip install pybind11
-          CIBW_ENVIRONMENT_WINDOWS: "PATH=$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
+          CIBW_ENVIRONMENT_WINDOWS: "PATH=%PATH%;${{ github.workspace }}\\vcpkg\\installed\\x64-windows\\bin"
           CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.15"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wheel-artifacts-${{ matrix.os }}
-          path: ./wheelhouse/*.whl
+      - name: Zip wheels (Windows)
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path wheelhouse/* -DestinationPath libmultisense-windows-2022-wheels.zip
+
+      - name: Zip wheels (Linux/macOS)
+        if: matrix.os != 'windows-2022'
+        shell: bash
+        run: |
+          cd wheelhouse
+          zip -r ../libmultisense-${{ matrix.os }}-wheels.zip .
+          cd ..
+
 
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             libmultisense-${{ matrix.os }}.zip
-            wheelhouse/*.whl
+            libmultisense-${{ matrix.os }}-wheels.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
