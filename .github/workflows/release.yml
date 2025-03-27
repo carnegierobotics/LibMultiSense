@@ -104,8 +104,8 @@ jobs:
           CIBW_BEFORE_ALL_WINDOWS: >
             choco install cmake ninja &&
             git clone https://github.com/microsoft/vcpkg.git &&
-            ./vcpkg/bootstrap-vcpkg.bat &&
-            ./vcpkg/vcpkg install --triplet x64-windows &&
+            vcpkg\bootstrap-vcpkg.bat &&
+            vcpkg\vcpkg install --triplet x64-windows &&
             set PATH=%PATH%;%cd%\vcpkg\installed\x64-windows\bin &&
             pip install pybind11
           CIBW_ENVIRONMENT_WINDOWS: PATH="$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
