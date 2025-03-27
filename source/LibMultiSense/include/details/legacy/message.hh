@@ -350,7 +350,7 @@ private:
     ///
     /// @brief A counter for the number of messages we have received
     ///
-    std::atomic_uint64_t m_received_messages = 0;
+    std::atomic_size_t m_received_messages = 0;
 
     ///
     /// @brief The a flag which indicates if a message is being processed
@@ -360,12 +360,12 @@ private:
     ///
     /// @brief A counter for the number of messages we dispatched
     ///
-    std::atomic_uint64_t m_dispatched_messages = 0;
+    std::atomic_size_t m_dispatched_messages = 0;
 
     ///
     /// @brief A counter for the number of invalid packets we received
     ///
-    std::atomic_uint64_t m_invalid_packets = 0;
+    std::atomic_size_t m_invalid_packets = 0;
 };
 
 }
