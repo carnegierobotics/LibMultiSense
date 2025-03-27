@@ -63,6 +63,27 @@ jobs:
           zip -r ../libmultisense-${{ matrix.os }}.zip .
           cd ..
 
+      - name: Upload binaries to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            libmultisense-${{ matrix.os }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  build-wheels:
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-latest, windows-2022]
+
+    runs-on: ${{ matrix.os }}
+    env:
+        VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.18.1
         with:
@@ -81,10 +102,9 @@ jobs:
             brew install cmake ninja nlohmann-json pybind11
           CIBW_BEFORE_ALL_WINDOWS: >
             choco install cmake ninja &&
-            rm -rf vcpkg &&
-            git clone https://github.com/microsoft/vcpkg.git &&
-            ./vcpkg/bootstrap-vcpkg.bat &&
-            ./vcpkg/vcpkg install pybind11 nlohmann-json --triplet x64-windows &&
+            git clone https://github.com/microsoft/vcpkg.git
+            ./vcpkg/bootstrap-vcpkg.bat
+            ./vcpkg/vcpkg install --triplet x64-windows
             set PATH=%PATH%;%cd%\vcpkg\installed\x64-windows\bin &&
             pip install pybind11
           CIBW_ENVIRONMENT_WINDOWS: PATH="$PATH;${{ github.workspace }}/vcpkg/installed/x64-windows/bin"
@@ -105,11 +125,10 @@ jobs:
           zip -r ../libmultisense-${{ matrix.os }}-wheels.zip .
           cd ..
 
-      - name: Upload binaries to Release
+      - name: Upload wheels to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            libmultisense-${{ matrix.os }}.zip
             libmultisense-${{ matrix.os }}-wheels.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
