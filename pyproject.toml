@@ -12,7 +12,6 @@ authors = [
 ]
 
 requires-python = ">=3.8"
-license = {text = "BSD-3-Clause"}
 
 [tool.scikit-build.cmake]
 args = ["-DBUILD_PYTHON_BINDINGS=ON", "-DBUILD_JSON_SERIALIZATION=ON", "-DBUILD_SHARED_LIBS=OFF", "-DBUILD_LEGACY_API=OFF"]
@@ -20,7 +19,3 @@ args = ["-DBUILD_PYTHON_BINDINGS=ON", "-DBUILD_JSON_SERIALIZATION=ON", "-DBUILD_
 [project.urls]
 Homepage = "https://github.com/carnegierobotics/libmultisense"
 Issues = "https://github.com/carnegierobotics/libmultisense/issues"
-
-[tool.scikit-build]
-license-files = ["LICENSE.TXT"]
-
