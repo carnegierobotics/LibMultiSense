@@ -27,6 +27,7 @@ set (MULTISENSE_UTILITY_LIBS
 endif ()
 
 add_subdirectory(DeviceInfoUtility)
+add_subdirectory(ImageCalUtility)
 add_subdirectory(PointCloudUtility)
 add_subdirectory(SaveImageUtility)
 add_subdirectory(RectifiedFocalLengthUtility)
