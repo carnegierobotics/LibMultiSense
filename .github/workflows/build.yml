@@ -38,8 +38,8 @@ jobs:
           make -C build test
           cmake --install build
           mkdir pip-wheel
-          python -m venv python_build
-          python_build/bin/activate
+          python -m venv .venv
+          source .venv/bin/activate
           pip wheel -vv --wheel-dir pip-wheel .
 
       - name: Upload Release Artifact
