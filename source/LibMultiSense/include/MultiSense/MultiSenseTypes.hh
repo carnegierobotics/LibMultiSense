@@ -1468,7 +1468,7 @@ struct MultiSenseInfo
         uint32_t number_of_lights = 0;
 
         ///
-        /// @brief Determine if the MultiSense has a Aux color camera based on the DeviceInfo
+        /// @brief Determine if the MultiSense has a Aux color camera
         ///
         constexpr bool has_aux_camera() const
         {
@@ -1476,8 +1476,23 @@ struct MultiSenseInfo
             {
                 case HardwareRevision::S27:
                 case HardwareRevision::S30:
-                case HardwareRevision::MONOCAM:
                 case HardwareRevision::KS21i:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        ///
+        /// @brief Determine if the MultiSense's main stereo pair supports color
+        ///
+        constexpr bool has_main_stereo_color() const
+        {
+            switch (hardware_revision)
+            {
+                case HardwareRevision::S7:
+                case HardwareRevision::S21:
+                case HardwareRevision::MONOCAM:
                     return true;
                 default:
                     return false;
