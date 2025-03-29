@@ -93,6 +93,8 @@ multisense::MultiSenseInfo::DeviceInfo create_device_info(uint32_t imager_width,
     info.imager_width = imager_width;
     info.imager_height = imager_height;
 
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::S7;
+
     info.lighting_type = multisense::MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL;
 
     return info;
@@ -280,14 +282,18 @@ void check_equal(const ConfigT &config,
     ASSERT_EQ(config.auto_exposure->roi.width, control.autoExposureRoiWidth);
     ASSERT_EQ(config.auto_exposure->roi.height, control.autoExposureRoiHeight);
 
-    ASSERT_TRUE(static_cast<bool>(config.manual_white_balance));
-    ASSERT_FLOAT_EQ(config.manual_white_balance->red, control.whiteBalanceRed);
-    ASSERT_FLOAT_EQ(config.manual_white_balance->blue, control.whiteBalanceBlue);
+    if (config.manual_white_balance)
+    {
+        ASSERT_FLOAT_EQ(config.manual_white_balance->red, control.whiteBalanceRed);
+        ASSERT_FLOAT_EQ(config.manual_white_balance->blue, control.whiteBalanceBlue);
+    }
 
-    ASSERT_TRUE(static_cast<bool>(config.auto_white_balance));
-    ASSERT_EQ(config.auto_white_balance_enabled, control.autoWhiteBalance);
-    ASSERT_EQ(config.auto_white_balance->decay, control.autoWhiteBalanceDecay);
-    ASSERT_EQ(config.auto_white_balance->threshold, control.autoWhiteBalanceThresh);
+    if (config.auto_white_balance)
+    {
+        ASSERT_EQ(config.auto_white_balance_enabled, control.autoWhiteBalance);
+        ASSERT_EQ(config.auto_white_balance->decay, control.autoWhiteBalanceDecay);
+        ASSERT_EQ(config.auto_white_balance->threshold, control.autoWhiteBalanceThresh);
+    }
 
     ASSERT_EQ(config.gamma, control.gamma);
 }
