@@ -43,8 +43,6 @@
 template<typename T>
 std::ostream& writeMatrix (std::ostream& stream, std::string const& name, uint32_t rows, uint32_t columns, T const* data)
 {
-  char buf[1024];
-
   stream << name << ": !!opencv-matrix\n";
   stream << "   rows: " << rows << "\n";
   stream << "   cols: " << columns << "\n";
@@ -62,9 +60,7 @@ std::ostream& writeMatrix (std::ostream& stream, std::string const& name, uint32
       if (j != 0)    {
         stream << ", ";
       }
-      sprintf(buf,"%22.17f", data[i * columns + j]);
-
-      stream << buf;
+      stream << std::setw(22) << data[i * columns + j];
     }
   }
   stream << " ]\n";

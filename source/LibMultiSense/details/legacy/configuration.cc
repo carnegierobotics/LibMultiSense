@@ -76,13 +76,15 @@ MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config
     ms_config::AutoWhiteBalanceConfig auto_white_balance{config.autoWhiteBalanceDecay,
                                                                 config.autoWhiteBalanceThresh};
 
+    const bool main_color = info.has_main_stereo_color();
+
     ms_config::ImageConfig image{config.gamma,
-                                        (config.autoExposure != 0),
-                                        std::move(manual_exposure),
-                                        std::move(auto_exposure),
-                                        (config.autoWhiteBalance != 0),
-                                        std::move(manual_white_balance),
-                                        std::move(auto_white_balance)};
+                                 (config.autoExposure != 0),
+                                 std::move(manual_exposure),
+                                 std::move(auto_exposure),
+                                 (main_color && config.autoWhiteBalance != 0),
+                                 (main_color ? std::make_optional(std::move(manual_white_balance)) : std::nullopt),
+                                 (main_color ? std::make_optional(std::move(auto_white_balance)) : std::nullopt)};
 
     return MultiSenseConfig{config.width,
                             config.height,
@@ -189,13 +191,13 @@ crl::multisense::details::wire::CamControl convert<crl::multisense::details::wir
 
 
     const auto manual_wb = config.image_config.manual_white_balance ? config.image_config.manual_white_balance.value() :
-                                                                   MultiSenseConfig::ManualWhiteBalanceConfig{};
+                                                                      MultiSenseConfig::ManualWhiteBalanceConfig{};
 
     output.whiteBalanceRed = manual_wb.red;
     output.whiteBalanceBlue = manual_wb.blue;
 
     const auto auto_wb = config.image_config.auto_white_balance ? config.image_config.auto_white_balance.value() :
-                                                                   MultiSenseConfig::AutoWhiteBalanceConfig{};
+                                                                  MultiSenseConfig::AutoWhiteBalanceConfig{};
 
     output.autoWhiteBalance = config.image_config.auto_white_balance_enabled ? 1 : 0;
     output.autoWhiteBalanceDecay = auto_wb.decay;
