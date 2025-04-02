@@ -78,7 +78,7 @@ def main(args):
         calibration = channel.get_calibration()
 
         if args.set_cal:
-            print("Attempting to se the MultiSense calibration")
+            print("Attempting to set the MultiSense calibration")
 
             intrinsics = cv2.FileStorage(args.intrinsics, cv2.FILE_STORAGE_READ)
             extrinsics = cv2.FileStorage(args.extrinsics, cv2.FILE_STORAGE_READ)
@@ -96,7 +96,7 @@ def main(args):
         else:
             if not args.disable_confirmation and (os.path.exists(args.intrinsics) or os.path.exists(args.extrinsics)):
                 print("One or both of the input file already exists\n")
-                res = input("Really overwrite thse files? (y/n):")[0]
+                res = input("Really overwrite these files? (y/n):")[0]
                 if res != 'Y' and res != 'y':
                     print("Aborting")
                     exit(1)
@@ -116,5 +116,5 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--intrinsics", required=True, help="The path to the intrinsics file to read from/write to.")
     parser.add_argument("-e", "--extrinsics", required=True, help="The path to the extrinsics file to read from/write to.")
     parser.add_argument("-s", "--set-cal", action='store_true', help="Write the calibration to the camera")
-    parser.add_argument("-y", "--disable-confirmation", action='store_true', help="Disable confirmation promps")
+    parser.add_argument("-y", "--disable-confirmation", action='store_true', help="Disable confirmation prompts")
     main(parser.parse_args())
