@@ -151,7 +151,7 @@ This will require a system installation of pybind11, or an installation which ca
 
 ### googletest
 
-LibMultiSense optionally uses googletest for unit testing the C+ API. To build the googletest unit tests
+LibMultiSense optionally uses googletest for unit testing the C++ API. To build the googletest unit tests
 the following CMake argument should be set
 
     -DBUILD_TESTS=ON
