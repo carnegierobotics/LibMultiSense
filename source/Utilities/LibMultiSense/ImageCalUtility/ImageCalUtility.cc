@@ -163,7 +163,7 @@ int main(int argc, char** argv)
         (std::filesystem::exists(intrinsics_path) || std::filesystem::exists(extrinsics_path)))
     {
         std::cout << "One or both of the input file already exists\n" << std::endl;
-        std::cout << "Really overwrite thse files? (y/n):" << std::endl;
+        std::cout << "Really overwrite these files? (y/n):" << std::endl;
 
         if (const int reply = getchar(); reply != 'Y' && reply != 'y')
         {
