@@ -1,5 +1,5 @@
 /**
- * @file SecondarryAppDataMessage.hh
+ * @file SecondaryAppDataMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC
@@ -67,7 +67,7 @@ static CRL_CONSTEXPR VersionType VERSION = 1;
 
     SecondaryAppHeader()
         :
-#ifdef SENSORDPOD_FIRMWARE
+#ifdef SENSORPOD_FIRMWARE
         id(ID),
         version(VERSION),
 #endif // SENSORPOD_FIRMWARE

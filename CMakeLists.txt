@@ -82,7 +82,7 @@ if (HAVE_CONSTEXPR)
 endif ()
 
 #
-# For Backwards compatablity with other ROS builds
+# For Backwards compatibility with other ROS builds
 #
 if (BASE_DIRECTORY)
 else()

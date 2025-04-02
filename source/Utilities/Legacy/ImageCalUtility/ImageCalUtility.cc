@@ -65,7 +65,7 @@ namespace {  // anonymous
 void usage(const char *programNameP)
 {
     fprintf(stderr,
-            "USAGE: %s -e <extrinisics_file> -i <intrinsics_file> [<options>]\n",
+            "USAGE: %s -e <extrinsics_file> -i <intrinsics_file> [<options>]\n",
             programNameP);
     fprintf(stderr, "Where <options> are:\n");
     fprintf(stderr, "\t-a <ip_address>      : ip address (default=10.66.171.21)\n");
@@ -110,7 +110,7 @@ static int getRemoteHeadIdFromString(const std::string &head_str, RemoteHeadChan
   return err;
 }
 
-std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
+std::ostream& writeImageIntrinsics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
 {
     stream << "%YAML:1.0\n";
     writeMatrix (stream, "M1", 3, 3, &calibration.left.M[0][0]);
@@ -126,7 +126,7 @@ std::ostream& writeImageIntrinics (std::ostream& stream, image::Calibration cons
     return stream;
 }
 
-std::ostream& writeImageExtrinics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
+std::ostream& writeImageExtrinsics (std::ostream& stream, image::Calibration const& calibration, bool hasAuxCamera)
 {
     stream << "%YAML:1.0\n";
     writeMatrix (stream, "R1", 3, 3, &calibration.left.R[0][0]);
@@ -281,8 +281,8 @@ int main(int    argc,
             goto clean_out;
         }
 
-        writeImageIntrinics (inFile, calibration, hasAuxCamera);
-        writeImageExtrinics (exFile, calibration, hasAuxCamera);
+        writeImageIntrinsics (inFile, calibration, hasAuxCamera);
+        writeImageExtrinsics (exFile, calibration, hasAuxCamera);
 
         inFile.flush ();
         exFile.flush ();

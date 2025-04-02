@@ -1,5 +1,5 @@
 /**
- * @file LedSesorStatus.hh
+ * @file LedSensorStatus.hh
  *
  * This message contains the current camera configuration.
  *

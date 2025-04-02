@@ -81,7 +81,7 @@ constexpr crl::multisense::details::wire::SourceType all_sources = {
 struct ImuSampleScalars
 {
     ///
-    /// @brief Scale for the acclerometer to convert wire samples into G's
+    /// @brief Scale for the accelerometer to convert wire samples into G's
     ///
     double accelerometer_scale = 1.0;
 
@@ -161,7 +161,7 @@ double get_gyroscope_scale(const std::string &units);
 ///
 /// @brief Get a scale for the magnetometer value based on a units string
 ///
-double get_magnetomter_scale(const std::string &units);
+double get_magnetometer_scale(const std::string &units);
 
 ///
 /// @brief Get IMU scalars from the cameras's reported IMU info

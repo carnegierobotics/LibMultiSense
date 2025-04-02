@@ -363,7 +363,7 @@ int main(int    argc,
     image::Calibration calibration;
     status = channelP->ptr()->getImageCalibration(calibration);
     if (Status_Ok != status) {
-        std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query calibration: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 

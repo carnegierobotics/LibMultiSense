@@ -138,7 +138,7 @@ TEST(get_full_message_size, valid)
     ASSERT_LT(full_size.value(), 200);
 }
 
-TEST(seralize_deseralize, roundtrip)
+TEST(serialize_deserialize, roundtrip)
 {
     using namespace crl::multisense::details;
 

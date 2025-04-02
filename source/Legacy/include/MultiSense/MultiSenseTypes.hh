@@ -88,7 +88,7 @@ namespace multisense {
 typedef uint32_t VersionType;
 
 /**
- * General status typdef used as a return value for get/set
+ * General status typedef used as a return value for get/set
  * crl::multisense::Channel methods
  */
 typedef int32_t  Status;
@@ -277,7 +277,7 @@ static CRL_CONSTEXPR TriggerSource Trigger_Internal    = 0;
 static CRL_CONSTEXPR TriggerSource Trigger_External    = 1;
 /** External OPTO_RX trigger input with Inverted Polarity */
 static CRL_CONSTEXPR TriggerSource Trigger_External_Inverted    = 2;
-/** Syncronize cameras on integer timestamps when using PTP */
+/** Synchronize cameras on integer timestamps when using PTP */
 static CRL_CONSTEXPR TriggerSource Trigger_PTP    = 3;
 
 /**
@@ -339,7 +339,7 @@ namespace image {
  *  namespace {
  *      //
  *      // Shim for the C-style callbacks accepted by
- *      // crl::mulisense::Channel::addIsolatedCallback
+ *      // crl::multisense::Channel::addIsolatedCallback
  *      void monoCallback(const crl::multisense::image::Header& header, void* userDataP)
  *      { reinterpret_cast<Camera*>(userDataP)->imageCallback(header); }
  *  };
@@ -369,7 +369,7 @@ namespace image {
  *      m_channel->startStreams(crl::multisense::Source_Luma_Left | crl::multisense::Source_Luma_Right);
  *
  *      //
- *      // Check to see if the streams were sucessfully started
+ *      // Check to see if the streams were successfully started
  *      if(crl::multisense::Status_Ok != status) {
  *          throw std::runtime_error("Unable to start image streams");
  *      }
@@ -468,7 +468,7 @@ public:
     uint32_t    width;
     /** Height of the image*/
     uint32_t    height;
-    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    /** Unique ID used to describe an image. FrameIds increase sequentially from the device */
     int64_t     frameId;
     /** The time seconds value corresponding to when  the image was captured*/
     uint32_t    timeSeconds;
@@ -2003,7 +2003,7 @@ public:
     uint32_t              channels;
     /**The number of possible pixel values for each color channel */
     uint32_t              bins;
-    /**The histogram data concatinated serially in GRBG order. The length of
+    /**The histogram data concatenated serially in GRBG order. The length of
      * data is equal to channels * bins */
     std::vector<uint32_t> data;
 };
@@ -2096,7 +2096,7 @@ public:
      * to pointCount */
     const RangeType     *rangesP;
     /** Laser intensity values corresponding to each laser range point. The
-     * length of intensitiesP is equal to pointClount */
+     * length of intensitiesP is equal to pointCloud */
     const IntensityType *intensitiesP;  // device units
 };
 
@@ -2496,7 +2496,7 @@ private:
 };
 
 /**
- * A external sensor status. This is only supported by external LED attachements
+ * A external sensor status. This is only supported by external LED attachments
  * for S21 devices
  *
  * Example code to query the lighting sensor status :
@@ -2537,7 +2537,7 @@ public:
     /**
      * This represents the percentage of light the ambient sensor currently sees.
      * External ambient sensors are only available on S21 units with the external
-     * lighting attachement. This value ranges between 0 and 100
+     * lighting attachment. This value ranges between 0 and 100
      */
     float ambientLightPercentage;
 
@@ -2694,7 +2694,7 @@ typedef void (*Callback)(const Header& header,
  *     crl::multisense::Status status = channel->getImuInfo(maxSamplesPerMessage, imuInfoVect);
  *
  *     //
- *     // Check to see if the IMU info query was sucessful
+ *     // Check to see if the IMU info query was successful
  *     if(crl::multisense::Status_Ok != status) {
  *          throw std::runtime_error("Unable to query imu info");
  *     }
@@ -2872,7 +2872,7 @@ public:
     uint32_t    width;
     /** Height of the image*/
     uint32_t    height;
-    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    /** Unique ID used to describe an image. FrameIds increase sequentially from the device */
     int64_t     frameId;
     /** The time seconds value corresponding to when  the image was captured*/
     uint32_t    timeSeconds;
@@ -2920,7 +2920,7 @@ namespace ground_surface {
  */
 class MULTISENSE_API Header : public HeaderBase {
 public:
-    /** Unique ID used to describe an image. FrameIds increase sequentally from the device */
+    /** Unique ID used to describe an image. FrameIds increase sequentially from the device */
     int64_t     frameId;
     /** Trigger time of the disparity image which was used to generate the spline */
     int64_t     timestamp;
@@ -3030,7 +3030,7 @@ public:
 
     /** DataSource corresponding to secondaryAppDataP*/
     DataSource  source;
-    /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentally from the device */
+    /** Unique ID used to describe an secondaryAppData. FrameIds increase sequentially from the device */
     int64_t     frameId;
     /** The time seconds value corresponding to when  the secondaryAppData was captured*/
     uint32_t    timeSeconds;
@@ -3316,7 +3316,7 @@ public:
     float       nominalBaseline;
     /** The nominal focal length for the lens in meters */
     float       nominalFocalLength;
-    /** The nominal relative aperature for the sensor. i.e. the f-stop */
+    /** The nominal relative aperture for the sensor. i.e. the f-stop */
     float       nominalRelativeAperture;
 
     /** The lighting type supported by the sensor */
@@ -3497,27 +3497,27 @@ class MULTISENSE_API StatusMessage {
     public:
 
         /** The system uptime of the MultiSense in seconds.
-         * True corresonds to healthy */
+         * True corresponds to healthy */
         double uptime;
 
         /** A boolean flag indicating if the overall system status is good.
-         * True corresonds to healthy */
+         * True corresponds to healthy */
         bool systemOk;
 
         /** A boolean flag indicating if the laser is functioning.
-         * True corresonds to healthy */
+         * True corresponds to healthy */
         bool laserOk;
 
         /** A boolean flag indicating if the laser motor controller is functioning.
-         * True corresonds to healthy */
+         * True corresponds to healthy */
         bool laserMotorOk;
 
         /** A boolean flag indicating if the imagers are functioning.
-         * True corresonds to healthy */
+         * True corresponds to healthy */
         bool camerasOk;
 
         /** A boolean flag indicating if the imu is functioning.
-         * True corresonds to healthy */
+         * True corresponds to healthy */
         bool imuOk;
 
         /** A boolean flag indicating if the external LEDs are OK. This flag
@@ -3755,14 +3755,14 @@ class MULTISENSE_API GroundSurfaceParams {
         int ground_surface_number_of_levels_z;
 
         /** The model to apply to the raw pointcloud data before modeling with a B-Spline. The Mean model is a good
-         * default as simplyassumes the world is a plane about the mean height of the pointcloud (after applying the
+         * default as simply assumes the world is a plane about the mean height of the pointcloud (after applying the
          * external transform). If the mounting height of the camera is set appropriately in the external transform,
          * and the world is generally flat, then Zero is a good choice. TheQuadratic model is useful when the extent
          * of the pointcloud is trending upwards or downwards (i.e. while using forwards-facing camera mounted on a
          * vehicle driving through a valley). */
         int ground_surface_base_model;
 
-        /** This is the size of grid dimension that the poiontcloud is binned into along the X/Z plane. A larger
+        /** This is the size of grid dimension that the pointcloud is binned into along the X/Z plane. A larger
          * grid size means a means a coarser binned pointcloud and faster processing times, while a smaller grid
          * size means a finer binned pointcloud. */
         float ground_surface_pointcloud_grid_size;
@@ -3835,7 +3835,7 @@ class MULTISENSE_API GroundSurfaceParams {
 };
 
 /**
- * Class containing parameters for the apriltag fiduciual detection algorithm
+ * Class containing parameters for the apriltag fiducial detection algorithm
  * application which may be running on the specifically commissioned MultiSenses.
  *
  * Example code to set a device's apriltag parameters:
@@ -4033,7 +4033,7 @@ struct ChannelStatistics
     std::size_t numDispatchedAprilTagDetections;
 
     //
-    // The number of dispatached secondary application
+    // The number of dispatched secondary application
     std::size_t numDispatchedSecondary;
 };
 

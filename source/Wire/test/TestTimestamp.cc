@@ -94,7 +94,7 @@ TEST(Construction, timeval)
 
 TEST(Construction, nanoseconds)
 {
-    // numbers are large enough to check for rollover of int32_t when convering seconds to nanoseconds
+    // numbers are large enough to check for rollover of int32_t when converting seconds to nanoseconds
     for (volatile int64_t sec = -1000000; sec <= 1000000; sec += 100000)
     {
         for (volatile int64_t usec = -1000000; usec <= 1100000; usec += 10000)

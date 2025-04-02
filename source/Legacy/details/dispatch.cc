@@ -894,7 +894,7 @@ void impl::handle()
         const int64_t& sequence = unwrapSequenceId(header.sequenceIdentifier);
 
         //
-        // See if we are already tracking this messge ID
+        // See if we are already tracking this message ID
 
         UdpTracker *trP = m_udpTrackerCache.find(sequence);
         if (NULL == trP) {

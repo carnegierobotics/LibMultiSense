@@ -59,7 +59,7 @@ public:
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
     VersionType version;
-#endif // SENSORDPOD_FIRMWARE
+#endif // SENSORPOD_FIRMWARE
 
     uint32_t           scanCount;
     uint32_t           timeStartSeconds;

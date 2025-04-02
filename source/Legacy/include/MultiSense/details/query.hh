@@ -83,7 +83,7 @@ template<class T> void impl::publish(const T& message)
 }
 
 //
-// Send a message, wait for a particular repsonse, re-trying if
+// Send a message, wait for a particular response, re-trying if
 // necessary
 
 template <class T> Status impl::waitAck(const T&      msg,

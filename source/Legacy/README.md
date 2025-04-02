@@ -84,7 +84,7 @@ and build the Solution.
 
 ### Documentation
 
-Documentation of high-level LibMutliSense concepts can be found
+Documentation of high-level LibMultiSense concepts can be found
 [here](https://docs.carnegierobotics.com/docs/software/libmultisense.html)
 
 Doxygen documentation can be built for LibMultisense by running the Doxygen
@@ -544,7 +544,7 @@ int main()
     image::Calibration calibration;
     status = channel->getImageCalibration(calibration);
     if (Status_Ok != status) {
-        std::cerr << "Failed to query calibraiton" << std::endl;
+        std::cerr << "Failed to query calibration" << std::endl;
     }
 
     //

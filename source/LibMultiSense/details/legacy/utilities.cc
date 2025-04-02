@@ -291,13 +291,13 @@ double get_gyroscope_scale(const std::string &units)
     return 1.0;
 }
 
-double get_magnetomter_scale(const std::string &units)
+double get_magnetometer_scale(const std::string &units)
 {
     std::string lower_units = units;
     std::transform(lower_units.begin(), lower_units.end(), lower_units.begin(),
                    [](unsigned char c){ return static_cast<char>(std::tolower(c));});
 
-    if (lower_units == "guass")
+    if (lower_units == "gauss")
     {
         return 1000.0;
     }
@@ -331,7 +331,7 @@ ImuSampleScalars get_imu_scalars(const crl::multisense::details::wire::ImuInfo &
         }
         else if (mode.name == "magnetometer")
         {
-            output.magnetometer_scale = get_magnetomter_scale(mode.units);
+            output.magnetometer_scale = get_magnetometer_scale(mode.units);
             continue;
         }
         else

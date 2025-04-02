@@ -1,4 +1,4 @@
-option(CRL_ENABLE_CI "Determines if the build is occuring within CI." FALSE)
+option(CRL_ENABLE_CI "Determines if the build is occurring within CI." FALSE)
 set(CPACK_PACKAGE_NAME libmultisense)
 set(CPACK_PACKAGE_VENDOR "Carnegie Robotics, LLC")
 set(CPACK_GENERATOR "DEB")

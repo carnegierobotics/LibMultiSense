@@ -235,7 +235,7 @@ void imageCallback(const image::Header& header,
             userData->leftRectified = std::make_shared<ImageBufferWrapper>(userData->driver, header);
             if (userData->disparity && userData->disparity->data().frameId == header.frameId) {
                 //
-                // Our disparity and left recitified images match, we have enough info to create a pointcloud
+                // Our disparity and left rectified images match, we have enough info to create a pointcloud
                 break;
             }
 
@@ -252,7 +252,7 @@ void imageCallback(const image::Header& header,
             userData->disparity = std::make_shared<ImageBufferWrapper>(userData->driver, header);
             if (userData->leftRectified && userData->leftRectified->data().frameId == header.frameId) {
                 //
-                // Our disparity and left recitified images match, we have enough info to create a pointcloud
+                // Our disparity and left rectified images match, we have enough info to create a pointcloud
                 break;
             }
 
@@ -332,7 +332,7 @@ int main(int    argc,
     image::Calibration calibration;
     status = channelP->ptr()->getImageCalibration(calibration);
     if (Status_Ok != status) {
-        std::cerr << "Failed to query calibraiton: " << Channel::statusString(status) << std::endl;
+        std::cerr << "Failed to query calibration: " << Channel::statusString(status) << std::endl;
         return EXIT_FAILURE;
     }
 

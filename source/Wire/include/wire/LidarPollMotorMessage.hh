@@ -52,7 +52,7 @@ public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // Contructors
+    // Constructors
 
     LidarPollMotor(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     LidarPollMotor() {};
