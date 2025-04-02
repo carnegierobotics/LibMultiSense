@@ -178,7 +178,7 @@ bool MessageAssembler::process_packet(const std::vector<uint8_t> &raw_data)
 
     if (!m_buffer_pool)
     {
-        CRL_DEBUG("Buffer pool uninitialized. Cannot recieve images\n");
+        CRL_DEBUG("Buffer pool uninitialized. Cannot receive images\n");
         return false;
     }
 

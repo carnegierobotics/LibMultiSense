@@ -52,7 +52,7 @@ public:
     static CRL_CONSTEXPR VersionType VERSION = 1;
 
     //
-    // If non-zero, the sensor will attempt to syncronize to an external PTP master
+    // If non-zero, the sensor will attempt to synchronize to an external PTP master
 
     uint8_t enable;
 

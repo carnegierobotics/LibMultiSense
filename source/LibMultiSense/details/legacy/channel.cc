@@ -328,7 +328,7 @@ Status LegacyChannel::connect(const Config &config)
     }
     else
     {
-        CRL_EXCEPTION("Unable to query the camera's configuraton");
+        CRL_EXCEPTION("Unable to query the camera's configuration");
     }
 
     m_connected = true;

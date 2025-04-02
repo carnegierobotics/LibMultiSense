@@ -731,7 +731,7 @@ public:
      * @param c The new image remote head config to send to the sensor
      *
      * @return A crl::multisense::Status indicating if the remote head configuration
-     * was successfully recieved by the sensor
+     * was successfully received by the sensor
      */
 
     virtual Status setRemoteHeadConfig      (const image::RemoteHeadConfig& c)             = 0;
@@ -1153,7 +1153,7 @@ public:
      *
      * See imu::Info for a usage example
      *
-     * @param maxSamplesPerMesage The maximum number of IMU samples which
+     * @param maxSamplesPerMessage The maximum number of IMU samples which
      * can be aggregated in a single IMU message
      *
      * @param info A vector of imu::Info returned by reference. This contains
@@ -1163,7 +1163,7 @@ public:
      * successfully queried
      */
 
-    virtual Status getImuInfo          (uint32_t& maxSamplesPerMesage,
+    virtual Status getImuInfo          (uint32_t& maxSamplesPerMessage,
                                         std::vector<imu::Info>& info)       = 0;
 
     /**

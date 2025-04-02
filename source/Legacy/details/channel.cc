@@ -324,7 +324,7 @@ void impl::bind(const std::string& ifName)
 
     #if __linux__
         //
-        // Bind to spcific interface if specified
+        // Bind to specific interface if specified
         if (!ifName.empty()){
             if (0 != setsockopt(m_serverSocket, SOL_SOCKET, SO_BINDTODEVICE,  ifName.c_str(), ifName.size())){
                 CRL_EXCEPTION("Failed to bind to device %s. Error: %s", ifName.c_str(),

@@ -83,7 +83,7 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
 
     #if __linux__
         //
-        // Bind to spcific interface if specified
+        // Bind to specific interface if specified
         if (interface_name && !interface_name->empty())
         {
             if (0 != setsockopt(server_socket,

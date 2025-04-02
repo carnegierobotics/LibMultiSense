@@ -674,7 +674,7 @@ TEST(convert, cam_config_invalid_led)
     check_equal(config.network_config.value(), packet_config);
 }
 
-TEST(convert, cam_config_valid_led_but_no_ligths)
+TEST(convert, cam_config_valid_led_but_no_lights)
 {
     const auto wire_config = create_valid_wire_config();
 

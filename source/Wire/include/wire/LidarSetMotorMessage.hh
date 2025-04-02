@@ -58,7 +58,7 @@ public:
     float rpm;
 
     //
-    // Contructors
+    // Constructors
 
     LidarSetMotor(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
     LidarSetMotor() : rpm(0.0) {};

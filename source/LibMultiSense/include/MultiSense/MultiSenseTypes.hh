@@ -334,7 +334,7 @@ struct ImageFrame
     int64_t frame_id = 0;
 
     ///
-    /// @brief The images assocated with each source in the frame
+    /// @brief The images associated with each source in the frame
     ///
     std::map<DataSource, Image> images;
 

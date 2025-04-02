@@ -358,7 +358,7 @@ In the main CMakeLists.txt file of the project, add the following lines:
 
 ## Documentation
 
-Documentation of high-level LibMutliSense concepts can be found
+Documentation of high-level LibMultiSense concepts can be found
 [here](https://docs.carnegierobotics.com/docs/software/libmultisense.html)
 
 Doxygen documentation can be built for LibMultisense by running the Doxygen

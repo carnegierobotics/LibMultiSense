@@ -81,5 +81,5 @@ motorGearReduction: 50.0
 # PCB specs (maximum of 8): "<revision> <name>"
 pcb: 1 imager board
 pcb: 1 main board
-pcb: 1 fpga cariier board
+pcb: 1 fpga carrier board
 

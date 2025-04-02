@@ -69,7 +69,7 @@ static CRL_CONSTEXPR VersionType VERSION = 3;
 
     ImageHeader()
         :
-#ifdef SENSORDPOD_FIRMWARE
+#ifdef SENSORPOD_FIRMWARE
         id(ID),
         version(VERSION),
 #endif // SENSORPOD_FIRMWARE

@@ -137,7 +137,7 @@ typedef uint16_t IdType;
 typedef uint16_t VersionType;
 
 //
-// Every command responsds with an ID_ACK message,
+// Every command responds with an ID_ACK message,
 // regardless if a data message is also following.
 
 //

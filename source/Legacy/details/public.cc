@@ -313,7 +313,7 @@ Status impl::removeIsolatedCallback(image::Callback callback)
 }
 
 //
-// Adds a new secondarty app listener
+// Adds a new secondary app listener
 
 Status impl::addIsolatedCallback(secondary_app::Callback callback,
                                  void *userDataP)
