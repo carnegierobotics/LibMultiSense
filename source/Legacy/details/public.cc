@@ -1564,6 +1564,11 @@ Status impl::getMotorPos(int32_t& pos)
 
 Status impl::setNetworkConfig(const system::NetworkConfig& c)
 {
+    if (c.ipv4Address == "0.0.0.0" || c.ipv4Address == "255.255.255.255" ||
+        c.ipv4Gateway == "0.0.0.0" || c.ipv4Gateway == "255.255.255.255" ||
+        c.ipv4Netmask == "0.0.0.0" || c.ipv4Netmask == "255.255.255.255")
+        return Status_Unsupported;
+
     return waitAck(wire::SysNetwork(c.ipv4Address,
                                     c.ipv4Gateway,
                                     c.ipv4Netmask));

@@ -702,6 +702,11 @@ Status LegacyChannel::set_network_config(const MultiSenseInfo::NetworkInfo &conf
 {
     using namespace crl::multisense::details;
 
+    if (config.ip_address == "0.0.0.0" || config.ip_address == "255.255.255.255" ||
+        config.gateway == "0.0.0.0"    || config.gateway == "255.255.255.255"    ||
+        config.netmask == "0.0.0.0"    || config.netmask == "255.255.255.255")
+        return Status::UNSUPPORTED;
+
     if (const auto ack = wait_for_ack(m_message_assembler,
                                       m_socket,
                                       convert(config),
