@@ -46,7 +46,7 @@ def read_cal(intrinsics, extrinsics, index):
     cal = lms.CameraCalibration()
 
     cal.K = intrinsics.getNode("M" + str(index)).mat()
-    cal.D = intrinsics.getNode("D" + str(index)).mat()
+    cal.D = list(intrinsics.getNode("D" + str(index)).mat()[0])
     cal.R = extrinsics.getNode("R" + str(index)).mat()
     cal.P = extrinsics.getNode("P" + str(index)).mat()
 
@@ -61,9 +61,9 @@ def read_cal(intrinsics, extrinsics, index):
 
 def write_cal(intrinsics, extrinsics, index, camera_cal):
     intrinsics.write("M" + str(index), np.array(camera_cal.K))
-    intrinsics.write("D" + str(index), np.array(camera_cal.D))
-    extrinsics.write("R" + str(index), np.array(camera_cal.R))
+    intrinsics.write("D" + str(index), np.array([camera_cal.D]))
     extrinsics.write("P" + str(index), np.array(camera_cal.P))
+    extrinsics.write("R" + str(index), np.array(camera_cal.R))
 
 def main(args):
     channel_config = lms.ChannelConfig()
