@@ -122,7 +122,7 @@ void write_cal(std::ofstream &intrinsics, std::ofstream &extrinsics, const lms::
 {
     writeMatrix(intrinsics, "M" + std::to_string(index), 3, 3, &cal.K[0][0]);
     writeMatrix(intrinsics, "D" + std::to_string(index), 1, cal.D.size(), cal.D.data());
-    writeMatrix(extrinsics, "R" + std::to_string(index), 3, 3, &cal.K[0][0]);
+    writeMatrix(extrinsics, "R" + std::to_string(index), 3, 3, &cal.R[0][0]);
     writeMatrix(extrinsics, "P" + std::to_string(index), 3, 4, &cal.P[0][0]);
 }
 
