@@ -240,7 +240,7 @@ int main(int argc, char** argv)
 
         if (calibration.aux)
         {
-            write_cal(intrinsics, extrinsics, calibration.aux, 3);
+            write_cal(intrinsics, extrinsics, calibration.aux.value(), 3);
         }
     }
 
