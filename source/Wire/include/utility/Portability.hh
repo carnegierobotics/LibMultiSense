@@ -88,8 +88,6 @@
 #ifndef NOMINMAX
 #define NOMINMAX 1
 #endif
-
-#define usleep(usec) Sleep((usec)/1000)
 #endif
 
 #ifndef WIN32

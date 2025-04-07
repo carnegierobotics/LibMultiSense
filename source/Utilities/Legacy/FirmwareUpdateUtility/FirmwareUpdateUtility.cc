@@ -63,11 +63,6 @@ static void usage() {
 static void signal_handler(int signal);
 std::atomic<int> ExitReceived(0);
 
-#ifndef PATH_MAX
-#define PATH_MAX MAX_PATH
-#endif
-
-
 int main(int argc, char *argv[]) {
 
     bool verbose_progress = false;
