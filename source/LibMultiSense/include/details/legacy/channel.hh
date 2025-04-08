@@ -227,7 +227,8 @@ public:
     /// @brief Update the network configuration of the MultiSense. This will require a hardware reboot of the
     ///        MultiSense after it's been successfully applied
     ///
-    Status set_network_config(const MultiSenseInfo::NetworkInfo &config) final override;
+    Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
+                              const std::optional<std::string> &broadcast_interface) final override;
 
 private:
 
