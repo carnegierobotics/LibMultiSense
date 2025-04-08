@@ -88,17 +88,13 @@ typedef int socket_t;
 class Ip{
 
 public:
-    Ip(){
-
-    }
+    Ip(std::string _IpAddress);
     int Bind();
-    int Setup(std::string _IpAddress);
+    int Setup();
     ~Ip(){
         if (m_SockFd > 0){
             closesocket(m_SockFd);
         }
-
-        m_Connected = 0;
     }
 
     socket_t Sock(){
@@ -115,5 +111,4 @@ private:
     struct sockaddr_in m_ClientAddress;
     struct sockaddr_in m_ServerAddress;
     std::string m_IpAddress;
-    int m_Connected;
 };

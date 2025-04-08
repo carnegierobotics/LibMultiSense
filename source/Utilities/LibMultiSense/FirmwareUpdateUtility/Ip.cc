@@ -40,6 +40,13 @@
 
 #include <iostream>
 
+Ip::Ip(std::string _IpAddress){
+    m_IpAddress = _IpAddress;
+
+    if (Setup() != 0)
+        throw std::runtime_error("Unable to setup socket/options!");
+}
+
 int Ip::Bind(){
 #if WIN32
     int PeerLength = sizeof(struct sockaddr_in);
@@ -101,14 +108,11 @@ int Ip::Bind(){
 
 }
 
-int Ip::Setup(std::string _IpAddress){
+int Ip::Setup(){
     int so_sendbuf = 1024 * 1024 * 16;
     int so_recvbuf = 1024 * 1024 * 16;
     int so_reuse = 1;
     int ret = 0;
-
-    m_IpAddress = _IpAddress;
-
 
 #ifdef WIN32
     WSADATA wsaData;

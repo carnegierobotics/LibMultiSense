@@ -130,9 +130,7 @@ int Updater::SendFile(std::filesystem::path& filePath, bool verbose){
         return -1;
     }
 
-    file.seekg(0, file.end);
-    long long fileLength = file.tellg();
-    file.seekg(0, file.beg);
+    long long fileLength = std::filesystem::file_size(filePath);
 
     long long l;
     do{

@@ -92,27 +92,13 @@ int main(int argc, char* argv[]){
 
   signal(SIGINT, signal_handler);
 
-  if (ipAddress.empty()){
-    std::cerr << "Missing IP address\n";
-    exit(-1);
-  }
-
-  if (filePath.empty()){
-    std::cerr << "Please specify a file path\n";
-    exit(-1);
-  }
-
   if (!std::filesystem::exists(filePath)){
     std::cerr << "Error: File " << filePath << " Does not exist\n";
     usage();
     return -1;
   }
 
-  Ip i;
-  if (i.Setup(ipAddress.c_str()) < 0){
-    std::cerr << "Error Failed to setup Network\n";
-    return -1;
-  }
+  Ip i(ipAddress);
 
   if (i.Bind() < 0){
     std::cerr << "Error Failed to bind to camera server\n";
@@ -160,9 +146,7 @@ int main(int argc, char* argv[]){
         if (ret < 0){
           std::cerr << "Error Failed to send ack to camera\n";
         }
-
       }
-
     }
   }
 
