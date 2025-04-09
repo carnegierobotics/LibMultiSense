@@ -628,7 +628,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("receive_timeout", &multisense::Channel::Config::receive_timeout)
         .def_readwrite("command_port", &multisense::Channel::Config::command_port)
         .def_readwrite("interface", &multisense::Channel::Config::interface)
-        .def_readwrite("receive_buffer_configuration", &multisense::Channel::Config::receive_buffer_configuration);
+        .def_readwrite("receive_buffer_configuration", &multisense::Channel::Config::receive_buffer_configuration)
+        .def_readwrite("connect_on_initialization", &multisense::Channel::Config::connect_on_initialization);
 
     // Channel
     py::class_<multisense::Channel, std::unique_ptr<multisense::Channel>>(m, "Channel")

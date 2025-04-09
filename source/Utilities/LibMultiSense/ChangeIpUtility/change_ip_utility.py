@@ -44,6 +44,7 @@ import libmultisense as lms
 def main(args):
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.current_ip_address
+    channel_config.connect_on_initialization = (args.interface is None)
 
     with lms.Channel.create(channel_config) as channel:
         if not channel:

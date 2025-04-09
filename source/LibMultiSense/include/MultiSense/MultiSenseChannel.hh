@@ -118,6 +118,11 @@ public:
         ///        recurring memory allocations. May only be valid for certain implementations
         ///
         ReceiveBufferConfig receive_buffer_configuration{};
+
+        ///
+        /// @brief Connect to the camera when the Channel is initialized
+        ///
+        bool connect_on_initialization = true;
     };
 
     ///

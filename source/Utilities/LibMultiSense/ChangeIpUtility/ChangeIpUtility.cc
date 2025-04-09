@@ -103,7 +103,10 @@ int main(int argc, char** argv)
         }
     }
 
-    const auto channel = lms::Channel::create(lms::Channel::Config{ip_address, 1500});
+    lms::Channel::Config config{ip_address};
+    config.connect_on_initialization = static_cast<bool>(interface);
+    const auto channel = lms::Channel::create(config);
+
     if (!channel)
     {
         std::cerr << "Failed to create channel" << std::endl;

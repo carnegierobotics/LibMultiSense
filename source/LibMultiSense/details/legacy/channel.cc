@@ -125,7 +125,7 @@ LegacyChannel::LegacyChannel(const Config &config):
                                                                 config.receive_buffer_configuration.large_buffer_size})),
     m_message_assembler(m_buffer_pool)
 {
-    if (connect(config) != Status::OK)
+    if (config.connect_on_initialization && connect(config) != Status::OK)
     {
         CRL_EXCEPTION("Connection to MultiSense failed\n");
     }
@@ -365,11 +365,21 @@ void LegacyChannel::disconnect()
 
 std::optional<ImageFrame> LegacyChannel::get_next_image_frame()
 {
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
     return m_image_frame_notifier.wait(m_config.receive_timeout);
 }
 
 std::optional<ImuFrame> LegacyChannel::get_next_imu_frame()
 {
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
     return m_imu_frame_notifier.wait(m_config.receive_timeout);
 }
 
@@ -377,12 +387,22 @@ MultiSenseConfig LegacyChannel::get_config()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
+    if (!m_connected)
+    {
+        CRL_DEBUG("Warning: MultiSense is not connected");
+    }
+
     return m_multisense_config;
 }
 
 Status LegacyChannel::set_config(const MultiSenseConfig &config)
 {
     using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return Status::UNINITIALIZED;
+    }
 
     std::vector<Status> responses{};
 
@@ -568,12 +588,22 @@ StereoCalibration LegacyChannel::get_calibration()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
+    if (!m_connected)
+    {
+        CRL_DEBUG("Warning: MultiSense is not connected");
+    }
+
     return m_calibration;
 }
 
 Status LegacyChannel::set_calibration(const StereoCalibration &calibration)
 {
     using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return Status::UNINITIALIZED;
+    }
 
     const wire::SysCameraCalibration wire_calibration = convert(calibration);
 
@@ -605,6 +635,11 @@ Status LegacyChannel::set_calibration(const StereoCalibration &calibration)
 MultiSenseInfo LegacyChannel::get_info()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (!m_connected)
+    {
+        CRL_DEBUG("Warning: MultiSense is not connected");
+    }
 
     return m_info;
 }
@@ -643,6 +678,11 @@ Status LegacyChannel::set_device_info(const MultiSenseInfo::DeviceInfo &device_i
 std::optional<MultiSenseStatus> LegacyChannel::get_system_status()
 {
     using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
 
     //
     // Query the main status info, and time when we send the ack, and when we receive the response
@@ -719,9 +759,16 @@ Status LegacyChannel::set_network_config(const MultiSenseInfo::NetworkInfo &conf
         NetworkSocket broadcast_socket{std::move(broadcast_address), std::move(socket), std::move(socket_port)};
 
         publish_data(broadcast_socket, serialize(convert(config), 0, m_current_mtu));
+
+        return Status::OK;
     }
     else
     {
+        if (!m_connected)
+        {
+            return Status::UNINITIALIZED;
+        }
+
         if (const auto ack = wait_for_ack(m_message_assembler,
                                           m_socket,
                                           convert(config),
