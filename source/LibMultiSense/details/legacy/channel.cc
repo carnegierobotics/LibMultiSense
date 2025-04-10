@@ -125,7 +125,7 @@ LegacyChannel::LegacyChannel(const Config &config):
                                                                 config.receive_buffer_configuration.large_buffer_size})),
     m_message_assembler(m_buffer_pool)
 {
-    if (connect(config) != Status::OK)
+    if (config.connect_on_initialization && connect(config) != Status::OK)
     {
         CRL_EXCEPTION("Connection to MultiSense failed\n");
     }
@@ -255,7 +255,7 @@ Status LegacyChannel::connect(const Config &config)
 
     m_socket.sensor_address = get_sockaddr(config.ip_address, config.command_port);
 
-    auto [sensor_socket, server_socket_port] = bind(config.interface);
+    auto [sensor_socket, server_socket_port] = bind(config.interface, false);
     m_socket.sensor_socket = sensor_socket;
     m_socket.server_socket_port = server_socket_port;
 
@@ -365,11 +365,21 @@ void LegacyChannel::disconnect()
 
 std::optional<ImageFrame> LegacyChannel::get_next_image_frame()
 {
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
     return m_image_frame_notifier.wait(m_config.receive_timeout);
 }
 
 std::optional<ImuFrame> LegacyChannel::get_next_imu_frame()
 {
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
     return m_imu_frame_notifier.wait(m_config.receive_timeout);
 }
 
@@ -377,12 +387,22 @@ MultiSenseConfig LegacyChannel::get_config()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
+    if (!m_connected)
+    {
+        CRL_DEBUG("Warning: MultiSense is not connected");
+    }
+
     return m_multisense_config;
 }
 
 Status LegacyChannel::set_config(const MultiSenseConfig &config)
 {
     using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return Status::UNINITIALIZED;
+    }
 
     std::vector<Status> responses{};
 
@@ -568,12 +588,22 @@ StereoCalibration LegacyChannel::get_calibration()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
+    if (!m_connected)
+    {
+        CRL_DEBUG("Warning: MultiSense is not connected");
+    }
+
     return m_calibration;
 }
 
 Status LegacyChannel::set_calibration(const StereoCalibration &calibration)
 {
     using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return Status::UNINITIALIZED;
+    }
 
     const wire::SysCameraCalibration wire_calibration = convert(calibration);
 
@@ -605,6 +635,11 @@ Status LegacyChannel::set_calibration(const StereoCalibration &calibration)
 MultiSenseInfo LegacyChannel::get_info()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (!m_connected)
+    {
+        CRL_DEBUG("Warning: MultiSense is not connected");
+    }
 
     return m_info;
 }
@@ -643,6 +678,11 @@ Status LegacyChannel::set_device_info(const MultiSenseInfo::DeviceInfo &device_i
 std::optional<MultiSenseStatus> LegacyChannel::get_system_status()
 {
     using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
 
     //
     // Query the main status info, and time when we send the ack, and when we receive the response
@@ -698,23 +738,46 @@ std::optional<MultiSenseStatus> LegacyChannel::get_system_status()
                             std::move(time_status)};
 }
 
-Status LegacyChannel::set_network_config(const MultiSenseInfo::NetworkInfo &config)
+Status LegacyChannel::set_network_config(const MultiSenseInfo::NetworkInfo &config,
+                                         const std::optional<std::string> &broadcast_interface)
 {
     using namespace crl::multisense::details;
 
     if (config.ip_address == "0.0.0.0" || config.ip_address == "255.255.255.255" ||
         config.gateway == "0.0.0.0"    || config.gateway == "255.255.255.255"    ||
         config.netmask == "0.0.0.0"    || config.netmask == "255.255.255.255")
-        return Status::UNSUPPORTED;
-
-    if (const auto ack = wait_for_ack(m_message_assembler,
-                                      m_socket,
-                                      convert(config),
-                                      m_transmit_id++,
-                                      m_current_mtu,
-                                      m_config.receive_timeout); ack)
     {
-        return get_status(ack->status);
+        return Status::UNSUPPORTED;
+    }
+
+    if (broadcast_interface)
+    {
+        auto broadcast_address = get_broadcast_sockaddr(m_config.command_port);
+
+        auto [socket, socket_port] = multisense::legacy::bind(broadcast_interface.value(), true);
+
+        NetworkSocket broadcast_socket{std::move(broadcast_address), std::move(socket), std::move(socket_port)};
+
+        publish_data(broadcast_socket, serialize(convert(config), 0, m_current_mtu));
+
+        return Status::OK;
+    }
+    else
+    {
+        if (!m_connected)
+        {
+            return Status::UNINITIALIZED;
+        }
+
+        if (const auto ack = wait_for_ack(m_message_assembler,
+                                          m_socket,
+                                          convert(config),
+                                          m_transmit_id++,
+                                          m_current_mtu,
+                                          m_config.receive_timeout); ack)
+        {
+            return get_status(ack->status);
+        }
     }
 
     return Status::TIMEOUT;

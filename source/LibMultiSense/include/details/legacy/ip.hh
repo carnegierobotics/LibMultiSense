@@ -73,9 +73,14 @@ namespace legacy{
 std::unique_ptr<sockaddr_in> get_sockaddr(const std::string &ip_address, uint16_t command_port);
 
 ///
+/// @brief Create a socketaddr_in object to boradcast to a given port
+///
+std::unique_ptr<sockaddr_in> get_broadcast_sockaddr(uint16_t command_port);
+
+///
 /// @brief Create a UDP socket to communicate with the MultiSense. Optionally bind to a specific interface
 ///
-std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_name);
+std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_name, bool broadcast);
 
 }
 }
