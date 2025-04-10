@@ -116,17 +116,9 @@ int Updater::SendFile(std::filesystem::path& filePath, bool verbose){
     long int bytesRcvd = 0;
     uint8_t chunk[Messages::BLOCK_SIZE] = {};
 
-    std::ifstream file;
-    try{
-        file.open(filePath, std::ios::in | std::ios::binary);
-        if (!file.good()){
-            std::cerr << "Cannot open file: `" << filePath << "`\n";
-            return -1;
-        }
-
-    }
-    catch (const std::exception& e){
-        std::cerr << "Exception accessing `" << filePath << "` Error: " << e.what() << std::endl;
+    std::ifstream file(filePath, std::ios::binary);
+    if (!file) {
+        std::cerr << "Cannot open file `" << filePath << "`!\n";
         return -1;
     }
 
@@ -161,7 +153,6 @@ int Updater::SendFile(std::filesystem::path& filePath, bool verbose){
 
         if (l == 0){
             std::cerr << "Error: Failed to read chunk from File\n";
-            file.close();
             return -1;
         }
 
@@ -176,7 +167,6 @@ int Updater::SendFile(std::filesystem::path& filePath, bool verbose){
         bytesRcvd = Receive((uint8_t*)&BlockAck, sizeof(BlockAck), NULL);
         if (bytesRcvd < 0){
             std::cerr << "Socket timed out waiting for ACK, check connections and try again\n";
-            file.close();
             exit(1);
         }
 
@@ -194,6 +184,5 @@ int Updater::SendFile(std::filesystem::path& filePath, bool verbose){
     } while (!file.eof());
 
     std::cout << "Finished sending file to camera!\n";
-    file.close();
     return ret;
 }
