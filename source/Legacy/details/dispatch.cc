@@ -461,7 +461,11 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             const wire::ImuSample& w = imu.samples[i];
             imu::Sample&           a = header.samples[i];
 
-            if (m_ptpTimeSyncEnabled)
+            //
+            // PTP timestamps which are 0ns are invalid and indicate the camera has lost its PTP sync with the PTP master.
+            // If that is the case, prefer to stamp the data with the non-PTP time sources
+
+            if (m_ptpTimeSyncEnabled && w.ptpNanoSeconds != 0)
             {
                 toHeaderTime(w.ptpNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
             }
