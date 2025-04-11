@@ -628,7 +628,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("receive_timeout", &multisense::Channel::Config::receive_timeout)
         .def_readwrite("command_port", &multisense::Channel::Config::command_port)
         .def_readwrite("interface", &multisense::Channel::Config::interface)
-        .def_readwrite("receive_buffer_configuration", &multisense::Channel::Config::receive_buffer_configuration);
+        .def_readwrite("receive_buffer_configuration", &multisense::Channel::Config::receive_buffer_configuration)
+        .def_readwrite("connect_on_initialization", &multisense::Channel::Config::connect_on_initialization);
 
     // Channel
     py::class_<multisense::Channel, std::unique_ptr<multisense::Channel>>(m, "Channel")
@@ -656,7 +657,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("set_calibration", &multisense::Channel::set_calibration, py::call_guard<py::gil_scoped_release>())
         .def("get_info", &multisense::Channel::get_info, py::call_guard<py::gil_scoped_release>())
         .def("set_device_info", &multisense::Channel::set_device_info, py::call_guard<py::gil_scoped_release>())
-        .def("get_system_status", &multisense::Channel::get_system_status, py::call_guard<py::gil_scoped_release>());
+        .def("get_system_status", &multisense::Channel::get_system_status, py::call_guard<py::gil_scoped_release>())
+        .def("set_network_config", &multisense::Channel::set_network_config, py::call_guard<py::gil_scoped_release>());
 
     // Utilities
     py::class_<multisense::Point<void>>(m, "Point")

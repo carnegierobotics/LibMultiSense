@@ -118,6 +118,11 @@ public:
         ///        recurring memory allocations. May only be valid for certain implementations
         ///
         ReceiveBufferConfig receive_buffer_configuration{};
+
+        ///
+        /// @brief Connect to the camera when the Channel is initialized
+        ///
+        bool connect_on_initialization = true;
     };
 
     ///
@@ -234,9 +239,13 @@ public:
 
     ///
     /// @brief Update the network configuration of the MultiSense. This will require a hardware reboot of the
-    ///        MultiSense after it's been successfully applied
+    ///        MultiSense after it's been successfully applied.
     ///
-    virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config) = 0;
+    /// @param broadcast_interface If specified a broadcast packet will be sent over the specified interface
+    ///                            changing the IP address of all the camera connected to that interface
+    ///
+    virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
+                                      const std::optional<std::string> &broadcast_interface) = 0;
 };
 
 }

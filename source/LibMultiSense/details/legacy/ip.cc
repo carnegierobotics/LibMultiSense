@@ -67,7 +67,17 @@ std::unique_ptr<sockaddr_in> get_sockaddr(const std::string &ip_address, uint16_
     return socaddr;
 }
 
-std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_name)
+std::unique_ptr<sockaddr_in> get_broadcast_sockaddr(uint16_t command_port)
+{
+    auto socaddr = std::unique_ptr<sockaddr_in>(new sockaddr_in);
+    socaddr->sin_family = AF_INET;
+    socaddr->sin_port = htons(command_port);
+    socaddr->sin_addr.s_addr = htonl(INADDR_BROADCAST);
+
+    return socaddr;
+}
+
+std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_name, bool broadcast)
 {
     //
     // Create the socket.
@@ -81,20 +91,29 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
         CRL_EXCEPTION("failed to create the UDP socket: %s",
                       strerror(errno));
 
+    //
+    // Bind to specific interface if specified
+    if (interface_name && !interface_name->empty())
+    {
     #if __linux__
-        //
-        // Bind to specific interface if specified
-        if (interface_name && !interface_name->empty())
+        if (0 != setsockopt(server_socket,
+                            SOL_SOCKET,
+                            SO_BINDTODEVICE,
+                            interface_name->c_str(),
+                            interface_name->size()))
         {
-            if (0 != setsockopt(server_socket,
-                                SOL_SOCKET,
-                                SO_BINDTODEVICE,
-                                interface_name->c_str(),
-                                interface_name->size()))
-            {
-                CRL_EXCEPTION("Failed to bind to device %s. Error: %s", interface_name->c_str(),
-                              strerror(errno));
-            }
+            CRL_EXCEPTION("Failed to bind to device %s. Error: %s", interface_name->c_str(),
+                          strerror(errno));
+        }
+    #elif __APPLE__
+        if (0 != setsockopt(server_socket,
+                            SOL_SOCKET,
+                            IP_RECVIF,
+                            interface_name->c_str(),
+                            interface_name->size() + 1))
+        {
+            CRL_EXCEPTION("Failed to bind to device %s. Error: %s", interface_name->c_str(),
+                          strerror(errno));
         }
     #else
         if (interface_name && !interface_name->empty())
@@ -103,6 +122,21 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
                       "Ignoring bind to specific adapter", interface_name->c_str());
         }
     #endif
+    }
+
+    if (broadcast)
+    {
+    #ifdef WIN32
+        CRL_DEBUG("User specified configuring the socket to broadcast. This feature is only supported under linux."
+                  "Ignoring the broadcast request");
+    #else
+        const int b = 1;
+        if (0 != setsockopt(server_socket, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char const*>(&b), sizeof(b)))
+        {
+            CRL_EXCEPTION("Failed to configure broadcasting on a the socket. Error: %s", strerror(errno));
+        }
+    #endif
+    }
 
     //
     // Turn non-blocking on.

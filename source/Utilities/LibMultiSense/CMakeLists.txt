@@ -26,6 +26,7 @@ set (MULTISENSE_UTILITY_LIBS
 
 endif ()
 
+add_subdirectory(ChangeIpUtility)
 add_subdirectory(DeviceInfoUtility)
 add_subdirectory(ImageCalUtility)
 add_subdirectory(PointCloudUtility)
