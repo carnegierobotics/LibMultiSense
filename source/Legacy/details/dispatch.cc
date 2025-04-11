@@ -461,7 +461,10 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             const wire::ImuSample& w = imu.samples[i];
             imu::Sample&           a = header.samples[i];
 
-            if (m_ptpTimeSyncEnabled)
+            //
+            // PTP timestamps which are 0ns are invalid and indicate PTP has lost it's sync. If that
+            // is the case, don't want to just pass that timestamp on
+            if (m_ptpTimeSyncEnabled && w.ptpNanoSeconds != 0)
             {
                 toHeaderTime(w.ptpNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
             }

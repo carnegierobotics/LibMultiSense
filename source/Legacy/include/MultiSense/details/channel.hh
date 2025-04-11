@@ -255,7 +255,11 @@ private:
                 uint32_t &seconds,
                 uint32_t &microSeconds)
     {
-        if (m_ptpTimeSyncEnabled) {
+        //
+        // PTP timestamps which are 0ns are invalid and indicate PTP has lost it's sync. If that
+        // is the case, don't want to just pass that timestamp on
+
+        if (m_ptpTimeSyncEnabled && wire->ptpNanoSeconds != 0) {
 
             toHeaderTime(wire->ptpNanoSeconds, seconds, microSeconds);
 
