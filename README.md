@@ -87,7 +87,6 @@ Install the LibMultiSenes python client and OpenCV dependency via
 
 ```
 pip install libmultisense opencv-python
-
 ```
 
 ```python
