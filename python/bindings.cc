@@ -78,16 +78,16 @@ PYBIND11_MODULE(_libmultisense, m) {
     m.doc() = "Pybind11 bindings for the LibMultiSense C++ Library";
 
     // Status
-    py::enum_<multisense::Status>(m, "Status")
-        .value("OK", multisense::Status::OK)
-        .value("TIMEOUT", multisense::Status::TIMEOUT)
-        .value("INTERNAL_ERROR", multisense::Status::INTERNAL_ERROR)
-        .value("FAILED", multisense::Status::FAILED)
-        .value("UNSUPPORTED", multisense::Status::UNSUPPORTED)
-        .value("UNKNOWN", multisense::Status::UNKNOWN)
-        .value("EXCEPTION", multisense::Status::EXCEPTION)
-        .value("UNINITIALIZED", multisense::Status::UNINITIALIZED)
-        .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION);
+    py::enum_<multisense::Status>(m, "Status", "Status codes returned by the LibMultiSense functions.")
+        .value("OK", multisense::Status::OK, "Operation succeeded")
+        .value("TIMEOUT", multisense::Status::TIMEOUT, "Operation timed out waiting for a response")
+        .value("INTERNAL_ERROR", multisense::Status::INTERNAL_ERROR, "Operation resulted in a internal camera error")
+        .value("FAILED", multisense::Status::FAILED, "Operation failed")
+        .value("UNSUPPORTED", multisense::Status::UNSUPPORTED, "Operation was not supported by the camera")
+        .value("UNKNOWN", multisense::Status::UNKNOWN, "Operation was not valid and rejected by the camera")
+        .value("EXCEPTION", multisense::Status::EXCEPTION, "Operation resulted in an exception")
+        .value("UNINITIALIZED", multisense::Status::UNINITIALIZED, "Operation required state which was uninitialized")
+        .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION, "Operation was partially applied");
 
     // DataSource
     py::enum_<multisense::DataSource>(m, "DataSource")
