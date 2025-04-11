@@ -119,7 +119,7 @@ int main(int argc, char* argv[]){
     ret = u.Receive((uint8_t*)&UpdateStatus, sizeof(UpdateStatus), &MsgLen);
     if (ret < 0){
       if (ret == -CRL_EAGAIN){
-        std::this_thread::sleep_for(std::chrono::microseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         continue;
       }
       std::cerr << "Error: Failed to get message from camera\n";
