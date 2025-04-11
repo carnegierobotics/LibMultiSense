@@ -462,8 +462,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
             imu::Sample&           a = header.samples[i];
 
             //
-            // PTP timestamps which are 0ns are invalid and indicate PTP has lost it's sync. If that
-            // is the case, don't want to just pass that timestamp on
+            // PTP timestamps which are 0ns are invalid and indicate the camera has lost its PTP sync with the PTP master.
+            // If that is the case, prefer to stamp the data with the non-PTP time sources
+
             if (m_ptpTimeSyncEnabled && w.ptpNanoSeconds != 0)
             {
                 toHeaderTime(w.ptpNanoSeconds, a.timeSeconds, a.timeMicroSeconds);
