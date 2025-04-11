@@ -15,6 +15,15 @@ is using the new API. To build with the new API, the following CMake arguments s
 
 The README for the Legacy API can be found [here](source/Legacy/README.md).
 
+The LibMultiSense C++ and Python library has been tested with the following operating systems
+
+- Ubuntu
+    - 20.04
+    - 22.04
+    - 24.04
+ - MacOS Sequoia
+ - Windows 11
+
 ## Table of Contents
 
 - [Client Networking Prerequisite](#client-networking-prerequisite)
@@ -70,7 +79,15 @@ Below are minimal examples demonstrating basic usage of LibMultiSense to capture
 Before running the examples make sure [LibMultiSense is installed](#Installation), and your machines network is
 [properly configured](#client-networking-prerequisite).
 
+For new users, it's recommended to start with the Python version of LibMultiSense
+
 ### Python
+
+Install the LibMultiSenes python client and OpenCV dependency via
+
+```
+pip install libmultisense opencv-python
+```
 
 ```python
 import libmultisense as lms
@@ -117,7 +134,7 @@ int main()
 
 ---
 
-## Optional Dependencies
+## Optional Dependencies When Building From Source
 
 ### OpenCV
 
@@ -167,21 +184,16 @@ This will require a system installation of googletest, or an installation which 
 
 #### Python
 
-##### Pre-Compiled Wheel
+##### PyPi (Recommended)
 
-The latest [LibMultiSense Release](https://github.com/carnegierobotics/LibMultiSense/releases/latest) includes
-PIP wheels which can be installed on a x86 Linux system in lieu of installing from source. Wheels can be installed with
-pip using the following command:
+The following command installs/updates to the latest version of the LibMultisense Python API:
 
 ```
-pip install <path-to-wheel>
+pip install --upgrade libmultisense
 ```
 
-
-You must install the LibMultiSense wheel which matches your installed Python version. You can check your current
-Python version with `python --version`.
-
-For example if `python --version` returned `3.12.3`, you would select the released Linux wheel with `cp312` in the name.
+To avoid conflicts with other Python packages, it's recommended to utilize 
+[venv](https://docs.python.org/3/library/venv.html) to isolate dependency installations.
 
 ##### From Source
 
@@ -221,21 +233,16 @@ set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
 #### Python
 
-##### Pre-Compiled Wheel
+##### PyPi (Recommended)
 
-The latest [LibMultiSense Release](https://github.com/carnegierobotics/LibMultiSense/releases/latest) includes
-PIP wheels which can be installed on a ARM64 Mac system in lieu of installing from source. Wheels can be installed with
-pip using the following command:
+The following command installs/updates to the latest version of the LibMultisense Python API:
 
 ```
-pip install <path-to-wheel>
+pip install --upgrade libmultisense
 ```
 
-
-You must install the LibMultiSense wheel which matches your installed Python version. You can check your current
-Python version with `python --version`.
-
-For example if `python --version` returned `3.13.2`, you would select the released MacOS wheel with `cp313` in the name.
+To avoid conflicts with other Python packages, it's recommended to utilize 
+[venv](https://docs.python.org/3/library/venv.html) to isolate dependency installations.
 
 ##### From Source
 
@@ -275,22 +282,18 @@ set the cmake variable `-DMULTISENSE_BUILD_UTILITIES=OFF`
 
 #### Python
 
-The latest [LibMultiSense Release](https://github.com/carnegierobotics/LibMultiSense/releases/latest) includes
-PIP wheels which can be installed on a x86 Windows system in lieu of installing from source. Wheels can be installed with
-pip using the following command in PowerShell:
+##### PyPi (Recommended)
+
+The following command installs/updates to the latest version of the LibMultisense Python API.
+
+After installing Python via the Microsoft Store execute the following command in a Powershell terminal
 
 ```
-pip install <path-to-wheel>
+pip install --upgrade libmultisense
 ```
 
-
-You must install the LibMultiSense wheel which matches your installed Python version. You can check your current
-Python version in PowerShell with `python --version`. If Python is not installed on your system, you can use the
-Microsoft Store on Windows 11 to install the correct version of Python.
-
-For example if `python --version` returned `3.9.13`, you would select the released Windows wheel with `cp39` in the name.
-
-##### Pre-Compiled Wheel
+To avoid conflicts with other Python packages, it's recommended to utilize
+[venv](https://docs.python.org/3/library/venv.html) to isolate dependency installations.
 
 ##### From Source
 
