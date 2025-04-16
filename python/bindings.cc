@@ -90,70 +90,72 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION, "Operation was partially applied");
 
     // DataSource
-    py::enum_<multisense::DataSource>(m, "DataSource")
-        .value("UNKNOWN", multisense::DataSource::UNKNOWN)
-        .value("ALL", multisense::DataSource::ALL)
-        .value("LEFT_MONO_RAW", multisense::DataSource::LEFT_MONO_RAW)
-        .value("RIGHT_MONO_RAW", multisense::DataSource::RIGHT_MONO_RAW)
-        .value("LEFT_MONO_COMPRESSED", multisense::DataSource::LEFT_MONO_COMPRESSED)
-        .value("RIGHT_MONO_COMPRESSED", multisense::DataSource::RIGHT_MONO_COMPRESSED)
-        .value("LEFT_RECTIFIED_RAW", multisense::DataSource::LEFT_RECTIFIED_RAW)
-        .value("RIGHT_RECTIFIED_RAW", multisense::DataSource::RIGHT_RECTIFIED_RAW)
-        .value("LEFT_RECTIFIED_COMPRESSED", multisense::DataSource::LEFT_RECTIFIED_COMPRESSED)
-        .value("RIGHT_RECTIFIED_COMPRESSED", multisense::DataSource::RIGHT_RECTIFIED_COMPRESSED)
-        .value("LEFT_DISPARITY_RAW", multisense::DataSource::LEFT_DISPARITY_RAW)
-        .value("LEFT_DISPARITY_COMPRESSED", multisense::DataSource::LEFT_DISPARITY_COMPRESSED)
-        .value("AUX_COMPRESSED", multisense::DataSource::AUX_COMPRESSED)
-        .value("AUX_RECTIFIED_COMPRESSED", multisense::DataSource::AUX_RECTIFIED_COMPRESSED)
-        .value("AUX_LUMA_RAW", multisense::DataSource::AUX_LUMA_RAW)
-        .value("AUX_LUMA_RECTIFIED_RAW", multisense::DataSource::AUX_LUMA_RECTIFIED_RAW)
-        .value("AUX_CHROMA_RAW", multisense::DataSource::AUX_CHROMA_RAW)
-        .value("AUX_CHROMA_RECTIFIED_RAW", multisense::DataSource::AUX_CHROMA_RECTIFIED_RAW)
-        .value("AUX_RAW", multisense::DataSource::AUX_RAW)
-        .value("AUX_RECTIFIED_RAW", multisense::DataSource::AUX_RECTIFIED_RAW)
-        .value("COST_RAW", multisense::DataSource::COST_RAW);
+    py::enum_<multisense::DataSource>(m, "DataSource", "Enumeration of available multisense data sources.")
+        .value("UNKNOWN", multisense::DataSource::UNKNOWN, "Undefined or unknown data source.")
+        .value("ALL", multisense::DataSource::ALL, "All data sources are enabled or available.")
+        .value("LEFT_MONO_RAW", multisense::DataSource::LEFT_MONO_RAW, "Raw image data from the left monochrome camera.")
+        .value("RIGHT_MONO_RAW", multisense::DataSource::RIGHT_MONO_RAW, "Raw image data from the right monochrome camera.")
+        .value("LEFT_MONO_COMPRESSED", multisense::DataSource::LEFT_MONO_COMPRESSED, "Compressed image data from the left monochrome camera.")
+        .value("RIGHT_MONO_COMPRESSED", multisense::DataSource::RIGHT_MONO_COMPRESSED, "Compressed image data from the right monochrome camera.")
+        .value("LEFT_RECTIFIED_RAW", multisense::DataSource::LEFT_RECTIFIED_RAW, "Raw rectified image data from the left camera.")
+        .value("RIGHT_RECTIFIED_RAW", multisense::DataSource::RIGHT_RECTIFIED_RAW, "Raw rectified image data from the right camera.")
+        .value("LEFT_RECTIFIED_COMPRESSED", multisense::DataSource::LEFT_RECTIFIED_COMPRESSED, "Compressed rectified image data from the left camera.")
+        .value("RIGHT_RECTIFIED_COMPRESSED", multisense::DataSource::RIGHT_RECTIFIED_COMPRESSED, "Compressed rectified image data from the right camera.")
+        .value("LEFT_DISPARITY_RAW", multisense::DataSource::LEFT_DISPARITY_RAW, "Raw disparity image from the main stereo pair.")
+        .value("LEFT_DISPARITY_COMPRESSED", multisense::DataSource::LEFT_DISPARITY_COMPRESSED, "Compressed disparity map data from the left camera.")
+        .value("AUX_COMPRESSED", multisense::DataSource::AUX_COMPRESSED, "Compressed aux image stream.")
+        .value("AUX_RECTIFIED_COMPRESSED", multisense::DataSource::AUX_RECTIFIED_COMPRESSED, "Compressed and rectified aux image stream.")
+        .value("AUX_LUMA_RAW", multisense::DataSource::AUX_LUMA_RAW, "Raw luminance data from the aux sensor.")
+        .value("AUX_LUMA_RECTIFIED_RAW", multisense::DataSource::AUX_LUMA_RECTIFIED_RAW, "Raw rectified luminance data from the aux sensor.")
+        .value("AUX_CHROMA_RAW", multisense::DataSource::AUX_CHROMA_RAW, "Raw chroma data from the aux sensor.")
+        .value("AUX_CHROMA_RECTIFIED_RAW", multisense::DataSource::AUX_CHROMA_RECTIFIED_RAW, "Raw rectified chroma data from the aux sensor.")
+        .value("AUX_RAW", multisense::DataSource::AUX_RAW, "Raw aux color image stream.")
+        .value("AUX_RECTIFIED_RAW", multisense::DataSource::AUX_RECTIFIED_RAW, "Raw rectified aux color image stream.")
+        .value("COST_RAW", multisense::DataSource::COST_RAW, "Raw cost image from the disparity computation.");
 
     // ColorImageEncoding
-    py::enum_<multisense::ColorImageEncoding>(m, "ColorImageEncoding")
-        .value("NONE", multisense::ColorImageEncoding::NONE)
-        .value("YCBCR420", multisense::ColorImageEncoding::YCBCR420);
+    py::enum_<multisense::ColorImageEncoding>(m, "ColorImageEncoding", "Supported color encodings")
+        .value("NONE", multisense::ColorImageEncoding::NONE, "No color encoding")
+        .value("YCBCR420", multisense::ColorImageEncoding::YCBCR420, "Color images are encoded with YCbCr420");
 
     // CameraCalibration::DistortionType
-    py::enum_<multisense::CameraCalibration::DistortionType>(m, "DistortionType")
-        .value("NONE", multisense::CameraCalibration::DistortionType::NONE)
-        .value("PLUMBBOB", multisense::CameraCalibration::DistortionType::PLUMBBOB)
-        .value("RATIONAL_POLYNOMIAL", multisense::CameraCalibration::DistortionType::RATIONAL_POLYNOMIAL);
+    py::enum_<multisense::CameraCalibration::DistortionType>(m, "DistortionType", "Supported distortion types")
+        .value("NONE", multisense::CameraCalibration::DistortionType::NONE, "No associated distortion model")
+        .value("PLUMBBOB", multisense::CameraCalibration::DistortionType::PLUMBBOB,
+                "The OpenCV plumb bob 5 parameter distortion model")
+        .value("RATIONAL_POLYNOMIAL", multisense::CameraCalibration::DistortionType::RATIONAL_POLYNOMIAL,
+                "The OpenCV 8 parameter rational polynomial distortion model");
 
     // CameraCalibration
-    py::class_<multisense::CameraCalibration>(m, "CameraCalibration")
+    py::class_<multisense::CameraCalibration>(m, "CameraCalibration", "Calibration for a single camera")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::CameraCalibration)
-        .def_readwrite("K", &multisense::CameraCalibration::K)
-        .def_readwrite("R", &multisense::CameraCalibration::R)
-        .def_readwrite("P", &multisense::CameraCalibration::P)
-        .def_readwrite("distortion_type", &multisense::CameraCalibration::distortion_type)
-        .def_readwrite("D", &multisense::CameraCalibration::D);
+        .def_readwrite("K", &multisense::CameraCalibration::K, "Unrectified pinhole projection matrix")
+        .def_readwrite("R", &multisense::CameraCalibration::R, "Rectified Rotation matrix")
+        .def_readwrite("P", &multisense::CameraCalibration::P, "Rectified pinhole projection matrix")
+        .def_readwrite("distortion_type", &multisense::CameraCalibration::distortion_type, "Unrectified distortion type")
+        .def_readwrite("D", &multisense::CameraCalibration::D, "Unrectified distortion coefficients");
 
     // StereoCalibration
-    py::class_<multisense::StereoCalibration>(m, "StereoCalibration")
+    py::class_<multisense::StereoCalibration>(m, "StereoCalibration", "Calibration for the entire MultiSense stereo camera")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::StereoCalibration)
-        .def_readwrite("left", &multisense::StereoCalibration::left)
-        .def_readwrite("right", &multisense::StereoCalibration::right)
-        .def_readwrite("aux", &multisense::StereoCalibration::aux);
+        .def_readwrite("left", &multisense::StereoCalibration::left, "Calibration for the left camera")
+        .def_readwrite("right", &multisense::StereoCalibration::right, "Calibration for the right camera")
+        .def_readwrite("aux", &multisense::StereoCalibration::aux, "Calibration for the aux camera");
 
     // Image::PixelFormat
-    py::enum_<multisense::Image::PixelFormat>(m, "PixelFormat")
-        .value("UNKNOWN", multisense::Image::PixelFormat::UNKNOWN)
-        .value("MONO8", multisense::Image::PixelFormat::MONO8)
-        .value("BGR8", multisense::Image::PixelFormat::BGR8)
-        .value("MONO16", multisense::Image::PixelFormat::MONO16)
-        .value("FLOAT32", multisense::Image::PixelFormat::FLOAT32)
-        .value("JPEG", multisense::Image::PixelFormat::JPEG)
-        .value("H264", multisense::Image::PixelFormat::H264);
+    py::enum_<multisense::Image::PixelFormat>(m, "PixelFormat", "PossiblepPixel formats sent from the MultiSense")
+        .value("UNKNOWN", multisense::Image::PixelFormat::UNKNOWN, "Unknown or unsupported pixel format")
+        .value("MONO8", multisense::Image::PixelFormat::MONO8, "8 bits per pixel")
+        .value("BGR8", multisense::Image::PixelFormat::BGR8, "8 bit blue, 8 bit green, 8 bit red for each pixel")
+        .value("MONO16", multisense::Image::PixelFormat::MONO16, "16 bits per pixel")
+        .value("FLOAT32", multisense::Image::PixelFormat::FLOAT32, "32 bits of floating point data per pixel")
+        .value("JPEG", multisense::Image::PixelFormat::JPEG, "Image data contains the raw bytes for a jpeg compressed image")
+        .value("H264", multisense::Image::PixelFormat::H264, "Image data contains the raw bytes for a H.264 compressed image");
 
     // Image
-    py::class_<multisense::Image>(m, "Image")
+    py::class_<multisense::Image>(m, "Image", "Image object returned by the LibMultiSense API")
         .def(py::init<>())
         .def_property_readonly("as_array", [](const multisense::Image& image)
         {
@@ -205,59 +207,62 @@ PYBIND11_MODULE(_libmultisense, m) {
                              shape.size(),
                              shape,
                              strides));
-        })
-        .def_readonly("format", &multisense::Image::format)
-        .def_readonly("width", &multisense::Image::width)
-        .def_readonly("height", &multisense::Image::height)
-        .def_readonly("camera_timestamp", &multisense::Image::camera_timestamp)
-        .def_readonly("ptp_timestamp", &multisense::Image::ptp_timestamp)
-        .def_readonly("source", &multisense::Image::source)
-        .def_readonly("calibration", &multisense::Image::calibration);
+        }, "Get the image data as a numpy array")
+        .def_readonly("format", &multisense::Image::format, "The pixel format associated with the image data")
+        .def_readonly("width", &multisense::Image::width, "Width of the image")
+        .def_readonly("height", &multisense::Image::height, "Height of the image")
+        .def_readonly("camera_timestamp", &multisense::Image::camera_timestamp, "Camera timestamp of the image")
+        .def_readonly("ptp_timestamp", &multisense::Image::ptp_timestamp, "PTP timestamp of the image")
+        .def_readonly("source", &multisense::Image::source, "MultiSense datasource the image corresponds to")
+        .def_readonly("calibration", &multisense::Image::calibration, "Camera calibration associated with the image");
 
     // ImageFrame
-    py::class_<multisense::ImageFrame>(m, "ImageFrame")
+    py::class_<multisense::ImageFrame>(m, "ImageFrame", "A collection of images all captured at the same time")
         .def(py::init<>())
-        .def("add_image", &multisense::ImageFrame::add_image)
-        .def("get_image", &multisense::ImageFrame::get_image)
-        .def("has_image", &multisense::ImageFrame::has_image)
-        .def_readonly("frame_id", &multisense::ImageFrame::frame_id)
-        .def_readonly("images", &multisense::ImageFrame::images)
-        .def_readonly("calibration", &multisense::ImageFrame::calibration)
-        .def_readonly("frame_time", &multisense::ImageFrame::frame_time)
-        .def_readonly("ptp_frame_time", &multisense::ImageFrame::ptp_frame_time)
-        .def_readonly("aux_color_encoding", &multisense::ImageFrame::aux_color_encoding);
+        .def("add_image", &multisense::ImageFrame::add_image, "Add a new image to the frame")
+        .def("get_image", &multisense::ImageFrame::get_image, "Get an image from the frame")
+        .def("has_image", &multisense::ImageFrame::has_image, "Check if the frame has a image type")
+        .def_readonly("frame_id", &multisense::ImageFrame::frame_id, "Monotonically increasing frame id of the image")
+        .def_readonly("images", &multisense::ImageFrame::images, "Images associated with the frame")
+        .def_readonly("calibration", &multisense::ImageFrame::calibration, "Full stereo calibration associated with the frame")
+        .def_readonly("frame_time", &multisense::ImageFrame::frame_time, "The camera timestamp corresponding to all images in the frame")
+        .def_readonly("ptp_frame_time", &multisense::ImageFrame::ptp_frame_time, "The PTP timestamp corresponding to all images in the frame")
+        .def_readonly("aux_color_encoding", &multisense::ImageFrame::aux_color_encoding, "The encoding of the aux color image captured as part of the frame");
 
     // ImuRate
-    py::class_<multisense::ImuRate>(m, "ImuRate")
+    py::class_<multisense::ImuRate>(m, "ImuRate", "Configurable IMU rates")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::ImuRate)
         .def(py::self == py::self)
-        .def_readwrite("sample_rate", &multisense::ImuRate::sample_rate)
-        .def_readwrite("bandwith_cutoff", &multisense::ImuRate::bandwith_cutoff);
+        .def_readwrite("sample_rate", &multisense::ImuRate::sample_rate, "The sample rate in Hz")
+        .def_readwrite("bandwith_cutoff", &multisense::ImuRate::bandwith_cutoff, "The bandwidth cutoff in Hz");
 
     // ImuRange
-    py::class_<multisense::ImuRange>(m, "ImuRange")
+    py::class_<multisense::ImuRange>(m, "ImuRange", "Configurable IMU sample range")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::ImuRange)
         .def(py::self == py::self)
-        .def_readwrite("range", &multisense::ImuRange::range)
-        .def_readwrite("resolution", &multisense::ImuRange::resolution);
+        .def_readwrite("range", &multisense::ImuRange::range, "The sample range in units of the given source")
+        .def_readwrite("resolution", &multisense::ImuRange::resolution, "The min resolution the sensor can return in units per LSB");
 
 
     // MultiSenseConfig::StereoCalibration
-    py::class_<multisense::MultiSenseConfig::StereoConfig>(m, "StereoConfig")
+    py::class_<multisense::MultiSenseConfig::StereoConfig>(m, "StereoConfig", "Configuration for the main stereo camera")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::MultiSenseConfig::StereoConfig)
         .def(py::self == py::self)
-        .def_readwrite("postfilter_strength", &multisense::MultiSenseConfig::StereoConfig::postfilter_strength);
+        .def_readwrite("postfilter_strength", &multisense::MultiSenseConfig::StereoConfig::postfilter_strength,
+                "The strength of the main post-filter which removes bad matches. Valid range [0, 1.0]");
 
     // MultiSenseConfig::ManualExposureConfig
-    py::class_<multisense::MultiSenseConfig::ManualExposureConfig>(m, "ManualExposureConfig")
+    py::class_<multisense::MultiSenseConfig::ManualExposureConfig>(m, "ManualExposureConfig", "Manual exposure configuration")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::MultiSenseConfig::ManualExposureConfig)
         .def(py::self == py::self)
-        .def_readwrite("gain", &multisense::MultiSenseConfig::ManualExposureConfig::gain)
-        .def_readwrite("exposure_time", &multisense::MultiSenseConfig::ManualExposureConfig::exposure_time);
+        .def_readwrite("gain", &multisense::MultiSenseConfig::ManualExposureConfig::gain,
+                "The combined digital and analog gain for the image sensor when running in manual exposure mode")
+        .def_readwrite("exposure_time", &multisense::MultiSenseConfig::ManualExposureConfig::exposure_time,
+                "The manual exposure time in microseconds");
 
     // MultiSenseConfig::AutoExposureRoiConfig
     py::class_<multisense::MultiSenseConfig::AutoExposureRoiConfig>(m, "AutoExposureRoiConfig")

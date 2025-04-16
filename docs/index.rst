@@ -1,7 +1,7 @@
 .. LibMultisense Documentation
 
-LibMultisense's Python API Documentation!
-=========================================
+Python API
+==========
 
 .. automodule:: libmultisense
    :members:
