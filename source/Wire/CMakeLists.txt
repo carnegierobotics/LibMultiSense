@@ -114,6 +114,8 @@ target_include_directories(MultiSenseWire
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
 
+set_target_properties(MultiSenseWire PROPERTIES VERSION "${version}")
+
 if (BUILD_TESTS)
     add_subdirectory(test)
 endif()
