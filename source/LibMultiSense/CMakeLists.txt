@@ -52,7 +52,6 @@ if (BUILD_JSON_SERIALIZATION)
     endif()
 endif()
 
-set(version "7.1.0")
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
 
 if (MULTISENSE_BUILD_API_DATE)

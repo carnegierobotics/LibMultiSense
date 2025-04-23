@@ -111,9 +111,11 @@ with lms.Channel.create(channel_config) as channel:
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
+namespace lms = multisense;
+
 int main()
 {
-    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
     channel->start_streams({lms::DataSource::LEFT_RECTIFIED_RAW, lms::DataSource::RIGHT_RECTIFIED_RAW});
 
     while(true)
@@ -421,6 +423,8 @@ def main(args):
 ### C++
 
 ```c++
+#include <iostream>
+
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
@@ -428,7 +432,7 @@ namespace lms = multisense;
 
 int main(int argc, char** argv)
 {
-    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
     if (!channel)
     {
         std::cerr << "Failed to create channel" << std::endl;;
@@ -439,7 +443,7 @@ int main(int argc, char** argv)
     config.frames_per_second = 10.0;
     config.width = 960;
     config.height = 600;
-    config.disparities = lms::MultiSenseConfiguration::MaxDisparities::D256;
+    config.disparities = lms::MultiSenseConfig::MaxDisparities::D256;
     config.image_config.auto_exposure_enabled = true;
     config.image_config.gamma = 2.2;
     if (const auto status = channel->set_config(config); status != lms::Status::OK)
@@ -495,15 +499,18 @@ def main(args):
 ### C++
 
 ```c++
+#include <iostream>
 
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 namespace lms = multisense;
 
+volatile bool done = false;
+
 int main(int argc, char** argv)
 {
-    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
     if (!channel)
     {
         std::cerr << "Failed to create channel" << std::endl;;
@@ -517,12 +524,14 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    const double max_range_m = 20.0;
+
     while(!done)
     {
         if (const auto image_frame = channel->get_next_image_frame(); image_frame)
         {
             if (const auto point_cloud = lms::create_color_pointcloud<uint8_t>(image_frame.value(),
-                                                                               max_range,
+                                                                               max_range_m,
                                                                                lms::DataSource::LEFT_RECTIFIED_RAW,
                                                                                lms::DataSource::LEFT_DISPARITY_RAW); point_cloud)
             {
@@ -567,7 +576,8 @@ def main(args):
         while True:
             frame = channel.get_next_image_frame()
             if frame:
-                # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard
+                # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard.
+                # For example, a depth image pixel with a value of 10 would correspond to a depth of 10mm
                 depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
                 if depth_image:
                     print("Saving depth image for frame id: ", frame.frame_id)
@@ -577,15 +587,21 @@ def main(args):
 ### C++
 
 ```c++
+#include <iostream>
 
+#include <opencv2/opencv.hpp>
+
+#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 namespace lms = multisense;
 
+volatile bool done = false;
+
 int main(int argc, char** argv)
 {
-    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
     if (!channel)
     {
         std::cerr << "Failed to create channel" << std::endl;;
@@ -659,22 +675,28 @@ def main(args):
 ### C++
 
 ```c++
+#include <iostream>
 
+#include <opencv2/opencv.hpp>
+
+#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 namespace lms = multisense;
 
+volatile bool done = false;
+
 int main(int argc, char** argv)
 {
-    const auto channel = lms::Channel::create(lms::Channel::ChannelConfig{"10.66.171.21"});
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
     if (!channel)
     {
         std::cerr << "Failed to create channel" << std::endl;;
         return 1;
     }
 
-    if (const auto status = channel->start_streams({lms::DataSource::LEFT_DISPARITY_RAW}); status != lms::Status::OK)
+    if (const auto status = channel->start_streams({lms::DataSource::AUX_RAW}); status != lms::Status::OK)
     {
         std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
         return 1;
@@ -684,7 +706,7 @@ int main(int argc, char** argv)
     {
         if (const auto image_frame = channel->get_next_image_frame(); image_frame)
         {
-            if (const auto bgr = create_bgr_image(frame, source); bgr)
+            if (const auto bgr = create_bgr_image(image_frame.value(), lms::DataSource::AUX_RAW); bgr)
             {
                 cv::imwrite(std::to_string(image_frame->frame_id) + ".png", bgr->cv_mat());
             }

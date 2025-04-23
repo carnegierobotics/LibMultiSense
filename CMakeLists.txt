@@ -13,7 +13,8 @@ if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
 endif()
 
-set(CPACK_PACKAGE_VERSION "7.1.0")
+set(version "7.1.0")
+set(CPACK_PACKAGE_VERSION ${version})
 
 project(LibMultiSense
   LANGUAGES C CXX

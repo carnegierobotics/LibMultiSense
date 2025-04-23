@@ -114,9 +114,27 @@ target_include_directories(MultiSenseWire
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
 
+set_target_properties(MultiSenseWire PROPERTIES VERSION "${version}")
+
 if (BUILD_TESTS)
     add_subdirectory(test)
 endif()
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiSenseWireConfig.cmake.in
+                              ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseWireConfig.cmake
+                              INSTALL_DESTINATION lib/cmake/MultiSenseWire)
+
+write_basic_package_version_file(
+"${CMAKE_CURRENT_BINARY_DIR}/MultiSenseWireConfigVersion.cmake"
+  VERSION "${version}"
+  COMPATIBILITY AnyNewerVersion
+  )
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseWireConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseWireConfigVersion.cmake
+    DESTINATION lib/cmake/MultiSenseWire)
 
 # create install targets
 install(TARGETS MultiSenseWire
@@ -128,7 +146,7 @@ install(TARGETS MultiSenseWire
 )
 
 install(EXPORT MultiSenseWireTargets
-  DESTINATION lib/cmake/MultiSense)
+DESTINATION lib/cmake/MultiSenseWire)
 
 install(FILES ${WIRE_HEADERS} DESTINATION include/MultiSense/wire)
 install(FILES ${UTILITY_HEADERS} DESTINATION include/MultiSense/utility)
