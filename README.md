@@ -576,7 +576,8 @@ def main(args):
         while True:
             frame = channel.get_next_image_frame()
             if frame:
-                # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard
+                # MONO16 depth images are quantized to 1 mm per 1 pixel value to match the OpenNI standard.
+                # For example, a depth image pixel with a value of 10 would correspond to a depth of 10mm
                 depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
                 if depth_image:
                     print("Saving depth image for frame id: ", frame.frame_id)
