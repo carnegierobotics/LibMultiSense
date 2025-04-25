@@ -490,7 +490,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
     //
     // Set lighting controls if they are valid
     //
-    if (config.lighting_config)
+    if (config.lighting_config && (config.lighting_config->internal || config.lighting_config->external))
     {
         //
         // Set the lighting controls
