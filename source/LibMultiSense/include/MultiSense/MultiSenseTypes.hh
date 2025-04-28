@@ -44,6 +44,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #ifdef HAVE_OPENCV
@@ -1530,13 +1531,43 @@ struct MultiSenseInfo
         }
 
         ///
-        /// @brief Convenience operator for comparing versions
+        /// @brief Convenience equality operator for comparing versions
+        ///
+        bool operator==(const Version& other) const
+        {
+            return std::tie(major, minor, patch) == std::tie(other.major, other.minor, other.patch);
+        }
+
+        ///
+        /// @brief Convenience less-than operator for comparing versions
         ///
         bool operator<(const Version& other) const
         {
-            return major < other.major ||
-                   (major == other.major && minor < other.minor) ||
-                   (major == other.major && minor == other.minor && patch < other.patch);
+            return std::tie(major, minor, patch) < std::tie(other.major, other.minor, other.patch);
+        }
+
+        ///
+        /// @brief Convenience less-than or equal to operator for comparing versions
+        ///
+        bool operator<=(const Version& other) const
+        {
+            return *this < other || *this == other;
+        }
+
+        ///
+        /// @brief Convenience greater-than operator for comparing versions
+        ///
+        bool operator>(const Version& other) const
+        {
+            return other < *this;
+        }
+
+        ///
+        /// @brief Convenience greater-than or equal to operator for comparing versions
+        ///
+        bool operator>=(const Version& other) const
+        {
+            return other <= *this;
         }
     };
 
