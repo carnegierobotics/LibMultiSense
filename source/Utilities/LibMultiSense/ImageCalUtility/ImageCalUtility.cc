@@ -152,7 +152,8 @@ int main(int argc, char** argv)
         }
     }
 
-    if (set_cal && (!std::filesystem::exists(intrinsics_path) || !std::filesystem::exists(extrinsics_path)))
+    if ((set_cal && (!std::filesystem::exists(intrinsics_path) || !std::filesystem::exists(extrinsics_path))) ||
+        (intrinsics_path.empty() || extrinsics_path.empty()))
     {
         std::cerr << "Invalid input or calibration paths" << std::endl;
         usage(*argv);
