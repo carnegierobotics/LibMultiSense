@@ -320,6 +320,20 @@ Status LegacyChannel::connect(const Config &config)
     }
 
     //
+    // If we are running a new version of MultiSense hardware, make sure we are running at least
+    // v7.22 firmware for the best compatibility with this API
+    //
+    if ((m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S27 ||
+         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S30 ||
+         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21) &&
+         m_info.version.firmware_version < MultiSenseInfo::Version{7, 22, 0})
+    {
+        CRL_DEBUG("WARNING: Please upgrade the MultiSense firmware to the most recent firmware release "
+                  "for the best performance. See https://docs.carnegierobotics.com/firmware/update.html "
+                  "for update instructions and general firmware information");
+    }
+
+    //
     // Update our cached multisense configuration
     //
     if (auto cam_config = query_configuration(m_info.device.has_aux_camera(), m_info.imu.has_value(), false); cam_config)
