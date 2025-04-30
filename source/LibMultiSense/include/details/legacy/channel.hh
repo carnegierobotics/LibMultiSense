@@ -263,6 +263,11 @@ private:
     std::optional<MultiSenseInfo::DeviceInfo> query_device_info();
 
     ///
+    /// @brief Internal member to stop image streams
+    ///
+    Status stop_streams_internal(const std::vector<DataSource> &sources);
+
+    ///
     /// @brief Image meta callback used to internally receive images sent from the MultiSense
     ///
     void image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data);
