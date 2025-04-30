@@ -181,11 +181,6 @@ Status LegacyChannel::stop_streams(const std::vector<DataSource> &sources)
     using namespace crl::multisense::details;
     using namespace std::chrono_literals;
 
-    if (!m_connected)
-    {
-        return Status::UNINITIALIZED;
-    }
-
     wire::StreamControl cmd;
 
     cmd.disable(convert_sources(sources));
