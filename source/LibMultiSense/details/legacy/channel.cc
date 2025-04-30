@@ -282,10 +282,20 @@ Status LegacyChannel::connect(const Config &config)
                                                    {
                                                        if (!this->m_message_assembler.process_packet(data))
                                                        {
-                                                           CRL_DEBUG("Processing packet of %" PRIu64 " bytes failed\n", 
+                                                           CRL_DEBUG("Processing packet of %" PRIu64 " bytes failed\n",
                                                                      static_cast<uint64_t>(data.size()));
                                                        }
                                                    });
+
+    //
+    // Disable all streams prior to requesting the MTU
+    //
+    if (const auto status = stop_streams({DataSource::ALL}); status != Status::Ok)
+    {
+        CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
+        return status;
+    }
+
     //
     // Set the user requested MTU
     //
