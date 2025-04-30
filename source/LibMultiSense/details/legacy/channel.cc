@@ -290,7 +290,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     // Disable all streams prior to requesting the MTU
     //
-    if (const auto status = stop_streams({DataSource::ALL}); status != Status::Ok)
+    if (const auto status = stop_streams({DataSource::ALL}); status != Status::OK)
     {
         CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
         return status;
