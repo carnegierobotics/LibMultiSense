@@ -178,40 +178,12 @@ Status LegacyChannel::start_streams(const std::vector<DataSource> &sources)
 
 Status LegacyChannel::stop_streams(const std::vector<DataSource> &sources)
 {
-    using namespace crl::multisense::details;
-    using namespace std::chrono_literals;
-
     if (!m_connected)
     {
         return Status::UNINITIALIZED;
     }
 
-    wire::StreamControl cmd;
-
-    cmd.disable(convert_sources(sources));
-
-    if (const auto ack = wait_for_ack(m_message_assembler,
-                                      m_socket,
-                                      cmd,
-                                      m_transmit_id++,
-                                      m_current_mtu,
-                                      m_config.receive_timeout); ack)
-    {
-        if (ack->status != wire::Ack::Status_Ok)
-        {
-            CRL_DEBUG("Start streams ack invalid: %" PRIi32 "\n", ack->status);
-            return get_status(ack->status);
-        }
-
-        for (const auto &source : sources)
-        {
-            m_active_streams.erase(source);
-        }
-
-        return Status::OK;
-    }
-
-    return Status::TIMEOUT;
+    return stop_streams_internal(sources);
 }
 
 void LegacyChannel::add_image_frame_callback(std::function<void(const ImageFrame&)> callback)
@@ -282,10 +254,20 @@ Status LegacyChannel::connect(const Config &config)
                                                    {
                                                        if (!this->m_message_assembler.process_packet(data))
                                                        {
-                                                           CRL_DEBUG("Processing packet of %" PRIu64 " bytes failed\n", 
+                                                           CRL_DEBUG("Processing packet of %" PRIu64 " bytes failed\n",
                                                                      static_cast<uint64_t>(data.size()));
                                                        }
                                                    });
+
+    //
+    // Disable all streams prior to requesting the MTU
+    //
+    if (const auto status = stop_streams_internal({DataSource::ALL}); status != Status::OK)
+    {
+        CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
+        return status;
+    }
+
     //
     // Set the user requested MTU
     //
@@ -1018,6 +1000,39 @@ std::optional<MultiSenseInfo::DeviceInfo> LegacyChannel::query_device_info()
     }
 
     return std::nullopt;
+}
+
+Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sources)
+{
+    using namespace crl::multisense::details;
+    using namespace std::chrono_literals;
+
+    wire::StreamControl cmd;
+
+    cmd.disable(convert_sources(sources));
+
+    if (const auto ack = wait_for_ack(m_message_assembler,
+                                      m_socket,
+                                      cmd,
+                                      m_transmit_id++,
+                                      m_current_mtu,
+                                      m_config.receive_timeout); ack)
+    {
+        if (ack->status != wire::Ack::Status_Ok)
+        {
+            CRL_DEBUG("Stop streams ack invalid: %" PRIi32 "\n", ack->status);
+            return get_status(ack->status);
+        }
+
+        for (const auto &source : sources)
+        {
+            m_active_streams.erase(source);
+        }
+
+        return Status::OK;
+    }
+
+    return Status::TIMEOUT;
 }
 
 void LegacyChannel::image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)

@@ -47,6 +47,7 @@
 #include <wire/PtpStatusResponseMessage.hh>
 #include <wire/VersionRequestMessage.hh>
 #include <wire/SysDeviceInfoMessage.hh>
+#include <wire/StreamControlMessage.hh>
 
 #include "MultiSense/details/utility/Functional.hh"
 
@@ -182,6 +183,8 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
         throw e;
     }
 
+
+
     //
     // Register any special UDP reassemblers
 
@@ -194,11 +197,24 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     m_rxThreadP      = new utility::Thread(rxThread, this);
 
     //
+    // Disable all streams prior to requesting something as large as an MTU
+    wire::StreamControl killAll;
+    killAll.disable(sourceApiToWire(Source_All));
+
+    Status status = waitAck(killAll);
+    if (Status_Ok != status)
+    {
+      cleanup();
+      CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
+                    address.c_str(), cameraId);
+    }
+
+    //
     // Request the current operating MTU of the device
 
     wire::SysMtu mtu;
 
-    Status status = waitData(wire::SysGetMtu(), mtu);
+    status = waitData(wire::SysGetMtu(), mtu);
     if (Status_Ok != status) {
         cleanup();
         CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
