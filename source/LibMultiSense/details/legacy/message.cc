@@ -34,6 +34,7 @@
  *   2025-01-08, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <algorithm>
 #include <inttypes.h>
 #include <limits>
 
