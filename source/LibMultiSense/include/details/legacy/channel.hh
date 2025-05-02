@@ -291,10 +291,11 @@ private:
     /// @brief Handle internal process, and potentially dispatch a image
     ///
     void handle_and_dispatch(Image image,
-                            int64_t frame_id,
-                            const StereoCalibration &calibration,
-                            const TimeT &capture_time,
-                            const TimeT &ptp_capture_time);
+                             ImageHistogram histogram,
+                             int64_t frame_id,
+                             const StereoCalibration &calibration,
+                             const TimeT &capture_time,
+                             const TimeT &ptp_capture_time);
 
     ///
     /// @brief Internal mutex used to handle updates from users

@@ -343,6 +343,15 @@ ImuSampleScalars get_imu_scalars(const crl::multisense::details::wire::ImuInfo &
     return output;
 }
 
+ImageHistogram get_histogram(const crl::multisense::details::wire::ImageMeta &metadata)
+{
+    using namespace crl::multisense::details;
+
+    std::vector<uint32_t> data(wire::ImageMeta::HISTOGRAM_CHANNELS * wire::ImageMeta::HISTOGRAM_BINS, 0);
+    memcpy(data.data(), metadata.histogramP, wire::ImageMeta::HISTOGRAM_LENGTH);
+
+    return ImageHistogram{wire::ImageMeta::HISTOGRAM_CHANNELS, wire::ImageMeta::HISTOGRAM_BINS, std::move(data)};
 }
 
+}
 }
