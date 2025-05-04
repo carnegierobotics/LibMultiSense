@@ -1106,7 +1106,7 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
                 scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale)};
 
     handle_and_dispatch(std::move(image),
-                        get_histogram(meta->second),
+                        meta->second,
                         wire_image.frameId,
                         scale_calibration(cal, cal_x_scale, cal_y_scale),
                         capture_time_point,
@@ -1175,7 +1175,7 @@ void LegacyChannel::disparity_callback(std::shared_ptr<const std::vector<uint8_t
                 scale_calibration(select_calibration(cal, source), cal_x_scale, cal_y_scale)};
 
     handle_and_dispatch(std::move(image),
-                        get_histogram(meta->second),
+                        meta->second,
                         wire_image.frameId,
                         scale_calibration(cal, cal_x_scale, cal_y_scale),
                         capture_time_point,
@@ -1234,12 +1234,14 @@ void LegacyChannel::imu_callback(std::shared_ptr<const std::vector<uint8_t>> dat
 }
 
 void LegacyChannel::handle_and_dispatch(Image image,
-                                        ImageHistogram histogram,
+                                        const crl::multisense::details::wire::ImageMeta &metadata,
                                         int64_t frame_id,
                                         const StereoCalibration &calibration,
                                         const TimeT &capture_time,
                                         const TimeT &ptp_capture_time)
 {
+    using namespace std::chrono;
+
     //
     // Create a new frame if one does not exist, or add the input image to the corresponding frame
     //
@@ -1252,7 +1254,9 @@ void LegacyChannel::handle_and_dispatch(Image image,
                          capture_time,
                          ptp_capture_time,
                          m_calibration.aux ? ColorImageEncoding::YCBCR420 : ColorImageEncoding::NONE,
-                         std::move(histogram)};
+                         get_histogram(metadata),
+                         microseconds{metadata.exposureTime},
+                         metadata.gain};
 
         m_frame_buffer.emplace(frame_id, std::move(frame));
     }

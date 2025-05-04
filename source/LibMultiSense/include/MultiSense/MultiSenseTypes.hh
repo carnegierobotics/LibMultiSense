@@ -384,6 +384,16 @@ struct ImageFrame
     /// @brief Corresponding histogram from the main stereo pair
     ///
     std::optional<ImageHistogram> stereo_histogram = std::nullopt;
+
+    ///
+    /// @brief The exposure time which was used to capture this frame
+    ///
+    std::chrono::microseconds capture_exposure_time{0};
+
+    ///
+    /// @brief The gain that was used to capture the stereo images in this frame
+    ///
+    float capture_gain = 0.0;
 };
 
 ///
