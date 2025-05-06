@@ -1,3 +1,5 @@
+include(ExternalProject)
+
 set(MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseChannel.hh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseTypes.hh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseUtilities.hh)
@@ -21,6 +23,25 @@ set(DETAILS_SRC details/factory.cc
                 details/legacy/udp.cc
                 details/legacy/utilities.cc)
 
+find_program(CARGO "cargo")
+if (CARGO)
+  set(BUILD_MSWEBRTC ON)
+endif (CARGO)
+
+if (BUILD_MSWEBRTC)
+  set(DETAILS_SRC ${DETAILS_SRC} details/mswebrtc/channel.cc)
+  set(MSWEBRTC_SRC_DIR ${CMAKE_SOURCE_DIR}/rust/libmultisense-ambarella)
+  ExternalProject_Add(libmultisense-ambarella
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libmultisense-ambarella-prefix
+    SOURCE_DIR ${MSWEBRTC_SRC_DIR}
+    BUILD_IN_SOURCE TRUE
+    CONFIGURE_COMMAND ""
+    INSTALL_COMMAND ""
+    BUILD_COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/libmultisense-ambarella-prefix/src/libmultisense-ambarella-build ${CARGO} build --profile release)
+else (BUILD_MSWEBRTC)
+  message("Cargo not found, not building mswebrtc channel implementation")
+endif (BUILD_MSWEBRTC)
+
 if (${BUILD_SHARED_LIBS})
     add_library(MultiSense SHARED ${MULTISENSE_HEADERS}
                                       ${DETAILS_SRC})
@@ -31,7 +52,17 @@ else()
 
 endif()
 
-target_link_libraries(MultiSense MultiSenseWire)
+
+if (BUILD_MSWEBRTC)
+  ExternalProject_Get_property(libmultisense-ambarella PREFIX)
+  target_include_directories(MultiSense
+    PRIVATE ${PREFIX}/src/libmultisense-ambarella-build)
+  add_dependencies(MultiSense libmultisense-ambarella)
+  target_link_libraries(MultiSense PRIVATE ${PREFIX}/src/libmultisense-ambarella-build/release/libmswebrtc.a)
+endif (BUILD_MSWEBRTC)
+
+
+target_link_libraries(MultiSense PRIVATE MultiSenseWire)
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
@@ -48,7 +79,7 @@ endif()
 
 if (BUILD_JSON_SERIALIZATION)
     if(nlohmann_json_FOUND)
-        target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
+        target_link_libraries(MultiSense PUBLIC nlohmann_json::nlohmann_json)
     endif()
 endif()
 
@@ -67,11 +98,11 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 #
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    target_link_libraries(MultiSense ws2_32)
+    target_link_libraries(MultiSense PUBLIC ws2_32)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(MultiSense pthread)
+    target_link_libraries(MultiSense PUBLIC pthread)
 else()
-    target_link_libraries(MultiSense pthread rt)
+    target_link_libraries(MultiSense PUBLIC pthread rt)
 endif()
 
 if (BUILD_TESTS)

@@ -35,6 +35,7 @@
  **/
 
 #include "details/legacy/channel.hh"
+#include "details/mswebrtc/channel.hh"
 
 namespace multisense
 {
@@ -49,6 +50,18 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
             try
             {
                 return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
+            }
+            catch(const std::exception &e)
+            {
+                CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
+                return nullptr;
+            }
+        }
+        case ChannelImplementation::MSWEBRTC:
+        {
+            try
+            {
+                return std::unique_ptr<mswebrtc::MswebrtcChannel>(new mswebrtc::MswebrtcChannel(config));
             }
             catch(const std::exception &e)
             {
