@@ -296,6 +296,27 @@ struct Image
 };
 
 ///
+/// @brief A object containing histogram data for a image
+///
+struct ImageHistogram
+{
+    ///
+    /// @brief The number of channels per pixel
+    ///
+    uint32_t channels = 0;
+
+    ///
+    /// @brief The number of possible pixel bins
+    ///
+    uint32_t bins = 0;
+
+    ///
+    /// @brief The raw histogram counts whose size is equal to channels*bins
+    ///
+    std::vector<uint32_t> data{};
+};
+
+///
 /// @brief A frame containing multiple images (indexed by DataSource).
 ///
 struct ImageFrame
@@ -337,12 +358,12 @@ struct ImageFrame
     ///
     /// @brief The images associated with each source in the frame
     ///
-    std::map<DataSource, Image> images;
+    std::map<DataSource, Image> images{};
 
     ///
     /// @brief The scaled calibration for the entire camera
     ///
-    StereoCalibration calibration;
+    StereoCalibration calibration{};
 
     ///
     /// @brief The MultiSense timestamp associated with the frame
@@ -358,6 +379,11 @@ struct ImageFrame
     /// @brief The encoding of the aux color image(s) in the frame
     ///
     ColorImageEncoding aux_color_encoding = ColorImageEncoding::NONE;
+
+    ///
+    /// @brief Corresponding histogram from the main stereo pair
+    ///
+    std::optional<ImageHistogram> stereo_histogram = std::nullopt;
 };
 
 ///
