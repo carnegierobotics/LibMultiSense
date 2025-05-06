@@ -8,6 +8,10 @@ name = "mswebrtc"
 crate-type = ["staticlib"]
 
 [dependencies]
+qocrlif = { git = "ssh://git@github.com/carnegierobotics/qocrlif.git", rev = "cfc4a40acf1a90ea48a20655c92d917d3ed98e6a" }
+fragunfrag = { git = "ssh://git@github.com/carnegierobotics/fragunfrag.git", rev = "0f9ba8fb1cb0ed14cb154f694b6cc558d7720a3d" }
+tokio = "1.45"
+webrtc = "0.11.0"
 
 [build-dependencies]
 cbindgen = "0.12"

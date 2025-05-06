@@ -37,6 +37,7 @@ if (BUILD_MSWEBRTC)
     BUILD_IN_SOURCE TRUE
     CONFIGURE_COMMAND ""
     INSTALL_COMMAND ""
+    BUILD_ALWAYS TRUE
     BUILD_COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/libmultisense-ambarella-prefix/src/libmultisense-ambarella-build ${CARGO} build --profile release)
 else (BUILD_MSWEBRTC)
   message("Cargo not found, not building mswebrtc channel implementation")
