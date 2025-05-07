@@ -249,7 +249,9 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("frame_time", &multisense::ImageFrame::frame_time)
         .def_readonly("ptp_frame_time", &multisense::ImageFrame::ptp_frame_time)
         .def_readonly("aux_color_encoding", &multisense::ImageFrame::aux_color_encoding)
-        .def_readonly("stereo_histogram", &multisense::ImageFrame::stereo_histogram);
+        .def_readonly("stereo_histogram", &multisense::ImageFrame::stereo_histogram)
+        .def_readonly("capture_exposure_time", &multisense::ImageFrame::capture_exposure_time)
+        .def_readonly("capture_gain", &multisense::ImageFrame::capture_gain);
 
     // ImuRate
     py::class_<multisense::ImuRate>(m, "ImuRate")
