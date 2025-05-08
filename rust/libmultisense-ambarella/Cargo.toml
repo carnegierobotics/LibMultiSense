@@ -1,0 +1,17 @@
+[package]
+name = "mswebrtc"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "mswebrtc"
+crate-type = ["staticlib"]
+
+[dependencies]
+wrtc = { git = "ssh://git@github.com/carnegierobotics/multisense-ambarella.git", rev = "f148d8d5a3423ebda529cebd6b45007311f4ea58" }
+tokio = "1.45"
+webrtc = "0.11.0"
+
+[build-dependencies]
+cbindgen = "0.12"
+uuid = {version="1.16", features=["v4"]}
