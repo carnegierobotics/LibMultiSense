@@ -47,7 +47,7 @@ namespace wire {
 class SysNetwork {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_SYS_SET_NETWORK;
-    static CRL_CONSTEXPR VersionType VERSION = 1;
+    static CRL_CONSTEXPR VersionType VERSION = 2;
 
     //
     // Configurable interfaces
@@ -64,6 +64,9 @@ public:
     std::string gateway;
     std::string netmask;
 
+    // Version 2 addition
+    uint8_t enable_lla;
+
     //
     // Constructors
 
@@ -74,12 +77,23 @@ public:
         interface(Interface_Primary),
         address(a),
         gateway(g),
-        netmask(n) {};
+        netmask(n),
+        enable_lla(false) {};
+    SysNetwork(const std::string& a,
+            const std::string& g,
+            const std::string& n,
+            const uint8_t enable_lla) :
+        interface(Interface_Primary),
+        address(a),
+        gateway(g),
+        netmask(n),
+        enable_lla(enable_lla) {};
     SysNetwork() :
         interface(Interface_Unknown),
         address(),
         gateway(),
-        netmask() {};
+        netmask(),
+        enable_lla(false) {};
 
     //
     // Serialization routine
@@ -88,11 +102,15 @@ public:
         void serialize(Archive&          message,
                        const VersionType version)
     {
-        (void) version;
         message & interface;
         message & address;
         message & gateway;
         message & netmask;
+
+        if (version >= 2)
+            message & enable_lla;
+        else 
+            enable_lla = 0xFF; // flash uninit value? 
     }
 };
 

@@ -1317,6 +1317,11 @@ struct MultiSenseInfo
         /// @brief The netmask of the camera (i.e. X.X.X.X)
         ///
         std::string netmask = "255.255.255.0";
+
+        ///
+        /// @brief Weather to enable link local addressing over static IP
+        ///
+        uint8_t enable_lla = false;
     };
 
     ///

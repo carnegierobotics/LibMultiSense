@@ -321,13 +321,13 @@ MultiSenseInfo::ImuInfo convert(const crl::multisense::details::wire::ImuInfo &m
 
 MultiSenseInfo::NetworkInfo convert(const crl::multisense::details::wire::SysNetwork &wire)
 {
-    return MultiSenseInfo::NetworkInfo{wire.address, wire.gateway, wire.netmask};
+    return MultiSenseInfo::NetworkInfo{wire.address, wire.gateway, wire.netmask, wire.enable_lla};
 }
 
 crl::multisense::details::wire::SysNetwork convert(const MultiSenseInfo::NetworkInfo &info)
 {
     using namespace crl::multisense::details;
-    return wire::SysNetwork{info.ip_address, info.gateway, info.netmask};
+    return wire::SysNetwork{info.ip_address, info.gateway, info.netmask, info.enable_lla};
 }
 
 }

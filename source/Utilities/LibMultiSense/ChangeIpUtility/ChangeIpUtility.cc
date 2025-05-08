@@ -71,8 +71,10 @@ void usage(const char *name)
     std::cerr << "\t-A <new-address>     : NEW IPV4 address (default=10.66.171.21)" << std::endl;
     std::cerr << "\t-G <new-gateway>     : NEW IPV4 gateway (default=10.66.171.1)" << std::endl;
     std::cerr << "\t-N <new-netmask>     : NEW IPV4 netmask (default=255.255.255.0)" << std::endl;
-    std::cerr << "\t-b <interface>       : send broadcast packet to a specified network interface."
+    std::cerr << "\t-b <interface>       : Send broadcast packet to a specified network interface."
                                            "This resets the IP address to the new configured IP" << std::endl;
+    std::cerr << "\t-l                   : Enable link local address (automatic IP in 169.254.0.0/16)"
+                                           "(default=false)." << std::endl;
     std::cerr << "\t-y                   : Disable confirmation prompt (default=false)" << std::endl;
     exit(1);
 }
@@ -82,14 +84,15 @@ void usage(const char *name)
 int main(int argc, char** argv)
 {
     std::string ip_address = "10.66.171.21";
-    std::string new_ip_address = "10.66.171.21";
-    std::string new_gateway = "10.66.171.1";
-    std::string new_netmask = "255.255.255.0";
+    std::string new_ip_address = "";
+    std::string new_gateway = "";
+    std::string new_netmask = "";
     std::optional<std::string> interface = std::nullopt;
     bool disable_confirmation = false;
+    bool enable_lla = false;
 
     int c;
-    while(-1 != (c = getopt(argc, argv, "a:A:G:N:b:y")))
+    while(-1 != (c = getopt(argc, argv, "a:A:G:N:b:ly")))
     {
         switch(c)
         {
@@ -98,11 +101,26 @@ int main(int argc, char** argv)
             case 'G': new_gateway = std::string(optarg); break;
             case 'N': new_netmask = std::string(optarg); break;
             case 'b': interface = std::string(optarg); break;
+            case 'l': enable_lla = true; break;
             case 'y': disable_confirmation = true; break;
             default: usage(*argv); break;
         }
     }
 
+    if ((new_ip_address != "" || new_gateway != "" || new_netmask != "") && enable_lla){
+        std::cerr << "Warning: Enabling LLA overrides user set static IP, really set both?" << std::endl;
+        int reply = getchar();
+        if ('Y' != reply && 'y' != reply)
+        {
+            std::cout << "Aborting" << std::endl;
+            return 1;
+        }
+    }
+
+    if (new_ip_address == "") new_ip_address = "10.66.171.21";
+    if (new_gateway == "") new_gateway = "10.66.171.1";
+    if (new_netmask == "") new_netmask = "255.255.255.0";
+    
     lms::Channel::Config config{ip_address};
     config.connect_on_initialization = !static_cast<bool>(interface);
     const auto channel = lms::Channel::create(config);
@@ -115,9 +133,10 @@ int main(int argc, char** argv)
 
     if (!disable_confirmation)
     {
-        std::cout << "NEW address: " << new_ip_address << std::endl;;
-        std::cout << "NEW gateway: " << new_gateway << std::endl;;
-        std::cout << "NEW netmask: " << new_netmask << std::endl;;
+        std::cout << "NEW address: " << new_ip_address << std::endl;
+        std::cout << "NEW gateway: " << new_gateway << std::endl;
+        std::cout << "NEW netmask: " << new_netmask << std::endl;
+        std::cout << "NEW LLA status: " << enable_lla << std::endl;
 
         if(interface)
         {
@@ -135,7 +154,7 @@ int main(int argc, char** argv)
         }
     }
 
-    const lms::MultiSenseInfo::NetworkInfo new_info{new_ip_address, new_gateway, new_netmask};
+    const lms::MultiSenseInfo::NetworkInfo new_info{new_ip_address, new_gateway, new_netmask, enable_lla};
 
     if (const auto status = channel->set_network_config(new_info, interface); status != lms::Status::OK)
     {
