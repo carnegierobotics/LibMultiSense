@@ -343,12 +343,35 @@ ImuSampleScalars get_imu_scalars(const crl::multisense::details::wire::ImuInfo &
     return output;
 }
 
-ImageHistogram get_histogram(const crl::multisense::details::wire::ImageMeta &metadata)
+ImageHistogram get_histogram(const crl::multisense::details::wire::ImageMeta &metadata,
+                             const MultiSenseInfo::DeviceInfo::HardwareRevision &hardware_revision)
 {
     using namespace crl::multisense::details;
 
     std::vector<uint32_t> data(wire::ImageMeta::HISTOGRAM_CHANNELS * wire::ImageMeta::HISTOGRAM_BINS, 0);
     memcpy(data.data(), metadata.histogramP, wire::ImageMeta::HISTOGRAM_LENGTH);
+
+    //
+    // All models of these camera have grayscale imagers combine our g0, r0, b0, g1 bins into a single bin
+    //
+    if (wire::ImageMeta::HISTOGRAM_CHANNELS == 4 &&
+         (hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S27 ||
+          hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S30 ||
+          hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21 ||
+          hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i))
+    {
+        std::vector<uint32_t> simplified_data(static_cast<size_t>(wire::ImageMeta::HISTOGRAM_BINS), 0);
+
+        for (size_t i = 0 ; i < wire::ImageMeta::HISTOGRAM_BINS; ++i)
+        {
+            simplified_data[i] = data[wire::ImageMeta::HISTOGRAM_CHANNELS * i] +
+                                 data[wire::ImageMeta::HISTOGRAM_CHANNELS * i + 1] +
+                                 data[wire::ImageMeta::HISTOGRAM_CHANNELS * i + 2] +
+                                 data[wire::ImageMeta::HISTOGRAM_CHANNELS * i + 3];
+        }
+
+        return ImageHistogram{1, wire::ImageMeta::HISTOGRAM_BINS, std::move(simplified_data)};
+    }
 
     return ImageHistogram{wire::ImageMeta::HISTOGRAM_CHANNELS, wire::ImageMeta::HISTOGRAM_BINS, std::move(data)};
 }

@@ -1254,7 +1254,7 @@ void LegacyChannel::handle_and_dispatch(Image image,
                          capture_time,
                          ptp_capture_time,
                          m_calibration.aux ? ColorImageEncoding::YCBCR420 : ColorImageEncoding::NONE,
-                         get_histogram(metadata),
+                         get_histogram(metadata, m_info.device.hardware_revision),
                          microseconds{metadata.exposureTime},
                          metadata.gain};
 
