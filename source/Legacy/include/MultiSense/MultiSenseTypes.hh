@@ -3527,17 +3527,16 @@ class MULTISENSE_API StatusMessage {
         /** A boolean indicating if the processing pipeline is ok */
         bool processingPipelineOk;
 
-        /** The temperature of the internal switching mode power supply.
-         * Temperature is is Celsius */
+        /** The temperature of the SoC CPU. Temperature is in Celsius */
         float cpuTemperature;
 
-        /** The temperature of the FPGA. Temperature is is Celsius */
+        /** The temperature of the FPGA. Temperature is in Celsius */
         float fpgaTemperature;
 
-        /** The temperature of the left imager. Temperature is is Celsius */
+        /** The temperature of the left imager. Temperature is in Celsius */
         float leftImagerTemperature;
 
-        /** The temperature of the right imager. Temperature is is Celsius */
+        /** The temperature of the right imager. Temperature is in Celsius */
         float rightImagerTemperature;
 
         /** The input voltage supplied to the MultiSense. Value is in Volts */
