@@ -1658,7 +1658,7 @@ Status impl::getDeviceStatus(system::StatusMessage& status)
     status.processingPipelineOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_PIPELINE_OK) ==
         wire::StatusResponse::STATUS_PIPELINE_OK;
 
-    status.powerSupplyTemperature = m_statusResponseMessage.temperature0;
+    status.cpuTemperature = m_statusResponseMessage.temperature0;
     status.fpgaTemperature = m_statusResponseMessage.temperature1;
     status.leftImagerTemperature = m_statusResponseMessage.temperature2;
     status.rightImagerTemperature = m_statusResponseMessage.temperature3;

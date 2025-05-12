@@ -49,10 +49,10 @@ bool system_ok(const crl::multisense::details::wire::StatusResponse &status)
 template <>
 MultiSenseStatus::TemperatureStatus convert(const crl::multisense::details::wire::StatusResponse &status)
 {
-    return MultiSenseStatus::TemperatureStatus{status.temperature1,
+    return MultiSenseStatus::TemperatureStatus{status.temperature0,
+                                               status.temperature1,
                                                status.temperature2,
-                                               status.temperature3,
-                                               status.temperature0};
+                                               status.temperature3};
 }
 
 template <>

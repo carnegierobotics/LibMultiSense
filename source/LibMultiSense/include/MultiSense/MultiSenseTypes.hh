@@ -1163,7 +1163,12 @@ struct MultiSenseStatus
     struct TemperatureStatus
     {
         ///
-        /// @brief Temperature of the FPGA  in Celsius
+        /// @brief Temperature of the processing subsystem (CPU cores of SoC) in Celsius
+        ///
+        float cpu_temperature = 0.0f;
+
+        ///
+        /// @brief Temperature of the FPGA in Celsius
         ///
         float fpga_temperature = 0.0f;
 
@@ -1176,11 +1181,6 @@ struct MultiSenseStatus
         /// @brief Temperature of the right imager in Celsius
         ///
         float right_imager_temperature = 0.0f;
-
-        ///
-        /// @brief Temperature of the internal switching power supply in Celsius
-        ///
-        float power_supply_temperature = 0.0f;
     };
 
     struct PowerStatus

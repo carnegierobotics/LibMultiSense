@@ -106,10 +106,10 @@ TEST(convert, temperature)
 
     const auto temp = convert<MultiSenseStatus::TemperatureStatus>(status);
 
+    ASSERT_FLOAT_EQ(temp.cpu_temperature, status.temperature0);
     ASSERT_FLOAT_EQ(temp.fpga_temperature, status.temperature1);
     ASSERT_FLOAT_EQ(temp.left_imager_temperature, status.temperature2);
     ASSERT_FLOAT_EQ(temp.right_imager_temperature, status.temperature3);
-    ASSERT_FLOAT_EQ(temp.power_supply_temperature, status.temperature0);
 }
 
 TEST(convert, power)

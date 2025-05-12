@@ -342,10 +342,10 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::CameraStatus,
                                    processing_pipeline_ok)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::TemperatureStatus,
+                                   cpu_temperature,
                                    fpga_temperature,
                                    left_imager_temperature,
-                                   right_imager_temperature,
-                                   power_supply_temperature)
+                                   right_imager_temperature)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::PowerStatus,
                                    input_voltage,
