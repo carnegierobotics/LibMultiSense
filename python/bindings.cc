@@ -456,10 +456,10 @@ PYBIND11_MODULE(_libmultisense, m) {
     py::class_<multisense::MultiSenseStatus::TemperatureStatus>(m, "TemperatureStatus")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::MultiSenseStatus::TemperatureStatus)
+        .def_readwrite("cpu_temperature", &multisense::MultiSenseStatus::TemperatureStatus::cpu_temperature);
         .def_readwrite("fpga_temperature", &multisense::MultiSenseStatus::TemperatureStatus::fpga_temperature)
         .def_readwrite("left_imager_temperature", &multisense::MultiSenseStatus::TemperatureStatus::left_imager_temperature)
         .def_readwrite("right_imager_temperature", &multisense::MultiSenseStatus::TemperatureStatus::right_imager_temperature)
-        .def_readwrite("power_supply_temperature", &multisense::MultiSenseStatus::TemperatureStatus::power_supply_temperature);
 
     // MultiSenseStatus::PowerStatus
     py::class_<multisense::MultiSenseStatus::PowerStatus>(m, "PowerStatus")

@@ -3529,7 +3529,7 @@ class MULTISENSE_API StatusMessage {
 
         /** The temperature of the internal switching mode power supply.
          * Temperature is is Celsius */
-        float powerSupplyTemperature;
+        float cpuTemperature;
 
         /** The temperature of the FPGA. Temperature is is Celsius */
         float fpgaTemperature;
@@ -3566,7 +3566,7 @@ class MULTISENSE_API StatusMessage {
             imuOk(false),
             externalLedsOk(false),
             processingPipelineOk(false),
-            powerSupplyTemperature(0.),
+            cpuTemperature(0.),
             fpgaTemperature(0.),
             leftImagerTemperature(0.),
             rightImagerTemperature(0.),
