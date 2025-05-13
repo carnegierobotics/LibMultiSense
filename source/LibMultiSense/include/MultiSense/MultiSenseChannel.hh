@@ -54,7 +54,12 @@ public:
         ///
         /// @brief Use the Legacy MultiSense wire protocol implemented as part of LibMultiSense
         ///
-        LEGACY
+        LEGACY,
+
+        ///
+        /// @brief Use the Webrtc-derived MultiSense wire protocol implemented for the Ambarella multisense variant
+        ///
+        MSWEBRTC
     };
 
     ///
