@@ -59,7 +59,11 @@ if (BUILD_MSWEBRTC)
   target_include_directories(MultiSense
     PRIVATE ${PREFIX}/src/libmultisense-ambarella-build)
   add_dependencies(MultiSense libmultisense-ambarella)
-  target_link_libraries(MultiSense PRIVATE ${PREFIX}/src/libmultisense-ambarella-build/release/libmswebrtc.a)
+
+  #This rather long list of libraries was generated with the following invocation
+  # `cargo rustc -- --print native-static-libs`
+  # we may need to run that again in the mysterious future if our list of dependencies changes
+  target_link_libraries(MultiSense INTERFACE ${PREFIX}/src/libmultisense-ambarella-build/release/libmswebrtc.a -lssl -lcrypto -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc)
 endif (BUILD_MSWEBRTC)
 
 
