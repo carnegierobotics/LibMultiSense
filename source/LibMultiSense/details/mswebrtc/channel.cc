@@ -40,7 +40,7 @@
 namespace multisense {
 namespace mswebrtc {
 
-MswebrtcChannel::MswebrtcChannel(const Config &):impl(create_mswebrtc_impl())
+    MswebrtcChannel::MswebrtcChannel(const Config &):impl(create_mswebrtc_impl())
 {
 }
 
@@ -70,14 +70,19 @@ void MswebrtcChannel::add_imu_frame_callback(std::function<void(const ImuFrame&)
     CRL_EXCEPTION("NOT IMPLEMENTED");
 }
 
-Status MswebrtcChannel::connect(const Config &)
+Status MswebrtcChannel::connect(const Config &conf)
 {
-    CRL_EXCEPTION("NOT IMPLEMENTED");
+    if (connect_mswebrtc_impl(impl, conf.ip_address.c_str())) {
+        return Status::OK;
+    }
+    else {
+        return Status::FAILED;
+    }
 }
 
 void MswebrtcChannel::disconnect()
 {
-    CRL_EXCEPTION("NOT IMPLEMENTED");
+    disconnect_mswebrtc_impl(impl);
 }
 
 std::optional<ImageFrame> MswebrtcChannel::get_next_image_frame()
