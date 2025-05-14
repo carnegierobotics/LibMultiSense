@@ -1026,7 +1026,10 @@ Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sourc
 
         for (const auto &source : sources)
         {
-            m_active_streams.erase(source);
+            for (const auto &expanded : expand_source(source))
+            {
+                m_active_streams.erase(expanded);
+            }
         }
 
         return Status::OK;
