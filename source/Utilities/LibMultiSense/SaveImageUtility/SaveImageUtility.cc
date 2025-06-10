@@ -48,6 +48,7 @@
 #include <csignal>
 #include <iostream>
 #include <thread>
+#include <cstring>
 
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
@@ -142,15 +143,28 @@ int main(int argc, char** argv)
     bool save_depth = false;
     bool save_left_rect = false;
     bool save_color = false;
+    lms::Channel::ChannelImplementation impl = lms::Channel::ChannelImplementation::LEGACY;
 
     int c;
-    while(-1 != (c = getopt(argc, argv, "a:m:n:dlc")))
+    while(-1 != (c = getopt(argc, argv, "a:m:n:i:dlc")))
     {
         switch(c)
         {
             case 'a': ip_address = std::string(optarg); break;
             case 'm': mtu = static_cast<uint16_t>(atoi(optarg)); break;
             case 'n': number_of_images = static_cast<size_t>(atoi(optarg)); break;
+            case 'i': {
+                if (strcmp(optarg, "legacy") == 0) {
+                    impl = lms::Channel::ChannelImplementation::LEGACY;
+                }
+                else if (strcmp(optarg, "mswebrtc") == 0) {
+                    impl = lms::Channel::ChannelImplementation::MSWEBRTC;
+                }
+                else {
+                    std::cout << "Invalid channel implementation requested, using default implementation" << std::endl;
+                }
+                break;
+            }
             case 'd': save_depth = true; break;
             case 'l': save_left_rect = true; break;
             case 'c': save_color = true; break;
@@ -158,7 +172,7 @@ int main(int argc, char** argv)
         }
     }
 
-    const auto channel = lms::Channel::create(lms::Channel::Config{ip_address, mtu});
+    const auto channel = lms::Channel::create(lms::Channel::Config{ip_address, mtu}, impl);
     if (!channel)
     {
         std::cerr << "Failed to create channel" << std::endl;;
