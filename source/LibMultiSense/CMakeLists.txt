@@ -60,9 +60,13 @@ if (BUILD_MSWEBRTC)
     PRIVATE ${PREFIX}/src/libmultisense-ambarella-build)
   add_dependencies(MultiSense libmultisense-ambarella)
 
+  #this option avoids a linker warning, because libmswebrtc.a is missing a section
+  target_link_options(MultiSense INTERFACE -z noexecstack)
+
   #This rather long list of libraries was generated with the following invocation
   # `cargo rustc -- --print native-static-libs`
   # we may need to run that again in the mysterious future if our list of dependencies changes
+  # maybe there's a way to have cmake do this?
   target_link_libraries(MultiSense INTERFACE ${PREFIX}/src/libmultisense-ambarella-build/release/libmswebrtc.a -lssl -lcrypto -lgcc_s -lutil -lrt -lpthread -lm -ldl -lc)
 endif (BUILD_MSWEBRTC)
 
