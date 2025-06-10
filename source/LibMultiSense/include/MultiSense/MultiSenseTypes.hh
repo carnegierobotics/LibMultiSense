@@ -1622,7 +1622,7 @@ struct MultiSenseInfo
         ///
         MultiSenseInfo::Version firmware_version{};
 
-        ///
+        ///1
         /// @brief ID for the version of hardware
         ///
         uint64_t hardware_version = 0;
