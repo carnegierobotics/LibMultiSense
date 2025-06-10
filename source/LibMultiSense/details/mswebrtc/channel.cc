@@ -40,7 +40,7 @@
 namespace multisense {
 namespace mswebrtc {
 
-    MswebrtcChannel::MswebrtcChannel(const Config &):impl(create_mswebrtc_impl())
+MswebrtcChannel::MswebrtcChannel(const Config &c):impl(create_mswebrtc_impl(c.ip_address.c_str()))
 {
 }
 
@@ -70,9 +70,9 @@ void MswebrtcChannel::add_imu_frame_callback(std::function<void(const ImuFrame&)
     CRL_EXCEPTION("NOT IMPLEMENTED");
 }
 
-Status MswebrtcChannel::connect(const Config &conf)
+Status MswebrtcChannel::connect(const Config &)
 {
-    if (connect_mswebrtc_impl(impl, conf.ip_address.c_str())) {
+    if (connect_mswebrtc_impl(impl)) {
         return Status::OK;
     }
     else {
@@ -117,7 +117,11 @@ Status MswebrtcChannel::set_calibration(const StereoCalibration &)
 
 MultiSenseInfo MswebrtcChannel::get_info()
 {
-    CRL_EXCEPTION("NOT IMPLEMENTED");
+    char builddate[32] = {};
+    MultiSenseInfo out = {};
+    get_info_mswebrtc_impl(impl, builddate);
+    out.version.firmware_build_date = std::string(builddate);
+    return out;
 }
 
 Status MswebrtcChannel::set_device_info(const MultiSenseInfo::DeviceInfo &, const std::string &)
