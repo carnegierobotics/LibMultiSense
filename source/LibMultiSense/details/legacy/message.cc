@@ -230,7 +230,7 @@ bool MessageAssembler::process_packet(const std::vector<uint8_t> &raw_data)
         std::tie(buffer, ordered_messages) = get_buffer(message_size.value(), ordered_messages);
         if (!buffer)
         {
-            CRL_DEBUG("Unable to acquire buffer for the incoming message");
+            CRL_DEBUG("Unable to acquire buffer for the incoming message\n");
             return false;
         }
 
@@ -366,7 +366,7 @@ MessageAssembler::get_buffer(uint32_t message_size, std::deque<int64_t> ordered_
 
     if (buffer == nullptr)
     {
-        CRL_DEBUG("All data buffers in use");
+        CRL_DEBUG("All data buffers in use\n");
     }
 
     return std::make_tuple(buffer, std::move(ordered_messages));
