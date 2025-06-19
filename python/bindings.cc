@@ -157,6 +157,18 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def(py::init<>())
         .def_property_readonly("as_array", [](const multisense::Image& image)
         {
+            // Return the raw data for compressed topics
+            if (image.format == multisense::Image::PixelFormat::H264 ||
+                image.format == multisense::Image::PixelFormat::JPEG)
+            {
+                return py::array(py::buffer_info(
+                                 const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
+                                 sizeof(uint8_t),
+                                 py::format_descriptor<uint8_t>::format(),
+                                 1,
+                                 {image.raw_data->size() - image.image_data_offset},
+                                 {sizeof(uint8_t)}));
+            }
 
             std::vector<size_t> shape = {static_cast<size_t>(image.height), static_cast<size_t>(image.width)};
             std::vector<size_t> strides;
