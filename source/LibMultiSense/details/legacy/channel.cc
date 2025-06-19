@@ -1142,11 +1142,11 @@ void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<
     const TimeT ptp_capture_time_point{nanoseconds{meta->second.ptpNanoSeconds}};
 
     Image::PixelFormat pixel_format = Image::PixelFormat::H264;
-    switch (wire_image.bitsPerPixel)
+
+    switch(wire_image.codec)
     {
-        case 8: {pixel_format = Image::PixelFormat::MONO8; break;}
-        case 16: {pixel_format = Image::PixelFormat::MONO16; break;}
-        default: {CRL_DEBUG("Unknown pixel format %" PRIu32 "\n", wire_image.bitsPerPixel);}
+        case wire::CompressedImage::H264_CODEC: {pixel_format = Image::PixelFormat::H264; break;}
+        default: {CRL_DEBUG("Unknown codec format %" PRIu32 "\n", wire_image.codec);}
     }
 
     const auto source = convert_sources(static_cast<uint64_t>(wire_image.sourceExtended) << 32 | wire_image.source);
