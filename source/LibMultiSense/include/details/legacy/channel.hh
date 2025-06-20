@@ -278,6 +278,11 @@ private:
     void image_callback(std::shared_ptr<const std::vector<uint8_t>> data);
 
     ///
+    /// @brief Compressed image callback used to internally receive compressed images sent from the MultiSense
+    ///
+    void compressed_image_callback(std::shared_ptr<const std::vector<uint8_t>> data);
+
+    ///
     /// @brief Disparity callback used to internally receive images sent from the MultiSense
     ///
     void disparity_callback(std::shared_ptr<const std::vector<uint8_t>> data);

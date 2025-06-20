@@ -61,6 +61,7 @@
 #include <wire/CamControlMessage.hh>
 #include <wire/CamGetConfigMessage.hh>
 #include <wire/CamSetResolutionMessage.hh>
+#include <wire/CompressedImageMessage.hh>
 #include <wire/DisparityMessage.hh>
 #include <wire/ImageMessage.hh>
 #include <wire/ImageMetaMessage.hh>
@@ -239,6 +240,9 @@ Status LegacyChannel::connect(const Config &config)
 
     m_message_assembler.register_callback(wire::Image::ID,
                                           std::bind(&LegacyChannel::image_callback, this, std::placeholders::_1));
+
+    m_message_assembler.register_callback(wire::CompressedImage::ID,
+                                          std::bind(&LegacyChannel::compressed_image_callback, this, std::placeholders::_1));
 
     m_message_assembler.register_callback(wire::Disparity::ID,
                                           std::bind(&LegacyChannel::disparity_callback, this, std::placeholders::_1));
@@ -1074,6 +1078,75 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
         case 8: {pixel_format = Image::PixelFormat::MONO8; break;}
         case 16: {pixel_format = Image::PixelFormat::MONO16; break;}
         default: {CRL_DEBUG("Unknown pixel format %" PRIu32 "\n", wire_image.bitsPerPixel);}
+    }
+
+    const auto source = convert_sources(static_cast<uint64_t>(wire_image.sourceExtended) << 32 | wire_image.source);
+    if (source.size() != 1)
+    {
+        CRL_DEBUG("invalid image source\n");
+        return;
+    }
+
+    //
+    // Copy our calibration and device info locally to make this thread safe
+    //
+    StereoCalibration cal;
+    MultiSenseInfo::DeviceInfo info;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        cal = m_calibration;
+        info = m_info.device;
+    }
+
+    const auto cal_x_scale = static_cast<double>(wire_image.width) / static_cast<double>(info.imager_width);
+    const auto cal_y_scale = static_cast<double>(wire_image.height) / static_cast<double>(info.imager_height);
+
+    Image image{data,
+                static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
+                ((wire_image.bitsPerPixel / 8) * wire_image.width * wire_image.height),
+                pixel_format,
+                wire_image.width,
+                wire_image.height,
+                capture_time_point,
+                ptp_capture_time_point,
+                source.front(),
+                scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale)};
+
+    handle_and_dispatch(std::move(image),
+                        meta->second,
+                        wire_image.frameId,
+                        scale_calibration(cal, cal_x_scale, cal_y_scale),
+                        capture_time_point,
+                        ptp_capture_time_point);
+}
+
+void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<uint8_t>> data)
+{
+    using namespace crl::multisense::details;
+    using namespace std::chrono;
+
+    const auto wire_image = deserialize<wire::CompressedImage>(*data);
+
+    const auto meta = m_meta_cache.find(wire_image.frameId);
+    if (meta == std::end(m_meta_cache))
+    {
+        CRL_DEBUG("Missing corresponding meta for frame_id %" PRIu64 "\n", wire_image.frameId);
+        return;
+    }
+
+    const nanoseconds capture_time{seconds{meta->second.timeSeconds} +
+                                  microseconds{meta->second.timeMicroSeconds}};
+
+    const TimeT capture_time_point{capture_time};
+
+    const TimeT ptp_capture_time_point{nanoseconds{meta->second.ptpNanoSeconds}};
+
+    Image::PixelFormat pixel_format = Image::PixelFormat::H264;
+
+    switch(wire_image.codec)
+    {
+        case wire::CompressedImage::H264_CODEC: {pixel_format = Image::PixelFormat::H264; break;}
+        default: {CRL_DEBUG("Unknown codec format %" PRIu32 "\n", wire_image.codec);}
     }
 
     const auto source = convert_sources(static_cast<uint64_t>(wire_image.sourceExtended) << 32 | wire_image.source);

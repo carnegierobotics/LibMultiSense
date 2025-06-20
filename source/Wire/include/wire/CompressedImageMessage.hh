@@ -53,6 +53,8 @@ public:
 static CRL_CONSTEXPR IdType      ID      = ID_DATA_COMPRESSED_IMAGE;
 static CRL_CONSTEXPR VersionType VERSION = 1;
 
+static CRL_CONSTEXPR uint32_t H264_CODEC = 0;
+
 #ifdef SENSORPOD_FIRMWARE
     IdType      id;
     VersionType version;
