@@ -41,6 +41,7 @@
 #ifndef CRL_MULTISENSE_REFERENCECOUNT_HH
 #define CRL_MULTISENSE_REFERENCECOUNT_HH
 
+#include <atomic>
 #include <stdint.h>
 
 namespace crl {
@@ -51,63 +52,52 @@ namespace utility {
 class ReferenceCount
 {
 public:
-
-    bool isShared() const {
-        if (m_countP && (*m_countP) > 1)
-            return true;
-        return false;
-    }
-
-    void reset() {
-        release();
-        m_countP = new int32_t(1);
-    }
-
     ReferenceCount()
-        : m_countP(new int32_t(1)) {};
+        : m_countP(new std::atomic<int32_t>(1)) {}
 
-    ReferenceCount(const ReferenceCount& source)
-        : m_countP(source.m_countP) {
-        share();
-    }
+    ReferenceCount(const ReferenceCount& rhs)
+        : m_countP(rhs.m_countP) { share(); }
 
-    ~ReferenceCount() {
-        release();
-    }
-
-    ReferenceCount& operator=(const ReferenceCount& source) {
-        if (this != &source) {
+    ReferenceCount& operator=(const ReferenceCount& rhs)
+    {
+        if (this != &rhs) {
             release();
-            m_countP = source.m_countP;
+            m_countP = rhs.m_countP;
             share();
         }
         return *this;
     }
 
-private:
+    ~ReferenceCount() { release(); }
 
-    volatile int32_t *m_countP;
-
-    void share() {
-        if (m_countP)
-#if WIN32
-            InterlockedIncrement((LONG*)m_countP);
-#else
-            __sync_fetch_and_add(m_countP, 1);
-#endif
+    bool isShared() const
+    {
+        return m_countP && (m_countP->load(std::memory_order_acquire) > 1);
     }
 
-    void release() {
-        if (m_countP) {
-#if WIN32
-            int32_t count = InterlockedDecrement((LONG*)m_countP);
-#else
-            int32_t count = __sync_sub_and_fetch(m_countP, 1);
-#endif
-            if (count <= 0)
-                delete m_countP;
-            m_countP = NULL;
-        }
+    void reset()
+    {
+        release();
+        m_countP = new std::atomic<int32_t>(1);
+    }
+
+private:
+    std::atomic<int32_t>* m_countP = nullptr;
+
+    void share()
+    {
+        if (m_countP)
+            m_countP->fetch_add(1, std::memory_order_acq_rel);
+    }
+
+    void release()
+    {
+        if (!m_countP) return;
+
+        if (m_countP->fetch_sub(1, std::memory_order_acq_rel) == 1)
+            delete m_countP;
+
+        m_countP = nullptr;
     }
 };
 
