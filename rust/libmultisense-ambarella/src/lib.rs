@@ -1,6 +1,9 @@
-use std::net::UdpSocket;
+use reqwest::{self, StatusCode};
+use std::{ffi::CStr, net::UdpSocket, os::raw::c_char, str::Utf8Error};
 use str0m::{change::SdpOffer, Candidate, Rtc};
 use systemstat::{Platform, System};
+
+mod network;
 
 pub struct MswebrtcImpl {
     host: String,
@@ -141,6 +144,32 @@ impl MswebrtcImpl {
             builddate: j["build-time"].to_string(),
         })
     }
+
+    fn set_network(&self, ns: network::Network) -> Result<(), MswebrtcError> {
+        let s = serde_json::to_string(&ns).map_err(|e| MswebrtcError {
+            what: format!("{:?}", &e),
+            err: Some(Box::new(e)),
+        })?;
+        let client = reqwest::blocking::Client::builder()
+            .danger_accept_invalid_certs(true)
+            .build()
+            .unwrap();
+        let j = client
+            .post(self.host.clone() + "/network.json")
+            .body(s)
+            .send()
+            .map_err(|e| MswebrtcError {
+                what: "Failed to set network".to_owned(),
+                err: Some(Box::new(e)),
+            })?;
+        match j.status() {
+            StatusCode::OK => Ok(()),
+            e => Err(MswebrtcError {
+                what: format!("Server failed to set network: {:?}", e),
+                err: None,
+            }),
+        }
+    }
 }
 
 #[no_mangle]
@@ -191,6 +220,29 @@ pub extern "C" fn get_info_mswebrtc_impl(
             println!("ERROR Getting Info: {:?}", e);
             false
         }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn set_network_mswebrtc_impl(
+    obj: *mut MswebrtcImpl,
+    addr: *const c_char,
+    netmask: *const c_char,
+    gateway: *const c_char,
+) -> bool {
+    let n = || -> Result<Option<network::Network>, Utf8Error> {
+        Ok(network::Network::from_strings(
+            unsafe { CStr::from_ptr(addr) }.to_str()?,
+            unsafe { CStr::from_ptr(netmask) }.to_str()?,
+            unsafe { CStr::from_ptr(gateway) }.to_str()?,
+        ))
+    };
+    match n() {
+        Ok(Some(n)) => match unsafe { obj.as_mut() } {
+            Some(o) => o.set_network(n).is_ok(),
+            None => false,
+        },
+        _ => false,
     }
 }
 

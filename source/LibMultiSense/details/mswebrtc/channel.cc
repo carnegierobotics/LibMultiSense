@@ -134,10 +134,18 @@ std::optional<MultiSenseStatus> MswebrtcChannel::get_system_status()
     CRL_EXCEPTION("NOT IMPLEMENTED");
 }
 
-Status MswebrtcChannel::set_network_config(const MultiSenseInfo::NetworkInfo &,
-                                         const std::optional<std::string> &)
+Status MswebrtcChannel::set_network_config(const MultiSenseInfo::NetworkInfo &settings,
+                                         const std::optional<std::string> &bcast_interface)
 {
-    CRL_EXCEPTION("NOT IMPLEMENTED");
+    if (bcast_interface) {
+        CRL_DEBUG("bcast_interface not supported in set_network_config for mswebrtc\n");
+    }
+    if (set_network_mswebrtc_impl(impl, settings.ip_address.c_str(), settings.netmask.c_str(), settings.gateway.c_str())) {
+        return multisense::Status::OK;
+    }
+    else {
+        return multisense::Status::FAILED;
+    }
 }
 
 }
