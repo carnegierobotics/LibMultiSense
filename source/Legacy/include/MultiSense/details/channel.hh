@@ -255,7 +255,11 @@ private:
                 uint32_t &seconds,
                 uint32_t &microSeconds)
     {
-        if (m_ptpTimeSyncEnabled) {
+        //
+        // PTP timestamps which are 0ns are invalid and indicate the camera has lost its PTP sync with the PTP master.
+        // If that is the case, prefer to stamp the data with the non-PTP time sources
+
+        if (m_ptpTimeSyncEnabled && wire->ptpNanoSeconds != 0) {
 
             toHeaderTime(wire->ptpNanoSeconds, seconds, microSeconds);
 
@@ -279,7 +283,7 @@ private:
     //
     // The version of this API
 
-    static CRL_CONSTEXPR VersionType API_VERSION = 0x0701; // 7.1
+    static CRL_CONSTEXPR VersionType API_VERSION = 0x0702; // 7.2
 
     //
     // Misc. internal constants

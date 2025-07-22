@@ -1,10 +1,10 @@
-set(MULTISENSE_HEADERS include/MultiSense/MultiSenseChannel.hh
-                       include/MultiSense/MultiSenseTypes.hh
-                       include/MultiSense/MultiSenseUtilities.hh)
+set(MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseChannel.hh
+                       ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseTypes.hh
+                       ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseUtilities.hh)
 
 if (BUILD_JSON_SERIALIZATION)
     if(nlohmann_json_FOUND)
-        list("APPEND" MULTISENSE_HEADERS include/MultiSense/MultiSenseSerialization.hh)
+        list("APPEND" MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseSerialization.hh)
     endif()
 endif()
 
@@ -52,7 +52,6 @@ if (BUILD_JSON_SERIALIZATION)
     endif()
 endif()
 
-set(version "7.1.0")
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
 
 if (MULTISENSE_BUILD_API_DATE)
@@ -94,7 +93,7 @@ install(TARGETS MultiSense
 )
 
 install(EXPORT MultiSenseTargets
-  DESTINATION lib/cmake/MultiSense)
+        DESTINATION lib/cmake/MultiSense)
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake"

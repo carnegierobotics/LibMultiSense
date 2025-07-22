@@ -263,6 +263,11 @@ private:
     std::optional<MultiSenseInfo::DeviceInfo> query_device_info();
 
     ///
+    /// @brief Internal member to stop image streams
+    ///
+    Status stop_streams_internal(const std::vector<DataSource> &sources);
+
+    ///
     /// @brief Image meta callback used to internally receive images sent from the MultiSense
     ///
     void image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data);
@@ -271,6 +276,11 @@ private:
     /// @brief Image callback used to internally receive images sent from the MultiSense
     ///
     void image_callback(std::shared_ptr<const std::vector<uint8_t>> data);
+
+    ///
+    /// @brief Compressed image callback used to internally receive compressed images sent from the MultiSense
+    ///
+    void compressed_image_callback(std::shared_ptr<const std::vector<uint8_t>> data);
 
     ///
     /// @brief Disparity callback used to internally receive images sent from the MultiSense
@@ -286,10 +296,11 @@ private:
     /// @brief Handle internal process, and potentially dispatch a image
     ///
     void handle_and_dispatch(Image image,
-                            int64_t frame_id,
-                            const StereoCalibration &calibration,
-                            const TimeT &capture_time,
-                            const TimeT &ptp_capture_time);
+                             const crl::multisense::details::wire::ImageMeta &metadata,
+                             int64_t frame_id,
+                             const StereoCalibration &calibration,
+                             const TimeT &capture_time,
+                             const TimeT &ptp_capture_time);
 
     ///
     /// @brief Internal mutex used to handle updates from users

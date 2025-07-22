@@ -40,6 +40,7 @@
 #include <wire/Protocol.hh>
 #include <utility/BufferStream.hh>
 #include <wire/AckMessage.hh>
+#include <wire/ImageMetaMessage.hh>
 #include <wire/ImuDataMessage.hh>
 #include <wire/ImuInfoMessage.hh>
 
@@ -167,6 +168,12 @@ double get_magnetometer_scale(const std::string &units);
 /// @brief Get IMU scalars from the cameras's reported IMU info
 ///
 ImuSampleScalars get_imu_scalars(const crl::multisense::details::wire::ImuInfo &info);
+
+///
+/// @brief Extract histogram data from the image metadata
+///
+ImageHistogram get_histogram(const crl::multisense::details::wire::ImageMeta &metadata,
+                             const MultiSenseInfo::DeviceInfo::HardwareRevision &hardware_revision);
 
 ///
 /// @brief Helper to wait for ack from the camera from a given query command. Once a query

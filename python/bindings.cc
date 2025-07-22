@@ -157,6 +157,18 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def(py::init<>())
         .def_property_readonly("as_array", [](const multisense::Image& image)
         {
+            // Return the raw data for compressed topics
+            if (image.format == multisense::Image::PixelFormat::H264 ||
+                image.format == multisense::Image::PixelFormat::JPEG)
+            {
+                return py::array(py::buffer_info(
+                                 const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
+                                 sizeof(uint8_t),
+                                 py::format_descriptor<uint8_t>::format(),
+                                 1,
+                                 {image.raw_data->size() - image.image_data_offset},
+                                 {sizeof(uint8_t)}));
+            }
 
             std::vector<size_t> shape = {static_cast<size_t>(image.height), static_cast<size_t>(image.width)};
             std::vector<size_t> strides;
@@ -214,6 +226,29 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("source", &multisense::Image::source)
         .def_readonly("calibration", &multisense::Image::calibration);
 
+    // ImageHistogram
+    py::class_<multisense::ImageHistogram>(m, "ImageHistogram")
+        .def(py::init<>())
+        .def_readonly("channels", &multisense::ImageHistogram::channels)
+        .def_readonly("bins", &multisense::ImageHistogram::bins)
+        .def_property_readonly("as_array", [](const multisense::ImageHistogram& histogram)
+        {
+            std::vector<size_t> shape{histogram.data.size()};
+            std::vector<size_t> strides{sizeof(uint32_t)};
+            size_t element_size = sizeof(uint32_t);
+            std::string format = py::format_descriptor<uint32_t>::format();
+
+            // Map the cv::Mat to a NumPy array without copying the data
+            return py::array(py::buffer_info(
+                             const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(histogram.data.data())),
+                             element_size,
+                             format,
+                             shape.size(),
+                             shape,
+                             strides));
+        });
+
+
     // ImageFrame
     py::class_<multisense::ImageFrame>(m, "ImageFrame")
         .def(py::init<>())
@@ -225,7 +260,10 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("calibration", &multisense::ImageFrame::calibration)
         .def_readonly("frame_time", &multisense::ImageFrame::frame_time)
         .def_readonly("ptp_frame_time", &multisense::ImageFrame::ptp_frame_time)
-        .def_readonly("aux_color_encoding", &multisense::ImageFrame::aux_color_encoding);
+        .def_readonly("aux_color_encoding", &multisense::ImageFrame::aux_color_encoding)
+        .def_readonly("stereo_histogram", &multisense::ImageFrame::stereo_histogram)
+        .def_readonly("capture_exposure_time", &multisense::ImageFrame::capture_exposure_time)
+        .def_readonly("capture_gain", &multisense::ImageFrame::capture_gain);
 
     // ImuRate
     py::class_<multisense::ImuRate>(m, "ImuRate")
@@ -430,10 +468,10 @@ PYBIND11_MODULE(_libmultisense, m) {
     py::class_<multisense::MultiSenseStatus::TemperatureStatus>(m, "TemperatureStatus")
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::MultiSenseStatus::TemperatureStatus)
+        .def_readwrite("cpu_temperature", &multisense::MultiSenseStatus::TemperatureStatus::cpu_temperature)
         .def_readwrite("fpga_temperature", &multisense::MultiSenseStatus::TemperatureStatus::fpga_temperature)
         .def_readwrite("left_imager_temperature", &multisense::MultiSenseStatus::TemperatureStatus::left_imager_temperature)
-        .def_readwrite("right_imager_temperature", &multisense::MultiSenseStatus::TemperatureStatus::right_imager_temperature)
-        .def_readwrite("power_supply_temperature", &multisense::MultiSenseStatus::TemperatureStatus::power_supply_temperature);
+        .def_readwrite("right_imager_temperature", &multisense::MultiSenseStatus::TemperatureStatus::right_imager_temperature);
 
     // MultiSenseStatus::PowerStatus
     py::class_<multisense::MultiSenseStatus::PowerStatus>(m, "PowerStatus")

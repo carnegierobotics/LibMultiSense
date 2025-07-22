@@ -34,6 +34,7 @@
  *   2025-01-08, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <algorithm>
 #include <inttypes.h>
 #include <limits>
 
@@ -229,6 +230,7 @@ bool MessageAssembler::process_packet(const std::vector<uint8_t> &raw_data)
         std::tie(buffer, ordered_messages) = get_buffer(message_size.value(), ordered_messages);
         if (!buffer)
         {
+            CRL_DEBUG("Unable to acquire buffer for the incoming message\n");
             return false;
         }
 
@@ -362,6 +364,11 @@ MessageAssembler::get_buffer(uint32_t message_size, std::deque<int64_t> ordered_
         }
     }
 
+    if (buffer == nullptr)
+    {
+        CRL_DEBUG("All data buffers in use\n");
+    }
+
     return std::make_tuple(buffer, std::move(ordered_messages));
 }
 
@@ -371,6 +378,7 @@ bool MessageAssembler::write_data(InternalMessage &message, const std::vector<ui
 
     if (raw_data.size() < sizeof(wire::Header))
     {
+        CRL_DEBUG("Error. Raw data smaller than wire header\n");
         return false;
     }
 

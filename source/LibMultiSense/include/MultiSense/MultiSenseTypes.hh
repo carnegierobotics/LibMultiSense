@@ -44,6 +44,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #ifdef HAVE_OPENCV
@@ -295,6 +296,27 @@ struct Image
 };
 
 ///
+/// @brief A object containing histogram data for a image
+///
+struct ImageHistogram
+{
+    ///
+    /// @brief The number of channels per pixel
+    ///
+    uint32_t channels = 0;
+
+    ///
+    /// @brief The number of possible pixel bins
+    ///
+    uint32_t bins = 0;
+
+    ///
+    /// @brief The raw histogram counts whose size is equal to channels*bins
+    ///
+    std::vector<uint32_t> data{};
+};
+
+///
 /// @brief A frame containing multiple images (indexed by DataSource).
 ///
 struct ImageFrame
@@ -336,12 +358,12 @@ struct ImageFrame
     ///
     /// @brief The images associated with each source in the frame
     ///
-    std::map<DataSource, Image> images;
+    std::map<DataSource, Image> images{};
 
     ///
     /// @brief The scaled calibration for the entire camera
     ///
-    StereoCalibration calibration;
+    StereoCalibration calibration{};
 
     ///
     /// @brief The MultiSense timestamp associated with the frame
@@ -357,6 +379,21 @@ struct ImageFrame
     /// @brief The encoding of the aux color image(s) in the frame
     ///
     ColorImageEncoding aux_color_encoding = ColorImageEncoding::NONE;
+
+    ///
+    /// @brief Corresponding histogram from the main stereo pair
+    ///
+    std::optional<ImageHistogram> stereo_histogram = std::nullopt;
+
+    ///
+    /// @brief The exposure time which was used to capture this frame
+    ///
+    std::chrono::microseconds capture_exposure_time{0};
+
+    ///
+    /// @brief The gain that was used to capture the stereo images in this frame
+    ///
+    float capture_gain = 0.0;
 };
 
 ///
@@ -1126,7 +1163,12 @@ struct MultiSenseStatus
     struct TemperatureStatus
     {
         ///
-        /// @brief Temperature of the FPGA  in Celsius
+        /// @brief Temperature of the processing subsystem (CPU cores of SoC) in Celsius
+        ///
+        float cpu_temperature = 0.0f;
+
+        ///
+        /// @brief Temperature of the FPGA in Celsius
         ///
         float fpga_temperature = 0.0f;
 
@@ -1139,11 +1181,6 @@ struct MultiSenseStatus
         /// @brief Temperature of the right imager in Celsius
         ///
         float right_imager_temperature = 0.0f;
-
-        ///
-        /// @brief Temperature of the internal switching power supply in Celsius
-        ///
-        float power_supply_temperature = 0.0f;
     };
 
     struct PowerStatus
@@ -1530,13 +1567,43 @@ struct MultiSenseInfo
         }
 
         ///
-        /// @brief Convenience operator for comparing versions
+        /// @brief Convenience equality operator for comparing versions
+        ///
+        bool operator==(const Version& other) const
+        {
+            return std::tie(major, minor, patch) == std::tie(other.major, other.minor, other.patch);
+        }
+
+        ///
+        /// @brief Convenience less-than operator for comparing versions
         ///
         bool operator<(const Version& other) const
         {
-            return major < other.major ||
-                   (major == other.major && minor < other.minor) ||
-                   (major == other.major && minor == other.minor && patch < other.patch);
+            return std::tie(major, minor, patch) < std::tie(other.major, other.minor, other.patch);
+        }
+
+        ///
+        /// @brief Convenience less-than or equal to operator for comparing versions
+        ///
+        bool operator<=(const Version& other) const
+        {
+            return *this < other || *this == other;
+        }
+
+        ///
+        /// @brief Convenience greater-than operator for comparing versions
+        ///
+        bool operator>(const Version& other) const
+        {
+            return other < *this;
+        }
+
+        ///
+        /// @brief Convenience greater-than or equal to operator for comparing versions
+        ///
+        bool operator>=(const Version& other) const
+        {
+            return other <= *this;
         }
     };
 

@@ -104,7 +104,7 @@ int main(int argc, char** argv)
     }
 
     lms::Channel::Config config{ip_address};
-    config.connect_on_initialization = static_cast<bool>(interface);
+    config.connect_on_initialization = !static_cast<bool>(interface);
     const auto channel = lms::Channel::create(config);
 
     if (!channel)

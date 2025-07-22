@@ -61,6 +61,7 @@
 #include <wire/CamControlMessage.hh>
 #include <wire/CamGetConfigMessage.hh>
 #include <wire/CamSetResolutionMessage.hh>
+#include <wire/CompressedImageMessage.hh>
 #include <wire/DisparityMessage.hh>
 #include <wire/ImageMessage.hh>
 #include <wire/ImageMetaMessage.hh>
@@ -178,40 +179,12 @@ Status LegacyChannel::start_streams(const std::vector<DataSource> &sources)
 
 Status LegacyChannel::stop_streams(const std::vector<DataSource> &sources)
 {
-    using namespace crl::multisense::details;
-    using namespace std::chrono_literals;
-
     if (!m_connected)
     {
         return Status::UNINITIALIZED;
     }
 
-    wire::StreamControl cmd;
-
-    cmd.disable(convert_sources(sources));
-
-    if (const auto ack = wait_for_ack(m_message_assembler,
-                                      m_socket,
-                                      cmd,
-                                      m_transmit_id++,
-                                      m_current_mtu,
-                                      m_config.receive_timeout); ack)
-    {
-        if (ack->status != wire::Ack::Status_Ok)
-        {
-            CRL_DEBUG("Start streams ack invalid: %" PRIi32 "\n", ack->status);
-            return get_status(ack->status);
-        }
-
-        for (const auto &source : sources)
-        {
-            m_active_streams.erase(source);
-        }
-
-        return Status::OK;
-    }
-
-    return Status::TIMEOUT;
+    return stop_streams_internal(sources);
 }
 
 void LegacyChannel::add_image_frame_callback(std::function<void(const ImageFrame&)> callback)
@@ -268,6 +241,9 @@ Status LegacyChannel::connect(const Config &config)
     m_message_assembler.register_callback(wire::Image::ID,
                                           std::bind(&LegacyChannel::image_callback, this, std::placeholders::_1));
 
+    m_message_assembler.register_callback(wire::CompressedImage::ID,
+                                          std::bind(&LegacyChannel::compressed_image_callback, this, std::placeholders::_1));
+
     m_message_assembler.register_callback(wire::Disparity::ID,
                                           std::bind(&LegacyChannel::disparity_callback, this, std::placeholders::_1));
 
@@ -282,10 +258,20 @@ Status LegacyChannel::connect(const Config &config)
                                                    {
                                                        if (!this->m_message_assembler.process_packet(data))
                                                        {
-                                                           CRL_DEBUG("Processing packet of %" PRIu64 " bytes failed\n", 
+                                                           CRL_DEBUG("Processing packet of %" PRIu64 " bytes failed\n",
                                                                      static_cast<uint64_t>(data.size()));
                                                        }
                                                    });
+
+    //
+    // Disable all streams prior to requesting the MTU
+    //
+    if (const auto status = stop_streams_internal({DataSource::ALL}); status != Status::OK)
+    {
+        CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
+        return status;
+    }
+
     //
     // Set the user requested MTU
     //
@@ -317,6 +303,20 @@ Status LegacyChannel::connect(const Config &config)
     else
     {
         CRL_EXCEPTION("Unable to query the camera's info ");
+    }
+
+    //
+    // If we are running a new version of MultiSense hardware, make sure we are running at least
+    // v7.22 firmware for the best compatibility with this API
+    //
+    if ((m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S27 ||
+         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S30 ||
+         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21) &&
+         m_info.version.firmware_version < MultiSenseInfo::Version{7, 22, 0})
+    {
+        CRL_DEBUG("WARNING: Please upgrade the MultiSense firmware to the most recent firmware release "
+                  "for the best performance. See https://docs.carnegierobotics.com/firmware/update.html "
+                  "for update instructions and general firmware information");
     }
 
     //
@@ -490,7 +490,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
     //
     // Set lighting controls if they are valid
     //
-    if (config.lighting_config)
+    if (config.lighting_config && (config.lighting_config->internal || config.lighting_config->external))
     {
         //
         // Set the lighting controls
@@ -1006,6 +1006,42 @@ std::optional<MultiSenseInfo::DeviceInfo> LegacyChannel::query_device_info()
     return std::nullopt;
 }
 
+Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sources)
+{
+    using namespace crl::multisense::details;
+    using namespace std::chrono_literals;
+
+    wire::StreamControl cmd;
+
+    cmd.disable(convert_sources(sources));
+
+    if (const auto ack = wait_for_ack(m_message_assembler,
+                                      m_socket,
+                                      cmd,
+                                      m_transmit_id++,
+                                      m_current_mtu,
+                                      m_config.receive_timeout); ack)
+    {
+        if (ack->status != wire::Ack::Status_Ok)
+        {
+            CRL_DEBUG("Stop streams ack invalid: %" PRIi32 "\n", ack->status);
+            return get_status(ack->status);
+        }
+
+        for (const auto &source : sources)
+        {
+            for (const auto &expanded : expand_source(source))
+            {
+                m_active_streams.erase(expanded);
+            }
+        }
+
+        return Status::OK;
+    }
+
+    return Status::TIMEOUT;
+}
+
 void LegacyChannel::image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
     using namespace crl::multisense::details;
@@ -1077,6 +1113,76 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
                 scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale)};
 
     handle_and_dispatch(std::move(image),
+                        meta->second,
+                        wire_image.frameId,
+                        scale_calibration(cal, cal_x_scale, cal_y_scale),
+                        capture_time_point,
+                        ptp_capture_time_point);
+}
+
+void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<uint8_t>> data)
+{
+    using namespace crl::multisense::details;
+    using namespace std::chrono;
+
+    const auto wire_image = deserialize<wire::CompressedImage>(*data);
+
+    const auto meta = m_meta_cache.find(wire_image.frameId);
+    if (meta == std::end(m_meta_cache))
+    {
+        CRL_DEBUG("Missing corresponding meta for frame_id %" PRIu64 "\n", wire_image.frameId);
+        return;
+    }
+
+    const nanoseconds capture_time{seconds{meta->second.timeSeconds} +
+                                  microseconds{meta->second.timeMicroSeconds}};
+
+    const TimeT capture_time_point{capture_time};
+
+    const TimeT ptp_capture_time_point{nanoseconds{meta->second.ptpNanoSeconds}};
+
+    Image::PixelFormat pixel_format = Image::PixelFormat::H264;
+
+    switch(wire_image.codec)
+    {
+        case wire::CompressedImage::H264_CODEC: {pixel_format = Image::PixelFormat::H264; break;}
+        default: {CRL_DEBUG("Unknown codec format %" PRIu32 "\n", wire_image.codec);}
+    }
+
+    const auto source = convert_sources(static_cast<uint64_t>(wire_image.sourceExtended) << 32 | wire_image.source);
+    if (source.size() != 1)
+    {
+        CRL_DEBUG("invalid image source\n");
+        return;
+    }
+
+    //
+    // Copy our calibration and device info locally to make this thread safe
+    //
+    StereoCalibration cal;
+    MultiSenseInfo::DeviceInfo info;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        cal = m_calibration;
+        info = m_info.device;
+    }
+
+    const auto cal_x_scale = static_cast<double>(wire_image.width) / static_cast<double>(info.imager_width);
+    const auto cal_y_scale = static_cast<double>(wire_image.height) / static_cast<double>(info.imager_height);
+
+    Image image{data,
+                static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
+                ((wire_image.bitsPerPixel / 8) * wire_image.width * wire_image.height),
+                pixel_format,
+                wire_image.width,
+                wire_image.height,
+                capture_time_point,
+                ptp_capture_time_point,
+                source.front(),
+                scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale)};
+
+    handle_and_dispatch(std::move(image),
+                        meta->second,
                         wire_image.frameId,
                         scale_calibration(cal, cal_x_scale, cal_y_scale),
                         capture_time_point,
@@ -1145,6 +1251,7 @@ void LegacyChannel::disparity_callback(std::shared_ptr<const std::vector<uint8_t
                 scale_calibration(select_calibration(cal, source), cal_x_scale, cal_y_scale)};
 
     handle_and_dispatch(std::move(image),
+                        meta->second,
                         wire_image.frameId,
                         scale_calibration(cal, cal_x_scale, cal_y_scale),
                         capture_time_point,
@@ -1203,11 +1310,14 @@ void LegacyChannel::imu_callback(std::shared_ptr<const std::vector<uint8_t>> dat
 }
 
 void LegacyChannel::handle_and_dispatch(Image image,
+                                        const crl::multisense::details::wire::ImageMeta &metadata,
                                         int64_t frame_id,
                                         const StereoCalibration &calibration,
                                         const TimeT &capture_time,
                                         const TimeT &ptp_capture_time)
 {
+    using namespace std::chrono;
+
     //
     // Create a new frame if one does not exist, or add the input image to the corresponding frame
     //
@@ -1219,7 +1329,10 @@ void LegacyChannel::handle_and_dispatch(Image image,
                          calibration,
                          capture_time,
                          ptp_capture_time,
-                         m_calibration.aux ? ColorImageEncoding::YCBCR420 : ColorImageEncoding::NONE};
+                         m_calibration.aux ? ColorImageEncoding::YCBCR420 : ColorImageEncoding::NONE,
+                         get_histogram(metadata, m_info.device.hardware_revision),
+                         microseconds{metadata.exposureTime},
+                         metadata.gain};
 
         m_frame_buffer.emplace(frame_id, std::move(frame));
     }
