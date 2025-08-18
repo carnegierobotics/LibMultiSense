@@ -3,9 +3,7 @@ set(MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseCh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseUtilities.hh)
 
 if (BUILD_JSON_SERIALIZATION)
-    if(nlohmann_json_FOUND)
-        list("APPEND" MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseSerialization.hh)
-    endif()
+    list("APPEND" MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseSerialization.hh)
 endif()
 
 set(DETAILS_SRC details/factory.cc
@@ -47,9 +45,7 @@ if (BUILD_OPENCV)
 endif()
 
 if (BUILD_JSON_SERIALIZATION)
-    if(nlohmann_json_FOUND)
-        target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
-    endif()
+    target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
 endif()
 
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
