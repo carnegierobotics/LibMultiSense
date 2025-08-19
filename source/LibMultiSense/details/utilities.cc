@@ -185,7 +185,6 @@ bool write_image(const Image &image, const std::filesystem::path &path)
     }
     throw std::runtime_error("Unsupported path extension: " + extension.string() + ". Try compiling with OpenCV");
 #endif
-    return false;
 }
 
 std::optional<Image> create_depth_image(const ImageFrame &frame,
