@@ -11,10 +11,8 @@ target_link_libraries(
     MultiSense)
 
 if (BUILD_JSON_SERIALIZATION)
-    if(nlohmann_json_FOUND)
-        message("Building python bindings with json print support")
-        target_compile_definitions(_libmultisense PRIVATE BUILD_JSON="True")
-    endif()
+    message("Building python bindings with json print support")
+    target_compile_definitions(_libmultisense PRIVATE BUILD_JSON="True")
 endif()
 
 install(TARGETS _libmultisense DESTINATION libmultisense)
