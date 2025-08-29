@@ -399,7 +399,7 @@ via the LibMultiSense `image::Config`
 import libmultisense as lms
 import cv2
 
-def main(args):
+def main():
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
@@ -418,6 +418,9 @@ def main(args):
         if channel.set_config(config) != lms.Status.OK:
             print("Cannot set configuration")
             exit(1)
+
+if __name__ == "__main__":
+    main()
 ```
 
 ### C++
@@ -470,7 +473,7 @@ converts disparity images to 3D point clouds colorized using the left rectified 
 import libmultisense as lms
 import cv2
 
-def main(args):
+def main():
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
@@ -494,6 +497,8 @@ def main(args):
                 print("Saving pointcloud for frame id: ", frame.frame_id)
                 lms.write_pointcloud_ply(point_cloud, str(frame.frame_id) + ".ply")
 
+if __name__ == "__main__":
+    main()
 ```
 
 ### C++
@@ -560,7 +565,7 @@ converts disparity images to openni depth images and saves them to disk using Op
 import libmultisense as lms
 import cv2
 
-def main(args):
+def main():
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
@@ -582,6 +587,9 @@ def main(args):
                 if depth_image:
                     print("Saving depth image for frame id: ", frame.frame_id)
                     cv2.imwrite(str(frame.frame_id) + ".png", depth_image.as_array)
+
+if __name__ == "__main__":
+    main()
 ```
 
 ### C++
@@ -651,7 +659,7 @@ converts luma and chroma aux images to BGR images and saves them to disk using O
 import libmultisense as lms
 import cv2
 
-def main(args):
+def main():
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = "10.66.171.21"
 
@@ -670,6 +678,9 @@ def main(args):
                 bgr = lms.create_bgr_image(frame, lms.DataSource.AUX_RAW)
                 if bgr:
                     cv2.imwrite(str(frame.frame_id) + ".png", bgr.as_array)
+
+if __name__ == "__main__":
+    main()
 ```
 
 ### C++
