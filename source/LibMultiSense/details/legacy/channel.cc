@@ -125,9 +125,14 @@ LegacyChannel::LegacyChannel(const Config &config):
                                                                 config.receive_buffer_configuration.large_buffer_size})),
     m_message_assembler(m_buffer_pool)
 {
-    if (config.connect_on_initialization && connect(config) != Status::OK)
-    {
-        CRL_EXCEPTION("Connection to MultiSense failed\n");
+    if (config.connect_on_initialization)
+    {   
+        Status cstat;
+        cstat = connect(config);
+        if ((int)cstat != 1){
+            std::cout << "Connection " << (int)cstat << std::endl;
+            CRL_EXCEPTION("Connection to MultiSense failed\n");
+        }
     }
 }
 
@@ -264,8 +269,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (const auto status = stop_streams_internal({DataSource::ALL}); status != Status::OK)
     {
-        CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
-        return status;
+        CRL_DEBUG("Unable to stop streams: %s, continuing\n", to_string(status).c_str());
     }
 
     //
@@ -420,6 +424,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
 
     if (!res_ack || res_ack->status != wire::Ack::Status_Ok)
     {
+        std::cout << "res ack\n";
         responses.push_back(get_status(res_ack->status));
     }
 
@@ -436,6 +441,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
 
     if (!cam_ack || cam_ack->status != wire::Ack::Status_Ok)
     {
+        std::cout << "cam ack\n";
         responses.push_back(get_status(cam_ack->status));
     }
 
@@ -456,6 +462,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
                                           setting_retries);
         if (!aux_ack || aux_ack->status != wire::Ack::Status_Ok)
         {
+            std::cout << "aux ack\n";
             responses.push_back(get_status(aux_ack->status));
         }
     }
@@ -479,6 +486,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
                                           setting_retries);
         if (!imu_ack || imu_ack->status != wire::Ack::Status_Ok)
         {
+            std::cout << "imu ack\n";
             responses.push_back(get_status(imu_ack->status));
         }
     }
@@ -500,6 +508,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
                                                setting_retries);
         if (!lighting_ack || lighting_ack->status != wire::Ack::Status_Ok)
         {
+            std::cout << "lighting ack\n";
             responses.push_back(get_status(lighting_ack->status));
         }
     }
@@ -518,6 +527,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
 
         if (!ptp_ack || ptp_ack->status != wire::Ack::Status_Ok)
         {
+            std::cout << "ptp ack\n";
             responses.push_back(get_status(ptp_ack->status));
         }
     }
@@ -536,6 +546,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
 
         if (!packet_ack || packet_ack->status != wire::Ack::Status_Ok)
         {
+            std::cout << "packet ack\n";
             responses.push_back(get_status(packet_ack->status));
         }
     }
@@ -550,7 +561,7 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
 
     if (errors)
     {
-        return Status::INTERNAL_ERROR;
+        std::cout << "Internal errors detected\n";
     }
 
     //

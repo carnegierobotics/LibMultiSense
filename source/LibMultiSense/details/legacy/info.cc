@@ -99,6 +99,8 @@ MultiSenseInfo::DeviceInfo convert(const crl::multisense::details::wire::SysDevi
             {output.imager_type = MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY; break;}
         case wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR:
             {output.imager_type = MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR; break;}
+        case wire::SysDeviceInfo::IMAGER_TYPE_TENUM_1280:
+            {output.imager_type = MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280; break;}
         default: {CRL_EXCEPTION("Unsupported imager type");}
     }
 
