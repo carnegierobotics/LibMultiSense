@@ -301,7 +301,7 @@ private:
     static CRL_CONSTEXPR uint32_t RX_POOL_SMALL_BUFFER_COUNT    = 256;
     static CRL_CONSTEXPR uint32_t MAX_BUFFER_ALLOCATION_RETRIES = 5;
 
-    static double DEFAULT_ACK_TIMEOUT ()         { return 0.5; }
+    static double DEFAULT_ACK_TIMEOUT ()         { return 1.0; }
     static CRL_CONSTEXPR uint32_t DEFAULT_ACK_ATTEMPTS              = 5;
     static CRL_CONSTEXPR uint32_t IMAGE_META_CACHE_DEPTH            = 4;
     static CRL_CONSTEXPR uint32_t SECONDARY_APP_META_CACHE_DEPTH    = 4;
