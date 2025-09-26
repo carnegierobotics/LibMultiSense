@@ -178,7 +178,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     try {
         bind(ifName);
     } catch (const std::exception& e) {
-        CRL_DEBUG("exception: %s\n", e.what());
+        CRL_DEBUG("failed to bind to interface %s: exception: %s\n", ifName.c_str(), e.what());
         cleanup();
         throw e;
     }
@@ -205,7 +205,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     if (Status_Ok != status)
     {
       cleanup();
-      CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
+      CRL_EXCEPTION("failed to stop data streams with the sensor at \"%s\", with remote head enum %d",
                     address.c_str(), cameraId);
     }
 
@@ -217,7 +217,7 @@ impl::impl(const std::string& address, const RemoteHeadChannel& cameraId, const 
     status = waitData(wire::SysGetMtu(), mtu);
     if (Status_Ok != status) {
         cleanup();
-        CRL_EXCEPTION("failed to establish comms with the sensor at \"%s\", with remote head enum %d",
+        CRL_EXCEPTION("failed to get the mtu of the sensor at \"%s\", with remote head enum %d",
                       address.c_str(), cameraId);
     } else {
 
