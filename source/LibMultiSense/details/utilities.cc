@@ -47,6 +47,7 @@
 #endif
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -217,7 +218,6 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
     const double tx_aux = compute_in_aux_frame ? frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0] : 0.0;
     const double baseline_ratio = tx_aux / tx;
 
-
     auto data = std::make_shared<std::vector<uint8_t>>();
 
     switch (depth_format)
@@ -226,7 +226,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         {
             data->resize(disparity.width * disparity.height * sizeof(uint16_t));
             const std::vector<uint16_t> raw_data(disparity.width * disparity.height, static_cast<uint16_t>(invalid_value));
-            memcpy(data->data(), raw_data.data(), data->size());
+            std::memcpy(data->data(), raw_data.data(), data->size());
 
             break;
         }
@@ -234,7 +234,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         {
             data->resize(disparity.width * disparity.height * sizeof(float));
             const std::vector<float> raw_data(disparity.width * disparity.height, static_cast<float>(invalid_value));
-            memcpy(data->data(), raw_data.data(), data->size());
+            std::memcpy(data->data(), raw_data.data(), data->size());
             break;
         }
         default:
