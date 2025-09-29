@@ -45,7 +45,8 @@ if (BUILD_OPENCV)
 endif()
 
 if (BUILD_JSON_SERIALIZATION)
-    target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
+  target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
+  set(JSON_SERIALIZATION_DEP "find_dependency(nlohmann_json 3.9 REQUIRED)")
 endif()
 
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
