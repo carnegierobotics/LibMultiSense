@@ -99,19 +99,21 @@ MULTISENSE_API bool write_image(const Image &image, const std::filesystem::path 
 /// @brief Create a depth image from a image frame
 ///
 /// @param depth_format Supported formats include MONO16 and FLOAT32. Note MONO16 will be quantized to millimeters)
+/// @param compute_in_aux_frame Compute the depth image so it's returned in the aux camera's image frame
 /// @param invalid_value The value to set invalid depth measurements to. (i.e. points where disparity = 0)
 ///
 MULTISENSE_API std::optional<Image> create_depth_image(const ImageFrame &frame,
                                                        const Image::PixelFormat &depth_format,
                                                        const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW,
+                                                       bool compute_in_aux_frame = false,
                                                        float invalid_value = 0);
 
 ///
 /// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
 ///
 MULTISENSE_API std::optional<Image> create_bgr_from_ycbcr420(const Image &luma,
-                                                              const Image &chroma,
-                                                              const DataSource &output_source);
+                                                             const Image &chroma,
+                                                             const DataSource &output_source);
 
 ///
 /// @brief Convert a YCbCr420 luma + chroma image into a BGR color image

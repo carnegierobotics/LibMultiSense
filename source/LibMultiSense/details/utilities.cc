@@ -190,6 +190,7 @@ bool write_image(const Image &image, const std::filesystem::path &path)
 std::optional<Image> create_depth_image(const ImageFrame &frame,
                                         const Image::PixelFormat &depth_format,
                                         const DataSource &disparity_source,
+                                        bool compute_in_aux_frame,
                                         float invalid_value)
 {
     if (!frame.has_image(disparity_source))
@@ -206,20 +207,34 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         return std::nullopt;
     }
 
+    if (compute_in_aux_frame && !frame.calibration.aux)
+    {
+        return std::nullopt;
+    }
+
     const double fx = disparity.calibration.P[0][0];
     const double tx = frame.calibration.right.P[0][3] / frame.calibration.right.P[0][0];
+    const double tx_aux = compute_in_aux_frame ? frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0] : 0.0;
+    const double baseline_ratio = tx_aux / tx;
 
-    size_t bytes_per_pixel = 0;
+
+    auto data = std::make_shared<std::vector<uint8_t>>();
+
     switch (depth_format)
     {
         case Image::PixelFormat::MONO16:
         {
-            bytes_per_pixel = sizeof(uint16_t);
+            data->resize(disparity.width * disparity.height * sizeof(uint16_t));
+            const std::vector<uint16_t> raw_data(disparity.width * disparity.height, static_cast<uint16_t>(invalid_value));
+            memcpy(data->data(), raw_data.data(), data->size());
+
             break;
         }
         case Image::PixelFormat::FLOAT32:
         {
-            bytes_per_pixel = sizeof(float);
+            data->resize(disparity.width * disparity.height * sizeof(float));
+            const std::vector<float> raw_data(disparity.width * disparity.height, static_cast<float>(invalid_value));
+            memcpy(data->data(), raw_data.data(), data->size());
             break;
         }
         default:
@@ -228,9 +243,6 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
             return std::nullopt;
         }
     }
-
-    auto data = std::make_shared<std::vector<uint8_t>>(disparity.width * disparity.height * bytes_per_pixel,
-                                                       static_cast<uint8_t>(0));
 
     //
     // MONO16 disparity images are quantized to 1/16th of a pixel
@@ -241,8 +253,21 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
     {
         const size_t index = disparity.image_data_offset + (i * sizeof(uint16_t));
 
+        const size_t u = i % disparity.width;
+        const size_t v = i / disparity.width;
+
+
         const double d =
             static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+
+        const double scaled_u = u - (baseline_ratio * d);
+
+        if (d == 0 || scaled_u > disparity.width)
+        {
+            continue;
+        }
+
+        size_t output_index = compute_in_aux_frame ? scaled_u + (v * disparity.width) : i;
 
         switch (depth_format)
         {
@@ -251,19 +276,17 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
                 //
                 // Quantize to millimeters
                 //
-                const uint16_t depth = (d == 0.0) ? static_cast<uint16_t>(invalid_value) :
-                                                    static_cast<uint16_t>(1000 * fx * -tx / d);
+                const uint16_t depth = static_cast<uint16_t>(1000 * fx * -tx / d);
 
-                auto data_pointer = reinterpret_cast<uint16_t*>(data->data() + (sizeof(uint16_t) * i));
+                auto data_pointer = reinterpret_cast<uint16_t*>(data->data() + (sizeof(uint16_t) * output_index));
                 *data_pointer = depth;
                 continue;
             }
             case Image::PixelFormat::FLOAT32:
             {
-                const float depth = (d == 0.0) ? invalid_value :
-                                                 static_cast<float>(fx * -tx / d);
+                const float depth = static_cast<float>(fx * -tx / d);
 
-                auto data_pointer = reinterpret_cast<float*>(data->data() + (sizeof(float) * i));
+                auto data_pointer = reinterpret_cast<float*>(data->data() + (sizeof(float) * output_index));
                 *data_pointer = depth;
                 continue;
             }
