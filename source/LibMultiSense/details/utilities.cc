@@ -358,7 +358,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
             break;
         }
 
-        const size_t index = disparity.image_data_offset + (search_u + (rectified_aux_pixel.v * disparity.width) * sizeof(uint16_t));
+        const size_t index = disparity.image_data_offset + ((search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t));
 
         const double d =
             static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
@@ -368,7 +368,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
             continue;
         }
 
-        if ((rectified_aux_pixel.u + (baseline_ratio * d)) < pixel_epsilon)
+        if (std::abs((rectified_aux_pixel.u + (baseline_ratio * d)) - search_u) < pixel_epsilon)
         {
             return Q.reproject(Pixel{search_u, rectified_aux_pixel.v}, d);
         }
