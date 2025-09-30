@@ -47,6 +47,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -260,14 +261,14 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         const double d =
             static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
 
-        const double scaled_u = u - (baseline_ratio * d);
+        const double scaled_u = std::round(u - (baseline_ratio * d));
 
         if (d == 0 || scaled_u > disparity.width)
         {
             continue;
         }
 
-        size_t output_index = compute_in_aux_frame ? scaled_u + (v * disparity.width) : i;
+        const size_t output_index = compute_in_aux_frame ? static_cast<size_t>(scaled_u + (v * disparity.width)) : i;
 
         switch (depth_format)
         {
@@ -310,6 +311,71 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
                  disparity.calibration};
 }
 
+std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
+                                            const Pixel &rectified_aux_pixel,
+                                            size_t max_pixel_search_window,
+                                            double pixel_epsilon,
+                                            const DataSource &disparity_source)
+{
+    if (!frame.has_image(disparity_source))
+    {
+        return std::nullopt;
+    }
+
+    const auto disparity = frame.get_image(disparity_source);
+
+    if (disparity.format != Image::PixelFormat::MONO16 ||
+        disparity.width < 0 ||
+        disparity.height < 0)
+    {
+        return std::nullopt;
+    }
+
+    if (!frame.calibration.aux)
+    {
+        return std::nullopt;
+    }
+
+    const double tx = frame.calibration.right.P[0][3] / frame.calibration.right.P[0][0];
+    const double tx_aux = frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0];
+    const double baseline_ratio = tx_aux / tx;
+
+    constexpr double scale = 1.0 / 16.0;
+
+    const QMatrix Q{disparity.calibration, frame.calibration.right};
+
+    //
+    // Search through our configured pixel window testing to see if the disparity value projected into the aux
+    // image aligns with our query pixel. See:
+    // https://docs.carnegierobotics.com/cookbook/overview.html#approximation-for-execution-speed
+    //
+    for (size_t i = 0 ; i < max_pixel_search_window ; ++i)
+    {
+        const size_t search_u = rectified_aux_pixel.u + i;
+
+        if (static_cast<int64_t>(search_u) > disparity.width)
+        {
+            break;
+        }
+
+        const size_t index = disparity.image_data_offset + (search_u + (rectified_aux_pixel.v * disparity.width) * sizeof(uint16_t));
+
+        const double d =
+            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+
+        if (d == 0)
+        {
+            continue;
+        }
+
+        if ((rectified_aux_pixel.u + (baseline_ratio * d)) < pixel_epsilon)
+        {
+            return Q.reproject(Pixel{search_u, rectified_aux_pixel.v}, d);
+        }
+    }
+
+    return std::nullopt;
+}
 
 std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &chroma, const DataSource &output_source)
 {
@@ -390,7 +456,6 @@ std::optional<Image> create_bgr_image(const ImageFrame &frame, const DataSource 
 
     return std::nullopt;
 }
-
 
 std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
                                                   double max_range,

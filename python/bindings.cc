@@ -699,6 +699,15 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("set_network_config", &multisense::Channel::set_network_config, py::call_guard<py::gil_scoped_release>());
 
     // Utilities
+    py::class_<multisense::QMatrix>(m, "QMatrix")
+        .def(py::init<const multisense::CameraCalibration &, const multisense::CameraCalibration &>())
+        .def("reproject", &multisense::QMatrix::reproject);
+
+    py::class_<multisense::Pixel>(m, "Pixel")
+        .def(py::init<>())
+        .def_readwrite("u", &multisense::Pixel::u)
+        .def_readwrite("y", &multisense::Pixel::v);
+
     py::class_<multisense::Point<void>>(m, "Point")
         .def(py::init<>())
         .def_readwrite("x", &multisense::Point<void>::x)
@@ -949,6 +958,8 @@ PYBIND11_MODULE(_libmultisense, m) {
             py::call_guard<py::gil_scoped_release>());
 
     m.def("create_depth_image", &multisense::create_depth_image, py::call_guard<py::gil_scoped_release>());
+
+    m.def("get_aux_3d_point", &multisense::get_aux_3d_point, py::call_guard<py::gil_scoped_release>());
 
     m.def("create_bgr_from_ycbcr420", &multisense::create_bgr_from_ycbcr420, py::call_guard<py::gil_scoped_release>());
 

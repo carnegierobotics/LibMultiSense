@@ -82,7 +82,67 @@ struct PointCloud
     std::vector<Point<Color>> cloud;
 };
 
+struct Pixel
+{
+    size_t u = 0;
+    size_t v = 0;
+};
+
 #pragma pack(pop)
+
+MULTISENSE_API class QMatrix
+{
+public:
+
+    ///
+    /// @brief Construct a minimal Q matrix from calibrations
+    ///
+    /// @param reference_cal The calibration corresponding to the image where disaprities are computed with
+    /// @param matching_cal The calibration corresponding to the image where pixels is the disparity image are matched
+    ///                     against
+    ///
+    QMatrix(const CameraCalibration &reference_cal, const CameraCalibration &matching_cal):
+        fx_(reference_cal.P[0][0]),
+        fy_(reference_cal.P[1][1]),
+        cx_(reference_cal.P[0][2]),
+        cy_(reference_cal.P[1][2]),
+        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
+        cx_prime_(matching_cal.P[0][2]),
+        fytx_(fy_ * tx_),
+        fxtx_(fx_ * tx_),
+        fycxtx_(fy_ * cx_ * tx_),
+        fxcytx_(fx_ * cy_ * tx_),
+        fxfytx_(fx_ * fy_ * tx_),
+        fycxcxprime_(fy_ * (cx_ - cx_prime_))
+    {
+    }
+
+    Point<void> reproject(const Pixel &pixel, double disparity) const
+    {
+        const double inversebeta = 1.0 / (-fy_ * disparity + fycxcxprime_);
+        const double x = ((fytx_ * pixel.u) + (-fycxtx_)) * inversebeta;
+        const double y = ((fxtx_ * pixel.v) + (-fxcytx_)) * inversebeta;
+        const double z = fxfytx_ * inversebeta;
+
+        return Point<void>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
+    }
+
+private:
+    double fx_ = 0.0;
+    double fy_ = 0.0;
+    double cx_ = 0.0;
+    double cy_ = 0.0;
+    double tx_ = 0.0;
+    double cx_prime_ = 0.0;
+
+    double fytx_ = 0.0;
+    double fxtx_ = 0.0;
+
+    double fycxtx_ = 0.0;
+    double fxcytx_ = 0.0;
+    double fxfytx_ = 0.0;
+    double fycxcxprime_ = 0.0;
+};
 
 ///
 /// @brief Convert a status object to a user readable string
@@ -107,6 +167,21 @@ MULTISENSE_API std::optional<Image> create_depth_image(const ImageFrame &frame,
                                                        const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW,
                                                        bool compute_in_aux_frame = false,
                                                        float invalid_value = 0);
+
+///
+/// @brief for a given pixel in the aux image, return the corresponding 3D point associated with the aux pixel
+///
+/// @param frame The image frame which contains a disparity image
+/// @param rectivied_aux_pixel The aux pixel to compute depth for
+/// @param max_pixel_search_window The maximum number of pixels to search for a corresponding valid disparity pixel.
+///                                256 is the max value
+/// @param pixel_epsilon The threshold, in pixels, for a disparity projection to match the aux pixel location
+///
+MULTISENSE_API std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
+                                                           const Pixel &rectified_aux_pixel,
+                                                           size_t max_pixel_search_window,
+                                                           double pixel_epsilon,
+                                                           const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW);
 
 ///
 /// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
@@ -167,20 +242,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
 
     const double squared_range = max_range * max_range;
 
-    const double fx = disparity.calibration.P[0][0];
-    const double fy = disparity.calibration.P[1][1];
-    const double cx = disparity.calibration.P[0][2];
-    const double cy = disparity.calibration.P[1][2];
-    const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
-    const double cx_prime = calibration.right.P[0][2];
-
-    const double fytx = fy * tx;
-    const double fxtx = fx * tx;
-
-    const double fycxtx = fy * cx * tx;
-    const double fxcytx = fx * cy * tx;
-    const double fxfytx = fx * fy * tx;
-    const double fycxcxprime = fy * (cx - cx_prime);
+    const QMatrix Q(disparity.calibration, calibration.right);
 
     PointCloud<Color> output;
     output.cloud.reserve(disparity.width * disparity.height);
@@ -201,10 +263,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
                 continue;
             }
 
-            const double inversebeta = 1.0 / (-fy * d + fycxcxprime);
-            const double x = ((fytx * w) + (-fycxtx)) * inversebeta;
-            const double y = ((fxtx * h) + (-fxcytx)) * inversebeta;
-            const double z = fxfytx * inversebeta;
+            const auto &[x, y, z] = Q.reproject(Pixel{w, h}, d);
 
             if ((x*x + y*y + z*z) > squared_range)
             {

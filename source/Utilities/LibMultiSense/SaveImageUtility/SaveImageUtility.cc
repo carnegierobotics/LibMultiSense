@@ -163,7 +163,7 @@ int main(int argc, char** argv)
     bool save_color = false;
 
     int c;
-    while(-1 != (c = getopt(argc, argv, "a:m:n:dlc")))
+    while(-1 != (c = getopt(argc, argv, "a:m:n:xdlc")))
     {
         switch(c)
         {
