@@ -90,7 +90,7 @@ struct Pixel
 
 #pragma pack(pop)
 
-MULTISENSE_API class QMatrix
+class MULTISENSE_API QMatrix
 {
 public:
 
