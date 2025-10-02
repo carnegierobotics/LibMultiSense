@@ -172,7 +172,7 @@ MULTISENSE_API std::optional<Image> create_depth_image(const ImageFrame &frame,
 /// @brief for a given pixel in the aux image, return the corresponding 3D point associated with the aux pixel
 ///
 /// @param frame The image frame which contains a disparity image
-/// @param rectivied_aux_pixel The aux pixel to compute depth for
+/// @param rectified_aux_pixel The aux pixel to compute depth for
 /// @param max_pixel_search_window The maximum number of pixels to search for a corresponding valid disparity pixel.
 ///                                256 is the max value
 /// @param pixel_epsilon The threshold, in pixels, for a disparity projection to match the aux pixel location
