@@ -252,6 +252,8 @@ void check_equal(const crl::multisense::details::wire::SysDeviceInfo &wire,
             ASSERT_EQ(info.imager_type, MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY); break;
         case wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR:
             ASSERT_EQ(info.imager_type, MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR); break;
+        case wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280:
+            ASSERT_EQ(info.imager_type, MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280); break;
         default: {CRL_EXCEPTION("Unsupported imager type");}
     }
     ASSERT_EQ(wire.imagerWidth, info.imager_width);
