@@ -71,19 +71,23 @@ def main(args):
             print("Invalid channel")
             exit(1)
 
-        current_calibration = channel.get_calibration();
-
-        new_calibration = update_calibration(current_calibration, args.rectified_focal_length)
+        current_calibration = channel.get_calibration()
 
         if args.set:
+            if args.rectified_focal_length is None:
+                print("Unable to set new focal length, --rectified-focal-length (-r) is required when trying to --set")
+                exit(1)
+            new_calibration = update_calibration(current_calibration, args.rectified_focal_length)
             if channel.set_calibration(new_calibration) != lms.Status.OK:
                 print("Failed to set the updated calibration")
                 exit(1)
+        else:
+            print("Current focal length: " + str(current_calibration.left.P[0][0]) + "px")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense save image utility")
+    parser = argparse.ArgumentParser("LibMultiSense rectified focal length utility")
     parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
     parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    parser.add_argument("-r", "--rectified-focal-length", type=float, required=True, help="The new rectified focal length")
-    parser.add_argument("-s", "--set", action="store_true", help="Write the new calibration to camera")
+    parser.add_argument("-r", "--rectified-focal-length", type=float, help="The new rectified focal length")
+    parser.add_argument("-s", "--set", action="store_true", help="Write the new calibration to camera (default query)")
     main(parser.parse_args())
