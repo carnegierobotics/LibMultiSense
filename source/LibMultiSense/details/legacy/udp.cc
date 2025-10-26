@@ -46,25 +46,33 @@ namespace legacy{
 
 UdpReceiver::UdpReceiver(const NetworkSocket &socket,
                          size_t max_mtu,
-                         std::function<void(const std::vector<uint8_t>&)> receive_callback):
+                         std::function<void(const std::vector<uint8_t>&)> receive_callback,
+                         size_t max_packet_queue_depth):
     m_socket(socket.sensor_socket),
     m_stop(false),
+    m_max_packet_queue_depth(max_packet_queue_depth),
     m_max_mtu(max_mtu),
     m_incoming_buffer(max_mtu, 0),
     m_receive_callback(receive_callback)
 
 {
     m_rx_thread = std::thread(&UdpReceiver::rx_thread, this);
+    m_dispatch_thread = std::thread(&UdpReceiver::dispatch_thread, this);
 }
 
 UdpReceiver::~UdpReceiver()
 {
-    if(!m_stop.exchange(true))
+    m_stop.store(true);
+    m_queue_cv.notify_all();
+
+    if (m_rx_thread.joinable())
     {
-        if (m_rx_thread.joinable())
-        {
-            m_rx_thread.join();
-        }
+        m_rx_thread.join();
+    }
+
+    if (m_dispatch_thread.joinable())
+    {
+        m_dispatch_thread.join();
     }
 }
 
@@ -115,21 +123,66 @@ void UdpReceiver::rx_thread()
                     break;
                 }
 
-                m_incoming_buffer.resize(bytes_read);
-                m_receive_callback(m_incoming_buffer);
-                m_incoming_buffer.resize(m_max_mtu);
+                std::vector<uint8_t> packet(static_cast<size_t>(bytes_read));
+                memcpy(packet.data(), m_incoming_buffer.data(), static_cast<size_t>(bytes_read));
+
+                {
+                    std::lock_guard<std::mutex> lock(m_queue_mutex);
+                    if (m_packet_queue.size() >= m_max_packet_queue_depth)
+                    {
+                        m_packet_queue.pop_front();
+                        CRL_DEBUG("UDP receiver queue overrun, dropping oldest packet\n");
+                    }
+
+                    m_packet_queue.emplace_back(std::move(packet));
+                }
+
+                m_queue_cv.notify_one();
             }
             catch (const std::exception& e)
             {
-
                 CRL_DEBUG("exception while decoding packet: %s\n", e.what());
-
             }
             catch ( ... )
             {
-
                 CRL_DEBUG_RAW("unknown exception while decoding packet\n");
             }
+        }
+    }
+}
+
+void UdpReceiver::dispatch_thread()
+{
+    while(true)
+    {
+        std::vector<uint8_t> packet;
+        {
+            std::unique_lock<std::mutex> lock(m_queue_mutex);
+            m_queue_cv.wait(lock, [this]()
+            {
+                return m_stop || !m_packet_queue.empty();
+            });
+
+            if (m_stop && m_packet_queue.empty())
+            {
+                break;
+            }
+
+            packet = std::move(m_packet_queue.front());
+            m_packet_queue.pop_front();
+        }
+
+        try
+        {
+            m_receive_callback(packet);
+        }
+        catch (const std::exception& e)
+        {
+            CRL_DEBUG("exception while decoding packet: %s\n", e.what());
+        }
+        catch ( ... )
+        {
+            CRL_DEBUG_RAW("unknown exception while decoding packet\n");
         }
     }
 }

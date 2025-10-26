@@ -37,6 +37,9 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -72,7 +75,8 @@ public:
     ///
     UdpReceiver(const NetworkSocket &socket,
                 size_t max_mtu,
-                std::function<void(const std::vector<uint8_t>&)> receive_callback);
+                std::function<void(const std::vector<uint8_t>&)> receive_callback,
+                size_t max_packet_queue_depth=64);
 
     ~UdpReceiver();
 
@@ -84,19 +88,49 @@ private:
     void rx_thread();
 
     ///
+    /// @brief The dispatch thread function which is sends UDP data to clients
+    ///
+    void dispatch_thread();
+
+    ///
     /// @brief The internal socket which UDP data is receive on
     ///
     socket_t m_socket;
 
     ///
-    /// @brief The rx_thread object which is spawned on construction
+    /// @brief The rx_thread object which is spawned on construction to receive UDP data
     ///
     std::thread m_rx_thread;
+
+    ///
+    /// @brief The dispatch_thread object which is spawned on construction to dispatch data to clients
+    ///
+    std::thread m_dispatch_thread;
 
     ///
     /// @brief Atomic flag to stop the rx_thread on destruction
     ///
     std::atomic_bool m_stop{false};
+
+    ///
+    /// @brief condition variable to notify dispatch there is data on the queue
+    ///
+    std::condition_variable m_queue_cv;
+
+    ///
+    /// @brief condition variable to notify dispatch there is data on the queue
+    ///
+    std::mutex m_queue_mutex;
+
+    ///
+    /// @brief queue used to send data between the rx and dispatch threads
+    ///
+    std::deque<std::vector<uint8_t>> m_packet_queue;
+
+    ///
+    /// @brief the max size of the m_packet_queue
+    ///
+    size_t m_max_packet_queue_depth = 64;
 
     ///
     /// @brief The amount of data to read off the socket during each read operation
