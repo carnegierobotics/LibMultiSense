@@ -80,6 +80,11 @@ public:
 
     ~UdpReceiver();
 
+    size_t dropped_packets() const
+    {
+        return m_dropped_packets;
+    }
+
 private:
 
     ///

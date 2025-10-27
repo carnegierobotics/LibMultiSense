@@ -111,6 +111,9 @@ private:
     ///
     BufferPoolConfig m_config;
 
+    ///
+    /// @brief Handle acquisition of buffers in a thread safe manner
+    ///
     mutable std::mutex m_mutex;
 
     ///
