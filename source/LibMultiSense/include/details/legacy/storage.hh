@@ -55,7 +55,7 @@ struct BufferPoolConfig
 /// @brief Object to handle the management and delivery of buffers to used to store incoming data without
 ///        needing to continually reallocate internal memory. This class is threadsafe
 ///
-class BufferPool
+class BufferPool : public std::enable_shared_from_this<BufferPool>
 {
 public:
 
@@ -90,20 +90,48 @@ public:
 
 private:
 
+    enum class BufferType
+    {
+        Small,
+        Large
+    };
+
+    ///
+    /// @brief Acquire a buffer from the pool
+    ///
+    std::shared_ptr<std::vector<uint8_t>> acquire_buffer(BufferType type, size_t target_size);
+
+    ///
+    /// @brief Release a buffer back to the bool
+    ///
+    void release_buffer(BufferType type, size_t index, std::vector<uint8_t>* buffer);
+
     ///
     /// @brief The configured numbers and sizes of our internal buffers
     ///
     BufferPoolConfig m_config;
 
-    ///
-    /// @brief The collection of small buffers
-    ///
-    std::vector<std::shared_ptr<std::vector<uint8_t>>> m_small_buffers;
+    mutable std::mutex m_mutex;
 
     ///
-    /// @brief The collection of large buffers
+    /// @brief The collection of small buffers which are in use
     ///
-    std::vector<std::shared_ptr<std::vector<uint8_t>>> m_large_buffers;
+    std::vector<std::vector<uint8_t>> m_small_buffers;
+
+    ///
+    /// @brief The collection of small buffers which are free to use
+    ///
+    std::vector<size_t> m_small_free_list;
+
+    ///
+    /// @brief The collection of large buffers which are in use
+    ///
+    std::vector<std::vector<uint8_t>> m_large_buffers;
+
+    ///
+    /// @brief The collection of large buffers which are free to use
+    ///
+    std::vector<size_t> m_large_free_list;
 
 };
 

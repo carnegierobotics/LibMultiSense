@@ -113,19 +113,14 @@ private:
     std::atomic_bool m_stop{false};
 
     ///
-    /// @brief condition variable to notify dispatch there is data on the queue
+    /// @brief Signal for coordinating when the processing queue is valid
     ///
-    std::condition_variable m_queue_cv;
+    std::condition_variable m_queue_valid;
 
     ///
-    /// @brief condition variable to notify dispatch there is data on the queue
+    /// @brief Mutext for coordinating when data is ready to process
     ///
     std::mutex m_queue_mutex;
-
-    ///
-    /// @brief queue used to send data between the rx and dispatch threads
-    ///
-    std::deque<std::vector<uint8_t>> m_packet_queue;
 
     ///
     /// @brief the max size of the m_packet_queue
@@ -138,14 +133,30 @@ private:
     size_t m_max_mtu = 0;
 
     ///
-    /// @brief Internal buffer used to write incoming UDP data into
+    /// @brief queue used to send data between the rx and dispatch threads. The queue stores indices
+    ///        into m_packet_buffers to avoid copying the payload
     ///
-    std::vector<uint8_t> m_incoming_buffer;
+    std::vector<std::vector<uint8_t>> m_packet_buffers;
+
+    ///
+    /// @brief indices of buffers which are free to write to in m_packet_buffers
+    ///
+    std::deque<size_t> m_free_buffers;
+
+    ///
+    /// @brief indices of buffers which are ready to process in m_packet_buffers
+    ///
+    std::deque<size_t> m_ready_buffers;
 
     ///
     /// @brief User specified callback which is called once UDP data is received
     ///
     std::function<void(const std::vector<uint8_t>&)> m_receive_callback;
+
+    ///
+    /// @brief Counter for messages dropped due to dispatch processing slowdowsn
+    ///
+    std::atomic_size_t m_dropped_packets = 0;
 };
 
 
