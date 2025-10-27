@@ -1219,8 +1219,8 @@ struct MultiSenseStatus
         size_t invalid_packets = 0;
 
         ///
-        /// @brief The total number of packets we recieved over the wire, but were unable to process due to
-        ///        buffer limtis
+        /// @brief The total number of packets we received over the wire, but were unable to process due to
+        ///        buffer limits
         ///
         size_t unprocessed_packets = 0;
     };
