@@ -151,8 +151,7 @@ int64_t publish_data(const NetworkSocket &socket, const std::vector<uint8_t> &da
 
     if (static_cast<size_t>(ret) != data.size())
     {
-        CRL_EXCEPTION("error sending data to sensor, %d/%d bytes written: %s",
-                      ret, data.size(), strerror(errno));
+        CRL_DEBUG("error sending data to sensor, %ld/%ld bytes written: %s", ret, data.size(), strerror(errno));
     }
 
     return ret;
