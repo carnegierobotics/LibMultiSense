@@ -116,9 +116,9 @@ int main(int argc, char** argv)
         }
     }
 
-    if (!rectified_focal_length || rectified_focal_length.value() < 0.0)
+    if ((!rectified_focal_length || rectified_focal_length.value() < 0.0) && set)
     {
-        std::cerr << "Invalid input rectified focal length" << std::endl;;
+        std::cerr << "Invalid input rectified focal length" << std::endl;
         usage(*argv);
     }
 
@@ -131,10 +131,10 @@ int main(int argc, char** argv)
 
     const auto current_calibration = channel->get_calibration();
 
-    const auto new_calibration = update_calibration(current_calibration, rectified_focal_length.value());
-
     if (set)
     {
+        const auto new_calibration = update_calibration(current_calibration, rectified_focal_length.value());
+
         if (channel->set_calibration(new_calibration) != lms::Status::OK)
         {
             std::cerr << "Failed to set the updated calibration" << std::endl;
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        std::cout << "Please add the \"-s\" argument to write the new rectified focal length to the camera" << std::endl;
+        std::cout << "Current focal length: " << current_calibration.left.P[0][0] << "px" << std::endl;
     }
 
     return 0;

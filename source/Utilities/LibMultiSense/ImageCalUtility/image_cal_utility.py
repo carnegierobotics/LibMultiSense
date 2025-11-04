@@ -110,7 +110,7 @@ def main(args):
                 write_cal(intrinsics, extrinsics, 3, calibration.aux)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense save image utility")
+    parser = argparse.ArgumentParser("LibMultiSense image cal utility")
     parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
     parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
     parser.add_argument("-i", "--intrinsics", required=True, help="The path to the intrinsics file to read from/write to.")
