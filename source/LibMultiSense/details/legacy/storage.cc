@@ -44,53 +44,57 @@ namespace multisense{
 namespace legacy{
 
 namespace {
-    constexpr size_t NUM_ALLOCATION_RETRIES = 5;
+
+constexpr size_t NUM_ALLOCATION_RETRIES = 5;
+
+std::pair<
+    std::vector<std::vector<uint8_t>>,
+    std::vector<size_t>>
+allocate_buffers( size_t count, size_t buffer_size)
+{
+    std::vector<std::vector<uint8_t>> storage{};
+    std::vector<size_t> free_list{};
+
+    storage.reserve(count);
+    for (size_t i = 0 ; i < count ; ++i)
+    {
+        bool allocated = false;
+        for (size_t attempt = 0; attempt < NUM_ALLOCATION_RETRIES; ++attempt)
+        {
+            try
+            {
+                storage.emplace_back(buffer_size, 0);
+                allocated = true;
+                break;
+            }
+            catch(const std::exception &e)
+            {
+                CRL_DEBUG("Failed to allocate buffers: %s. Retrying\n", e.what());
+            }
+        }
+
+        if (!allocated)
+        {
+            CRL_EXCEPTION("Failed to allocate buffers");
+        }
+    }
+
+    free_list.reserve(count);
+    for (size_t i = 0 ; i < count ; ++i)
+    {
+        free_list.emplace_back(i);
+    }
+
+    return std::make_pair(std::move(storage), std::move(free_list));
+}
+
 }
 
 BufferPool::BufferPool(const BufferPoolConfig &config):
     m_config(config)
 {
-
-    const auto allocate_buffers =
-        [](std::vector<std::vector<uint8_t>>& storage,
-           std::vector<size_t>& free_list,
-           size_t count,
-           size_t buffer_size,
-           const char* debug_label)
-        {
-            storage.reserve(count);
-            for (size_t i = 0 ; i < count ; ++i)
-            {
-                bool allocated = false;
-                for (size_t attempt = 0; attempt < NUM_ALLOCATION_RETRIES; ++attempt)
-                {
-                    try
-                    {
-                        storage.emplace_back(buffer_size, 0);
-                        allocated = true;
-                        break;
-                    }
-                    catch(const std::exception &e)
-                    {
-                        CRL_DEBUG("Failed to allocate %s buffer: %s. Retrying\n", debug_label, e.what());
-                    }
-                }
-
-                if (!allocated)
-                {
-                    CRL_EXCEPTION("Failed to allocate %s buffers", debug_label);
-                }
-            }
-
-            free_list.reserve(count);
-            for (size_t i = 0 ; i < count ; ++i)
-            {
-                free_list.emplace_back(i);
-            }
-        };
-
-    allocate_buffers(m_small_buffers, m_small_free_list, config.num_small_buffers, config.small_buffer_size, "small");
-    allocate_buffers(m_large_buffers, m_large_free_list, config.num_large_buffers, config.large_buffer_size, "large");
+    std::tie(m_small_buffers, m_small_free_list) = allocate_buffers(config.num_small_buffers, config.small_buffer_size);
+    std::tie(m_large_buffers, m_large_free_list) = allocate_buffers(config.num_large_buffers, config.large_buffer_size);
 }
 
 std::shared_ptr<std::vector<uint8_t>> BufferPool::get_buffer(size_t target_size)
