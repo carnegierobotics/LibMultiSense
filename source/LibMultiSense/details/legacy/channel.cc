@@ -759,7 +759,10 @@ Status LegacyChannel::set_network_config(const MultiSenseInfo::NetworkInfo &conf
 
         NetworkSocket broadcast_socket{std::move(broadcast_address), std::move(socket), std::move(socket_port)};
 
-        publish_data(broadcast_socket, serialize(convert(config), 0, m_current_mtu));
+        if (publish_data(broadcast_socket, serialize(convert(config), 0, m_current_mtu)) < 0)
+        {
+            return Status::TIMEOUT;
+        }
 
         return Status::OK;
     }
