@@ -51,7 +51,6 @@ UdpReceiver::UdpReceiver(const NetworkSocket &socket,
                          size_t max_packet_queue_depth):
     m_socket(socket.sensor_socket),
     m_stop(false),
-    m_max_packet_queue_depth(max_packet_queue_depth),
     m_max_mtu(max_mtu),
     m_packet_buffers(max_packet_queue_depth, std::vector<uint8_t>(max_mtu, 0)),
     m_receive_callback(receive_callback)

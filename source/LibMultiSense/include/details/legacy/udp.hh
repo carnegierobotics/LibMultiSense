@@ -128,11 +128,6 @@ private:
     std::mutex m_queue_mutex;
 
     ///
-    /// @brief the max size of the m_packet_queue
-    ///
-    size_t m_max_packet_queue_depth = 64;
-
-    ///
     /// @brief The amount of data to read off the socket during each read operation
     ///
     size_t m_max_mtu = 0;
