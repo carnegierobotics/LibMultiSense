@@ -270,10 +270,10 @@ struct Image
             return std::nullopt;
         }
 
-        if ((sizeof(T) == 8 && format == PixelFormat::MONO8) ||
-            (sizeof(T) == 16 && format == PixelFormat::MONO16) ||
-            (sizeof(T) == 24 && format == PixelFormat::BGR8) ||
-            (sizeof(T) == 32 && format == PixelFormat::FLOAT32))
+        if ((sizeof(T) == 1 && format == PixelFormat::MONO8) ||
+            (sizeof(T) == 2 && format == PixelFormat::MONO16) ||
+            (sizeof(T) == 3 && format == PixelFormat::BGR8) ||
+            (sizeof(T) == 4 && format == PixelFormat::FLOAT32))
         {
             const size_t offset = sizeof(T) * ((width * h) + w);
 

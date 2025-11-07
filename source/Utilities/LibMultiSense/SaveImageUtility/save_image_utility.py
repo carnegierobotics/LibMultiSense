@@ -62,13 +62,20 @@ def get_status_string(status):
 
     return output + temp + power + stats
 
-def save_image(frame, source):
+def save_image(frame, source, save_depth, save_aux_depth):
     base_path = str(frame.frame_id) + "_" + str(source);
 
     if source == lms.DataSource.LEFT_DISPARITY_RAW:
-        depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, 65535)
-        if depth_image:
-            lms.write_image(depth_image, base_path + ".pgm")
+        if save_depth:
+            depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, False, 65535)
+            if depth_image:
+                lms.write_image(depth_image, base_path + ".pgm")
+
+        if save_aux_depth:
+            depth_image = lms.create_depth_image(frame, lms.PixelFormat.MONO16, lms.DataSource.LEFT_DISPARITY_RAW, True, 65535)
+            if depth_image:
+                lms.write_image(depth_image, base_path + "_aux.pgm")
+
     elif source == lms.DataSource.LEFT_RECTIFIED_RAW:
         lms.write_image(frame.get_image(source), base_path + ".pgm")
     elif source == lms.DataSource.AUX_RAW:
@@ -100,7 +107,7 @@ def main(args):
             exit(1)
 
         streams = []
-        if args.save_depth:
+        if args.save_depth or args.save_aux_depth:
             streams.append(lms.DataSource.LEFT_DISPARITY_RAW)
         if args.save_left_rect:
             streams.append(lms.DataSource.LEFT_RECTIFIED_RAW)
@@ -118,7 +125,7 @@ def main(args):
                 frame = channel.get_next_image_frame()
                 if frame:
                     for stream in streams:
-                        save_image(frame, stream)
+                        save_image(frame, stream, args.save_depth, args.save_aux_depth)
 
                     saved_images += 1
 
@@ -135,6 +142,7 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--number-of-images", type=int, default=1, help="The number of images to save.")
     streams_group = parser.add_mutually_exclusive_group(required=True)
     streams_group.add_argument("-d", "--save-depth", action='store_true', help="Save a 16 bit depth image.")
+    streams_group.add_argument("-x", "--save-aux-depth", action='store_true', help="Save a 16 bit depth image in the aux frame.")
     streams_group.add_argument("-l", "--save-left-rect", action='store_true', help="Save a left rectified image.")
     streams_group.add_argument("-c", "--save-color", action='store_true', help="Save a color image.")
     main(parser.parse_args())

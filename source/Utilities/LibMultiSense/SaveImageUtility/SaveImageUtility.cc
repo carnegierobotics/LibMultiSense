@@ -70,12 +70,13 @@ void usage(const char *name)
     std::cerr << "\t-m <mtu>                : MTU to use to communicate with the camera (default=1500)" << std::endl;
     std::cerr << "\t-n <number-of-images>   : Number of images to save (default=1)" << std::endl;
     std::cerr << "\t-d                      : Save depth images" << std::endl;
+    std::cerr << "\t-x                      : Save aux depth images" << std::endl;
     std::cerr << "\t-l                      : Save left rectified images" << std::endl;
     std::cerr << "\t-c                      : Save color images" << std::endl;
     exit(1);
 }
 
-void save_image(const lms::ImageFrame &frame, const lms::DataSource &source)
+void save_image(const lms::ImageFrame &frame, const lms::DataSource &source, bool save_depth, bool save_aux_depth)
 {
     const auto base_path = std::to_string(frame.frame_id) +  "_" +
                           std::to_string(static_cast<int>(source));
@@ -83,13 +84,30 @@ void save_image(const lms::ImageFrame &frame, const lms::DataSource &source)
     {
         case lms::DataSource::LEFT_DISPARITY_RAW:
         {
-            if (const auto depth_image = lms::create_depth_image(frame,
-                                                                 lms::Image::PixelFormat::MONO16,
-                                                                 source,
-                                                                 65535); depth_image)
+            if (save_depth)
             {
-                lms::write_image(depth_image.value(), base_path + ".pgm");
+                if (const auto depth_image = lms::create_depth_image(frame,
+                                                                     lms::Image::PixelFormat::MONO16,
+                                                                     source,
+                                                                     false,
+                                                                     65535); depth_image)
+                {
+                    lms::write_image(depth_image.value(), base_path + ".pgm");
+                }
             }
+
+            if (save_aux_depth)
+            {
+                if (const auto depth_image = lms::create_depth_image(frame,
+                                                                     lms::Image::PixelFormat::MONO16,
+                                                                     source,
+                                                                     true,
+                                                                     65535); depth_image)
+                {
+                    lms::write_image(depth_image.value(), base_path + "_aux.pgm");
+                }
+            }
+
             break;
         }
         case lms::DataSource::LEFT_RECTIFIED_RAW:
@@ -140,11 +158,12 @@ int main(int argc, char** argv)
     int16_t mtu = 1500;
     size_t number_of_images = 1;
     bool save_depth = false;
+    bool save_aux_depth = false;
     bool save_left_rect = false;
     bool save_color = false;
 
     int c;
-    while(-1 != (c = getopt(argc, argv, "a:m:n:dlc")))
+    while(-1 != (c = getopt(argc, argv, "a:m:n:xdlc")))
     {
         switch(c)
         {
@@ -152,6 +171,7 @@ int main(int argc, char** argv)
             case 'm': mtu = static_cast<uint16_t>(atoi(optarg)); break;
             case 'n': number_of_images = static_cast<size_t>(atoi(optarg)); break;
             case 'd': save_depth = true; break;
+            case 'x': save_aux_depth = true; break;
             case 'l': save_left_rect = true; break;
             case 'c': save_color = true; break;
             default: usage(*argv); break;
@@ -187,7 +207,7 @@ int main(int argc, char** argv)
     }
 
     std::vector<lms::DataSource> image_streams{};
-    if (save_depth) image_streams.push_back(lms::DataSource::LEFT_DISPARITY_RAW);
+    if (save_depth || save_aux_depth) image_streams.push_back(lms::DataSource::LEFT_DISPARITY_RAW);
     if (save_left_rect) image_streams.push_back(lms::DataSource::LEFT_RECTIFIED_RAW);
     if (save_color) image_streams.push_back(lms::DataSource::AUX_RAW);
 
@@ -206,9 +226,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    //
-    // Only save the first image
-    //
     size_t saved_images = 0;
 
     while(!done)
@@ -219,7 +236,7 @@ int main(int argc, char** argv)
             {
                 for (const auto &stream : image_streams)
                 {
-                    save_image(image_frame.value(), stream);
+                    save_image(image_frame.value(), stream, save_depth, save_aux_depth);
                 }
 
                 ++saved_images;
