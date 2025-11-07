@@ -70,12 +70,6 @@ public:
     BufferPool& operator=(const BufferPool&) = delete;
 
     ///
-    /// Movable
-    ///
-    BufferPool(BufferPool&&) noexcept = default;
-    BufferPool& operator=(BufferPool&&) noexcept = default;
-
-    ///
     /// @brief Get a buffer which will contain at least target_size bytes of storage
     ///
     std::shared_ptr<std::vector<uint8_t>> get_buffer(size_t target_size);
