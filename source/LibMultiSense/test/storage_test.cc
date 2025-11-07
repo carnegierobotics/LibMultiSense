@@ -42,17 +42,17 @@ using namespace multisense::legacy;
 
 TEST(BufferPool, null_construction)
 {
-    BufferPool pool(BufferPoolConfig{0, 0, 0, 0});
+    auto pool = std::make_shared<BufferPool>(BufferPoolConfig{0, 0, 0, 0});
 
-    ASSERT_EQ(pool.get_buffer(1), nullptr);
+    ASSERT_EQ(pool->get_buffer(1), nullptr);
 }
 
 TEST(BufferPool, valid_construction)
 {
-    BufferPool pool(BufferPoolConfig{1, 10, 1, 30});
+    auto pool = std::make_shared<BufferPool>(BufferPoolConfig{1, 10, 1, 30});
 
-    const auto small_buffer = pool.get_buffer(2);
-    const auto large_buffer = pool.get_buffer(20);
+    const auto small_buffer = pool->get_buffer(2);
+    const auto large_buffer = pool->get_buffer(20);
 
     ASSERT_NE(small_buffer, nullptr);
     ASSERT_NE(large_buffer, nullptr);
@@ -60,16 +60,16 @@ TEST(BufferPool, valid_construction)
     //
     // At this point we should be out of buffers
     //
-    ASSERT_EQ(pool.get_buffer(20), nullptr);
-    ASSERT_EQ(pool.get_buffer(2), nullptr);
+    ASSERT_EQ(pool->get_buffer(20), nullptr);
+    ASSERT_EQ(pool->get_buffer(2), nullptr);
 }
 
 TEST(BufferPool, buffer_to_large)
 {
-    BufferPool pool(BufferPoolConfig{1, 10, 1, 30});
+    auto pool = std::make_shared<BufferPool>(BufferPoolConfig{1, 10, 1, 30});
 
     //
     // We should have no buffer of size 40
     //
-    ASSERT_EQ(pool.get_buffer(40), nullptr);
+    ASSERT_EQ(pool->get_buffer(40), nullptr);
 }
