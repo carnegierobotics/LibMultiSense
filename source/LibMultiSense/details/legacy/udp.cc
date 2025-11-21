@@ -34,6 +34,7 @@
  *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <cstring>
 #include <functional>
 #include <iostream>
 
@@ -46,25 +47,36 @@ namespace legacy{
 
 UdpReceiver::UdpReceiver(const NetworkSocket &socket,
                          size_t max_mtu,
-                         std::function<void(const std::vector<uint8_t>&)> receive_callback):
+                         std::function<void(const std::vector<uint8_t>&)> receive_callback,
+                         size_t max_packet_queue_depth):
     m_socket(socket.sensor_socket),
     m_stop(false),
     m_max_mtu(max_mtu),
-    m_incoming_buffer(max_mtu, 0),
+    m_packet_buffers(max_packet_queue_depth, std::vector<uint8_t>(max_mtu, 0)),
     m_receive_callback(receive_callback)
-
 {
+    for (size_t i = 0; i < m_packet_buffers.size(); ++i)
+    {
+        m_free_buffers.emplace_back(i);
+    }
+
     m_rx_thread = std::thread(&UdpReceiver::rx_thread, this);
+    m_dispatch_thread = std::thread(&UdpReceiver::dispatch_thread, this);
 }
 
 UdpReceiver::~UdpReceiver()
 {
-    if(!m_stop.exchange(true))
+    m_stop.store(true);
+    m_queue_valid.notify_all();
+
+    if (m_rx_thread.joinable())
     {
-        if (m_rx_thread.joinable())
-        {
-            m_rx_thread.join();
-        }
+        m_rx_thread.join();
+    }
+
+    if (m_dispatch_thread.joinable())
+    {
+        m_dispatch_thread.join();
     }
 }
 
@@ -93,6 +105,18 @@ void UdpReceiver::rx_thread()
         //
         while(true)
         {
+            size_t buffer_index = 0;
+            {
+                std::lock_guard<std::mutex> lock(m_queue_mutex);
+                if (m_free_buffers.empty())
+                {
+                    ++m_dropped_packets;
+                    continue;
+                }
+
+                buffer_index = m_free_buffers.front();
+                m_free_buffers.pop_front();
+            }
 
             try
             {
@@ -100,9 +124,11 @@ void UdpReceiver::rx_thread()
 #pragma warning (push)
 #pragma warning (disable : 4267)
 #endif
+            auto& buffer = m_packet_buffers[buffer_index];
+            buffer.resize(m_max_mtu);
             const int bytes_read = recvfrom(m_socket,
-                                            reinterpret_cast<char*>(m_incoming_buffer.data()),
-                                            m_incoming_buffer.size(),
+                                            reinterpret_cast<char*>(buffer.data()),
+                                            buffer.size(),
                                             0, NULL, NULL);
 #if defined(WIN32) && !defined(__MINGW64__)
 #pragma warning (pop)
@@ -112,24 +138,71 @@ void UdpReceiver::rx_thread()
                 //
                 if (bytes_read < 0)
                 {
+                    std::lock_guard<std::mutex> lock(m_queue_mutex);
+                    m_free_buffers.emplace_back(buffer_index);
                     break;
                 }
 
-                m_incoming_buffer.resize(bytes_read);
-                m_receive_callback(m_incoming_buffer);
-                m_incoming_buffer.resize(m_max_mtu);
+                buffer.resize(static_cast<size_t>(bytes_read));
+
+                {
+                    std::lock_guard<std::mutex> lock(m_queue_mutex);
+                    m_ready_buffers.emplace_back(buffer_index);
+                }
+
+                m_queue_valid.notify_one();
             }
             catch (const std::exception& e)
             {
-
                 CRL_DEBUG("exception while decoding packet: %s\n", e.what());
-
             }
             catch ( ... )
             {
-
                 CRL_DEBUG_RAW("unknown exception while decoding packet\n");
             }
+        }
+    }
+}
+
+void UdpReceiver::dispatch_thread()
+{
+    while(true)
+    {
+        size_t buffer_index = 0;
+        {
+            std::unique_lock<std::mutex> lock(m_queue_mutex);
+            m_queue_valid.wait(lock, [this]()
+            {
+                return m_stop || !m_ready_buffers.empty();
+            });
+
+            if (m_stop && m_ready_buffers.empty())
+            {
+                break;
+            }
+
+            buffer_index = m_ready_buffers.front();
+            m_ready_buffers.pop_front();
+        }
+
+        try
+        {
+            auto& packet = m_packet_buffers[buffer_index];
+            m_receive_callback(packet);
+        }
+        catch (const std::exception& e)
+        {
+            CRL_DEBUG("exception while decoding packet: %s\n", e.what());
+        }
+        catch ( ... )
+        {
+            CRL_DEBUG_RAW("unknown exception while decoding packet\n");
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_queue_mutex);
+            m_packet_buffers[buffer_index].resize(m_max_mtu);
+            m_free_buffers.emplace_back(buffer_index);
         }
     }
 }
