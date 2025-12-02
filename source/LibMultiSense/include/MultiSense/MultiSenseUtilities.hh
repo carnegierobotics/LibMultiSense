@@ -76,13 +76,79 @@ struct Point<void>
     float z = 0;
 };
 
+///
+/// @brief A pointcloud containing a collection of colorized points
+///
 template<typename Color = void>
 struct PointCloud
 {
     std::vector<Point<Color>> cloud;
 };
 
+///
+/// @brief Pixel coordinates in a image
+///
+struct Pixel
+{
+    size_t u = 0;
+    size_t v = 0;
+};
+
 #pragma pack(pop)
+
+class MULTISENSE_API QMatrix
+{
+public:
+
+    ///
+    /// @brief Construct a minimal Q matrix from calibrations
+    ///
+    /// @param reference_cal The calibration corresponding to the image where disaprities are computed with
+    /// @param matching_cal The calibration corresponding to the image where pixels is the disparity image are matched
+    ///                     against
+    ///
+    QMatrix(const CameraCalibration &reference_cal, const CameraCalibration &matching_cal):
+        fx_(reference_cal.P[0][0]),
+        fy_(reference_cal.P[1][1]),
+        cx_(reference_cal.P[0][2]),
+        cy_(reference_cal.P[1][2]),
+        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
+        cx_prime_(matching_cal.P[0][2]),
+        fytx_(fy_ * tx_),
+        fxtx_(fx_ * tx_),
+        fycxtx_(fy_ * cx_ * tx_),
+        fxcytx_(fx_ * cy_ * tx_),
+        fxfytx_(fx_ * fy_ * tx_),
+        fycxcxprime_(fy_ * (cx_ - cx_prime_))
+    {
+    }
+
+    Point<void> reproject(const Pixel &pixel, double disparity) const
+    {
+        const double inversebeta = 1.0 / (-fy_ * disparity + fycxcxprime_);
+        const double x = ((fytx_ * pixel.u) + (-fycxtx_)) * inversebeta;
+        const double y = ((fxtx_ * pixel.v) + (-fxcytx_)) * inversebeta;
+        const double z = fxfytx_ * inversebeta;
+
+        return Point<void>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
+    }
+
+private:
+    double fx_ = 0.0;
+    double fy_ = 0.0;
+    double cx_ = 0.0;
+    double cy_ = 0.0;
+    double tx_ = 0.0;
+    double cx_prime_ = 0.0;
+
+    double fytx_ = 0.0;
+    double fxtx_ = 0.0;
+
+    double fycxtx_ = 0.0;
+    double fxcytx_ = 0.0;
+    double fxfytx_ = 0.0;
+    double fycxcxprime_ = 0.0;
+};
 
 ///
 /// @brief Convert a status object to a user readable string
@@ -93,28 +159,61 @@ MULTISENSE_API std::string to_string(const Status &status);
 /// @brief Write a image to a specific path on disk. The type of serialization is determined by the
 ///        input path
 ///
+/// @param image The image to write to disk
+/// @param path The path to write the image to
+/// @return Return true if the image was successfully written to disk
+///
 MULTISENSE_API bool write_image(const Image &image, const std::filesystem::path &path);
 
 ///
 /// @brief Create a depth image from a image frame
 ///
 /// @param depth_format Supported formats include MONO16 and FLOAT32. Note MONO16 will be quantized to millimeters)
+/// @param compute_in_aux_frame Compute the depth image so it's returned in the aux camera's image frame
 /// @param invalid_value The value to set invalid depth measurements to. (i.e. points where disparity = 0)
+/// @return Return a depth image
 ///
 MULTISENSE_API std::optional<Image> create_depth_image(const ImageFrame &frame,
                                                        const Image::PixelFormat &depth_format,
                                                        const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW,
+                                                       bool compute_in_aux_frame = false,
                                                        float invalid_value = 0);
 
 ///
-/// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
+/// @brief for a given pixel in the aux image, return the corresponding 3D point associated with the aux pixel
 ///
-MULTISENSE_API std::optional<Image> create_bgr_from_ycbcr420(const Image &luma,
-                                                              const Image &chroma,
-                                                              const DataSource &output_source);
+/// @param frame The image frame which contains a disparity image
+/// @param rectified_aux_pixel The aux pixel to compute depth for
+/// @param max_pixel_search_window The maximum number of pixels to search for a corresponding valid disparity pixel.
+///                                256 is the max value
+/// @param pixel_epsilon The threshold, in pixels, for a disparity projection to match the aux pixel location. Values
+///                      On the order of 0.5 pixels make sense here
+/// @return Return a 3D point corresponding to the aux pixel
+///
+MULTISENSE_API std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
+                                                           const Pixel &rectified_aux_pixel,
+                                                           size_t max_pixel_search_window,
+                                                           double pixel_epsilon,
+                                                           const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW);
 
 ///
 /// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
+///
+/// @param luma The luma component (Y) of the YCbCr420 image
+/// @param chroma The chroma components (CbCr) of the YCbCr420 image
+/// @param output_source The source type to associate witht he image
+/// @return Return a BGR image
+///
+MULTISENSE_API std::optional<Image> create_bgr_from_ycbcr420(const Image &luma,
+                                                             const Image &chroma,
+                                                             const DataSource &output_source);
+
+///
+/// @brief Convert a YCbCr420 luma + chroma image into a BGR color image
+///
+/// @param frame The image frame containing the luma/chroma components of the YCbCr420 image
+/// @param output_source The source type to associate witht he image
+/// @return Return a BGR image
 ///
 MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
                                                      const DataSource &output_source);
@@ -122,11 +221,18 @@ MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
 ///
 /// @brief Create a point cloud from a image frame and a color source.
 ///
+/// @param disparity A disparity image to convert to a pointcloud
+/// @param color Optional color image to use for colorization
+/// @param max_range The max range in meters of a point from the camera origin to be considered valid
+/// @param calibration The stereo calibration used to convert disparity images to 3D, and project points into
+///        color images
+/// @return Return a colorized point cloud
+///
 template<typename Color>
 MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
-                                                                         const std::optional<Image> &color,
-                                                                         double max_range,
-                                                                         const StereoCalibration &calibration)
+                                                                        const std::optional<Image> &color,
+                                                                        double max_range,
+                                                                        const StereoCalibration &calibration)
 {
     size_t color_step = 0;
     double color_disparity_scale = 0.0;
@@ -165,20 +271,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
 
     const double squared_range = max_range * max_range;
 
-    const double fx = disparity.calibration.P[0][0];
-    const double fy = disparity.calibration.P[1][1];
-    const double cx = disparity.calibration.P[0][2];
-    const double cy = disparity.calibration.P[1][2];
-    const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
-    const double cx_prime = calibration.right.P[0][2];
-
-    const double fytx = fy * tx;
-    const double fxtx = fx * tx;
-
-    const double fycxtx = fy * cx * tx;
-    const double fxcytx = fx * cy * tx;
-    const double fxfytx = fx * fy * tx;
-    const double fycxcxprime = fy * (cx - cx_prime);
+    const QMatrix Q(disparity.calibration, calibration.right);
 
     PointCloud<Color> output;
     output.cloud.reserve(disparity.width * disparity.height);
@@ -199,10 +292,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
                 continue;
             }
 
-            const double inversebeta = 1.0 / (-fy * d + fycxcxprime);
-            const double x = ((fytx * w) + (-fycxtx)) * inversebeta;
-            const double y = ((fxtx * h) + (-fxcytx)) * inversebeta;
-            const double z = fxfytx * inversebeta;
+            const auto &[x, y, z] = Q.reproject(Pixel{w, h}, d);
 
             if ((x*x + y*y + z*z) > squared_range)
             {
@@ -235,6 +325,11 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
 
 ///
 /// @brief Create a point cloud from a image frame and a color source.
+///
+/// @param frame A frame containing images to convert to a pointcloud
+/// @param color_source The datasorce of the color image in the input frame
+/// @param max_range The max range in meters of a point from the camera origin to be considered valid
+/// @return Return a colorized point cloud
 ///
 template<typename Color>
 MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const ImageFrame &frame,
@@ -270,7 +365,11 @@ MULTISENSE_API std::optional<PointCloud<void>> create_pointcloud(const ImageFram
                                                                  const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW);
 
 ///
-/// @brief Write a point cloud to a ASCII ply file
+/// @brief Write a point cloud to a ply file
+///
+/// @param point_cloud The pointcloud to write to a ply file
+/// @param path The output path to save the ply file to
+/// @return Return true if the pointcloud was written successfully
 ///
 template <typename Color>
 MULTISENSE_API bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, const std::filesystem::path &path)

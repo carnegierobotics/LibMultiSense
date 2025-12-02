@@ -47,6 +47,8 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -56,6 +58,7 @@
 #endif
 
 #include "MultiSense/MultiSenseUtilities.hh"
+#include <utility/Exception.hh>
 
 namespace multisense {
 namespace {
@@ -67,7 +70,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
 
     if (!output.good())
     {
-        std::cerr << "Failed to open: " << path << std::endl;
+        CRL_DEBUG("Failed to open: %s", path.string().c_str());
         return false;
     }
 
@@ -122,7 +125,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
         }
         default:
         {
-            std::cerr << "Unhandled image format. Cannot write to disk" << std::endl;
+            CRL_DEBUG("Unhandled image format. Cannot write to disk");
             return false;
         }
     }
@@ -183,17 +186,20 @@ bool write_image(const Image &image, const std::filesystem::path &path)
     {
         return write_binary_image(image, path);
     }
-    throw std::runtime_error("Unsupported path extension: " + extension.string() + ". Try compiling with OpenCV");
+    CRL_DEBUG("Unsupported path extension: %s. Try compiling with OpenCV", extension.string().c_str());
+    return false;
 #endif
 }
 
 std::optional<Image> create_depth_image(const ImageFrame &frame,
                                         const Image::PixelFormat &depth_format,
                                         const DataSource &disparity_source,
+                                        bool compute_in_aux_frame,
                                         float invalid_value)
 {
     if (!frame.has_image(disparity_source))
     {
+        CRL_DEBUG("Unable to compute depth. No disparity image");
         return std::nullopt;
     }
 
@@ -203,34 +209,46 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         disparity.width < 0 ||
         disparity.height < 0)
     {
+        CRL_DEBUG("Unable to compute depth. Invalid disparity data");
+        return std::nullopt;
+    }
+
+    if (compute_in_aux_frame && !frame.calibration.aux)
+    {
+        CRL_DEBUG("Unable to compute aux depth. Frame does not contain valid aux data");
         return std::nullopt;
     }
 
     const double fx = disparity.calibration.P[0][0];
     const double tx = frame.calibration.right.P[0][3] / frame.calibration.right.P[0][0];
+    const double tx_aux = compute_in_aux_frame ? frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0] : 0.0;
+    const double baseline_ratio = tx_aux / tx;
 
-    size_t bytes_per_pixel = 0;
+    auto data = std::make_shared<std::vector<uint8_t>>();
+
     switch (depth_format)
     {
         case Image::PixelFormat::MONO16:
         {
-            bytes_per_pixel = sizeof(uint16_t);
+            data->resize(disparity.width * disparity.height * sizeof(uint16_t));
+            const std::vector<uint16_t> raw_data(disparity.width * disparity.height, static_cast<uint16_t>(invalid_value));
+            std::memcpy(data->data(), raw_data.data(), data->size());
+
             break;
         }
         case Image::PixelFormat::FLOAT32:
         {
-            bytes_per_pixel = sizeof(float);
+            data->resize(disparity.width * disparity.height * sizeof(float));
+            const std::vector<float> raw_data(disparity.width * disparity.height, static_cast<float>(invalid_value));
+            std::memcpy(data->data(), raw_data.data(), data->size());
             break;
         }
         default:
         {
-            std::cerr << "Unsupported depth pixel format" << std::endl;
+            CRL_DEBUG("Unsupported depth pixel format");
             return std::nullopt;
         }
     }
-
-    auto data = std::make_shared<std::vector<uint8_t>>(disparity.width * disparity.height * bytes_per_pixel,
-                                                       static_cast<uint8_t>(0));
 
     //
     // MONO16 disparity images are quantized to 1/16th of a pixel
@@ -241,8 +259,21 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
     {
         const size_t index = disparity.image_data_offset + (i * sizeof(uint16_t));
 
+        const size_t u = i % disparity.width;
+        const size_t v = i / disparity.width;
+
+
         const double d =
             static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+
+        const double scaled_u = std::round(u - (baseline_ratio * d));
+
+        if (d == 0 || scaled_u > disparity.width)
+        {
+            continue;
+        }
+
+        const size_t output_index = compute_in_aux_frame ? static_cast<size_t>(scaled_u + (v * disparity.width)) : i;
 
         switch (depth_format)
         {
@@ -251,19 +282,17 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
                 //
                 // Quantize to millimeters
                 //
-                const uint16_t depth = (d == 0.0) ? static_cast<uint16_t>(invalid_value) :
-                                                    static_cast<uint16_t>(1000 * fx * -tx / d);
+                const uint16_t depth = static_cast<uint16_t>(1000 * fx * -tx / d);
 
-                auto data_pointer = reinterpret_cast<uint16_t*>(data->data() + (sizeof(uint16_t) * i));
+                auto data_pointer = reinterpret_cast<uint16_t*>(data->data() + (sizeof(uint16_t) * output_index));
                 *data_pointer = depth;
                 continue;
             }
             case Image::PixelFormat::FLOAT32:
             {
-                const float depth = (d == 0.0) ? invalid_value :
-                                                 static_cast<float>(fx * -tx / d);
+                const float depth = static_cast<float>(fx * -tx / d);
 
-                auto data_pointer = reinterpret_cast<float*>(data->data() + (sizeof(float) * i));
+                auto data_pointer = reinterpret_cast<float*>(data->data() + (sizeof(float) * output_index));
                 *data_pointer = depth;
                 continue;
             }
@@ -287,11 +316,80 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
                  disparity.calibration};
 }
 
+std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
+                                            const Pixel &rectified_aux_pixel,
+                                            size_t max_pixel_search_window,
+                                            double pixel_epsilon,
+                                            const DataSource &disparity_source)
+{
+    if (!frame.has_image(disparity_source))
+    {
+        CRL_DEBUG("Unable to compute aux 3d point. No disparity image");
+        return std::nullopt;
+    }
+
+    const auto disparity = frame.get_image(disparity_source);
+
+    if (disparity.format != Image::PixelFormat::MONO16 ||
+        disparity.width < 0 ||
+        disparity.height < 0)
+    {
+        CRL_DEBUG("Unable to compute aux 3d point. Invalid disparity data");
+        return std::nullopt;
+    }
+
+    if (!frame.calibration.aux)
+    {
+        CRL_DEBUG("Unable to compute aux 3d point. No aux calibration");
+        return std::nullopt;
+    }
+
+    const double tx = frame.calibration.right.P[0][3] / frame.calibration.right.P[0][0];
+    const double tx_aux = frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0];
+    const double baseline_ratio = tx_aux / tx;
+
+    constexpr double scale = 1.0 / 16.0;
+
+    const QMatrix Q{disparity.calibration, frame.calibration.right};
+
+    //
+    // Search through our configured pixel window testing to see if the disparity value projected into the aux
+    // image aligns with our query pixel. See:
+    // https://docs.carnegierobotics.com/cookbook/overview.html#approximation-for-execution-speed
+    //
+    for (size_t i = 0 ; i < max_pixel_search_window ; ++i)
+    {
+        const size_t search_u = rectified_aux_pixel.u + i;
+
+        if (static_cast<int64_t>(search_u) > disparity.width)
+        {
+            break;
+        }
+
+        const size_t index = disparity.image_data_offset + ((search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t));
+
+        const double d =
+            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+
+        if (d == 0)
+        {
+            continue;
+        }
+
+        if (std::abs((rectified_aux_pixel.u + (baseline_ratio * d)) - search_u) < pixel_epsilon)
+        {
+            return Q.reproject(Pixel{search_u, rectified_aux_pixel.v}, d);
+        }
+    }
+
+    return std::nullopt;
+}
 
 std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &chroma, const DataSource &output_source)
 {
     if (luma.format != Image::PixelFormat::MONO8 || chroma.format != Image::PixelFormat::MONO16)
     {
+        CRL_DEBUG("Unable to bgr image. Invalid luma and chroma input formats");
         return std::nullopt;
     }
 
@@ -367,7 +465,6 @@ std::optional<Image> create_bgr_image(const ImageFrame &frame, const DataSource 
 
     return std::nullopt;
 }
-
 
 std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
                                                   double max_range,
