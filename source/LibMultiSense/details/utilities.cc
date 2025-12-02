@@ -58,6 +58,7 @@
 #endif
 
 #include "MultiSense/MultiSenseUtilities.hh"
+#include <utility/Exception.hh>
 
 namespace multisense {
 namespace {
@@ -69,7 +70,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
 
     if (!output.good())
     {
-        std::cerr << "Failed to open: " << path << std::endl;
+        CRL_DEBUG("Failed to open: %s", path.c_str());
         return false;
     }
 
@@ -124,7 +125,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
         }
         default:
         {
-            std::cerr << "Unhandled image format. Cannot write to disk" << std::endl;
+            CRL_DEBUG("Unhandled image format. Cannot write to disk");
             return false;
         }
     }
@@ -185,7 +186,8 @@ bool write_image(const Image &image, const std::filesystem::path &path)
     {
         return write_binary_image(image, path);
     }
-    throw std::runtime_error("Unsupported path extension: " + extension.string() + ". Try compiling with OpenCV");
+    CRL_DEBUG("Unsupported path extension: %s. Try compiling with OpenCV", extension.string().c_str());
+    return false;
 #endif
 }
 
@@ -197,6 +199,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
 {
     if (!frame.has_image(disparity_source))
     {
+        CRL_DEBUG("Unable to compute depth. No disparity image");
         return std::nullopt;
     }
 
@@ -206,11 +209,13 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         disparity.width < 0 ||
         disparity.height < 0)
     {
+        CRL_DEBUG("Unable to compute depth. Invalid disparity data");
         return std::nullopt;
     }
 
     if (compute_in_aux_frame && !frame.calibration.aux)
     {
+        CRL_DEBUG("Unable to compute aux depth. Frame does not contain valid aux data");
         return std::nullopt;
     }
 
@@ -240,7 +245,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         }
         default:
         {
-            std::cerr << "Unsupported depth pixel format" << std::endl;
+            CRL_DEBUG("Unsupported depth pixel format");
             return std::nullopt;
         }
     }
@@ -319,6 +324,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
 {
     if (!frame.has_image(disparity_source))
     {
+        CRL_DEBUG("Unable to compute aux 3d point. No disparity image");
         return std::nullopt;
     }
 
@@ -328,11 +334,13 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
         disparity.width < 0 ||
         disparity.height < 0)
     {
+        CRL_DEBUG("Unable to compute aux 3d point. Invalid disparity data");
         return std::nullopt;
     }
 
     if (!frame.calibration.aux)
     {
+        CRL_DEBUG("Unable to compute aux 3d point. No aux calibration");
         return std::nullopt;
     }
 
@@ -381,6 +389,7 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
 {
     if (luma.format != Image::PixelFormat::MONO8 || chroma.format != Image::PixelFormat::MONO16)
     {
+        CRL_DEBUG("Unable to bgr image. Invalid luma and chroma input formats");
         return std::nullopt;
     }
 
