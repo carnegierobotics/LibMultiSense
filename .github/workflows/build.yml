@@ -82,8 +82,14 @@ jobs:
           cmake --install build
 
   build-macos:
-    name: Build on macOS
+    name: Build on macOS (${{ matrix.compiler }})
     runs-on: macOS-latest
+    strategy:
+      matrix:
+        compiler: [apple-clang, brew-llvm]
+    env:
+      CC: ${{ matrix.compiler == 'brew-llvm' && 'clang' || 'cc' }}
+      CXX: ${{ matrix.compiler == 'brew-llvm' && 'clang++' || 'c++' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,9 +98,17 @@ jobs:
         run: |
           brew install pybind11 nlohmann-json googletest
 
+      - name: Install Homebrew LLVM
+        if: matrix.compiler == 'brew-llvm'
+        run: |
+          brew install llvm
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
       - name: Build Release
         run: |
           cmake -B build -S . \
+            -DCMAKE_C_COMPILER="${CC}" \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
             -DBUILD_JSON_SERIALIZATION=ON \
             -DBUILD_PYTHON_BINDINGS=ON \
             -DCMAKE_BUILD_TYPE=Release \
@@ -110,18 +124,20 @@ jobs:
       - name: Upload Release Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macos-install-release
+          name: macos-install-release-${{ matrix.compiler }}
           path: install-release/
 
       - name: Upload pip wheel Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: libmulitisense-wheel-macos
+          name: libmultisense-wheel-macos-${{ matrix.compiler }}
           path: pip-wheel/
 
       - name: Build Debug
         run: |
           cmake -B build -S . \
+            -DCMAKE_C_COMPILER="${CC}" \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
             -DBUILD_JSON_SERIALIZATION=ON \
             -DBUILD_PYTHON_BINDINGS=ON \
             -DCMAKE_BUILD_TYPE=Debug \
