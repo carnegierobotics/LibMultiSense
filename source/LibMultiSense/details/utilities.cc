@@ -70,7 +70,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
 
     if (!output.good())
     {
-        CRL_DEBUG("Failed to open: %s", path.c_str());
+        CRL_DEBUG("Failed to open: %s", path.string().c_str());
         return false;
     }
 
