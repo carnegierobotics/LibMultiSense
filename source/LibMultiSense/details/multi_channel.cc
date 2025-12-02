@@ -64,7 +64,7 @@ bool MultiChannelSynchronizer::frames_valid(const std::chrono::nanoseconds &tole
     return std::all_of(std::begin(m_active_frames), std::end(m_active_frames),
                 [reference_time, tolerance](const auto &frame)
                 {
-                    return reference_time.time_since_epoch() != 0ns && (reference_time - frame.frame_time) < tolerance;
+                    return reference_time.time_since_epoch() != 0ns && std::chrono::abs(reference_time - frame.frame_time) < tolerance;
                 });
 }
 

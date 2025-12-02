@@ -48,9 +48,9 @@ public:
 
    explicit MultiChannelSynchronizer(std::vector<std::unique_ptr<Channel>> channels, const std::chrono::nanoseconds &tolerance):
         m_channels(std::move(channels)),
-        m_active_frames(channels.size()),
         m_tolerance(tolerance)
     {
+        m_active_frames.resize(m_channels.size());
         add_user_callbacks();
     }
 
