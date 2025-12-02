@@ -44,89 +44,115 @@ namespace multisense{
 namespace legacy{
 
 namespace {
-    constexpr size_t NUM_ALLOCATION_RETRIES = 5;
+
+constexpr size_t NUM_ALLOCATION_RETRIES = 5;
+
+std::pair<
+    std::vector<std::vector<uint8_t>>,
+    std::vector<size_t>>
+allocate_buffers( size_t count, size_t buffer_size)
+{
+    std::vector<std::vector<uint8_t>> storage{};
+    std::vector<size_t> free_list{};
+
+    storage.reserve(count);
+    for (size_t i = 0 ; i < count ; ++i)
+    {
+        bool allocated = false;
+        for (size_t attempt = 0; attempt < NUM_ALLOCATION_RETRIES; ++attempt)
+        {
+            try
+            {
+                storage.emplace_back(buffer_size, 0);
+                allocated = true;
+                break;
+            }
+            catch(const std::exception &e)
+            {
+                CRL_DEBUG("Failed to allocate buffers: %s. Retrying\n", e.what());
+            }
+        }
+
+        if (!allocated)
+        {
+            CRL_EXCEPTION("Failed to allocate buffers");
+        }
+    }
+
+    free_list.reserve(count);
+    for (size_t i = 0 ; i < count ; ++i)
+    {
+        free_list.emplace_back(i);
+    }
+
+    return std::make_pair(std::move(storage), std::move(free_list));
+}
+
 }
 
 BufferPool::BufferPool(const BufferPoolConfig &config):
     m_config(config)
 {
-
-    for (size_t i = 0 ; i < config.num_small_buffers ; ++i)
-    {
-        for (size_t t = 0; t < NUM_ALLOCATION_RETRIES ; ++t)
-        {
-            try
-            {
-                auto small_buffer = std::make_shared<std::vector<uint8_t>>();
-                small_buffer->reserve(config.small_buffer_size);
-                m_small_buffers.emplace_back(std::move(small_buffer));
-                break;
-            }
-            catch(const std::exception &e)
-            {
-                (void) e;
-                CRL_DEBUG("Failed to allocate small buffer. Retrying\n");
-            }
-        }
-    }
-
-    for (size_t i = 0 ; i < config.num_large_buffers ; ++i)
-    {
-        for (size_t t = 0; t < NUM_ALLOCATION_RETRIES ; ++t)
-        {
-            try
-            {
-                auto large_buffer = std::make_shared<std::vector<uint8_t>>();
-                large_buffer->reserve(config.large_buffer_size);
-                m_large_buffers.emplace_back(std::move(large_buffer));
-                break;
-            }
-            catch(const std::exception &e)
-            {
-                (void) e;
-                CRL_DEBUG("Failed to allocate large buffer\n");
-            }
-        }
-    }
-
-    if (m_small_buffers.size() != config.num_small_buffers || m_large_buffers.size() != config.num_large_buffers)
-    {
-        CRL_EXCEPTION("Failed to allocate buffers");
-    }
+    std::tie(m_small_buffers, m_small_free_list) = allocate_buffers(config.num_small_buffers, config.small_buffer_size);
+    std::tie(m_large_buffers, m_large_free_list) = allocate_buffers(config.num_large_buffers, config.large_buffer_size);
 }
 
 std::shared_ptr<std::vector<uint8_t>> BufferPool::get_buffer(size_t target_size)
 {
     if (target_size <= m_config.small_buffer_size)
     {
-        const auto &small_buffer = std::find_if(std::begin(m_small_buffers), std::end(m_small_buffers),
-                                                [](const auto &small_buffer)
-                                                {
-                                                    return small_buffer.use_count() == 1;
-                                                });
-
-        if (small_buffer != std::end(m_small_buffers))
-        {
-            (*small_buffer)->resize(target_size, 0);
-            return *small_buffer;
-        }
+        return acquire_buffer(BufferType::Small, target_size);
     }
     else if (target_size <= m_config.large_buffer_size)
     {
-        const auto &large_buffer = std::find_if(std::begin(m_large_buffers), std::end(m_large_buffers),
-                                                [](const auto &large_buffer)
-                                                {
-                                                    return large_buffer.use_count() == 1;
-                                                });
-
-        if (large_buffer != std::end(m_large_buffers))
-        {
-            (*large_buffer)->resize(target_size, 0);
-            return *large_buffer;
-        }
+        return acquire_buffer(BufferType::Large, target_size);
     }
 
     return nullptr;
+}
+
+std::shared_ptr<std::vector<uint8_t>> BufferPool::acquire_buffer(BufferType type, size_t target_size)
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    auto& free_list = (type == BufferType::Small) ? m_small_free_list : m_large_free_list;
+    auto& storage   = (type == BufferType::Small) ? m_small_buffers     : m_large_buffers;
+
+    if (free_list.empty())
+    {
+        return nullptr;
+    }
+
+    const size_t index = free_list.back();
+    free_list.pop_back();
+    auto* buffer = &storage[index];
+    lock.unlock();
+
+    buffer->resize(target_size, 0);
+
+    const auto self = shared_from_this();
+
+    return std::shared_ptr<std::vector<uint8_t>>(buffer,
+        [self, this, type, index](std::vector<uint8_t>* released_buffer)
+        {
+            this->release_buffer(type, index, released_buffer);
+        });
+}
+
+void BufferPool::release_buffer(BufferType type, size_t index, std::vector<uint8_t>* buffer)
+{
+    const size_t reserve_size = (type == BufferType::Small) ?
+                                m_config.small_buffer_size :
+                                m_config.large_buffer_size;
+
+    buffer->clear();
+    buffer->resize(0);
+    buffer->reserve(reserve_size);
+
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    auto& free_list = (type == BufferType::Small) ? m_small_free_list : m_large_free_list;
+    free_list.emplace_back(index);
 }
 
 }

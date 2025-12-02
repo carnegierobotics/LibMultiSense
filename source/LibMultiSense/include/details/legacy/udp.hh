@@ -37,6 +37,9 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
+#include <deque>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -72,9 +75,15 @@ public:
     ///
     UdpReceiver(const NetworkSocket &socket,
                 size_t max_mtu,
-                std::function<void(const std::vector<uint8_t>&)> receive_callback);
+                std::function<void(const std::vector<uint8_t>&)> receive_callback,
+                size_t max_packet_queue_depth=64);
 
     ~UdpReceiver();
+
+    size_t dropped_packets() const
+    {
+        return m_dropped_packets;
+    }
 
 private:
 
@@ -84,14 +93,24 @@ private:
     void rx_thread();
 
     ///
+    /// @brief The dispatch thread function which is sends UDP data to clients
+    ///
+    void dispatch_thread();
+
+    ///
     /// @brief The internal socket which UDP data is receive on
     ///
     socket_t m_socket;
 
     ///
-    /// @brief The rx_thread object which is spawned on construction
+    /// @brief The rx_thread object which is spawned on construction to receive UDP data
     ///
     std::thread m_rx_thread;
+
+    ///
+    /// @brief The dispatch_thread object which is spawned on construction to dispatch data to clients
+    ///
+    std::thread m_dispatch_thread;
 
     ///
     /// @brief Atomic flag to stop the rx_thread on destruction
@@ -99,19 +118,45 @@ private:
     std::atomic_bool m_stop{false};
 
     ///
+    /// @brief Signal for coordinating when the processing queue is valid
+    ///
+    std::condition_variable m_queue_valid;
+
+    ///
+    /// @brief Mutext for coordinating when data is ready to process
+    ///
+    std::mutex m_queue_mutex;
+
+    ///
     /// @brief The amount of data to read off the socket during each read operation
     ///
     size_t m_max_mtu = 0;
 
     ///
-    /// @brief Internal buffer used to write incoming UDP data into
+    /// @brief queue used to send data between the rx and dispatch threads. The queue stores indices
+    ///        into m_packet_buffers to avoid copying the payload
     ///
-    std::vector<uint8_t> m_incoming_buffer;
+    std::vector<std::vector<uint8_t>> m_packet_buffers;
+
+    ///
+    /// @brief indices of buffers which are free to write to in m_packet_buffers
+    ///
+    std::deque<size_t> m_free_buffers;
+
+    ///
+    /// @brief indices of buffers which are ready to process in m_packet_buffers
+    ///
+    std::deque<size_t> m_ready_buffers;
 
     ///
     /// @brief User specified callback which is called once UDP data is received
     ///
     std::function<void(const std::vector<uint8_t>&)> m_receive_callback;
+
+    ///
+    /// @brief Counter for messages dropped due to dispatch processing slowdowsn
+    ///
+    std::atomic_size_t m_dropped_packets = 0;
 };
 
 
