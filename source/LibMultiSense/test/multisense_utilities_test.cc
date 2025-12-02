@@ -231,3 +231,161 @@ TEST(create_depth_image, mono_and_float)
         }
     }
 }
+
+TEST(get_aux_3d_point, basic_tests)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+    const float tx = -0.27;
+    const float aux_tx = -0.033;
+
+    CameraCalibration left_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    CameraCalibration right_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, fx * tx}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, fx * aux_tx}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    const double disk_distance_m = 4.0;
+
+    const auto disparity_image = create_example_disparity_image(left_calibration, right_calibration, 3.0, disk_distance_m, 1920, 1200);
+
+    ImageFrame frame{0, {}, StereoCalibration{left_calibration, right_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity_image);
+
+    const auto invalid_point = get_aux_3d_point(frame, Pixel{0, 0}, 100, 0.01);
+
+    ASSERT_FALSE(invalid_point);
+
+    const auto valid_point = get_aux_3d_point(frame, Pixel{static_cast<size_t>(cx), static_cast<size_t>(cy)}, 1000, 0.5);
+
+    ASSERT_TRUE(valid_point);
+
+    ASSERT_DOUBLE_EQ(valid_point->z, disk_distance_m);
+}
+
+TEST(create_bgr_from_ycbcr420, gray_image)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    const size_t width = 1920;
+    const size_t height = 1200;
+
+    const uint8_t val = 42;
+
+    std::vector<uint8_t> y_data(width * height, val);
+
+    // Values of 128 for cb/cr result in 0 values for the corresponding color pixels
+    std::vector<uint8_t> cbcr_data(width * height/2, 128);
+
+    const Image y{std::make_shared<const std::vector<uint8_t>>(std::move(y_data)),
+                  0,
+                  width * height,
+                  Image::PixelFormat::MONO8,
+                  static_cast<int>(width),
+                  static_cast<int>(height),
+                  {},
+                  {},
+                  DataSource::AUX_LUMA_RAW,
+                  aux_calibration};
+
+    const Image cbcr{std::make_shared<const std::vector<uint8_t>>(std::move(cbcr_data)),
+                     0,
+                     width / 2 * height / 2,
+                     Image::PixelFormat::MONO16,
+                     static_cast<int>(width/2),
+                     static_cast<int>(height/2),
+                     {},
+                     {},
+                     DataSource::AUX_CHROMA_RAW,
+                     aux_calibration};
+
+    const auto bgr_image = create_bgr_from_ycbcr420(y, cbcr, DataSource::AUX_RAW);
+
+    ASSERT_TRUE(bgr_image);
+    ASSERT_EQ(bgr_image->width , static_cast<int>(width));
+    ASSERT_EQ(bgr_image->height , static_cast<int>(height));
+
+    for (size_t h = 0 ; h < height ; ++h)
+    {
+        for (size_t w = 0 ; w < width ; ++w)
+        {
+            const auto pixel = bgr_image->at<std::array<uint8_t, 3>>(w, h);
+            ASSERT_TRUE(pixel);
+            ASSERT_EQ(pixel->at(0), val);
+            ASSERT_EQ(pixel->at(1), val);
+            ASSERT_EQ(pixel->at(2), val);
+        }
+    }
+}
+
+TEST(create_pointcloud, basic_tests)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+    const float tx = -0.27;
+
+    CameraCalibration left_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    CameraCalibration right_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, fx * tx}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    const double disk_distance_m = 4.0;
+
+    const auto disparity_image = create_example_disparity_image(left_calibration, right_calibration, 3.0, disk_distance_m, 1920, 1200);
+
+    ImageFrame frame{0, {}, StereoCalibration{left_calibration, right_calibration, std::nullopt}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity_image);
+
+    const auto point_cloud = create_pointcloud(frame, disk_distance_m + 3.0);
+
+    ASSERT_TRUE(point_cloud);
+    ASSERT_TRUE(!point_cloud->cloud.empty());
+
+    for (const auto &point : point_cloud->cloud)
+    {
+        EXPECT_TRUE(point.z == disk_distance_m);
+    }
+
+    const auto point_cloud_empty = create_pointcloud(frame, disk_distance_m - 0.1);
+
+    ASSERT_TRUE(point_cloud_empty);
+    ASSERT_TRUE(point_cloud_empty->cloud.empty());
+}
