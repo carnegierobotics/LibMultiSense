@@ -702,6 +702,14 @@ PYBIND11_MODULE(_libmultisense, m) {
 
     // MultiChannelSynchronizer
     py::class_<multisense::MultiChannelSynchronizer>(m, "MultiChannelSynchronizer")
+        .def("__enter__", [](multisense::MultiChannelSynchronizer &self) -> multisense::MultiChannelSynchronizer &
+        {
+            return self;
+        })
+        .def("__exit__", [](multisense::MultiChannelSynchronizer &, py::object, py::object, py::object)
+        {
+            return false;
+        })
         .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance) {
                 std::vector<std::unique_ptr<multisense::Channel>> v;
                 v.reserve(py::len(channels));

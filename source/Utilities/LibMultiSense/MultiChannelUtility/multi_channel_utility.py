@@ -36,6 +36,7 @@
 #
 
 import argparse
+import datetime
 import numpy as np
 
 import libmultisense as lms
@@ -45,7 +46,7 @@ def main(args):
     channels = []
     for ip_address in args.ip_addresses:
         channel_config = lms.ChannelConfig()
-        channel_config.ip_address = args.ip_address
+        channel_config.ip_address = ip_address
         channel_config.mtu = args.mtu
 
         channel = lms.Channel.create(channel_config)
@@ -67,17 +68,17 @@ def main(args):
 
         channels.append(channel)
 
-    multichannel = lms.MultiChannelSynchronizer(channels, args.tolerance)
+    with lms.MultiChannelSynchronizer(channels, datetime.timedelta(milliseonds=args.tolerance)) as synchronizer:
 
-    # milliseonds
-    timeout = 500
+        # milliseonds
+        timeout = datetime.timedelta(milliseconds=500)
 
-    while True:
-        frames = multichannel.get_synchronized_frame(timeout)
-        if frames:
-            print("Got sync pair")
-            for frame in frames:
-                print(f"Time {frame.frame_time}")
+        while True:
+            frames = synchronizer.get_synchronized_frame(timeout)
+            if frames:
+                print("Got sync pair")
+                for frame in frames:
+                    print(f"Time {frame.frame_time}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense multi-channel synchronization utility")
