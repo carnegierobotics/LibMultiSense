@@ -51,7 +51,7 @@ namespace multisense {
 ///
 /// @return Return true if the frames are synchronized
 ///
-bool frames_synchronized(const std::vector<ImageFrame> &frames, const std::chrono::nanoseconds &tolerance);
+MULTISENSE_API bool frames_synchronized(const std::vector<ImageFrame> &frames, const std::chrono::nanoseconds &tolerance);
 
 ///
 /// @brief Helper class which provides a interface to synchronize data across multiple channels
