@@ -47,21 +47,23 @@ class MULTISENSE_API MultiChannelSynchronizer {
 public:
 
    explicit MultiChannelSynchronizer(std::vector<std::unique_ptr<Channel>> channels, const std::chrono::nanoseconds &tolerance):
-        m_channels(std::move(channels)),
+        m_owned_channels(std::move(channels)),
         m_tolerance(tolerance)
     {
+        for (auto &channel : m_owned_channels)
+        {
+            m_channels.push_back(channel.get());
+        }
+
         m_active_frames.resize(m_channels.size());
         add_user_callbacks();
     }
 
-    template <typename... ChannelT>
-    explicit MultiChannelSynchronizer(ChannelT&&... channels, const std::chrono::nanoseconds &tolerance):
+   explicit MultiChannelSynchronizer(std::vector<Channel*> channels, const std::chrono::nanoseconds &tolerance):
+        m_channels(std::move(channels)),
         m_tolerance(tolerance)
     {
-        m_channels.reserve(sizeof...(channels));
-        m_active_frames.resize(sizeof...(channels));
-        (m_channels.emplace_back(std::forward<ChannelT>(channels)), ...);
-
+        m_active_frames.resize(m_channels.size());
         add_user_callbacks();
     }
 
@@ -91,19 +93,33 @@ private:
     bool frames_valid(const std::chrono::nanoseconds &tolerance);
 
     ///
-    /// @brief The collection of channels to synchronize
+    /// @brief The collection of channels raw channels to synchronize
     ///
-    std::vector<std::unique_ptr<Channel>> m_channels{};
+    std::vector<Channel*> m_channels{};
+
+    ///
+    /// @brief A collection of owned channels if the user would like the synchronizer to own the channel memory
+    ///
+    std::vector<std::unique_ptr<Channel>> m_owned_channels{};
 
     ///
     /// @brief A collection of active frames which may be dispatched to the user
     ///
     std::vector<ImageFrame> m_active_frames{};
 
+    ///
+    /// @brief The max time tolerance between image frames for them to be considered equal
+    ///
     std::chrono::nanoseconds m_tolerance{};
 
-
+    ///
+    /// @brief Mutex to notify the user a collection of synchronized frames is ready
+    ///
     std::mutex m_frame_mutex;
+
+    ///
+    /// @brief Condition variable to notify the user a collection of synchronized frames is ready
+    ///
     std::condition_variable m_frame_cv;
 };
 

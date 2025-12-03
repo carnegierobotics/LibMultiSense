@@ -62,15 +62,14 @@ def main(args):
             exit(1)
 
 
-        if channel.start_streams([color_stream, lms.DataSource.LEFT_DISPARITY_RAW]) != lms.Status.OK:
+        if channel.start_streams([lms.DataSource.LEFT_MONO_RAW]) != lms.Status.OK:
             print("Unable to start streams")
             exit(1)
 
         channels.append(channel)
 
-    with lms.MultiChannelSynchronizer(channels, datetime.timedelta(milliseonds=args.tolerance)) as synchronizer:
+    with lms.MultiChannelSynchronizer(channels, datetime.timedelta(milliseconds=args.tolerance)) as synchronizer:
 
-        # milliseonds
         timeout = datetime.timedelta(milliseconds=500)
 
         while True:

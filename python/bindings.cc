@@ -711,14 +711,14 @@ PYBIND11_MODULE(_libmultisense, m) {
             return false;
         })
         .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance) {
-                std::vector<std::unique_ptr<multisense::Channel>> v;
-                v.reserve(py::len(channels));
+                std::vector<multisense::Channel*> ptrs;
+                ptrs.reserve(py::len(channels));
 
                 for (py::handle obj : channels) {
-                    v.emplace_back(obj.cast<multisense::Channel*>());
+                    ptrs.emplace_back(obj.cast<multisense::Channel*>());
                 }
 
-                return new multisense::MultiChannelSynchronizer(std::move(v), tolerance);
+                return new multisense::MultiChannelSynchronizer(std::move(ptrs), tolerance);
             }),
             py::arg("channels"),
             py::arg("tolerance")
