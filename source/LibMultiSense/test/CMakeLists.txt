@@ -5,6 +5,7 @@ set(TEST_NAMES
     configuration_test
     info_test
     message_test
+    multi_channel_test
     multisense_utilities_test
     status_test
     storage_test
