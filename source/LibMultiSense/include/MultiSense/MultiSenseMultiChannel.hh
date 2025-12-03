@@ -69,7 +69,7 @@ public:
 
     Channel& channel(size_t index)
     {
-        if (index > m_channels.size())
+        if (index >= m_channels.size())
         {
             throw std::runtime_error("Invalid multi-channel access");
         }
