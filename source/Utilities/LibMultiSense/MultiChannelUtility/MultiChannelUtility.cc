@@ -156,24 +156,23 @@ int main(int argc, char** argv)
         }
     }
 
-    auto multichannel = lms::MultiChannelSynchronizer{std::move(channels), tolerance};
+    auto synchronizer = lms::MultiChannelSynchronizer{std::move(channels), tolerance};
 
     while(!done)
     {
-        if (const auto image_frames = multichannel.get_synchronized_frame(500ms); image_frames)
+        if (const auto image_frames = synchronizer.get_synchronized_frame(500ms); image_frames)
         {
+            std::cout << "sync_group:" << std::endl;
             for (const auto &frame : image_frames.value())
             {
-                std::cout << frame.frame_id << " " << frame.frame_time.time_since_epoch().count() << std::endl;
+                std::cout << "frame_id: " << frame.frame_id << " time: " << frame.frame_time.time_since_epoch().count() << std::endl;
             }
-
-            std::cout << "done sync" << std::endl;
         }
     }
 
     for (size_t i = 0 ; i < ip_addresses.size() ; ++i)
     {
-        multichannel.channel(i).stop_streams({lms::DataSource::ALL});
+        synchronizer.channel(i).stop_streams({lms::DataSource::ALL});
     }
 
     return 0;

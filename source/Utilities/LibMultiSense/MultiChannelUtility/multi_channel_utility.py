@@ -69,15 +69,13 @@ def main(args):
         channels.append(channel)
 
     with lms.MultiChannelSynchronizer(channels, datetime.timedelta(milliseconds=args.tolerance)) as synchronizer:
-
         timeout = datetime.timedelta(milliseconds=500)
-
         while True:
             frames = synchronizer.get_synchronized_frame(timeout)
             if frames:
-                print("Got sync pair")
+                print("sync group:")
                 for frame in frames:
-                    print(f"Time {frame.frame_time}")
+                    print(f"frame_id: {frame.frame_id} time: {frame.frame_time}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense multi-channel synchronization utility")
