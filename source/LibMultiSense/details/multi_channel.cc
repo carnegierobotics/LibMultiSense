@@ -38,6 +38,25 @@
 
 namespace multisense {
 
+bool frames_synchronized(const std::vector<ImageFrame> &frames, const std::chrono::nanoseconds &tolerance)
+{
+    using namespace std::chrono_literals;
+
+    if (frames.size() <= 1)
+    {
+        return true;
+    }
+
+    const auto [min, max] = std::minmax_element(std::begin(frames), std::end(frames),
+                                                [](const auto &lhs, const auto &rhs)
+                                                {
+                                                    return lhs.frame_time < rhs.frame_time;
+                                                });
+
+    return min->frame_time.time_since_epoch() != 0ns && std::chrono::abs(max->frame_time - min->frame_time) < tolerance;
+}
+
+
 void MultiChannelSynchronizer::add_user_callbacks()
 {
     for(size_t i = 0 ; i < m_channels.size() ; ++i)
@@ -47,25 +66,12 @@ void MultiChannelSynchronizer::add_user_callbacks()
                                                     std::lock_guard<std::mutex> lock(m_frame_mutex);
                                                     m_active_frames[i] = frame;
 
-                                                    if (frames_valid(m_tolerance))
+                                                    if (frames_synchronized(m_active_frames, m_tolerance))
                                                     {
                                                         m_frame_cv.notify_all();
                                                     }
                                                 });
     }
-}
-
-bool MultiChannelSynchronizer::frames_valid(const std::chrono::nanoseconds &tolerance)
-{
-    using namespace std::chrono_literals;
-
-    const auto reference_time = m_active_frames.front().frame_time;
-
-    return std::all_of(std::begin(m_active_frames), std::end(m_active_frames),
-                [reference_time, tolerance](const auto &frame)
-                {
-                    return reference_time.time_since_epoch() != 0ns && std::chrono::abs(reference_time - frame.frame_time) < tolerance;
-                });
 }
 
 std::optional<std::vector<ImageFrame>> MultiChannelSynchronizer::get_synchronized_frame(const std::optional<std::chrono::nanoseconds> &timeout)

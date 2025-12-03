@@ -43,9 +43,25 @@
 
 namespace multisense {
 
+///
+/// @brief Free function which determines if a collection of frames are synchronized within a given tolerance
+///
+/// @param frames Frames to check for synchronization
+/// @param tolerance The max time difference between any frames for them to be considered valid
+///
+/// @return Return true if the frames are synchronized
+///
+bool frames_synchronized(const std::vector<ImageFrame> &frames, const std::chrono::nanoseconds &tolerance);
+
+///
+/// @brief Helper class which provides a interface to synchronize data across multiple channels
+///
 class MULTISENSE_API MultiChannelSynchronizer {
 public:
 
+   ///
+   /// @brief Construct a synchronizer  owning the underlying channels
+   ///
    explicit MultiChannelSynchronizer(std::vector<std::unique_ptr<Channel>> channels, const std::chrono::nanoseconds &tolerance):
         m_owned_channels(std::move(channels)),
         m_tolerance(tolerance)
@@ -59,6 +75,9 @@ public:
         add_user_callbacks();
     }
 
+   ///
+   /// @brief Construct a synchronizer without owning the underlying channels
+   ///
    explicit MultiChannelSynchronizer(std::vector<Channel*> channels, const std::chrono::nanoseconds &tolerance):
         m_channels(std::move(channels)),
         m_tolerance(tolerance)
@@ -69,6 +88,9 @@ public:
 
     ~MultiChannelSynchronizer() = default;
 
+    ///
+    /// @brief Access a channel by index
+    ///
     Channel& channel(size_t index)
     {
         if (index >= m_channels.size())
@@ -79,18 +101,31 @@ public:
         return *m_channels.at(index);
     }
 
+    ///
+    /// @brief Get a collection synchronized frames from the input channels with no timeout on waiting
+    ///
+    ///  @return Return a collection of synchronized frames
+    ///
     std::optional<std::vector<ImageFrame>> get_synchronized_frame()
     {
         return get_synchronized_frame(std::nullopt);
     }
 
+    ///
+    /// @brief Get a collection synchronized frames from the input channels and return if we have not recieved
+    ///        a collection of frames before the input timeout
+    ///
+    ///  @param timeout The ammount of time to wait for a synchronized frame
+    ///  @return Return a collection of synchronized frames
+    ///
     std::optional<std::vector<ImageFrame>> get_synchronized_frame(const std::optional<std::chrono::nanoseconds> &timeout);
 
 private:
 
+    ///
+    /// @brief Helper to add user callbacks to the input channels
+    ///
     void add_user_callbacks();
-
-    bool frames_valid(const std::chrono::nanoseconds &tolerance);
 
     ///
     /// @brief The collection of channels raw channels to synchronize

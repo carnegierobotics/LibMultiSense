@@ -701,6 +701,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("set_network_config", &multisense::Channel::set_network_config, py::call_guard<py::gil_scoped_release>());
 
     // MultiChannelSynchronizer
+    m.def("frames_synchronized", &multisense::frames_synchronized, py::call_guard<py::gil_scoped_release>());
+
     py::class_<multisense::MultiChannelSynchronizer>(m, "MultiChannelSynchronizer")
         .def("__enter__", [](multisense::MultiChannelSynchronizer &self) -> multisense::MultiChannelSynchronizer &
         {
