@@ -34,6 +34,8 @@
  *   2025-12-02, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <algorithm>
+
 #include "MultiSense/MultiSenseMultiChannel.hh"
 
 namespace multisense {
