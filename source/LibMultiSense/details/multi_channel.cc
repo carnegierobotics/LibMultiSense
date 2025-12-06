@@ -70,6 +70,12 @@ void MultiChannelSynchronizer::add_user_callbacks()
 
                                                     if (frames_synchronized(m_active_frames, m_tolerance))
                                                     {
+                                                        m_ready_frames.emplace_back(m_active_frames);
+                                                        for (auto &active_frame : m_active_frames)
+                                                        {
+                                                            active_frame = ImageFrame{};
+                                                        }
+
                                                         m_frame_cv.notify_all();
                                                     }
                                                 });
@@ -79,21 +85,22 @@ void MultiChannelSynchronizer::add_user_callbacks()
 std::optional<std::vector<ImageFrame>> MultiChannelSynchronizer::get_synchronized_frame(const std::optional<std::chrono::nanoseconds> &timeout)
 {
     std::unique_lock<std::mutex> lock(m_frame_mutex);
+    const auto frames_ready = [this]() { return !m_ready_frames.empty(); };
+
     if (timeout)
     {
-        if (std::cv_status::timeout == m_frame_cv.wait_for(lock, timeout.value()))
+        if (!m_frame_cv.wait_for(lock, timeout.value(), frames_ready))
         {
             return std::nullopt;
         }
     }
     else
     {
-        m_frame_cv.wait(lock);
+        m_frame_cv.wait(lock, frames_ready);
     }
 
-    auto output_frames = m_active_frames;
-    m_active_frames.clear();
-    m_active_frames.resize(m_channels.size());
+    auto output_frames = std::move(m_ready_frames.front());
+    m_ready_frames.pop_front();
     return output_frames;
 }
 

@@ -36,8 +36,9 @@
 
 #pragma once
 
-#include <mutex>
 #include <condition_variable>
+#include <deque>
+#include <mutex>
 
 #include "MultiSenseChannel.hh"
 
@@ -156,6 +157,11 @@ private:
     /// @brief Condition variable to notify the user a collection of synchronized frames is ready
     ///
     std::condition_variable m_frame_cv;
+
+    ///
+    /// @brief Queue of synchronized frames ready for the user to consume
+    ///
+    std::deque<std::vector<ImageFrame>> m_ready_frames{};
 };
 
 }
