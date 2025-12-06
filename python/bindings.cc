@@ -712,7 +712,7 @@ PYBIND11_MODULE(_libmultisense, m) {
         {
             return false;
         })
-        .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance) {
+        .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance, size_t max_queue_size) {
                 std::vector<multisense::Channel*> ptrs;
                 ptrs.reserve(py::len(channels));
 
@@ -720,11 +720,11 @@ PYBIND11_MODULE(_libmultisense, m) {
                     ptrs.emplace_back(obj.cast<multisense::Channel*>());
                 }
 
-                return new multisense::MultiChannelSynchronizer(std::move(ptrs), tolerance);
+                return new multisense::MultiChannelSynchronizer(std::move(ptrs), tolerance, max_queue_size);
             }),
             py::arg("channels"),
             py::arg("tolerance"),
-            py::arg("max_queue_size")
+            py::arg("max_queue_size") = 0
         )
         .def("channel", &multisense::MultiChannelSynchronizer::channel, py::call_guard<py::gil_scoped_release>())
         .def("get_synchronized_frame", py::overload_cast<>( &multisense::MultiChannelSynchronizer::get_synchronized_frame), py::call_guard<py::gil_scoped_release>())
