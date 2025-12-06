@@ -723,7 +723,8 @@ PYBIND11_MODULE(_libmultisense, m) {
                 return new multisense::MultiChannelSynchronizer(std::move(ptrs), tolerance);
             }),
             py::arg("channels"),
-            py::arg("tolerance")
+            py::arg("tolerance"),
+            py::arg("max_queue_size")
         )
         .def("channel", &multisense::MultiChannelSynchronizer::channel, py::call_guard<py::gil_scoped_release>())
         .def("get_synchronized_frame", py::overload_cast<>( &multisense::MultiChannelSynchronizer::get_synchronized_frame), py::call_guard<py::gil_scoped_release>())
