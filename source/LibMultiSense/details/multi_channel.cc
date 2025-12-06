@@ -70,6 +70,12 @@ void MultiChannelSynchronizer::add_user_callbacks()
 
                                                     if (frames_synchronized(m_active_frames, m_tolerance))
                                                     {
+                                                        if (m_max_queue_size > 0 &&
+                                                            m_ready_frames.size() >= m_max_queue_size)
+                                                        {
+                                                            m_ready_frames.pop_front();
+                                                        }
+
                                                         m_ready_frames.emplace_back(m_active_frames);
                                                         for (auto &active_frame : m_active_frames)
                                                         {

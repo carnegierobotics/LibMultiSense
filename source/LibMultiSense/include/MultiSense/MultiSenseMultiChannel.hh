@@ -61,11 +61,18 @@ class MULTISENSE_API MultiChannelSynchronizer {
 public:
 
    ///
-   /// @brief Construct a synchronizer  owning the underlying channels
+   /// @brief Construct a synchronizer owning the underlying channels
    ///
-   explicit MultiChannelSynchronizer(std::vector<std::unique_ptr<Channel>> channels, const std::chrono::nanoseconds &tolerance):
+   /// @param channels The channels to synchronize
+   /// @param tolerance The max time difference for a set of images to be considered synchronized
+   /// @param max_queue_size The max number of synchronized frames to have queued for dispatch
+   ///
+   explicit MultiChannelSynchronizer(std::vector<std::unique_ptr<Channel>> channels,
+                                     const std::chrono::nanoseconds &tolerance,
+                                     size_t max_queue_size = 0):
         m_owned_channels(std::move(channels)),
-        m_tolerance(tolerance)
+        m_tolerance(tolerance),
+        m_max_queue_size(max_queue_size)
     {
         for (auto &channel : m_owned_channels)
         {
@@ -79,9 +86,16 @@ public:
    ///
    /// @brief Construct a synchronizer without owning the underlying channels
    ///
-   explicit MultiChannelSynchronizer(std::vector<Channel*> channels, const std::chrono::nanoseconds &tolerance):
+   /// @param channels The channels to synchronize
+   /// @param tolerance The max time difference for a set of images to be considered synchronized
+   /// @param max_queue_size The max number of synchronized frames to have queued for dispatch
+   ///
+   explicit MultiChannelSynchronizer(std::vector<Channel*> channels,
+                                     const std::chrono::nanoseconds &tolerance,
+                                     size_t max_queue_size = 0):
         m_channels(std::move(channels)),
-        m_tolerance(tolerance)
+        m_tolerance(tolerance),
+        m_max_queue_size(max_queue_size)
     {
         m_active_frames.resize(m_channels.size());
         add_user_callbacks();
@@ -147,6 +161,11 @@ private:
     /// @brief The max time tolerance between image frames for them to be considered equal
     ///
     std::chrono::nanoseconds m_tolerance{};
+
+    ///
+    /// @brief Maximum number of synchronized frame groups that will be queued (0 = unlimited)
+    ///
+    size_t m_max_queue_size = 0;
 
     ///
     /// @brief Mutex to notify the user a collection of synchronized frames is ready
