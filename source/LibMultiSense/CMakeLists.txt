@@ -7,6 +7,7 @@ if (BUILD_JSON_SERIALIZATION)
 endif()
 
 set(DETAILS_SRC details/factory.cc
+                details/multi_channel.cc
                 details/utilities.cc
                 details/legacy/calibration.cc
                 details/legacy/channel.cc
