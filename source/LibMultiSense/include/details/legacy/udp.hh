@@ -139,6 +139,11 @@ private:
     std::vector<std::vector<uint8_t>> m_packet_buffers;
 
     ///
+    /// @brief scratch buffer used to drain the socket when no free packet buffers are available
+    ///
+    std::vector<uint8_t> m_drop_buffer;
+
+    ///
     /// @brief indices of buffers which are free to write to in m_packet_buffers
     ///
     std::deque<size_t> m_free_buffers;
