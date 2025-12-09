@@ -74,6 +74,10 @@
 
 namespace py = pybind11;
 
+namespace {
+using SSizeVector = std::vector<py::ssize_t>;
+}
+
 PYBIND11_MODULE(_libmultisense, m) {
     m.doc() = "Pybind11 bindings for the LibMultiSense C++ Library";
 
@@ -161,49 +165,58 @@ PYBIND11_MODULE(_libmultisense, m) {
             if (image.format == multisense::Image::PixelFormat::H264 ||
                 image.format == multisense::Image::PixelFormat::JPEG)
             {
+                const SSizeVector shape = {
+                    static_cast<py::ssize_t>(image.raw_data->size() - image.image_data_offset)
+                };
+                const SSizeVector strides = {static_cast<py::ssize_t>(sizeof(uint8_t))};
                 return py::array(py::buffer_info(
                                  const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
-                                 sizeof(uint8_t),
+                                 static_cast<py::ssize_t>(sizeof(uint8_t)),
                                  py::format_descriptor<uint8_t>::format(),
-                                 1,
-                                 {image.raw_data->size() - image.image_data_offset},
-                                 {sizeof(uint8_t)}));
+                                 static_cast<py::ssize_t>(shape.size()),
+                                 shape,
+                                 strides));
             }
 
-            std::vector<size_t> shape = {static_cast<size_t>(image.height), static_cast<size_t>(image.width)};
-            std::vector<size_t> strides;
-            size_t element_size = 0;
+            SSizeVector shape = {static_cast<py::ssize_t>(image.height), static_cast<py::ssize_t>(image.width)};
+            SSizeVector strides;
+            py::ssize_t element_size = 0;
             std::string format;
 
             switch (image.format)
             {
                 case multisense::Image::PixelFormat::MONO8:
                 {
-                    element_size = sizeof(uint8_t);
+                    element_size = static_cast<py::ssize_t>(sizeof(uint8_t));
                     format = py::format_descriptor<uint8_t>::format();
-                    strides = {sizeof(uint8_t) * image.width, sizeof(uint8_t)};
+                    strides = {static_cast<py::ssize_t>(sizeof(uint8_t) * image.width),
+                               static_cast<py::ssize_t>(sizeof(uint8_t))};
                     break;
                 }
                 case multisense::Image::PixelFormat::MONO16:
                 {
-                    element_size = sizeof(uint16_t);
+                    element_size = static_cast<py::ssize_t>(sizeof(uint16_t));
                     format = py::format_descriptor<uint16_t>::format();
-                    strides = {sizeof(uint16_t) * image.width, sizeof(uint16_t)};
+                    strides = {static_cast<py::ssize_t>(sizeof(uint16_t) * image.width),
+                               static_cast<py::ssize_t>(sizeof(uint16_t))};
                     break;
                 }
                 case multisense::Image::PixelFormat::BGR8:
                 {
-                    element_size = sizeof(uint8_t);
+                    element_size = static_cast<py::ssize_t>(sizeof(uint8_t));
                     format = py::format_descriptor<uint8_t>::format();
                     shape.push_back(3);
-                    strides = {sizeof(uint8_t) * image.width * 3, sizeof(uint8_t) * 3, sizeof(uint8_t)};
+                    strides = {static_cast<py::ssize_t>(sizeof(uint8_t) * image.width * 3),
+                               static_cast<py::ssize_t>(sizeof(uint8_t) * 3),
+                               static_cast<py::ssize_t>(sizeof(uint8_t))};
                     break;
                 }
                 case multisense::Image::PixelFormat::FLOAT32:
                 {
-                    element_size = sizeof(float);
+                    element_size = static_cast<py::ssize_t>(sizeof(float));
                     format = py::format_descriptor<float>::format();
-                    strides = {sizeof(float) * image.width, sizeof(float)};
+                    strides = {static_cast<py::ssize_t>(sizeof(float) * image.width),
+                               static_cast<py::ssize_t>(sizeof(float))};
                     break;
                 }
                 default: {throw std::runtime_error("Unknown pixel format");}
@@ -214,7 +227,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
                              element_size,
                              format,
-                             shape.size(),
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         })
@@ -233,9 +246,9 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("bins", &multisense::ImageHistogram::bins)
         .def_property_readonly("as_array", [](const multisense::ImageHistogram& histogram)
         {
-            std::vector<size_t> shape{histogram.data.size()};
-            std::vector<size_t> strides{sizeof(uint32_t)};
-            size_t element_size = sizeof(uint32_t);
+            const SSizeVector shape{static_cast<py::ssize_t>(histogram.data.size())};
+            const SSizeVector strides{static_cast<py::ssize_t>(sizeof(uint32_t))};
+            const py::ssize_t element_size = static_cast<py::ssize_t>(sizeof(uint32_t));
             std::string format = py::format_descriptor<uint32_t>::format();
 
             // Map the cv::Mat to a NumPy array without copying the data
@@ -243,7 +256,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(histogram.data.data())),
                              element_size,
                              format,
-                             shape.size(),
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         });
@@ -741,16 +754,22 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("cloud", &multisense::PointCloud<void>::cloud)
         .def_property_readonly("as_array", [](const multisense::PointCloud<void> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size()), 3};
-            const std::vector<size_t> strides = {sizeof(multisense::Point<void>), sizeof(float)};
-            const size_t element_size = sizeof(float);
+            const SSizeVector shape = {
+                static_cast<py::ssize_t>(cloud.cloud.size()),
+                static_cast<py::ssize_t>(3)
+            };
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<void>)),
+                static_cast<py::ssize_t>(sizeof(float))
+            };
+            const py::ssize_t element_size = static_cast<py::ssize_t>(sizeof(float));
             const std::string format = py::format_descriptor<float>::format();;
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             shape.size(),
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         });
@@ -760,33 +779,41 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("cloud", &multisense::PointCloud<uint8_t>::cloud)
         .def_property_readonly("as_array", [](const multisense::PointCloud<uint8_t> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size()), 3};
+            const SSizeVector shape = {
+                static_cast<py::ssize_t>(cloud.cloud.size()),
+                static_cast<py::ssize_t>(3)
+            };
             //
             // Make sure we skip over the color
             //
-            const std::vector<size_t> strides = {sizeof(multisense::Point<uint8_t>), sizeof(float)};
-            const size_t element_size = sizeof(multisense::Point<uint8_t>);
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<uint8_t>)),
+                static_cast<py::ssize_t>(sizeof(float))
+            };
+            const py::ssize_t element_size = static_cast<py::ssize_t>(sizeof(multisense::Point<uint8_t>));
             const std::string format = py::format_descriptor<float>::format();;
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             2,
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         })
         .def_property_readonly("as_raw_array", [](const multisense::PointCloud<uint8_t> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size())};
-            const std::vector<size_t> strides = {sizeof(multisense::Point<uint8_t>)};
-            const size_t element_size = sizeof(multisense::Point<uint8_t>);
+            const SSizeVector shape = {static_cast<py::ssize_t>(cloud.cloud.size())};
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<uint8_t>))
+            };
+            const py::ssize_t element_size = static_cast<py::ssize_t>(sizeof(multisense::Point<uint8_t>));
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              "13B",
-                             1,
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         });
@@ -797,33 +824,41 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("cloud", &multisense::PointCloud<uint16_t>::cloud)
         .def_property_readonly("as_array", [](const multisense::PointCloud<uint16_t> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size()), 3};
+            const SSizeVector shape = {
+                static_cast<py::ssize_t>(cloud.cloud.size()),
+                static_cast<py::ssize_t>(3)
+            };
             //
             // Make sure we skip over the color
             //
-            const std::vector<size_t> strides = {sizeof(multisense::Point<uint16_t>), sizeof(float)};
-            const size_t element_size = sizeof(multisense::Point<uint16_t>);
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<uint16_t>)),
+                static_cast<py::ssize_t>(sizeof(float))
+            };
+            const py::ssize_t element_size = static_cast<py::ssize_t>(sizeof(multisense::Point<uint16_t>));
             const std::string format = py::format_descriptor<float>::format();;
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             2,
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         })
         .def_property_readonly("as_raw_array", [](const multisense::PointCloud<uint16_t> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size())};
-            const std::vector<size_t> strides = {sizeof(multisense::Point<uint16_t>)};
-            const size_t element_size = sizeof(multisense::Point<uint16_t>);
+            const SSizeVector shape = {static_cast<py::ssize_t>(cloud.cloud.size())};
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<uint16_t>))
+            };
+            const py::ssize_t element_size = static_cast<py::ssize_t>(sizeof(multisense::Point<uint16_t>));
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              "14B",
-                             1,
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         });
@@ -833,33 +868,43 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("cloud", &multisense::PointCloud<std::array<uint8_t, 3>>::cloud)
         .def_property_readonly("as_array", [](const multisense::PointCloud<std::array<uint8_t, 3>> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size()), 3};
+            const SSizeVector shape = {
+                static_cast<py::ssize_t>(cloud.cloud.size()),
+                static_cast<py::ssize_t>(3)
+            };
             //
             // Make sure we skip over the color
             //
-            const std::vector<size_t> strides = {sizeof(multisense::Point<std::array<uint8_t, 3>>), sizeof(float)};
-            const size_t element_size = sizeof(multisense::Point<std::array<uint8_t, 3>>);
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<std::array<uint8_t, 3>>)),
+                static_cast<py::ssize_t>(sizeof(float))
+            };
+            const py::ssize_t element_size =
+                static_cast<py::ssize_t>(sizeof(multisense::Point<std::array<uint8_t, 3>>));
             const std::string format = py::format_descriptor<float>::format();;
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             2,
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         })
         .def_property_readonly("as_raw_array", [](const multisense::PointCloud<std::array<uint8_t, 3>> &cloud)
         {
-            const std::vector<size_t> shape = {static_cast<size_t>(cloud.cloud.size())};
-            const std::vector<size_t> strides = {sizeof(multisense::Point<std::array<uint8_t, 3>>)};
-            const size_t element_size = sizeof(multisense::Point<std::array<uint8_t, 3>>);
+            const SSizeVector shape = {static_cast<py::ssize_t>(cloud.cloud.size())};
+            const SSizeVector strides = {
+                static_cast<py::ssize_t>(sizeof(multisense::Point<std::array<uint8_t, 3>>))
+            };
+            const py::ssize_t element_size =
+                static_cast<py::ssize_t>(sizeof(multisense::Point<std::array<uint8_t, 3>>));
 
             return py::array(py::buffer_info(
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              "15B",
-                             1,
+                             static_cast<py::ssize_t>(shape.size()),
                              shape,
                              strides));
         });
