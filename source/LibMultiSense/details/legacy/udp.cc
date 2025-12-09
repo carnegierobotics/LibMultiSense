@@ -37,6 +37,7 @@
 #include <cstring>
 #include <functional>
 #include <iostream>
+#include <limits>
 
 #include <utility/Exception.hh>
 
@@ -53,6 +54,7 @@ UdpReceiver::UdpReceiver(const NetworkSocket &socket,
     m_stop(false),
     m_max_mtu(max_mtu),
     m_packet_buffers(max_packet_queue_depth, std::vector<uint8_t>(max_mtu, 0)),
+    m_drop_buffer(max_mtu, 0),
     m_receive_callback(receive_callback)
 {
     for (size_t i = 0; i < m_packet_buffers.size(); ++i)
@@ -105,17 +107,16 @@ void UdpReceiver::rx_thread()
         //
         while(true)
         {
-            size_t buffer_index = 0;
+            size_t buffer_index = std::numeric_limits<size_t>::max();
+            std::vector<uint8_t>* receive_buffer = nullptr;
             {
                 std::lock_guard<std::mutex> lock(m_queue_mutex);
-                if (m_free_buffers.empty())
+                if (!m_free_buffers.empty())
                 {
-                    ++m_dropped_packets;
-                    continue;
+                    buffer_index = m_free_buffers.front();
+                    m_free_buffers.pop_front();
+                    receive_buffer = &m_packet_buffers[buffer_index];
                 }
-
-                buffer_index = m_free_buffers.front();
-                m_free_buffers.pop_front();
             }
 
             try
@@ -124,7 +125,7 @@ void UdpReceiver::rx_thread()
 #pragma warning (push)
 #pragma warning (disable : 4267)
 #endif
-            auto& buffer = m_packet_buffers[buffer_index];
+            auto& buffer = receive_buffer ? *receive_buffer : m_drop_buffer;
             buffer.resize(m_max_mtu);
             const int bytes_read = recvfrom(m_socket,
                                             reinterpret_cast<char*>(buffer.data()),
@@ -138,12 +139,21 @@ void UdpReceiver::rx_thread()
                 //
                 if (bytes_read < 0)
                 {
-                    std::lock_guard<std::mutex> lock(m_queue_mutex);
-                    m_free_buffers.emplace_back(buffer_index);
+                    if (receive_buffer)
+                    {
+                        std::lock_guard<std::mutex> lock(m_queue_mutex);
+                        m_free_buffers.emplace_back(buffer_index);
+                    }
                     break;
                 }
 
-                buffer.resize(static_cast<size_t>(bytes_read));
+                if (!receive_buffer)
+                {
+                    ++m_dropped_packets;
+                    continue;
+                }
+
+                receive_buffer->resize(static_cast<size_t>(bytes_read));
 
                 {
                     std::lock_guard<std::mutex> lock(m_queue_mutex);
@@ -154,10 +164,22 @@ void UdpReceiver::rx_thread()
             }
             catch (const std::exception& e)
             {
+                if (receive_buffer)
+                {
+                    std::lock_guard<std::mutex> lock(m_queue_mutex);
+                    m_packet_buffers[buffer_index].resize(m_max_mtu);
+                    m_free_buffers.emplace_back(buffer_index);
+                }
                 CRL_DEBUG("exception while decoding packet: %s\n", e.what());
             }
             catch ( ... )
             {
+                if (receive_buffer)
+                {
+                    std::lock_guard<std::mutex> lock(m_queue_mutex);
+                    m_packet_buffers[buffer_index].resize(m_max_mtu);
+                    m_free_buffers.emplace_back(buffer_index);
+                }
                 CRL_DEBUG_RAW("unknown exception while decoding packet\n");
             }
         }

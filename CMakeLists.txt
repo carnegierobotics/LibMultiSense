@@ -49,6 +49,7 @@ option(BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
 option(BUILD_OPENCV "Use OpenCV if found on the host system" OFF)
 option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
 option(BUILD_JSON_SERIALIZATION "Build json type serialization with nlohmann json." OFF)
+option(ENABLE_ASAN "Build with AddressSanitizer instrumentation." OFF)
 
 if (BUILD_TESTS)
     enable_testing()
@@ -120,6 +121,14 @@ if (BUILD_JSON_SERIALIZATION)
         message(WARNING "Could not find nlohmann json. Skipping JSON serialization helpers")
         set(BUILD_JSON_SERIALIZATION OFF)
     endif()
+endif()
+
+if (ENABLE_ASAN)
+    if (MSVC)
+        message(FATAL_ERROR "ENABLE_ASAN is only supported with Clang or GCC toolchains.")
+    endif()
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -fno-common)
+    add_link_options(-fsanitize=address)
 endif()
 
 #
