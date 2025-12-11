@@ -392,6 +392,16 @@ bool MessageAssembler::write_data(InternalMessage &message, const std::vector<ui
         return false;
     }
 
+    if (header.byteOffset > message.data->size() ||
+        message.data->size() - header.byteOffset < bytes_to_write)
+    {
+        CRL_DEBUG("Error. Header byte offset %" PRIu32 " with %" PRIu64 " bytes exceeds buffer size %" PRIu64 "\n",
+                  header.byteOffset,
+                  static_cast<uint64_t>(bytes_to_write),
+                  static_cast<uint64_t>(message.data->size()));
+        return false;
+    }
+
     //
     // Handle the special case unpacking of disparity data from 12bit to 16bit images
     //
