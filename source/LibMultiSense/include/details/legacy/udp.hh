@@ -76,7 +76,7 @@ public:
     UdpReceiver(const NetworkSocket &socket,
                 size_t max_mtu,
                 std::function<void(const std::vector<uint8_t>&)> receive_callback,
-                size_t max_packet_queue_depth=128);
+                size_t max_queue_bytes=16777215);
 
     ~UdpReceiver();
 
