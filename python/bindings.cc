@@ -173,7 +173,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                                  const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
                                  static_cast<py::ssize_t>(sizeof(uint8_t)),
                                  py::format_descriptor<uint8_t>::format(),
-                                 static_cast<py::ssize_t>(shape.size()),
+                                 1,
                                  shape,
                                  strides));
             }
