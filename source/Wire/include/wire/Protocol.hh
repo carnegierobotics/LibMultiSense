@@ -341,8 +341,8 @@ static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
 //
 // Some helper macros
 
-#define MSG_ID(x)  ((wire::IdType)(x))
-#define MSG_VER(x) ((wire::VersionType)(x))
+#define MSG_ID(x)  ((crl::multisense::details::wire::IdType)(x))
+#define MSG_VER(x) ((crl::multisense::details::wire::VersionType)(x))
 
 #define SER_ARRAY_1(a_,n_)                    \
     for(uint32_t i_=0; i_<(n_); i_++)         \

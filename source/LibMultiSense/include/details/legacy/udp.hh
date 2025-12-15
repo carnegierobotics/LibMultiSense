@@ -76,7 +76,7 @@ public:
     UdpReceiver(const NetworkSocket &socket,
                 size_t max_mtu,
                 std::function<void(const std::vector<uint8_t>&)> receive_callback,
-                size_t max_packet_queue_depth=64);
+                size_t max_queue_bytes=16777215);
 
     ~UdpReceiver();
 
@@ -123,6 +123,11 @@ private:
     std::condition_variable m_queue_valid;
 
     ///
+    /// @brief Signal used to wake the rx thread when buffers are freed
+    ///
+    std::condition_variable m_free_buffer_available;
+
+    ///
     /// @brief Mutext for coordinating when data is ready to process
     ///
     std::mutex m_queue_mutex;
@@ -137,6 +142,11 @@ private:
     ///        into m_packet_buffers to avoid copying the payload
     ///
     std::vector<std::vector<uint8_t>> m_packet_buffers;
+
+    ///
+    /// @brief scratch buffer used when packets have to be drained from the socket
+    ///
+    std::vector<uint8_t> m_drop_buffer;
 
     ///
     /// @brief indices of buffers which are free to write to in m_packet_buffers
@@ -157,6 +167,30 @@ private:
     /// @brief Counter for messages dropped due to dispatch processing slowdowsn
     ///
     std::atomic_size_t m_dropped_packets = 0;
+
+    ///
+    /// @brief Types of packets we may encounter
+    ///
+    enum class PacketCategory
+    {
+        STREAMING,
+        CONTROL
+    };
+
+    ///
+    /// @brief Drain a single packet from the socket without enqueueing it
+    ///
+    bool drop_next_packet();
+
+    ///
+    /// @brief Determine the category of the next packet waiting on the socket
+    ///
+    PacketCategory next_packet_category();
+
+    ///
+    /// @brief Block until a buffer is available, or drop streaming data if needed
+    ///
+    bool wait_or_drop();
 };
 
 
