@@ -75,7 +75,7 @@ public:
         ///
         /// @brief The number of large buffers to preallocate for receiving MultiSense sensor data
         ///
-        size_t num_large_buffers = 16;
+        size_t num_large_buffers = 32;
         ///
         /// @brief The size of each small buffer in bytes
         ///

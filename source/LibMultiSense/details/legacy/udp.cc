@@ -39,8 +39,46 @@
 #include <iostream>
 
 #include <utility/Exception.hh>
+#include <wire/Protocol.hh>
+#include <utility/BufferStream.hh>
+
+#include <wire/CompressedImageMessage.hh>
+#include <wire/DisparityMessage.hh>
+#include <wire/ImageMessage.hh>
+#include <wire/ImageMetaMessage.hh>
+#include <wire/ImuDataMessage.hh>
+#include <wire/LidarDataMessage.hh>
 
 #include "details/legacy/udp.hh"
+
+namespace
+{
+
+using IdType = crl::multisense::details::wire::IdType;
+
+enum class PacketCategory
+{
+    STREAMING,
+    CONTROL
+};
+
+bool is_streaming_message(IdType id)
+{
+    switch (id)
+    {
+        case MSG_ID(crl::multisense::details::wire::Image::ID):
+        case MSG_ID(crl::multisense::details::wire::ImageMeta::ID):
+        case MSG_ID(crl::multisense::details::wire::CompressedImage::ID):
+        case MSG_ID(crl::multisense::details::wire::Disparity::ID):
+        case MSG_ID(crl::multisense::details::wire::ImuData::ID):
+        case MSG_ID(crl::multisense::details::wire::LidarData::ID):
+            return true;
+        default:
+            return false;
+    }
+}
+
+}
 
 namespace multisense{
 namespace legacy{
@@ -48,11 +86,12 @@ namespace legacy{
 UdpReceiver::UdpReceiver(const NetworkSocket &socket,
                          size_t max_mtu,
                          std::function<void(const std::vector<uint8_t>&)> receive_callback,
-                         size_t max_packet_queue_depth):
+                         size_t max_queue_bytes):
     m_socket(socket.sensor_socket),
     m_stop(false),
     m_max_mtu(max_mtu),
-    m_packet_buffers(max_packet_queue_depth, std::vector<uint8_t>(max_mtu, 0)),
+    m_packet_buffers(static_cast<size_t>(max_queue_bytes / max_mtu), std::vector<uint8_t>(max_mtu, 0)),
+    m_drop_buffer(max_mtu, 0),
     m_receive_callback(receive_callback)
 {
     for (size_t i = 0; i < m_packet_buffers.size(); ++i)
@@ -68,6 +107,7 @@ UdpReceiver::~UdpReceiver()
 {
     m_stop.store(true);
     m_queue_valid.notify_all();
+    m_free_buffer_available.notify_all();
 
     if (m_rx_thread.joinable())
     {
@@ -78,6 +118,78 @@ UdpReceiver::~UdpReceiver()
     {
         m_dispatch_thread.join();
     }
+}
+
+bool UdpReceiver::drop_next_packet()
+{
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
+    m_drop_buffer.resize(m_max_mtu);
+    const int bytes_read = recvfrom(m_socket,
+                                    reinterpret_cast<char*>(m_drop_buffer.data()),
+                                    m_drop_buffer.size(),
+                                    0, NULL, NULL);
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (pop)
+#endif
+    if (bytes_read < 0)
+    {
+        return false;
+    }
+
+    ++m_dropped_packets;
+    return true;
+}
+
+UdpReceiver::PacketCategory UdpReceiver::next_packet_category()
+{
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (push)
+#pragma warning (disable : 4267)
+#endif
+    m_drop_buffer.resize(m_max_mtu);
+    const int bytes_peeked = recvfrom(m_socket,
+                                      reinterpret_cast<char*>(m_drop_buffer.data()),
+                                      m_drop_buffer.size(),
+                                      MSG_PEEK,
+                                      NULL, NULL);
+#if defined(WIN32) && !defined(__MINGW64__)
+#pragma warning (pop)
+#endif
+    const auto header_length = sizeof(crl::multisense::details::wire::Header);
+    const auto type_length = sizeof(IdType);
+    if (bytes_peeked < static_cast<int>(header_length + type_length))
+    {
+        return PacketCategory::CONTROL;
+    }
+
+    IdType message_id = 0;
+    std::memcpy(&message_id, m_drop_buffer.data() + header_length, sizeof(IdType));
+    return is_streaming_message(message_id) ? PacketCategory::STREAMING : PacketCategory::CONTROL;
+}
+
+bool UdpReceiver::wait_or_drop()
+{
+    if (m_stop)
+    {
+        return false;
+    }
+
+    const PacketCategory category = next_packet_category();
+    if (category == PacketCategory::STREAMING)
+    {
+        return drop_next_packet();
+    }
+
+    std::unique_lock<std::mutex> lock(m_queue_mutex);
+    m_free_buffer_available.wait(lock, [this]()
+    {
+        return m_stop || !m_free_buffers.empty();
+    });
+
+    return !m_stop;
 }
 
 void UdpReceiver::rx_thread()
@@ -107,10 +219,14 @@ void UdpReceiver::rx_thread()
         {
             size_t buffer_index = 0;
             {
-                std::lock_guard<std::mutex> lock(m_queue_mutex);
+                std::unique_lock<std::mutex> lock(m_queue_mutex);
                 if (m_free_buffers.empty())
                 {
-                    ++m_dropped_packets;
+                    lock.unlock();
+                    if (!wait_or_drop())
+                    {
+                        break;
+                    }
                     continue;
                 }
 
@@ -140,6 +256,7 @@ void UdpReceiver::rx_thread()
                 {
                     std::lock_guard<std::mutex> lock(m_queue_mutex);
                     m_free_buffers.emplace_back(buffer_index);
+                    m_free_buffer_available.notify_one();
                     break;
                 }
 
@@ -154,10 +271,18 @@ void UdpReceiver::rx_thread()
             }
             catch (const std::exception& e)
             {
+                std::lock_guard<std::mutex> lock(m_queue_mutex);
+                m_packet_buffers[buffer_index].resize(m_max_mtu);
+                m_free_buffers.emplace_back(buffer_index);
+                m_free_buffer_available.notify_one();
                 CRL_DEBUG("exception while decoding packet: %s\n", e.what());
             }
             catch ( ... )
             {
+                std::lock_guard<std::mutex> lock(m_queue_mutex);
+                m_packet_buffers[buffer_index].resize(m_max_mtu);
+                m_free_buffers.emplace_back(buffer_index);
+                m_free_buffer_available.notify_one();
                 CRL_DEBUG_RAW("unknown exception while decoding packet\n");
             }
         }
@@ -203,6 +328,7 @@ void UdpReceiver::dispatch_thread()
             std::lock_guard<std::mutex> lock(m_queue_mutex);
             m_packet_buffers[buffer_index].resize(m_max_mtu);
             m_free_buffers.emplace_back(buffer_index);
+            m_free_buffer_available.notify_one();
         }
     }
 }
