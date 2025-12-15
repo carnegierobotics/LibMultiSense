@@ -52,10 +52,11 @@ bool frames_synchronized(const std::vector<ImageFrame> &frames, const std::chron
     const auto [min, max] = std::minmax_element(std::begin(frames), std::end(frames),
                                                 [](const auto &lhs, const auto &rhs)
                                                 {
-                                                    return lhs.frame_time < rhs.frame_time;
+                                                    return lhs.ptp_frame_time < rhs.ptp_frame_time;
                                                 });
 
-    return min->frame_time.time_since_epoch() != 0ns && std::chrono::abs(max->frame_time - min->frame_time) < tolerance;
+    return min->ptp_frame_time.time_since_epoch() != 0ns && std::chrono::abs(max->ptp_frame_time - min->ptp_frame_time) < tolerance;
+
 }
 
 
@@ -66,7 +67,12 @@ void MultiChannelSynchronizer::add_user_callbacks()
         m_channels[i]->add_image_frame_callback([i, this](auto frame)
                                                 {
                                                     std::lock_guard<std::mutex> lock(m_frame_mutex);
-                                                    m_active_frames[i] = frame;
+                                                    m_active_frames[i] = std::move(frame);
+
+                                                    if (!m_ready_frames.empty())
+                                                    {
+                                                        m_frame_cv.notify_all();
+                                                    }
 
                                                     if (frames_synchronized(m_active_frames, m_tolerance))
                                                     {
@@ -103,6 +109,11 @@ std::optional<std::vector<ImageFrame>> MultiChannelSynchronizer::get_synchronize
     else
     {
         m_frame_cv.wait(lock, frames_ready);
+    }
+
+    if (m_ready_frames.empty())
+    {
+        return std::nullopt;
     }
 
     auto output_frames = std::move(m_ready_frames.front());

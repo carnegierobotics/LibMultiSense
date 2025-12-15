@@ -55,7 +55,7 @@ namespace multisense {
 MULTISENSE_API bool frames_synchronized(const std::vector<ImageFrame> &frames, const std::chrono::nanoseconds &tolerance);
 
 ///
-/// @brief Helper class which provides a interface to synchronize data across multiple channels
+/// @brief Helper class which provides a interface to synchronize data across multiple channels.
 ///
 class MULTISENSE_API MultiChannelSynchronizer {
 public:
@@ -76,6 +76,13 @@ public:
     {
         for (auto &channel : m_owned_channels)
         {
+            const auto config = channel->get_config();
+
+            if (!config.time_config || !config.time_config->ptp_enabled)
+            {
+                throw std::runtime_error("Creating a MultiChannelSynchronizer with PTP disabled");
+            }
+
             m_channels.push_back(channel.get());
         }
 
