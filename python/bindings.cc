@@ -797,7 +797,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             static_cast<py::ssize_t>(shape.size()),
+                             2,
                              shape,
                              strides));
         })
@@ -813,7 +813,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              "13B",
-                             static_cast<py::ssize_t>(shape.size()),
+                             1,
                              shape,
                              strides));
         });
@@ -842,7 +842,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             static_cast<py::ssize_t>(shape.size()),
+                             2,
                              shape,
                              strides));
         })
@@ -858,7 +858,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              "14B",
-                             static_cast<py::ssize_t>(shape.size()),
+                             1,
                              shape,
                              strides));
         });
@@ -887,7 +887,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              format,
-                             static_cast<py::ssize_t>(shape.size()),
+                             2,
                              shape,
                              strides));
         })
@@ -904,7 +904,7 @@ PYBIND11_MODULE(_libmultisense, m) {
                              const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(cloud.cloud.data())),
                              element_size,
                              "15B",
-                             static_cast<py::ssize_t>(shape.size()),
+                             1,
                              shape,
                              strides));
         });
