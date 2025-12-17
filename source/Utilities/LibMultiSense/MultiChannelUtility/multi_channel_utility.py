@@ -57,6 +57,7 @@ def main(args):
 
         config = channel.get_config()
         config.frames_per_second = 10.0
+        config.time_config.ptp_enabled = True
         if channel.set_config(config) != lms.Status.OK:
             print("Cannot set configuration")
             exit(1)

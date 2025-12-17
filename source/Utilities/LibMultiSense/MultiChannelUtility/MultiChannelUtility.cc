@@ -140,6 +140,11 @@ int main(int argc, char** argv)
         //
         auto config = channels.back()->get_config();
         config.frames_per_second = 10.0;
+        if (config.time_config)
+        {
+            config.time_config->ptp_enabled = true;
+        }
+
         if (const auto status = channels.back()->set_config(config); status != lms::Status::OK)
         {
             std::cerr << "Cannot set config" << std::endl;

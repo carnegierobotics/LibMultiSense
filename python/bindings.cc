@@ -725,7 +725,7 @@ PYBIND11_MODULE(_libmultisense, m) {
         {
             return false;
         })
-        .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance, size_t max_queue_size) {
+        .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance, py::ssize_t max_queue_size) {
                 std::vector<multisense::Channel*> ptrs;
                 ptrs.reserve(py::len(channels));
 
