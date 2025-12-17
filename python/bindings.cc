@@ -44,6 +44,7 @@
 #include <pybind11/stl.h>
 
 #include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseMultiChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 #ifdef BUILD_JSON
@@ -711,6 +712,37 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("set_device_info", &multisense::Channel::set_device_info, py::call_guard<py::gil_scoped_release>())
         .def("get_system_status", &multisense::Channel::get_system_status, py::call_guard<py::gil_scoped_release>())
         .def("set_network_config", &multisense::Channel::set_network_config, py::call_guard<py::gil_scoped_release>());
+
+    // MultiChannelSynchronizer
+    m.def("frames_synchronized", &multisense::frames_synchronized, py::call_guard<py::gil_scoped_release>());
+
+    py::class_<multisense::MultiChannelSynchronizer>(m, "MultiChannelSynchronizer")
+        .def("__enter__", [](multisense::MultiChannelSynchronizer &self) -> multisense::MultiChannelSynchronizer &
+        {
+            return self;
+        })
+        .def("__exit__", [](multisense::MultiChannelSynchronizer &, py::object, py::object, py::object)
+        {
+            return false;
+        })
+        .def(py::init([](py::iterable channels, const std::chrono::nanoseconds &tolerance, py::ssize_t max_queue_size) {
+                std::vector<multisense::Channel*> ptrs;
+                ptrs.reserve(py::len(channels));
+
+                for (py::handle obj : channels) {
+                    ptrs.emplace_back(obj.cast<multisense::Channel*>());
+                }
+
+                return new multisense::MultiChannelSynchronizer(std::move(ptrs), tolerance, max_queue_size);
+            }),
+            py::arg("channels"),
+            py::arg("tolerance"),
+            py::arg("max_queue_size") = 0
+        )
+        .def("channel", &multisense::MultiChannelSynchronizer::channel, py::call_guard<py::gil_scoped_release>())
+        .def("get_synchronized_frame", py::overload_cast<>( &multisense::MultiChannelSynchronizer::get_synchronized_frame), py::call_guard<py::gil_scoped_release>())
+        .def("get_synchronized_frame", py::overload_cast< const std::optional<std::chrono::nanoseconds>&>( &multisense::MultiChannelSynchronizer::get_synchronized_frame),
+            py::arg("timeout") = std::nullopt, py::call_guard<py::gil_scoped_release>());
 
     // Utilities
     py::class_<multisense::QMatrix>(m, "QMatrix")
