@@ -48,9 +48,9 @@ def get_ptp_status_string(status):
     grandmaster_id = ",".join(str(i) for i in status.ptp.grandmaster_id)
 
     output = f"Grandmaster present: {status.ptp.grandmaster_present}, "\
-             f"Grandmaster id: {grandmaster_id}," \
-             f"Grandmaster offset: {status.ptp.grandmaster_offset}," \
-             f"Path delay: {status.ptp.path_delay}," \
+             f"Grandmaster id: {grandmaster_id}, " \
+             f"Grandmaster offset (s): {status.ptp.grandmaster_offset.total_seconds()}, " \
+             f"Path delay (s): {status.ptp.path_delay.total_seconds()}, " \
              f"Steps from local to grandmaster: {status.ptp.steps_from_local_to_grandmaster}"
 
     return output
@@ -83,8 +83,8 @@ def main(args):
         frame = channel.get_next_image_frame()
         if frame:
             now = datetime.datetime.now()
-            delay = frame.ptp_frame_time - now
-            print(f"Approximate time offset between camera and system: {delay}")
+            delay = (frame.ptp_frame_time - now).total_seconds()
+            print(f"Approximate time offset between camera and system (s): {delay}")
 
         status = channel.get_system_status()
         if status:
