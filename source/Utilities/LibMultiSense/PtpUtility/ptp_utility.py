@@ -45,7 +45,8 @@ def get_ptp_status_string(status):
     if status.ptp is None:
         return "PTP not supported"
 
-    grandmaster_id = ",".join(status.ptp.grandmaster_id)
+    grandmaster_id = ",".join(str(i) for i in status.ptp.grandmaster_id)
+
     output = f"Grandmaster present: {status.ptp.grandmaster_present}, "\
              f"Grandmaster id: {grandmaster_id}," \
              f"Grandmaster offset: {status.ptp.grandmaster_offset}," \
