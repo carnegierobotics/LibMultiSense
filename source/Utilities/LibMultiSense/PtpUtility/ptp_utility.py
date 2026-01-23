@@ -84,7 +84,7 @@ def main(args):
         if frame:
             now = datetime.datetime.now()
             delay = (frame.ptp_frame_time - now).total_seconds()
-            print(f"Approximate time offset between camera and system (s): {delay}")
+            print(f"Acquired image header to current time offset (s): {delay}")
 
         status = channel.get_system_status()
         if status:

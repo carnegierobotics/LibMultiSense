@@ -146,7 +146,7 @@ int main(int argc, char** argv)
         {
             const auto now = std::chrono::system_clock::now();
 
-            std::cout << "Approximate time offset between camera and system (ns): " <<
+            std::cout << "Acquired image header to current time offset (ns): " <<
                 std::chrono::duration_cast<std::chrono::nanoseconds>(image_frame->ptp_frame_time - now).count() << std::endl;
         }
 
