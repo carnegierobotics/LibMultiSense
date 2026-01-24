@@ -217,9 +217,6 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    //
-    // Start a single image stream
-    //
     if (const auto status = channel->start_streams(image_streams); status != lms::Status::OK)
     {
         std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
