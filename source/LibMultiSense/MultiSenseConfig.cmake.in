@@ -5,6 +5,7 @@ find_dependency(MultiSenseWire)
 if (@BUILD_JSON_SERIALIZATION@)
     find_dependency(nlohmann_json 3.9 REQUIRED)
 endif ()
+find_dependency(Threads)
 
 include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseTargets.cmake")
 
