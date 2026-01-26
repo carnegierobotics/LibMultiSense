@@ -8,32 +8,17 @@ include_directories(shared)
 # Common libraries that each utility needs to link with.
 #
 
-if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-set (MULTISENSE_UTILITY_LIBS
-     ${MULTISENSE_UTILITY_LIBS}
-     MultiSense
-     ws2_32
+find_package(Threads REQUIRED)
+list(APPEND MULTISENSE_UTILITY_LIBS
+    MultiSense
+    Threads::Threads
 )
 
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-set (MULTISENSE_UTILITY_LIBS
-     ${MULTISENSE_UTILITY_LIBS}
-     MultiSense
-     pthread
-)
-
-else ()
-
-set (MULTISENSE_UTILITY_LIBS
-     ${MULTISENSE_UTILITY_LIBS}
-     MultiSense
-     pthread
-     rt
-)
-
-endif ()
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    list(APPEND MULTISENSE_UTILITY_LIBS ws2_32)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    list(APPEND MULTISENSE_UTILITY_LIBS rt)
+endif()
 
 #
 # Recurse into each of these directories.

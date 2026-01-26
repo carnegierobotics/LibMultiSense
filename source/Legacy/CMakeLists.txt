@@ -86,12 +86,12 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 # We want to link against our child libraries.
 #
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+find_package(Threads REQUIRED)
+target_link_libraries(MultiSense Threads::Threads)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     target_link_libraries(MultiSense ws2_32)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    target_link_libraries(MultiSense pthread)
-else()
-    target_link_libraries(MultiSense pthread rt)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(MultiSense rt)
 endif()
 
 include(CMakePackageConfigHelpers)
