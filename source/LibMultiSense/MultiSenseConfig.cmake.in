@@ -3,7 +3,7 @@
 include(CMakeFindDependencyMacro)
 find_dependency(MultiSenseWire)
 if (@BUILD_JSON_SERIALIZATION@)
-    find_dependency(nlohmann_json 3.9 REQUIRED)
+    find_dependency(nlohmann_json 3.9)
 endif ()
 find_dependency(Threads)
 
