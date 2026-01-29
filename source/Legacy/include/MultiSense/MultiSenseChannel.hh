@@ -1210,6 +1210,31 @@ public:
                                         const std::vector<imu::Config>& c)  = 0;
 
     /**
+    * Set a new ptp offset in nanoseconds
+    *
+    * This offset can be applied to the stereo camera trigger mechanism to
+    * apply an offset to the grandmaster ptp pps signal.
+    *
+    * @param ptpOffsetNanoSeconds The offset to apply to the camera trigger in
+    * nano seconds.
+    *
+    * @return A crl::multisense::Status indicating of the ptpOffsetNanoSeconds
+    * could be appled.
+    */
+    virtual Status setPtpOffset        (int64_t ptpOffsetNanoSeconds) = 0;
+
+    /**
+    * Get the current ptp offset in nano seconds
+    *
+    * @param ptpOffsetNanoSeconds the current value of the ptp offset in
+    * nano seconds.
+    *
+    * @return A crl::multisense::Status indicating the query status of the
+    * ptp offset in nanoseconds.
+    */
+    virtual Status getPtpOffset        (int64_t &ptpOffsetNanoSeconds) = 0;
+
+    /**
      *
      * Query the suggested number and size of the image buffers.
      *

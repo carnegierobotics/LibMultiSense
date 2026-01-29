@@ -91,6 +91,10 @@
 #include <wire/SecondaryAppGetRegisteredAppsMessage.hh>
 #include <wire/SecondaryAppRegisteredAppsMessage.hh>
 
+#include <wire/PtpControlMessage.hh>
+#include <wire/PtpConfigMessage.hh>
+#include <wire/PtpGetConfigMessage.hh>
+
 #include <limits>
 
 #define __STDC_FORMAT_MACROS
@@ -712,6 +716,9 @@ void impl::dispatch(utility::BufferStreamWriter& buffer)
         break;
     case MSG_ID(wire::PtpStatusResponse::ID):
         m_messages.store(wire::PtpStatusResponse(stream, version));
+        break;
+    case MSG_ID(wire::PtpConfig::ID):
+        m_messages.store(wire::PtpConfig(stream, version));
         break;
     default:
 

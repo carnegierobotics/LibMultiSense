@@ -117,6 +117,10 @@
 #include <wire/SecondaryAppRegisteredAppsMessage.hh>
 #include <wire/SecondaryAppActivateMessage.hh>
 
+#include <wire/PtpControlMessage.hh>
+#include <wire/PtpConfigMessage.hh>
+#include <wire/PtpGetConfigMessage.hh>
+
 #include <utility/BufferStream.hh>
 
 namespace crl {
@@ -1970,6 +1974,29 @@ Status impl::setImuConfig(bool storeSettingsInFlash,
     }
 
     return waitAck(w);
+}
+
+
+//
+// Set/get the Ptp Offset
+
+Status impl::setPtpOffset(int64_t ptpOffsetNanoSeconds)
+{
+
+    wire::PtpControl cmd;
+    cmd.ptpOffsetNanoSeconds = ptpOffsetNanoSeconds;
+
+    return waitAck(cmd);
+}
+
+
+Status impl::getPtpOffset(int64_t &ptpOffsetNanoSeconds)
+{
+    wire::PtpConfig resp;
+
+    Status status = waitData(wire::PtpGetConfig(), resp);
+    ptpOffsetNanoSeconds = resp.ptpOffsetNanoSeconds;
+    return status;
 }
 
 //

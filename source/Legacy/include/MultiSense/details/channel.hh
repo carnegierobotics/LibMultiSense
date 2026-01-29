@@ -226,6 +226,9 @@ public:
     virtual Status secondaryAppActivate  (const std::string & s);
     virtual Status secondaryAppDeactivate(const std::string & s);
 
+    virtual Status setPtpOffset(int64_t offset);
+    virtual Status getPtpOffset(int64_t &offset);
+
     virtual system::ChannelStatistics getStats();
 
 private:

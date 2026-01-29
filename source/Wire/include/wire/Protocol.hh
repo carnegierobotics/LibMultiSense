@@ -198,6 +198,8 @@ static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_GET_CONFIG           = 0x0031;
 static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_CONTROL              = 0x0032;
 static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_GET_REGISTERED_APPS  = 0x0033;
 static CRL_CONSTEXPR IdType ID_CMD_SECONDARY_APP_ACTIVATE             = 0x0034;
+static CRL_CONSTEXPR IdType ID_CMD_PTP_CONTROL                        = 0x0035;
+static CRL_CONSTEXPR IdType ID_CMD_PTP_GET_CONFIG                     = 0x0036;
 
 //
 // Data
@@ -242,7 +244,7 @@ static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_META                 = 0x0128;
 static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP                      = 0x0129;
 static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_CONFIG               = 0x012A;
 static CRL_CONSTEXPR IdType ID_DATA_SECONDARY_APP_REGISTERED_APPS      = 0x012B;
-
+static CRL_CONSTEXPR IdType ID_DATA_PTP_CONFIG                         = 0x012C;
 
 //
 // Data sources
