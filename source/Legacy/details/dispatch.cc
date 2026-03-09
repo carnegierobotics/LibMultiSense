@@ -883,14 +883,25 @@ void impl::handle()
         const wire::Header& header = *(reinterpret_cast<const wire::Header*>(inP));
 
         if (wire::HEADER_MAGIC != header.magic)
+        {
+            if (wire::ignoredUdpProtocol(m_incomingBuffer))
+            {
+                continue;
+            }
+
             CRL_EXCEPTION("bad protocol magic: 0x%x, expecting 0x%x",
                           header.magic, wire::HEADER_MAGIC);
+        }
         else if (wire::HEADER_VERSION != header.version)
+        {
             CRL_EXCEPTION("bad protocol version: 0x%x, expecting 0x%x",
                           header.version, wire::HEADER_VERSION);
+        }
         else if (wire::HEADER_GROUP != header.group)
+        {
             CRL_EXCEPTION("bad protocol group: 0x%x, expecting 0x%x",
                           header.group, wire::HEADER_GROUP);
+        }
 
         //
         // Unwrap the sequence identifier
