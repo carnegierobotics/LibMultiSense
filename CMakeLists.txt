@@ -72,24 +72,40 @@ if (NOT BUILD_LEGACY_API)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
     #
-    # Ensure compiler support for std::filesystem (GCC 9.0+)
+    # Ensure compiler support for std::filesystem
     #
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-            message(FATAL_ERROR "GCC 9.0 or higher is required for std::filesystem support in the new MultiSense API. Current version: ${CMAKE_CXX_COMPILER_VERSION}")
+
+    set(FILESYSTEM_CODE "
+        #include <filesystem>
+        int main() {
+            std::filesystem::path p(\"/\");
+            return std::filesystem::exists(p) ? 0 : 1;
+        }
+    ")
+
+    check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM)
+
+    if (NOT HAVE_STD_FILESYSTEM)
+        # Try linking with stdc++fs (GCC < 9, Clang < 9)
+        set(CMAKE_REQUIRED_LIBRARIES stdc++fs)
+        check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_STDCXXFS)
+        if (HAVE_STD_FILESYSTEM_STDCXXFS)
+            set(FILESYSTEM_LIBRARY stdc++fs)
+            set(HAVE_STD_FILESYSTEM TRUE)
+        else()
+            # Try linking with c++fs (older Clang/libc++)
+            set(CMAKE_REQUIRED_LIBRARIES c++fs)
+            check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_CXXFS)
+            if (HAVE_STD_FILESYSTEM_CXXFS)
+                set(FILESYSTEM_LIBRARY c++fs)
+                set(HAVE_STD_FILESYSTEM TRUE)
+            endif()
         endif()
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
-            message(FATAL_ERROR "Clang 7.0 or higher is required for std::filesystem support in the new MultiSense API. Current version: ${CMAKE_CXX_COMPILER_VERSION}")
-        endif()
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.3)
-            message(FATAL_ERROR "AppleClang 10.3 or higher is required for std::filesystem support in the new MultiSense API. Current version: ${CMAKE_CXX_COMPILER_VERSION}")
-        endif()
-    elseif(MSVC)
-         if(MSVC_VERSION LESS 1914)
-            message(FATAL_ERROR "MSVC 19.14 (Visual Studio 2017 15.7) or higher is required for std::filesystem support in the new MultiSense API.")
-        endif()
+        unset(CMAKE_REQUIRED_LIBRARIES)
+    endif()
+
+    if (NOT HAVE_STD_FILESYSTEM)
+        message(FATAL_ERROR "The new MultiSense API requires a compiler with std::filesystem support (C++17).")
     endif()
 endif()
 

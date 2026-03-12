@@ -3,6 +3,7 @@ find_package(Threads REQUIRED)
 list(APPEND MULTISENSE_UTILITY_LIBS
     MultiSense
     Threads::Threads
+    ${FILESYSTEM_LIBRARY}
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
