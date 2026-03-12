@@ -70,6 +70,27 @@ endif ()
 if (NOT BUILD_LEGACY_API)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+    #
+    # Ensure compiler support for std::filesystem (GCC 9.0+)
+    #
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+            message(FATAL_ERROR "GCC 9.0 or higher is required for std::filesystem support in the new MultiSense API. Current version: ${CMAKE_CXX_COMPILER_VERSION}")
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
+            message(FATAL_ERROR "Clang 7.0 or higher is required for std::filesystem support in the new MultiSense API. Current version: ${CMAKE_CXX_COMPILER_VERSION}")
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.3)
+            message(FATAL_ERROR "AppleClang 10.3 or higher is required for std::filesystem support in the new MultiSense API. Current version: ${CMAKE_CXX_COMPILER_VERSION}")
+        endif()
+    elseif(MSVC)
+         if(MSVC_VERSION LESS 1914)
+            message(FATAL_ERROR "MSVC 19.14 (Visual Studio 2017 15.7) or higher is required for std::filesystem support in the new MultiSense API.")
+        endif()
+    endif()
 endif()
 
 #
