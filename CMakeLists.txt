@@ -70,6 +70,43 @@ endif ()
 if (NOT BUILD_LEGACY_API)
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+    #
+    # Ensure compiler support for std::filesystem
+    #
+
+    set(FILESYSTEM_CODE "
+        #include <filesystem>
+        int main() {
+            std::filesystem::path p(\"/\");
+            return std::filesystem::exists(p) ? 0 : 1;
+        }
+    ")
+
+    check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM)
+
+    if (NOT HAVE_STD_FILESYSTEM)
+        # Try linking with stdc++fs (GCC < 9, Clang < 9)
+        set(CMAKE_REQUIRED_LIBRARIES stdc++fs)
+        check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_STDCXXFS)
+        if (HAVE_STD_FILESYSTEM_STDCXXFS)
+            set(FILESYSTEM_LIBRARY stdc++fs)
+            set(HAVE_STD_FILESYSTEM TRUE)
+        else()
+            # Try linking with c++fs (older Clang/libc++)
+            set(CMAKE_REQUIRED_LIBRARIES c++fs)
+            check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_CXXFS)
+            if (HAVE_STD_FILESYSTEM_CXXFS)
+                set(FILESYSTEM_LIBRARY c++fs)
+                set(HAVE_STD_FILESYSTEM TRUE)
+            endif()
+        endif()
+        unset(CMAKE_REQUIRED_LIBRARIES)
+    endif()
+
+    if (NOT HAVE_STD_FILESYSTEM)
+        message(FATAL_ERROR "The new MultiSense API requires a compiler with std::filesystem support (C++17).")
+    endif()
 endif()
 
 #
