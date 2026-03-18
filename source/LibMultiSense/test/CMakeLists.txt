@@ -3,6 +3,7 @@ find_package(GTest REQUIRED)
 set(TEST_NAMES
     calibration_test
     configuration_test
+    feature_test
     info_test
     message_test
     multi_channel_test
