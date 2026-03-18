@@ -116,7 +116,13 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("AUX_CHROMA_RECTIFIED_RAW", multisense::DataSource::AUX_CHROMA_RECTIFIED_RAW)
         .value("AUX_RAW", multisense::DataSource::AUX_RAW)
         .value("AUX_RECTIFIED_RAW", multisense::DataSource::AUX_RECTIFIED_RAW)
-        .value("COST_RAW", multisense::DataSource::COST_RAW);
+        .value("COST_RAW", multisense::DataSource::COST_RAW)
+        .value("LEFT_ORB_FEATURES", multisense::DataSource::LEFT_ORB_FEATURES)
+        .value("RIGHT_ORB_FEATURES", multisense::DataSource::RIGHT_ORB_FEATURES)
+        .value("AUX_ORB_FEATURES", multisense::DataSource::AUX_ORB_FEATURES)
+        .value("LEFT_RECTIFIED_ORB_FEATURES", multisense::DataSource::LEFT_RECTIFIED_ORB_FEATURES)
+        .value("RIGHT_RECTIFIED_ORB_FEATURES", multisense::DataSource::RIGHT_RECTIFIED_ORB_FEATURES)
+        .value("AUX_RECTIFIED_ORB_FEATURES", multisense::DataSource::AUX_RECTIFIED_ORB_FEATURES);
 
     // ColorImageEncoding
     py::enum_<multisense::ColorImageEncoding>(m, "ColorImageEncoding")
@@ -156,6 +162,40 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("FLOAT32", multisense::Image::PixelFormat::FLOAT32)
         .value("JPEG", multisense::Image::PixelFormat::JPEG)
         .value("H264", multisense::Image::PixelFormat::H264);
+
+    // KeyPoint
+    py::class_<multisense::KeyPoint>(m, "KeyPoint")
+        .def(py::init<>())
+        .def_readwrite("x", &multisense::KeyPoint::x)
+        .def_readwrite("y", &multisense::KeyPoint::y)
+        .def_readwrite("angle", &multisense::KeyPoint::angle)
+        .def_readwrite("response", &multisense::KeyPoint::response)
+        .def_readwrite("octave", &multisense::KeyPoint::octave)
+        .def_readwrite("class_id", &multisense::KeyPoint::class_id);
+
+    // DescriptorType
+    py::enum_<multisense::DescriptorType>(m, "DescriptorType")
+        .value("UNKNOWN", multisense::DescriptorType::UNKNOWN)
+        .value("ORB", multisense::DescriptorType::ORB);
+
+    // FeatureMessage
+    py::class_<multisense::FeatureMessage>(m, "FeatureMessage")
+        .def(py::init<>())
+        .def_readonly("source", &multisense::FeatureMessage::source)
+        .def_readonly("descriptor_type", &multisense::FeatureMessage::descriptor_type)
+        .def_readonly("keypoints", &multisense::FeatureMessage::keypoints)
+        .def_property_readonly("descriptors", [](const multisense::FeatureMessage& msg)
+        {
+            const SSizeVector shape = {static_cast<py::ssize_t>(msg.descriptors.size())};
+            const SSizeVector strides = {static_cast<py::ssize_t>(sizeof(uint8_t))};
+            return py::array(py::buffer_info(
+                             const_cast<uint8_t*>(msg.descriptors.data()),
+                             static_cast<py::ssize_t>(sizeof(uint8_t)),
+                             py::format_descriptor<uint8_t>::format(),
+                             1,
+                             shape,
+                             strides));
+        });
 
     // Image
     py::class_<multisense::Image>(m, "Image")
@@ -269,8 +309,11 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("add_image", &multisense::ImageFrame::add_image)
         .def("get_image", &multisense::ImageFrame::get_image)
         .def("has_image", &multisense::ImageFrame::has_image)
+        .def("get_feature", &multisense::ImageFrame::get_feature)
+        .def("has_feature", &multisense::ImageFrame::has_feature)
         .def_readonly("frame_id", &multisense::ImageFrame::frame_id)
         .def_readonly("images", &multisense::ImageFrame::images)
+        .def_readonly("features", &multisense::ImageFrame::features)
         .def_readonly("calibration", &multisense::ImageFrame::calibration)
         .def_readonly("frame_time", &multisense::ImageFrame::frame_time)
         .def_readonly("ptp_frame_time", &multisense::ImageFrame::ptp_frame_time)

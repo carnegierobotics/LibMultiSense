@@ -43,6 +43,7 @@
 #include <wire/Protocol.hh>
 #include <utility/BufferStream.hh>
 #include <wire/ImageMetaMessage.hh>
+#include <wire/SecondaryAppMetaMessage.hh>
 
 #include "details/legacy/ip.hh"
 #include "details/legacy/message.hh"
@@ -288,9 +289,19 @@ private:
     void disparity_callback(std::shared_ptr<const std::vector<uint8_t>> data);
 
     ///
-    /// @brief Disparity callback used to internally receive images sent from the MultiSense
+    /// @brief Imu callback used to internally receive imu sent from the MultiSense
     ///
     void imu_callback(std::shared_ptr<const std::vector<uint8_t>> data);
+
+    ///
+    /// @brief Secondary app meta callback used to internally receive secondary app meta sent from the MultiSense
+    ///
+    void secondary_app_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data);
+
+    ///
+    /// @brief Secondary app data callback used to internally receive secondary app data sent from the MultiSense
+    ///
+    void secondary_app_data_callback(std::shared_ptr<const std::vector<uint8_t>> data);
 
     ///
     /// @brief Handle internal process, and potentially dispatch a image
@@ -301,6 +312,12 @@ private:
                              const StereoCalibration &calibration,
                              const TimeT &capture_time,
                              const TimeT &ptp_capture_time);
+
+    ///
+    /// @brief Handle internal process, and potentially dispatch a feature
+    ///
+    void handle_and_dispatch_feature(FeatureMessage feature,
+                                     int64_t frame_id);
 
     ///
     /// @brief Internal mutex used to handle updates from users
@@ -386,6 +403,11 @@ private:
     /// @brief A cache of image metadata associated with a specific frame id
     ///
     std::map<int64_t, crl::multisense::details::wire::ImageMeta> m_meta_cache{};
+
+    ///
+    /// @brief A cache of secondary app metadata associated with a specific frame id
+    ///
+    std::map<int64_t, crl::multisense::details::wire::SecondaryAppMetadata> m_secondary_app_meta_cache{};
 
     ///
     /// @brief A cache of image frames associated with a specific frame id

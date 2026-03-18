@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/FeatureDetectorMessage.hh
+ * @file FeatureMessage.hh
  *
  * This message contains first class feature data.
  *
@@ -37,8 +37,8 @@
  *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Moved file.
  **/
 
-#ifndef LibMultiSense_FeatureDetectorMessage
-#define LibMultiSense_FeatureDetectorMessage
+#ifndef LibMultiSense_FeatureMessage
+#define LibMultiSense_FeatureMessage
 
 #include <cmath>
 
@@ -46,7 +46,10 @@
 #include <utility/BufferStream.hh>
 #include <wire/Protocol.hh>
 
-using namespace crl::multisense::details;
+namespace crl {
+namespace multisense {
+namespace details {
+namespace wire {
 
 #pragma pack(push, 1)
 
@@ -122,5 +125,9 @@ public:
 
 #endif // !SENSORPOD_FIRMWARE
 
+} // namespace wire
+} // namespace details
+} // namespace multisense
+} // namespace crl
 
 #endif

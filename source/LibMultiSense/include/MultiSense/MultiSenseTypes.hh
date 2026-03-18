@@ -104,7 +104,13 @@ enum class DataSource : uint16_t
     AUX_RAW,
     AUX_RECTIFIED_RAW,
     COST_RAW,
-    IMU
+    IMU,
+    LEFT_ORB_FEATURES,
+    RIGHT_ORB_FEATURES,
+    AUX_ORB_FEATURES,
+    LEFT_RECTIFIED_ORB_FEATURES,
+    RIGHT_RECTIFIED_ORB_FEATURES,
+    AUX_RECTIFIED_ORB_FEATURES
 };
 
 enum class ColorImageEncoding : uint16_t
@@ -317,6 +323,55 @@ struct ImageHistogram
 };
 
 ///
+/// @brief Represents a generic feature keypoint
+///
+struct KeyPoint
+{
+    float x = 0.0f;
+    float y = 0.0f;
+    float angle = 0.0f;
+    float response = 0.0f;
+    uint32_t octave = 0;
+    uint32_t class_id = 0;
+};
+
+///
+/// @brief The descriptor type for features
+///
+enum class DescriptorType : uint8_t
+{
+    UNKNOWN,
+    ORB
+};
+
+///
+/// @brief A collection of features and their descriptors
+///
+struct FeatureMessage
+{
+    DataSource source = DataSource::UNKNOWN;
+    DescriptorType descriptor_type = DescriptorType::UNKNOWN;
+    std::vector<KeyPoint> keypoints{};
+    std::vector<uint8_t> descriptors{};
+
+#ifdef HAVE_OPENCV
+    ///
+    /// @brief Convert keypoints to native OpenCV keypoints
+    ///
+    std::vector<cv::KeyPoint> cv_keypoints() const;
+
+    ///
+    /// @brief Convert descriptors to a native OpenCV Mat.
+    ///        The cv::Mat returned here wraps the underlying descriptor data pointer associated with
+    ///        the FeatureMessage object. If the input FeatureMessage object goes out of scope while you are
+    ///        still using the corresponding cv::Mat, you will need to `clone` the cv::Mat creating an internal
+    ///        copy of all the data
+    ///
+    cv::Mat cv_descriptors() const;
+#endif
+};
+
+///
 /// @brief A frame containing multiple images (indexed by DataSource).
 ///
 struct ImageFrame
@@ -351,6 +406,35 @@ struct ImageFrame
     }
 
     ///
+    /// @brief Add a feature message to the frame, keyed by its DataSource.
+    ///
+    void add_feature(const FeatureMessage& feature)
+    {
+        features[feature.source] = feature;
+    }
+
+    ///
+    /// @brief Retrieve feature message by DataSource. Throws if not found.
+    ///
+    const FeatureMessage& get_feature(const DataSource &source) const
+    {
+        auto it = features.find(source);
+        if (it == features.end())
+        {
+            throw std::runtime_error("No feature found for requested DataSource");
+        }
+        return it->second;
+    }
+
+    ///
+    /// @brief Check if we have features for a given data source
+    ///
+    bool has_feature(const DataSource &source) const
+    {
+        return (features.find(source) != features.end());
+    }
+
+    ///
     /// @brief The unique monotonically increasing ID for each frame populated by the MultiSense
     ///
     int64_t frame_id = 0;
@@ -359,6 +443,11 @@ struct ImageFrame
     /// @brief The images associated with each source in the frame
     ///
     std::map<DataSource, Image> images{};
+
+    ///
+    /// @brief The features associated with each source in the frame
+    ///
+    std::map<DataSource, FeatureMessage> features{};
 
     ///
     /// @brief The scaled calibration for the entire camera

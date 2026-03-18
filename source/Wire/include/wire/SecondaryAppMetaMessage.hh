@@ -40,7 +40,7 @@
 #include <typeinfo>
 #include <cmath>
 
-#include "MultiSense/details/utility/Portability.hh"
+#include "utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

@@ -92,6 +92,10 @@
 #include <wire/SysTestMtuResponseMessage.hh>
 #include <wire/VersionRequestMessage.hh>
 #include <wire/VersionResponseMessage.hh>
+#include <wire/SecondaryAppDataMessage.hh>
+#include <wire/SecondaryAppMetaMessage.hh>
+#include <wire/FeatureMessage.hh>
+#include <wire/FeatureMetaMessage.hh>
 
 #include "details/legacy/channel.hh"
 #include "details/legacy/calibration.hh"
@@ -250,6 +254,12 @@ Status LegacyChannel::connect(const Config &config)
     m_message_assembler.register_callback(wire::ImuData::ID,
                                           std::bind(&LegacyChannel::imu_callback, this, std::placeholders::_1));
 
+    m_message_assembler.register_callback(wire::SecondaryAppData::ID,
+                                          std::bind(&LegacyChannel::secondary_app_data_callback, this, std::placeholders::_1));
+
+    m_message_assembler.register_callback(wire::SecondaryAppMetadata::ID,
+                                          std::bind(&LegacyChannel::secondary_app_meta_callback, this, std::placeholders::_1));
+
     //
     // Main thread which services incoming data and dispatches to callbacks and conditions attached to the channel
     //
@@ -354,7 +364,13 @@ void LegacyChannel::disconnect()
 
     m_connected = false;
 
+    m_message_assembler.remove_callback(wire::ImageMeta::ID);
     m_message_assembler.remove_callback(wire::Image::ID);
+    m_message_assembler.remove_callback(wire::CompressedImage::ID);
+    m_message_assembler.remove_callback(wire::Disparity::ID);
+    m_message_assembler.remove_callback(wire::ImuData::ID);
+    m_message_assembler.remove_callback(wire::SecondaryAppData::ID);
+    m_message_assembler.remove_callback(wire::SecondaryAppMetadata::ID);
 
     m_socket = NetworkSocket{};
 
@@ -1046,6 +1062,111 @@ Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sourc
     return Status::TIMEOUT;
 }
 
+void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
+{
+    using namespace crl::multisense::details;
+    const auto wire_meta = deserialize<wire::SecondaryAppMetadata>(*data);
+    m_secondary_app_meta_cache[wire_meta.frameId] = wire_meta;
+}
+
+void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vector<uint8_t>> data)
+{
+    using namespace crl::multisense::details;
+    using namespace std::chrono;
+
+    const auto wire_data = deserialize<wire::SecondaryAppData>(*data);
+    const auto source = convert_sources(static_cast<uint64_t>(wire_data.sourceExtended) << 32 | wire_data.source);
+    
+    if (source.size() != 1 || !is_feature_source(source[0]))
+    {
+        return;
+    }
+
+    const auto meta = m_secondary_app_meta_cache.find(wire_data.frameId);
+    if (meta == std::end(m_secondary_app_meta_cache))
+    {
+        CRL_DEBUG("Missing corresponding meta for feature frame_id %" PRIu64 "\n", wire_data.frameId);
+        return;
+    }
+
+    utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(meta->second.dataP), meta->second.dataLength);
+    wire::FeatureDetectorMeta feature_meta(metaStream, wire::FeatureDetectorMeta::VERSION);
+
+    utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(wire_data.dataP), wire_data.length);
+    wire::FeatureDetector featureDetector(stream, wire::FeatureDetector::VERSION);
+
+    FeatureMessage feature_msg;
+    feature_msg.source = source[0];
+    feature_msg.descriptor_type = DescriptorType::ORB;
+
+    const size_t startDescriptor = featureDetector.numFeatures * sizeof(wire::Feature);
+    uint8_t * feature_data = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+    
+    feature_msg.keypoints.reserve(featureDetector.numFeatures);
+    for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+        wire::Feature f = *reinterpret_cast<wire::Feature *>(feature_data + (i * sizeof(wire::Feature)));
+        KeyPoint kp;
+        kp.x = f.x;
+        kp.y = f.y;
+        kp.angle = f.angle;
+        kp.response = f.resp;
+        kp.octave = f.octave;
+        kp.class_id = f.descriptor;
+        feature_msg.keypoints.push_back(kp);
+    }
+
+    feature_msg.descriptors.reserve(featureDetector.numDescriptors * sizeof(wire::Descriptor));
+    for (size_t j = 0; j < featureDetector.numDescriptors; j++) {
+        wire::Descriptor d = *reinterpret_cast<wire::Descriptor *>(feature_data + (startDescriptor + (j * sizeof(wire::Descriptor))));
+        const uint8_t* d_bytes = reinterpret_cast<const uint8_t*>(d.d);
+        feature_msg.descriptors.insert(feature_msg.descriptors.end(), d_bytes, d_bytes + sizeof(wire::Descriptor));
+    }
+
+    const nanoseconds capture_time{seconds{wire_data.timeSeconds} +
+                                  microseconds{wire_data.timeMicroSeconds}};
+    const TimeT capture_time_point{capture_time};
+    const TimeT ptp_capture_time_point{nanoseconds{feature_meta.ptpNanoSeconds}};
+
+    handle_and_dispatch_feature(std::move(feature_msg), wire_data.frameId);
+}
+
+void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t frame_id)
+{
+    // Create a new frame if one does not exist, or add the input feature to the corresponding frame
+    if (m_frame_buffer.count(frame_id) == 0)
+    {
+        // Actually, without image metadata it's hard to fill the complete frame structure.
+        // We will initialize a partial frame and it will be completed when the image arrives.
+        ImageFrame frame;
+        frame.frame_id = frame_id;
+        frame.add_feature(std::move(feature));
+        m_frame_buffer.emplace(frame_id, std::move(frame));
+    }
+    else
+    {
+        m_frame_buffer[frame_id].add_feature(std::move(feature));
+    }
+
+    // Check if our frame is valid, if so dispatch to our callbacks and notify anyone who is waiting on the next frame
+    if (const auto &frame = m_frame_buffer[frame_id];
+            std::all_of(std::begin(m_active_streams),
+                        std::end(m_active_streams),
+                        [&frame](const auto &e) {
+                            if (is_image_source(e)) return frame.has_image(e);
+                            if (is_feature_source(e)) return frame.has_feature(e);
+                            return true;
+                        }))
+    {
+        m_image_frame_notifier.set_and_notify(frame);
+
+        std::lock_guard<std::mutex> lock(m_image_callback_mutex);
+        if (m_user_image_frame_callback)
+        {
+            m_user_image_frame_callback(frame);
+        }
+    }
+}
+
 void LegacyChannel::image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
     using namespace crl::multisense::details;
@@ -1330,6 +1451,7 @@ void LegacyChannel::handle_and_dispatch(Image image,
         const auto source = image.source;
         ImageFrame frame{frame_id,
                          std::map<DataSource, Image>{std::make_pair(source, std::move(image))},
+                         {},
                          calibration,
                          capture_time,
                          ptp_capture_time,
@@ -1352,7 +1474,11 @@ void LegacyChannel::handle_and_dispatch(Image image,
     if (const auto &frame = m_frame_buffer[frame_id];
             std::all_of(std::begin(m_active_streams),
                         std::end(m_active_streams),
-                        [&frame](const auto &e){return is_image_source(e) ? frame.has_image(e) : true;}))
+                        [&frame](const auto &e) {
+                            if (is_image_source(e)) return frame.has_image(e);
+                            if (is_feature_source(e)) return frame.has_feature(e);
+                            return true;
+                        }))
     {
         //
         // Notify anyone waiting on the next frame

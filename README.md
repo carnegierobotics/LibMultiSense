@@ -62,6 +62,9 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Color Image Generation](#color-image-generation)
   - [Python](#python-7)
   - [C++](#c-7)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-8)
+  - [C++](#c-8)
 
 ## Client Networking Prerequisite
 
@@ -727,6 +730,120 @@ int main(int argc, char** argv)
             if (const auto bgr = create_bgr_image(image_frame.value(), lms::DataSource::AUX_RAW); bgr)
             {
                 cv::imwrite(std::to_string(image_frame->frame_id) + ".png", bgr->cv_mat());
+            }
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+## Feature Rendering
+
+LibMultiSense supports retrieving image features computed on-camera. These are synchronized with the
+corresponding image frames.
+
+The following example demonstrates how to retrieve and render features on a rectified image.
+
+### Python
+
+```python
+import libmultisense as lms
+import cv2
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Start both the rectified image and the corresponding feature stream
+        sources = [lms.DataSource.LEFT_RECTIFIED_RAW, lms.DataSource.LEFT_RECTIFIED_ORB_FEATURES]
+        if channel.start_streams(sources) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
+
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame and frame.has_image(lms.DataSource.LEFT_RECTIFIED_RAW):
+                img = frame.get_image(lms.DataSource.LEFT_RECTIFIED_RAW).as_array
+
+                # Convert grayscale to BGR for color rendering
+                display_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+                if frame.has_feature(lms.DataSource.LEFT_RECTIFIED_ORB_FEATURES):
+                    features = frame.get_feature(lms.DataSource.LEFT_RECTIFIED_ORB_FEATURES)
+                    print(f"Frame {frame.frame_id}: Received {len(features.keypoints)} features")
+
+                    for kp in features.keypoints:
+                        cv2.circle(display_img, (int(kp.x), int(kp.y)), 3, (0, 255, 0), -1)
+
+                cv2.imshow("MultiSense Features", display_img)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+#define HAVE_OPENCV 1
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    // Start both the rectified image and the corresponding feature stream
+    const std::vector<lms::DataSource> sources = {
+        lms::DataSource::LEFT_RECTIFIED_RAW,
+        lms::DataSource::LEFT_RECTIFIED_ORB_FEATURES
+    };
+
+    if (const auto status = channel->start_streams(sources); status != lms::Status::OK)
+    {
+        std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
+        return 1;
+    }
+
+    while(true)
+    {
+        if (const auto frame = channel->get_next_image_frame(); frame)
+        {
+            if (frame->has_image(lms::DataSource::LEFT_RECTIFIED_RAW))
+            {
+                cv::Mat img = frame->get_image(lms::DataSource::LEFT_RECTIFIED_RAW).cv_mat();
+                cv::Mat display_img;
+                cv::cvtColor(img, display_img, cv::COLOR_GRAY2BGR);
+
+                if (frame->has_feature(lms::DataSource::LEFT_RECTIFIED_ORB_FEATURES))
+                {
+                    const auto& features = frame->get_feature(lms::DataSource::LEFT_RECTIFIED_ORB_FEATURES);
+
+                    // Use the native OpenCV utility to convert keypoints and draw them
+                    cv::drawKeypoints(display_img, features.cv_keypoints(), display_img, cv::Scalar(0, 255, 0));
+                }
+
+                cv::imshow("MultiSense Features", display_img);
+                if (cv::waitKey(1) == 'q') break;
             }
         }
     }

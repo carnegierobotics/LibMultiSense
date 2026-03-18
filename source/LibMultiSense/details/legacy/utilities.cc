@@ -69,6 +69,22 @@ bool is_image_source(const DataSource &source)
     }
 }
 
+bool is_feature_source(const DataSource &source)
+{
+    switch (source)
+    {
+        case DataSource::LEFT_ORB_FEATURES:
+        case DataSource::RIGHT_ORB_FEATURES:
+        case DataSource::AUX_ORB_FEATURES:
+        case DataSource::LEFT_RECTIFIED_ORB_FEATURES:
+        case DataSource::RIGHT_RECTIFIED_ORB_FEATURES:
+        case DataSource::AUX_RECTIFIED_ORB_FEATURES:
+            return true;
+        default:
+            return false;
+    }
+}
+
 Status get_status(const crl::multisense::details::wire::Ack::AckStatus &status)
 {
     using namespace crl::multisense::details::wire;
@@ -127,6 +143,12 @@ std::vector<DataSource> convert_sources(const crl::multisense::details::wire::So
     if (source & wire::SOURCE_CHROMA_RECT_AUX) {sources.push_back(DataSource::AUX_CHROMA_RECTIFIED_RAW);}
     if (source & wire::SOURCE_DISPARITY_COST) {sources.push_back(DataSource::COST_RAW);}
     if (source & wire::SOURCE_IMU) {sources.push_back(DataSource::IMU);}
+    if (source & wire::SOURCE_SECONDARY_APP_DATA_0) {sources.push_back(DataSource::LEFT_ORB_FEATURES);}
+    if (source & wire::SOURCE_SECONDARY_APP_DATA_1) {sources.push_back(DataSource::RIGHT_ORB_FEATURES);}
+    if (source & wire::SOURCE_SECONDARY_APP_DATA_2) {sources.push_back(DataSource::AUX_ORB_FEATURES);}
+    if (source & wire::SOURCE_SECONDARY_APP_DATA_3) {sources.push_back(DataSource::LEFT_RECTIFIED_ORB_FEATURES);}
+    if (source & wire::SOURCE_SECONDARY_APP_DATA_4) {sources.push_back(DataSource::RIGHT_RECTIFIED_ORB_FEATURES);}
+    if (source & wire::SOURCE_SECONDARY_APP_DATA_5) {sources.push_back(DataSource::AUX_RECTIFIED_ORB_FEATURES);}
 
     return sources;
 }
@@ -161,6 +183,12 @@ crl::multisense::details::wire::SourceType convert_sources(const std::vector<Dat
             case DataSource::AUX_RECTIFIED_RAW: {mask |= wire::SOURCE_CHROMA_RECT_AUX | wire::SOURCE_LUMA_RECT_AUX; break;}
             case DataSource::COST_RAW: {mask |= wire::SOURCE_DISPARITY_COST; break;}
             case DataSource::IMU: {mask |= wire::SOURCE_IMU; break;}
+            case DataSource::LEFT_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_0; break;}
+            case DataSource::RIGHT_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_1; break;}
+            case DataSource::AUX_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_2; break;}
+            case DataSource::LEFT_RECTIFIED_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_3; break;}
+            case DataSource::RIGHT_RECTIFIED_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_4; break;}
+            case DataSource::AUX_RECTIFIED_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_5; break;}
             case DataSource::ALL: {mask |= all_sources; break;}
             default: {CRL_DEBUG("Unsupported source %d", static_cast<int32_t>(source));}
         }

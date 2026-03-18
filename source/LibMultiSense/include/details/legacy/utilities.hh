@@ -103,6 +103,11 @@ struct ImuSampleScalars
 bool is_image_source(const DataSource &source);
 
 ///
+/// @brief Determine if a datasource is a feature source
+///
+bool is_feature_source(const DataSource &source);
+
+///
 /// Convert a wire status to a API Status
 ///
 Status get_status(const crl::multisense::details::wire::Ack::AckStatus &status);
