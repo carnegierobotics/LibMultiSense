@@ -1,0 +1,214 @@
+name: Build LibMultiSense
+
+on:
+  push:
+    branches:
+      - master
+  release:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+
+  build-ubuntu:
+    strategy:
+      matrix:
+        ubuntu: [ubuntu-22.04, ubuntu-24.04]
+        compiler: [gcc, clang]
+    runs-on: ${{ matrix.ubuntu }}
+    env:
+      CC: ${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
+      CXX: ${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtest-dev nlohmann-json3-dev pybind11-dev python3-pip ninja-build
+
+      - name: Install Clang
+        if: matrix.compiler == 'clang'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang
+
+      - name: Build Release
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER="${CC}" \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTS=ON \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_INSTALL_PREFIX=install-release
+
+          cmake --build build -j "$(nproc)"
+          make -C build test
+          cmake --install build
+          mkdir pip-wheel
+          python -m venv .venv
+          source .venv/bin/activate
+          pip wheel --wheel-dir pip-wheel .
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-release-ubuntu-${{ matrix.ubuntu }}-${{ matrix.compiler }}
+          path: install-release/
+
+      - name: Upload pip wheel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmultisense-wheel-${{ matrix.ubuntu }}-${{ matrix.compiler }}
+          path: pip-wheel/
+
+      - name: Build Debug
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER="${CC}" \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_TESTS=ON \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_INSTALL_PREFIX=install-debug
+
+          cmake --build build -j "$(nproc)"
+          make -C build test
+          cmake --install build
+
+  build-macos:
+    name: Build on macOS (${{ matrix.compiler }})
+    runs-on: macOS-latest
+    strategy:
+      matrix:
+        compiler: [apple-clang, brew-llvm]
+    env:
+      CC: ${{ matrix.compiler == 'brew-llvm' && 'clang' || 'cc' }}
+      CXX: ${{ matrix.compiler == 'brew-llvm' && 'clang++' || 'c++' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install macOS Deps
+        run: |
+          brew install pybind11 nlohmann-json googletest
+
+      - name: Install Homebrew LLVM
+        if: matrix.compiler == 'brew-llvm'
+        run: |
+          brew install llvm
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Build Release
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER="${CC}" \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_LEGACY_API=OFF \
+            -DBUILD_TESTS=ON \
+            -DCMAKE_INSTALL_PREFIX=install-release
+
+          cmake --build build --target install -j "$(sysctl -n hw.ncpu)"
+          mkdir pip-wheel
+          pip wheel --wheel-dir pip-wheel ${{ github.workspace }}
+          make -C build test
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-install-release-${{ matrix.compiler }}
+          path: install-release/
+
+      - name: Upload pip wheel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmultisense-wheel-macos-${{ matrix.compiler }}
+          path: pip-wheel/
+
+      - name: Build Debug
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER="${CC}" \
+            -DCMAKE_CXX_COMPILER="${CXX}" \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DBUILD_LEGACY_API=OFF \
+            -DBUILD_TESTS=ON
+
+          cmake --build build -j "$(sysctl -n hw.ncpu)"
+          make -C build test
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-2022
+    env:
+        VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+
+      - name: Cache vcpkg
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./vcpkg/packages
+            ./vcpkg_installed
+            ./vcpkg/install
+            ./vcpkg/scripts
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Install vcpkg dependencies
+        run: ${{ github.workspace }}/vcpkg/vcpkg install --triplet x64-windows
+
+      - name: Build Release
+        shell: bash
+        run: |
+          cmake -B build -S . \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=install-release
+
+          cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+          mkdir pip-wheel
+          pip wheel --wheel-dir pip-wheel .
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-install-release
+          path: ${{ github.workspace }}/install-release
+
+      - name: Upload pip wheel Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmulitisense-wheel-windows
+          path: pip-wheel/
+
+      - name: Build Debug
+        shell: bash
+        run: |
+          cmake -B build -S . \
+            -DBUILD_JSON_SERIALIZATION=ON \
+            -DBUILD_PYTHON_BINDINGS=ON \
+            -DBUILD_LEGACY_API=OFF \
+            -DCMAKE_BUILD_TYPE=Debug
+
+          cmake --build build --config Debug -j "$(nproc || sysctl -n hw.ncpu || echo 8)"

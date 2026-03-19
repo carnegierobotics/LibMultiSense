@@ -5,7 +5,7 @@ AT&T Public License
 
 Code given out at the 1985 UNIFORUM conference in Dallas.
 
-Signficant updates:
+Significant updates:
     2014-12-12: Updated to use CRL_HAVE_GETOPT preprocessor definition
 */
 #ifndef GETOPT_H_B9B6A349_4F17_4D0B_BBBC_F347117B4E27

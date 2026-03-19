@@ -7,21 +7,20 @@
 # Make sure there is a reasonable version of CMAKE installed.
 #
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.15)
 
-set(CPACK_PACKAGE_VERSION "6.1.0")
+if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
+endif()
 
-if (${CMAKE_VERSION} VERSION_LESS "3.12")
-    project(LibMultiSense
-      LANGUAGES C CXX
-      VERSION ${CPACK_PACKAGE_VERSION})
-else()
-    project(LibMultiSense
-      LANGUAGES C CXX
-      HOMEPAGE_URL https://carnegierobotics.com
-      DESCRIPTION "The CRL Multisense Interface Library"
-      VERSION ${CPACK_PACKAGE_VERSION})
-endif ()
+set(version "7.4.0")
+set(CPACK_PACKAGE_VERSION ${version})
+
+project(LibMultiSense
+  LANGUAGES C CXX
+  HOMEPAGE_URL https://carnegierobotics.com
+  DESCRIPTION "The CRL Multisense Interface Library"
+  VERSION ${CPACK_PACKAGE_VERSION})
 
 include (CheckCXXSourceCompiles)
 
@@ -35,7 +34,7 @@ else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     #
     # Fix warnings with __VA__OPT__ when we port to c++2a
     # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
@@ -43,9 +42,14 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wno-gnu-zero-variadic-macro-arguments)
 endif()
 
-option (MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
-option (BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
-option (BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
+option(BUILD_LEGACY_API "Build the legacy MultiSense API. Defaults to On for backwards compatibility." ON)
+option(MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
+option(BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
+option(BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
+option(BUILD_OPENCV "Use OpenCV if found on the host system" OFF)
+option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
+option(BUILD_JSON_SERIALIZATION "Build json type serialization with nlohmann json." OFF)
+option(ENABLE_ASAN "Build with AddressSanitizer instrumentation." OFF)
 
 if (BUILD_TESTS)
     enable_testing()
@@ -61,6 +65,51 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif ()
 
 #
+# The new API requires C++17
+#
+if (NOT BUILD_LEGACY_API)
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+    #
+    # Ensure compiler support for std::filesystem
+    #
+
+    set(FILESYSTEM_CODE "
+        #include <filesystem>
+        int main() {
+            std::filesystem::path p(\"/\");
+            return std::filesystem::exists(p) ? 0 : 1;
+        }
+    ")
+
+    check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM)
+
+    if (NOT HAVE_STD_FILESYSTEM)
+        # Try linking with stdc++fs (GCC < 9, Clang < 9)
+        set(CMAKE_REQUIRED_LIBRARIES stdc++fs)
+        check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_STDCXXFS)
+        if (HAVE_STD_FILESYSTEM_STDCXXFS)
+            set(FILESYSTEM_LIBRARY stdc++fs)
+            set(HAVE_STD_FILESYSTEM TRUE)
+        else()
+            # Try linking with c++fs (older Clang/libc++)
+            set(CMAKE_REQUIRED_LIBRARIES c++fs)
+            check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_CXXFS)
+            if (HAVE_STD_FILESYSTEM_CXXFS)
+                set(FILESYSTEM_LIBRARY c++fs)
+                set(HAVE_STD_FILESYSTEM TRUE)
+            endif()
+        endif()
+        unset(CMAKE_REQUIRED_LIBRARIES)
+    endif()
+
+    if (NOT HAVE_STD_FILESYSTEM)
+        message(FATAL_ERROR "The new MultiSense API requires a compiler with std::filesystem support (C++17).")
+    endif()
+endif()
+
+#
 # Check if the compiler supports constexpr
 #
 check_cxx_source_compiles (
@@ -72,7 +121,7 @@ if (HAVE_CONSTEXPR)
 endif ()
 
 #
-# For Backwards compatablity with other ROS builds
+# For Backwards compatibility with other ROS builds
 #
 if (BASE_DIRECTORY)
 else()
@@ -89,27 +138,65 @@ set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #
+# Setup optional dependencies
+#
+if (BUILD_OPENCV)
+   find_package(OpenCV QUIET)
+
+  if(OpenCV_FOUND)
+    message(STATUS "OpenCV found. Enabling OpenCV-specific code.")
+  else()
+    message(STATUS "OpenCV not found. Building without OpenCV support.")
+  endif()
+endif()
+
+if (BUILD_JSON_SERIALIZATION)
+    find_package(nlohmann_json 3.9)
+    if(nlohmann_json_FOUND)
+        message(STATUS "Building JSON serialization helper functions")
+    else()
+        message(WARNING "Could not find nlohmann json. Skipping JSON serialization helpers")
+        set(BUILD_JSON_SERIALIZATION OFF)
+    endif()
+endif()
+
+if (ENABLE_ASAN)
+    if (MSVC)
+        message(FATAL_ERROR "ENABLE_ASAN is only supported with Clang or GCC toolchains.")
+    endif()
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer -fno-common)
+    add_link_options(-fsanitize=address)
+endif()
+
+#
 # Dispatch to subordinate CMakeList.txt files.
 #
 
 add_subdirectory(source)
 
+if (NOT BUILD_LEGACY_API AND BUILD_PYTHON_BINDINGS)
+    add_subdirectory(python)
+endif()
+
 #
 # Generate pc file, for pkgconfig compatibility
 #
 if (NOT ${CMAKE_VERSION} VERSION_LESS "3.12")
-    file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/LibMultiSense.pc CONTENT
-    "prefix=\"${CMAKE_INSTALL_PREFIX}\"
-    exec_prefix=\"\${prefix}\"
-    libdir=\"\${prefix}/lib\"
-    includedir=\"\${prefix}/include\"
-    Name: ${PROJECT_NAME}
-    Description: ${CMAKE_PROJECT_DESCRIPTION}
-    URL: ${CMAKE_PROJECT_HOMEPAGE_URL}
-    Version: ${PROJECT_VERSION}
-    Cflags: -I$<JOIN:\"\${includedir}\";$<TARGET_PROPERTY:MultiSense,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>, -I>
-    Libs: -L\"\${libdir}\" -lMultiSense
-    ")
+    file(GENERATE
+         OUTPUT "${CMAKE_BINARY_DIR}/LibMultiSense.pc"
+         CONTENT
+         "prefix=\${prefix}
+         exec_prefix=\${prefix}
+         libdir=\${prefix}/lib
+         includedir=\${prefix}/include
+
+         Name: ${PROJECT_NAME}
+         Description: ${CMAKE_PROJECT_DESCRIPTION}
+         URL: ${CMAKE_PROJECT_HOMEPAGE_URL}
+         Version: ${PROJECT_VERSION}
+         Cflags: -I\${includedir}
+         Libs: -L\${libdir} -lMultiSense"
+)
 
     install(FILES ${CMAKE_BINARY_DIR}/LibMultiSense.pc DESTINATION lib/pkgconfig COMPONENT development)
 endif ()
