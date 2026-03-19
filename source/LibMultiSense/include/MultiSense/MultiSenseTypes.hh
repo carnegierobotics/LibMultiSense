@@ -345,6 +345,16 @@ enum class DescriptorType : uint8_t
 };
 
 ///
+/// @brief Configuration for the on-camera feature detector
+///
+struct FeatureDetectorConfig
+{
+    uint32_t number_of_features = 1500;
+    bool grouping_enabled = true;
+    uint32_t motion_octave = 1;
+};
+
+///
 /// @brief A collection of features and their descriptors
 ///
 struct FeatureMessage

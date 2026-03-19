@@ -65,6 +65,9 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Feature Rendering](#feature-rendering)
   - [Python](#python-8)
   - [C++](#c-8)
+- [Feature Configuration](#feature-configuration)
+  - [Python](#python-9)
+  - [C++](#c-9)
 
 ## Client Networking Prerequisite
 
@@ -846,6 +849,66 @@ int main(int argc, char** argv)
                 if (cv::waitKey(1) == 'q') break;
             }
         }
+    }
+
+    return 0;
+}
+```
+
+---
+
+## Feature Configuration
+
+You can configure the on-camera feature detector's parameters, such as the maximum number of features
+and whether to enable feature grouping.
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        # Get current configuration
+        config = channel.get_feature_config()
+        if config:
+            print(f"Current features: {config.number_of_features}")
+            
+            # Update configuration
+            config.number_of_features = 2000
+            config.grouping_enabled = True
+            channel.set_feature_config(config)
+            print("Configuration updated")
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+
+namespace lms = multisense;
+
+int main()
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    
+    // Get current configuration
+    if (auto config = channel->get_feature_config(); config)
+    {
+        std::cout << "Current features: " << config->number_of_features << std::endl;
+
+        // Update configuration
+        config->number_of_features = 2000;
+        config->grouping_enabled = true;
+        channel->set_feature_config(*config);
+        std::cout << "Configuration updated" << std::endl;
     }
 
     return 0;

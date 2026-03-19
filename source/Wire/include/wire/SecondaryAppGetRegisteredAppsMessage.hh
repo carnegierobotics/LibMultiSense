@@ -39,7 +39,7 @@
 #ifndef LibMultiSense_SecondaryAppGetRegisteredApps
 #define LibMultiSense_SecondaryAppGetRegisteredApps
 
-#include "MultiSense/details/utility/Portability.hh"
+#include "utility/Portability.hh"
 
 namespace crl {
 namespace multisense {

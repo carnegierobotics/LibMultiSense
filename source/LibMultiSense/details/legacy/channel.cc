@@ -92,10 +92,15 @@
 #include <wire/SysTestMtuResponseMessage.hh>
 #include <wire/VersionRequestMessage.hh>
 #include <wire/VersionResponseMessage.hh>
+#include <wire/SecondaryAppActivateMessage.hh>
+#include <wire/SecondaryAppConfigMessage.hh>
+#include <wire/SecondaryAppGetConfigMessage.hh>
+#include <wire/SecondaryAppControlMessage.hh>
 #include <wire/SecondaryAppDataMessage.hh>
 #include <wire/SecondaryAppMetaMessage.hh>
 #include <wire/FeatureMessage.hh>
 #include <wire/FeatureMetaMessage.hh>
+#include <wire/FeatureConfig.hh>
 
 #include "details/legacy/channel.hh"
 #include "details/legacy/calibration.hh"
@@ -598,6 +603,87 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
     }
 
     return Status::INTERNAL_ERROR;
+}
+
+std::optional<FeatureDetectorConfig> LegacyChannel::get_feature_config()
+{
+    using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
+    const auto secondary_config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
+                                                                          m_socket,
+                                                                          wire::SecondaryAppGetConfig(),
+                                                                          m_transmit_id++,
+                                                                          m_current_mtu,
+                                                                          m_config.receive_timeout);
+
+    if (secondary_config)
+    {
+        if (secondary_config->dataLength < sizeof(wire::FeatureDetectorConfigParams))
+        {
+            CRL_DEBUG("Feature detector config response too small: %u < %zu\n",
+                      secondary_config->dataLength, sizeof(wire::FeatureDetectorConfigParams));
+            return std::nullopt;
+        }
+
+        const auto *params = reinterpret_cast<const wire::FeatureDetectorConfigParams *>(secondary_config->data);
+        FeatureDetectorConfig config;
+        config.number_of_features = params->numberOfFeatures;
+        config.grouping_enabled = params->grouping;
+        config.motion_octave = params->motion;
+
+        return std::make_optional(config);
+    }
+
+    return std::nullopt;
+}
+
+Status LegacyChannel::set_feature_config(const FeatureDetectorConfig &config)
+{
+    using namespace crl::multisense::details;
+
+    if (!m_connected)
+    {
+        return Status::UNINITIALIZED;
+    }
+
+    // We first need to get the current config to preserve internal options
+    const auto secondary_config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
+                                                                          m_socket,
+                                                                          wire::SecondaryAppGetConfig(),
+                                                                          m_transmit_id++,
+                                                                          m_current_mtu,
+                                                                          m_config.receive_timeout);
+
+    wire::FeatureDetectorConfigParams params;
+    if (secondary_config && secondary_config->dataLength >= sizeof(wire::FeatureDetectorConfigParams))
+    {
+        std::memcpy(&params, secondary_config->data, sizeof(wire::FeatureDetectorConfigParams));
+    }
+
+    params.numberOfFeatures = config.number_of_features;
+    params.grouping = config.grouping_enabled;
+    params.motion = config.motion_octave;
+
+    wire::SecondaryAppControl control;
+    control.dataLength = sizeof(wire::FeatureDetectorConfigParams);
+    std::memcpy(control.data, &params, sizeof(wire::FeatureDetectorConfigParams));
+
+    if (const auto ack = wait_for_ack(m_message_assembler,
+                                      m_socket,
+                                      control,
+                                      m_transmit_id++,
+                                      m_current_mtu,
+                                      m_config.receive_timeout); ack)
+    {
+        return get_status(ack->status);
+    }
+
+    return Status::TIMEOUT;
 }
 
 StereoCalibration LegacyChannel::get_calibration()

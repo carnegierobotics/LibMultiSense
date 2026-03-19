@@ -189,3 +189,16 @@ TEST(FeatureWire, Serialization)
     EXPECT_EQ(desc_ptr[1].d[0], 10);
 }
 
+TEST(FeatureConfig, Basic)
+{
+    FeatureDetectorConfig config;
+    config.number_of_features = 2000;
+    config.grouping_enabled = false;
+    config.motion_octave = 2;
+
+    EXPECT_EQ(config.number_of_features, 2000);
+    EXPECT_FALSE(config.grouping_enabled);
+    EXPECT_EQ(config.motion_octave, 2);
+}
+
+

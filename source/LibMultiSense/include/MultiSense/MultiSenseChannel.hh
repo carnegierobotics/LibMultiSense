@@ -210,6 +210,16 @@ public:
     virtual Status set_config(const MultiSenseConfig &config) = 0;
 
     ///
+    /// @brief Get the camera's feature detector configuration
+    ///
+    virtual std::optional<FeatureDetectorConfig> get_feature_config() = 0;
+
+    ///
+    /// @brief Set the camera's feature detector configuration
+    ///
+    virtual Status set_feature_config(const FeatureDetectorConfig &config) = 0;
+
+    ///
     /// @brief Get the current stereo calibration. The output calibration will correspond to the full-resolution
     ///        operating mode of the camera
     ///

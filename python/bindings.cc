@@ -178,6 +178,13 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("UNKNOWN", multisense::DescriptorType::UNKNOWN)
         .value("ORB", multisense::DescriptorType::ORB);
 
+    // FeatureDetectorConfig
+    py::class_<multisense::FeatureDetectorConfig>(m, "FeatureDetectorConfig")
+        .def(py::init<>())
+        .def_readwrite("number_of_features", &multisense::FeatureDetectorConfig::number_of_features)
+        .def_readwrite("grouping_enabled", &multisense::FeatureDetectorConfig::grouping_enabled)
+        .def_readwrite("motion_octave", &multisense::FeatureDetectorConfig::motion_octave);
+
     // FeatureMessage
     py::class_<multisense::FeatureMessage>(m, "FeatureMessage")
         .def(py::init<>())
@@ -749,6 +756,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("get_next_image_frame", &multisense::Channel::get_next_image_frame, py::call_guard<py::gil_scoped_release>())
         .def("get_config", &multisense::Channel::get_config, py::call_guard<py::gil_scoped_release>())
         .def("set_config", &multisense::Channel::set_config, py::call_guard<py::gil_scoped_release>())
+        .def("get_feature_config", &multisense::Channel::get_feature_config, py::call_guard<py::gil_scoped_release>())
+        .def("set_feature_config", &multisense::Channel::set_feature_config, py::call_guard<py::gil_scoped_release>())
         .def("get_calibration", &multisense::Channel::get_calibration, py::call_guard<py::gil_scoped_release>())
         .def("set_calibration", &multisense::Channel::set_calibration, py::call_guard<py::gil_scoped_release>())
         .def("get_info", &multisense::Channel::get_info, py::call_guard<py::gil_scoped_release>())
