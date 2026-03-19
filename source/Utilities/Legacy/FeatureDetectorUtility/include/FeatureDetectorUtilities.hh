@@ -39,10 +39,11 @@
 
 #include <wire/FeatureMessage.hh>
 #include <wire/FeatureMetaMessage.hh>
-#include "FeatureDetectorConfig.hh"
+#include <wire/FeatureConfig.hh>
 
 using namespace crl::multisense;
 using namespace crl::multisense::details;
+using namespace crl::multisense::details::wire;
 
 namespace feature_detector
 {

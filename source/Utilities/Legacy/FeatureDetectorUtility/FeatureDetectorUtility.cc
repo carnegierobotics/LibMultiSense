@@ -547,7 +547,7 @@ int main(int    argc,
 
     Status status;
     system::VersionInfo v;
-    VersionType version;
+    crl::multisense::VersionType version;
     std::vector<system::DeviceMode> deviceModes;
     system::DeviceMode operatingMode;
     image::Calibration calibration;
