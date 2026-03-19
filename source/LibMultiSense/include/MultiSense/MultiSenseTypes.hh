@@ -327,11 +327,34 @@ struct ImageHistogram
 ///
 struct KeyPoint
 {
+    ///
+    /// @brief x location of the keypoint in the output image
+    ///
     float x = 0.0f;
+
+    ///
+    /// @brief y location of the keypoint in the output image
+    ///
     float y = 0.0f;
+
+    ///
+    /// @brief the angle of the intensity centroid
+    ///
     float angle = 0.0f;
+
+    ///
+    /// @brief harris conerness core
+    ///
     float response = 0.0f;
+
+    ///
+    /// @brief the image pyramid layer the keypoint was generated from
+    ///
     uint32_t octave = 0;
+
+    ///
+    /// @brief optional grouping id
+    ///
     uint32_t class_id = 0;
 };
 
@@ -349,7 +372,14 @@ enum class DescriptorType : uint8_t
 ///
 struct FeatureDetectorConfig
 {
+    ///
+    /// @brief Max number of features to detect
+    ///
     uint32_t number_of_features = 1500;
+
+    ///
+    /// @brief Attempt to group features with similar class ids
+    ///
     bool grouping_enabled = true;
     uint32_t motion_octave = 1;
 };

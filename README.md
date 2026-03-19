@@ -876,7 +876,7 @@ def main():
         config = channel.get_feature_config()
         if config:
             print(f"Current features: {config.number_of_features}")
-            
+
             # Update configuration
             config.number_of_features = 2000
             config.grouping_enabled = True
@@ -898,7 +898,7 @@ namespace lms = multisense;
 int main()
 {
     const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
-    
+
     // Get current configuration
     if (auto config = channel->get_feature_config(); config)
     {

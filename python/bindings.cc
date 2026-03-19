@@ -181,6 +181,7 @@ PYBIND11_MODULE(_libmultisense, m) {
     // FeatureDetectorConfig
     py::class_<multisense::FeatureDetectorConfig>(m, "FeatureDetectorConfig")
         .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::FeatureDetectorConfig)
         .def_readwrite("number_of_features", &multisense::FeatureDetectorConfig::number_of_features)
         .def_readwrite("grouping_enabled", &multisense::FeatureDetectorConfig::grouping_enabled)
         .def_readwrite("motion_octave", &multisense::FeatureDetectorConfig::motion_octave);

@@ -439,6 +439,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo,
                                    imu,
                                    network)
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FeatureDetectorConfig,
+                                   number_of_features,
+                                   grouping_enabled,
+                                   motion_octave)
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Channel::ReceiveBufferConfig,
                                    num_small_buffers,
                                    small_buffer_size,
