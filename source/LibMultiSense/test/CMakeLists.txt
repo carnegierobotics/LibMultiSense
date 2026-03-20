@@ -11,10 +11,6 @@ set(TEST_NAMES
     storage_test
     utilities_test)
 
-if (BUILD_JSON_SERIALIZATION)
-    list(APPEND TEST_NAMES json_serialization_test)
-endif()
-
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cc)
     target_link_libraries(${TEST_NAME} PRIVATE MultiSense
