@@ -199,9 +199,27 @@ function multisense_protocol.dissector(tvb, pinfo, tree)
     elseif idType == 0x0029 then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SYS_SET_PTP")
     elseif idType == 0x002a then
-        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_REMOTE_HEAD_GET_CONFIG")
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_CAM_AUX_CONTROL")
     elseif idType == 0x002b then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_CAM_GET_AUX_CONFIG")
+    elseif idType == 0x002c then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_REMOTE_HEAD_GET_CONFIG")
+    elseif idType == 0x002d then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_REMOTE_HEAD_CONTROL")
+    elseif idType == 0x002e then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_GET_PTP_STATUS")
+    elseif idType == 0x002f then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SYS_SET_PACKET_DELAY")
+    elseif idType == 0x0030 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SYS_GET_PACKET_DELAY")
+    elseif idType == 0x0031 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SECONDARY_APP_GET_CONFIG")
+    elseif idType == 0x0032 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SECONDARY_APP_CONTROL")
+    elseif idType == 0x0033 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SECONDARY_APP_GET_REGISTERED_APPS")
+    elseif idType == 0x0034 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SECONDARY_APP_ACTIVATE")
     elseif idType == 0x0102 then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_VERSION")
     elseif idType == 0x0103 then
@@ -267,7 +285,21 @@ function multisense_protocol.dissector(tvb, pinfo, tree)
     elseif idType == 0x0123 then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_SYS_APRILTAG_PARAM")
     elseif idType == 0x0124 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_CAM_AUX_CONFIG")
+    elseif idType == 0x0125 then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_REMOTE_HEAD_CONFIG")
+    elseif idType == 0x0126 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_PTP_STATUS")
+    elseif idType == 0x0127 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_SYS_PACKET_DELAY")
+    elseif idType == 0x0128 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_SECONDARY_APP_META")
+    elseif idType == 0x0129 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_SECONDARY_APP")
+    elseif idType == 0x012a then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_SECONDARY_APP_CONFIG")
+    elseif idType == 0x012b then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_SECONDARY_APP_REGISTERED_APPS")
     end
 
     if payload ~= nil then
