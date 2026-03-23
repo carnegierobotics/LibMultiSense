@@ -116,7 +116,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("AUX_CHROMA_RECTIFIED_RAW", multisense::DataSource::AUX_CHROMA_RECTIFIED_RAW)
         .value("AUX_RAW", multisense::DataSource::AUX_RAW)
         .value("AUX_RECTIFIED_RAW", multisense::DataSource::AUX_RECTIFIED_RAW)
-        .value("COST_RAW", multisense::DataSource::COST_RAW);
+        .value("COST_RAW", multisense::DataSource::COST_RAW)
+        .value("IMU", multisense::DataSource::IMU);
 
     // ColorImageEncoding
     py::enum_<multisense::ColorImageEncoding>(m, "ColorImageEncoding")
@@ -278,6 +279,30 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("stereo_histogram", &multisense::ImageFrame::stereo_histogram)
         .def_readonly("capture_exposure_time", &multisense::ImageFrame::capture_exposure_time)
         .def_readonly("capture_gain", &multisense::ImageFrame::capture_gain);
+
+    // ImuSample::Measurement
+    py::class_<multisense::ImuSample::Measurement>(m, "ImuMeasurement")
+        .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::ImuSample::Measurement)
+        .def_readwrite("x", &multisense::ImuSample::Measurement::x)
+        .def_readwrite("y", &multisense::ImuSample::Measurement::y)
+        .def_readwrite("z", &multisense::ImuSample::Measurement::z);
+
+    // ImuSample
+    py::class_<multisense::ImuSample>(m, "ImuSample")
+        .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::ImuSample)
+        .def_readwrite("accelerometer", &multisense::ImuSample::accelerometer)
+        .def_readwrite("gyroscope", &multisense::ImuSample::gyroscope)
+        .def_readwrite("magnetometer", &multisense::ImuSample::magnetometer)
+        .def_readwrite("sample_time", &multisense::ImuSample::sample_time)
+        .def_readwrite("ptp_sample_time", &multisense::ImuSample::ptp_sample_time);
+
+    // ImuFrame
+    py::class_<multisense::ImuFrame>(m, "ImuFrame")
+        .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::ImuFrame)
+        .def_readonly("samples", &multisense::ImuFrame::samples);
 
     // ImuRate
     py::class_<multisense::ImuRate>(m, "ImuRate")
@@ -704,6 +729,7 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("connect", &multisense::Channel::connect)
         .def("disconnect", &multisense::Channel::disconnect)
         .def("get_next_image_frame", &multisense::Channel::get_next_image_frame, py::call_guard<py::gil_scoped_release>())
+        .def("get_next_imu_frame", &multisense::Channel::get_next_imu_frame, py::call_guard<py::gil_scoped_release>())
         .def("get_config", &multisense::Channel::get_config, py::call_guard<py::gil_scoped_release>())
         .def("set_config", &multisense::Channel::set_config, py::call_guard<py::gil_scoped_release>())
         .def("get_calibration", &multisense::Channel::get_calibration, py::call_guard<py::gil_scoped_release>())
