@@ -116,7 +116,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("AUX_CHROMA_RECTIFIED_RAW", multisense::DataSource::AUX_CHROMA_RECTIFIED_RAW)
         .value("AUX_RAW", multisense::DataSource::AUX_RAW)
         .value("AUX_RECTIFIED_RAW", multisense::DataSource::AUX_RECTIFIED_RAW)
-        .value("COST_RAW", multisense::DataSource::COST_RAW);
+        .value("COST_RAW", multisense::DataSource::COST_RAW)
+        .value("IMU", multisense::DataSource::IMU);
 
     // ColorImageEncoding
     py::enum_<multisense::ColorImageEncoding>(m, "ColorImageEncoding")
