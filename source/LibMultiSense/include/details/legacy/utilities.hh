@@ -72,7 +72,13 @@ constexpr crl::multisense::details::wire::SourceType all_sources = {
     crl::multisense::details::wire::SOURCE_CHROMA_AUX |
     crl::multisense::details::wire::SOURCE_CHROMA_RECT_AUX |
     crl::multisense::details::wire::SOURCE_DISPARITY_COST |
-    crl::multisense::details::wire::SOURCE_IMU
+    crl::multisense::details::wire::SOURCE_IMU |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_0 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_1 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_2 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_3 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_4 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_5
 };
 
 ///
