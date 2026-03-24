@@ -197,16 +197,6 @@ public:
     Status set_config(const MultiSenseConfig &config) override;
 
     ///
-    /// @brief Get the camera's feature detector configuration
-    ///
-    std::optional<FeatureDetectorConfig> get_feature_config() override;
-
-    ///
-    /// @brief Set the camera's feature detector configuration
-    ///
-    Status set_feature_config(const FeatureDetectorConfig &config) override;
-
-    ///
     /// @brief Get the current stereo calibration. The output calibration will correspond to the full-resolution
     ///        operating mode of the camera
     ///

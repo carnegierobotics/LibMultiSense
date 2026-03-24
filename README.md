@@ -1054,14 +1054,14 @@ def main():
 
     with lms.Channel.create(channel_config) as channel:
         # Get current configuration
-        config = channel.get_feature_config()
-        if config:
-            print(f"Current features: {config.number_of_features}")
+        config = channel.get_config()
+        if config.feature_detector_config:
+            print(f"Current features: {config.feature_detector_config.number_of_features}")
 
             # Update configuration
-            config.number_of_features = 2000
-            config.grouping_enabled = True
-            channel.set_feature_config(config)
+            config.feature_detector_config.number_of_features = 2000
+            config.feature_detector_config.grouping_enabled = True
+            channel.set_config(config)
             print("Configuration updated")
 
 if __name__ == "__main__":
@@ -1081,14 +1081,15 @@ int main()
     const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
 
     // Get current configuration
-    if (auto config = channel->get_feature_config(); config)
+    auto config = channel->get_config();
+    if (config.feature_detector_config)
     {
-        std::cout << "Current features: " << config->number_of_features << std::endl;
+        std::cout << "Current features: " << config.feature_detector_config->number_of_features << std::endl;
 
         // Update configuration
-        config->number_of_features = 2000;
-        config->grouping_enabled = true;
-        channel->set_feature_config(*config);
+        config.feature_detector_config->number_of_features = 2000;
+        config.feature_detector_config->grouping_enabled = true;
+        channel->set_config(config);
         std::cout << "Configuration updated" << std::endl;
     }
 

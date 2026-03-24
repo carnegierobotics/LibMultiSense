@@ -66,6 +66,7 @@ MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config
                          const std::optional<crl::multisense::details::wire::AuxCamConfig> &aux_config,
                          const std::optional<crl::multisense::details::wire::ImuConfig> &imu_config,
                          const std::optional<crl::multisense::details::wire::LedStatus> &led_config,
+                         const std::optional<crl::multisense::details::wire::FeatureDetectorConfigParams> &feature_config,
                          const crl::multisense::details::wire::SysPacketDelay &packet_delay,
                          bool ptp_enabled,
                          const MultiSenseInfo::DeviceInfo &info,
@@ -120,6 +121,9 @@ MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config
                                 std::nullopt,
                             (led_config && led_config->available) ?
                                 std::make_optional(convert(led_config.value(), info.lighting_type)) :
+                                std::nullopt,
+                            feature_config ?
+                                std::make_optional(convert(feature_config.value())) :
                                 std::nullopt};
 }
 

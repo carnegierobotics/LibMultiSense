@@ -349,7 +349,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig,
                                    time_config,
                                    network_config,
                                    imu_config,
-                                   lighting_config)
+                                   lighting_config,
+                                   feature_detector_config)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::PtpStatus,
                                    grandmaster_present,

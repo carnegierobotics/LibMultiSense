@@ -600,6 +600,7 @@ TEST(convert, cam_config)
                                 wire_aux_config,
                                 std::nullopt,
                                 std::nullopt,
+                                std::nullopt,
                                 packet_config,
                                 false,
                                 create_device_info(1920, 1200),
@@ -617,6 +618,7 @@ TEST(convert, cam_config_invalid_aux)
     const auto packet_config = create_wire_packet_delay();
 
     const auto config = convert(wire_config,
+                                std::nullopt,
                                 std::nullopt,
                                 std::nullopt,
                                 std::nullopt,
@@ -639,6 +641,7 @@ TEST(convert, cam_config_invalid_imu)
                                 std::nullopt,
                                 std::nullopt,
                                 std::nullopt,
+                                std::nullopt,
                                 packet_config,
                                 false,
                                 create_device_info(1920, 1200),
@@ -658,6 +661,7 @@ TEST(convert, cam_config_invalid_led)
     const auto packet_config = create_wire_packet_delay();
 
     const auto config = convert(wire_config,
+                                std::nullopt,
                                 std::nullopt,
                                 std::nullopt,
                                 std::nullopt,
@@ -687,6 +691,7 @@ TEST(convert, cam_config_valid_led_but_no_lights)
                                 std::nullopt,
                                 std::nullopt,
                                 std::make_optional(lighting_config),
+                                std::nullopt,
                                 packet_config,
                                 false,
                                 create_device_info(1920, 1200),
@@ -741,6 +746,7 @@ TEST(convert, network_config)
     const auto packet_config = create_wire_packet_delay();
 
     const auto config = convert(wire_config,
+                                std::nullopt,
                                 std::nullopt,
                                 std::nullopt,
                                 std::nullopt,

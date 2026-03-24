@@ -783,8 +783,6 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("get_next_imu_frame", &multisense::Channel::get_next_imu_frame, py::call_guard<py::gil_scoped_release>())
         .def("get_config", &multisense::Channel::get_config, py::call_guard<py::gil_scoped_release>())
         .def("set_config", &multisense::Channel::set_config, py::call_guard<py::gil_scoped_release>())
-        .def("get_feature_config", &multisense::Channel::get_feature_config, py::call_guard<py::gil_scoped_release>())
-        .def("set_feature_config", &multisense::Channel::set_feature_config, py::call_guard<py::gil_scoped_release>())
         .def("get_calibration", &multisense::Channel::get_calibration, py::call_guard<py::gil_scoped_release>())
         .def("set_calibration", &multisense::Channel::set_calibration, py::call_guard<py::gil_scoped_release>())
         .def("get_info", &multisense::Channel::get_info, py::call_guard<py::gil_scoped_release>())

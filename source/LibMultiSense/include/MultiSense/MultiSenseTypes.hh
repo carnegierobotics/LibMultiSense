@@ -382,6 +382,16 @@ struct FeatureDetectorConfig
     ///
     bool grouping_enabled = true;
     uint32_t motion_octave = 1;
+
+    ///
+    /// @brief Equality operator
+    ///
+    bool operator==(const FeatureDetectorConfig &rhs) const
+    {
+        return number_of_features == rhs.number_of_features &&
+               grouping_enabled == rhs.grouping_enabled &&
+               motion_octave == rhs.motion_octave;
+    }
 };
 
 ///
@@ -1223,6 +1233,11 @@ struct MultiSenseConfig
     std::optional<LightingConfig> lighting_config = std::nullopt;
 
     ///
+    /// @brief The feature detector configuration for the camera. If invalid, the camera does not support feature detection
+    ///
+    std::optional<FeatureDetectorConfig> feature_detector_config = std::nullopt;
+
+    ///
     /// @brief Equality operator
     ///
     bool operator==(const MultiSenseConfig &rhs) const
@@ -1237,7 +1252,8 @@ struct MultiSenseConfig
                time_config == rhs.time_config &&
                network_config == rhs.network_config &&
                imu_config == rhs.imu_config &&
-               lighting_config == rhs.lighting_config;
+               lighting_config == rhs.lighting_config &&
+               feature_detector_config == rhs.feature_detector_config;
     }
 };
 
