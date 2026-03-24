@@ -1162,7 +1162,7 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
 
     const auto wire_data = deserialize<wire::SecondaryAppData>(*data);
     const auto source = convert_sources(static_cast<uint64_t>(wire_data.sourceExtended) << 32 | wire_data.source);
-    
+
     if (source.size() != 1 || !is_feature_source(source[0]))
     {
         return;
@@ -1187,9 +1187,10 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
 
     const size_t startDescriptor = featureDetector.numFeatures * sizeof(wire::Feature);
     uint8_t * feature_data = reinterpret_cast<uint8_t *>(featureDetector.dataP);
-    
+
     feature_msg.keypoints.reserve(featureDetector.numFeatures);
-    for (size_t i = 0; i < featureDetector.numFeatures; i++) {
+    for (size_t i = 0; i < featureDetector.numFeatures; i++)
+    {
         wire::Feature f = *reinterpret_cast<wire::Feature *>(feature_data + (i * sizeof(wire::Feature)));
         KeyPoint kp;
         kp.x = f.x;
@@ -1202,7 +1203,8 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
     }
 
     feature_msg.descriptors.reserve(featureDetector.numDescriptors * sizeof(wire::Descriptor));
-    for (size_t j = 0; j < featureDetector.numDescriptors; j++) {
+    for (size_t j = 0; j < featureDetector.numDescriptors; j++)
+    {
         wire::Descriptor d = *reinterpret_cast<wire::Descriptor *>(feature_data + (startDescriptor + (j * sizeof(wire::Descriptor))));
         const uint8_t* d_bytes = reinterpret_cast<const uint8_t*>(d.d);
         feature_msg.descriptors.insert(feature_msg.descriptors.end(), d_bytes, d_bytes + sizeof(wire::Descriptor));
@@ -1221,8 +1223,6 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
     // Create a new frame if one does not exist, or add the input feature to the corresponding frame
     if (m_frame_buffer.count(frame_id) == 0)
     {
-        // Actually, without image metadata it's hard to fill the complete frame structure.
-        // We will initialize a partial frame and it will be completed when the image arrives.
         ImageFrame frame;
         frame.frame_id = frame_id;
         frame.add_feature(std::move(feature));
