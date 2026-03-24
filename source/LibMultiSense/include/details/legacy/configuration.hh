@@ -50,6 +50,7 @@
 #include <wire/ImuConfigMessage.hh>
 #include <wire/LedStatusMessage.hh>
 #include <wire/LedSetMessage.hh>
+#include <wire/FeatureConfig.hh>
 #include <wire/SysPacketDelayMessage.hh>
 #include <wire/SysSetPtpMessage.hh>
 
@@ -57,6 +58,16 @@
 
 namespace multisense {
 namespace legacy {
+
+///
+/// @brief Convert a wire feature detector config to our API config object
+///
+FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params);
+
+///
+/// @brief Convert our API config object to a wire message
+///
+crl::multisense::details::wire::FeatureDetectorConfigParams convert(const FeatureDetectorConfig &config);
 
 ///
 /// @brief Convert a wire AuxCameraConfiguration to our AuxConfig API

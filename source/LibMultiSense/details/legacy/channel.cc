@@ -631,12 +631,8 @@ std::optional<FeatureDetectorConfig> LegacyChannel::get_feature_config()
         }
 
         const auto *params = reinterpret_cast<const wire::FeatureDetectorConfigParams *>(secondary_config->data);
-        FeatureDetectorConfig config;
-        config.number_of_features = params->numberOfFeatures;
-        config.grouping_enabled = params->grouping;
-        config.motion_octave = params->motion;
 
-        return std::make_optional(config);
+        return std::make_optional(convert(*params));
     }
 
     return std::nullopt;
@@ -659,15 +655,14 @@ Status LegacyChannel::set_feature_config(const FeatureDetectorConfig &config)
                                                                           m_current_mtu,
                                                                           m_config.receive_timeout);
 
-    wire::FeatureDetectorConfigParams params;
+    wire::FeatureDetectorConfigParams params = convert(config);
     if (secondary_config && secondary_config->dataLength >= sizeof(wire::FeatureDetectorConfigParams))
     {
         std::memcpy(&params, secondary_config->data, sizeof(wire::FeatureDetectorConfigParams));
+        params.numberOfFeatures = config.number_of_features;
+        params.grouping = config.grouping_enabled;
+        params.motion = config.motion_octave;
     }
-
-    params.numberOfFeatures = config.number_of_features;
-    params.grouping = config.grouping_enabled;
-    params.motion = config.motion_octave;
 
     wire::SecondaryAppControl control;
     control.dataLength = sizeof(wire::FeatureDetectorConfigParams);

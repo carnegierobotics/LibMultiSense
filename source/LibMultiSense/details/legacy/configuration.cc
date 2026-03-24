@@ -42,6 +42,26 @@
 namespace multisense {
 namespace legacy {
 
+FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params)
+{
+    FeatureDetectorConfig config;
+    config.number_of_features = params.numberOfFeatures;
+    config.grouping_enabled = params.grouping;
+    config.motion_octave = params.motion;
+
+    return config;
+}
+
+crl::multisense::details::wire::FeatureDetectorConfigParams convert(const FeatureDetectorConfig &config)
+{
+    crl::multisense::details::wire::FeatureDetectorConfigParams params{};
+    params.numberOfFeatures = config.number_of_features;
+    params.grouping = config.grouping_enabled;
+    params.motion = config.motion_octave;
+
+    return params;
+}
+
 MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config,
                          const std::optional<crl::multisense::details::wire::AuxCamConfig> &aux_config,
                          const std::optional<crl::multisense::details::wire::ImuConfig> &imu_config,
