@@ -85,6 +85,20 @@ namespace nlohmann
         }
     };
 
+    template <>
+    struct adl_serializer<multisense::TimeT>
+    {
+        static void to_json(json& j, const multisense::TimeT &t)
+        {
+            j = t.time_since_epoch().count();
+        }
+
+        static void from_json(const json& j, multisense::TimeT &t)
+        {
+            t = multisense::TimeT(std::chrono::nanoseconds(j.get<std::chrono::nanoseconds::rep>()));
+        }
+    };
+
     ///
     /// @brief Handle generic optional
     ///
@@ -431,6 +445,21 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo::ImuInfo,
                                    accelerometer,
                                    gyroscope,
                                    magnetometer)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ImuSample::Measurement,
+                                   x,
+                                   y,
+                                   z)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ImuSample,
+                                   accelerometer,
+                                   gyroscope,
+                                   magnetometer,
+                                   sample_time,
+                                   ptp_sample_time)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ImuFrame,
+                                   samples)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo,
                                    device,
