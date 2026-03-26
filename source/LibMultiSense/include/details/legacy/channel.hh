@@ -434,7 +434,7 @@ private:
     ///
     /// @brief A cache of secondary app metadata associated with a specific frame id
     ///
-    std::map<int64_t, crl::multisense::details::wire::SecondaryAppMetadata> m_secondary_app_meta_cache{};
+    std::map<int64_t, std::shared_ptr<crl::multisense::details::wire::SecondaryAppMetadata>> m_secondary_app_meta_cache{};
 
     ///
     /// @brief A cache of image frames associated with a specific frame id

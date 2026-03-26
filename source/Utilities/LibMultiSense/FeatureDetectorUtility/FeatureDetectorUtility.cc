@@ -140,7 +140,7 @@ int main(int argc, char** argv)
     }
 
 
-   // Start both the rectified image and the corresponding feature stream
+    // Start both the rectified image and the corresponding feature stream
     const std::vector<lms::DataSource> sources = {lms::DataSource::LEFT_MONO_RAW, lms::DataSource::LEFT_ORB_FEATURES};
 
     if (const auto status = channel->start_streams(sources); status != lms::Status::OK)

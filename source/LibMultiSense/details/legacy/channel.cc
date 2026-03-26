@@ -1253,15 +1253,14 @@ Status LegacyChannel::manage_secondary_application_raw(const SecondaryApplicatio
 
 void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
-    std::cout << "got feature meta" << std::endl;
     using namespace crl::multisense::details;
-    const auto wire_meta = deserialize<wire::SecondaryAppMetadata>(*data);
-    m_secondary_app_meta_cache[wire_meta.frameId] = wire_meta;
+    auto wire_meta = std::make_shared<wire::SecondaryAppMetadata>(deserialize<wire::SecondaryAppMetadata>(*data));
+    const auto frame_id = wire_meta->frameId;
+    m_secondary_app_meta_cache[frame_id] = std::move(wire_meta);
 }
 
 void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
-    std::cout << "got feature" << std::endl;
     using namespace crl::multisense::details;
     using namespace std::chrono;
 
@@ -1280,7 +1279,7 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
         return;
     }
 
-    utility::BufferStreamReader meta_stream(reinterpret_cast<const uint8_t *>(meta->second.dataP), meta->second.dataLength);
+    utility::BufferStreamReader meta_stream(reinterpret_cast<const uint8_t *>(meta->second->dataP), meta->second->dataLength);
     wire::FeatureDetectorMeta feature_meta(meta_stream, wire::FeatureDetectorMeta::VERSION);
 
     utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(wire_data.dataP), wire_data.length);
@@ -1292,8 +1291,6 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
 
     const size_t start_descriptor = detector.numFeatures * sizeof(wire::Feature);
     uint8_t * feature_data = reinterpret_cast<uint8_t *>(detector.dataP);
-
-    std::cout << wire_data.frameId << " " << detector.numFeatures << std::endl;
 
     feature_msg.keypoints.reserve(detector.numFeatures);
     for (size_t i = 0; i < detector.numFeatures; i++)
@@ -1342,20 +1339,6 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
         m_frame_buffer[frame_id].add_feature(std::move(feature));
     }
 
-    const auto &f = m_frame_buffer[frame_id];
-    for (const auto & e : m_active_streams)
-    {
-        std::cout << static_cast<size_t>(e) << std::endl;
-        if (is_image_source(e))
-        {
-            std::cout <<  f.has_image(e) << std::endl;
-        }
-        if (is_feature_source(e))
-        {
-            std::cout << f.has_feature(e) << std::endl;
-        }
-    }
-
     //
     // Check if our frame is valid, if so dispatch to our callbacks and notify anyone who is waiting on the next frame
     //
@@ -1393,6 +1376,14 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
         m_meta_cache.erase(frame_id);
         //m_secondary_app_meta_cache.erase(frame_id);
     }
+
+    //
+    // Since frames will only monotonically increase, it's safe to also delete all the frame_ids earlier than
+    // the current frame id.
+    //
+    m_frame_buffer.erase(std::begin(m_frame_buffer), m_frame_buffer.lower_bound(frame_id));
+    m_meta_cache.erase(std::begin(m_meta_cache), m_meta_cache.lower_bound(frame_id));
+    //m_secondary_app_meta_cache.erase(std::begin(m_secondary_app_meta_cache), m_meta_cache.lower_bound(frame_id));
 }
 
 void LegacyChannel::image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
@@ -1439,8 +1430,6 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
         CRL_DEBUG("invalid image source\n");
         return;
     }
-
-    std::cout << "got image " << wire_image.frameId << std::endl;
 
     //
     // Copy our calibration and device info locally to make this thread safe
@@ -1742,6 +1731,7 @@ void LegacyChannel::handle_and_dispatch(Image image,
     //
     m_frame_buffer.erase(std::begin(m_frame_buffer), m_frame_buffer.lower_bound(frame_id));
     m_meta_cache.erase(std::begin(m_meta_cache), m_meta_cache.lower_bound(frame_id));
+    //m_secondary_app_meta_cache.erase(std::begin(m_secondary_app_meta_cache), m_meta_cache.lower_bound(frame_id));
 }
 
 }
