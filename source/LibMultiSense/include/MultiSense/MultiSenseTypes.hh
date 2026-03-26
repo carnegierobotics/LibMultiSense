@@ -325,7 +325,7 @@ struct ImageHistogram
 ///
 /// @brief Represents a generic feature keypoint
 ///
-struct KeyPoint
+struct FeatureKeyPoint
 {
     ///
     /// @brief x location of the keypoint in the output image
@@ -361,37 +361,10 @@ struct KeyPoint
 ///
 /// @brief The descriptor type for features
 ///
-enum class DescriptorType : uint8_t
+enum class FeatureDescriptorType : uint8_t
 {
     UNKNOWN,
     ORB
-};
-
-///
-/// @brief Configuration for the on-camera feature detector
-///
-struct FeatureDetectorConfig
-{
-    ///
-    /// @brief Max number of features to detect
-    ///
-    uint32_t number_of_features = 1500;
-
-    ///
-    /// @brief Attempt to group features with similar class ids
-    ///
-    bool grouping_enabled = true;
-    uint32_t motion_octave = 1;
-
-    ///
-    /// @brief Equality operator
-    ///
-    bool operator==(const FeatureDetectorConfig &rhs) const
-    {
-        return number_of_features == rhs.number_of_features &&
-               grouping_enabled == rhs.grouping_enabled &&
-               motion_octave == rhs.motion_octave;
-    }
 };
 
 ///
@@ -399,9 +372,24 @@ struct FeatureDetectorConfig
 ///
 struct FeatureMessage
 {
+    ///
+    /// @brief DataSource associated with the features
+    ///
     DataSource source = DataSource::UNKNOWN;
-    DescriptorType descriptor_type = DescriptorType::UNKNOWN;
-    std::vector<KeyPoint> keypoints{};
+
+    ///
+    /// @brief The typeof feature descriptor used
+    ///
+    FeatureDescriptorType descriptor_type = FeatureDescriptorType::UNKNOWN;
+
+    ///
+    /// @brief Image keypoints for featrues
+    ///
+    std::vector<FeatureKeyPoint> keypoints{};
+
+    ///
+    /// @brief Raw descriptors for the features
+    ///
     std::vector<uint8_t> descriptors{};
 
 #ifdef HAVE_OPENCV
@@ -645,6 +633,15 @@ struct ImuRange
     {
         return range == rhs.range && resolution == rhs.resolution;
     }
+};
+
+///
+/// @brief supported secondary applications
+///
+enum class SecondaryApplication : uint8_t
+{
+    NONE,
+    FEATURE_DETECTOR
 };
 
 
@@ -1171,6 +1168,35 @@ struct MultiSenseConfig
         bool operator==(const LightingConfig &rhs) const
         {
              return internal == rhs.internal && external == rhs.external;
+        }
+    };
+
+    ///
+    /// @brief Configuration for the on-camera feature detector
+    ///
+    struct FeatureDetectorConfig
+    {
+
+        ///
+        /// @brief Max number of features to detect
+        ///
+        uint32_t number_of_features = 1500;
+
+        ///
+        /// @brief Attempt to group features with similar class ids
+        ///
+        bool grouping_enabled = true;
+
+        uint32_t motion_octave = 1;
+
+        ///
+        /// @brief Equality operator
+        ///
+        bool operator==(const FeatureDetectorConfig &rhs) const
+        {
+            return number_of_features == rhs.number_of_features &&
+                   grouping_enabled == rhs.grouping_enabled &&
+                   motion_octave == rhs.motion_octave;
         }
     };
 

@@ -51,9 +51,9 @@ TEST(FeatureMessage, Basic)
 {
     FeatureMessage msg;
     msg.source = DataSource::LEFT_ORB_FEATURES;
-    msg.descriptor_type = DescriptorType::ORB;
+    msg.descriptor_type = FeatureDescriptorType::ORB;
 
-    KeyPoint kp1;
+    FeatureKeyPoint kp1;
     kp1.x = 10.5f;
     kp1.y = 20.2f;
     kp1.response = 100.0f;
@@ -67,7 +67,7 @@ TEST(FeatureMessage, Basic)
     msg.descriptors.insert(msg.descriptors.end(), desc.begin(), desc.end());
 
     EXPECT_EQ(msg.source, DataSource::LEFT_ORB_FEATURES);
-    EXPECT_EQ(msg.descriptor_type, DescriptorType::ORB);
+    EXPECT_EQ(msg.descriptor_type, FeatureDescriptorType::ORB);
     EXPECT_EQ(msg.keypoints.size(), 1);
     EXPECT_EQ(msg.descriptors.size(), 32);
     EXPECT_FLOAT_EQ(msg.keypoints[0].x, 10.5f);
@@ -95,11 +95,11 @@ TEST(FeatureMessage, OpenCVConversion)
 {
     FeatureMessage msg;
     msg.source = DataSource::LEFT_ORB_FEATURES;
-    msg.descriptor_type = DescriptorType::ORB;
+    msg.descriptor_type = FeatureDescriptorType::ORB;
 
     for (int i = 0; i < 5; ++i)
     {
-        KeyPoint kp;
+        FeatureKeyPoint kp;
         kp.x = static_cast<float>(i * 10);
         kp.y = static_cast<float>(i * 20);
         kp.angle = 45.0f;
@@ -191,7 +191,7 @@ TEST(FeatureWire, Serialization)
 
 TEST(FeatureConfig, Basic)
 {
-    FeatureDetectorConfig config;
+    MultiSenseConfig::FeatureDetectorConfig config;
     config.number_of_features = 2000;
     config.grouping_enabled = false;
     config.motion_octave = 2;

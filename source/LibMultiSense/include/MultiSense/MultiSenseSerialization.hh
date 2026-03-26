@@ -338,6 +338,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig::ImuConfig,
                                    gyroscope,
                                    magnetometer)
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig::FeatureDetectorConfig,
+                                   number_of_features,
+                                   grouping_enabled,
+                                   motion_octave)
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig,
                                    width,
                                    height,
@@ -468,11 +473,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseInfo,
                                    operating_modes,
                                    imu,
                                    network)
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(FeatureDetectorConfig,
-                                   number_of_features,
-                                   grouping_enabled,
-                                   motion_octave)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Channel::ReceiveBufferConfig,
                                    num_small_buffers,

@@ -144,6 +144,21 @@ crl::multisense::details::wire::SourceType convert_sources(const std::vector<Dat
 std::vector<DataSource> expand_source(const DataSource &source);
 
 ///
+/// @brief Convert a secondary application to a string
+///
+std::string application_string(const SecondaryApplication &app);
+
+///
+/// @brief Convert a string to a secondary application
+///
+SecondaryApplication secondary_application(const std::string &app);
+
+///
+/// @brief Check if an application is supported
+///
+bool supported_application(const std::vector<SecondaryApplication> &available_apps, const SecondaryApplication &target_app);
+
+///
 /// @brief Add a wire sample to a ImuSample
 ///
 ImuSample add_wire_sample(ImuSample sample,

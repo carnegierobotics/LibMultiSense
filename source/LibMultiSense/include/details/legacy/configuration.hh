@@ -51,6 +51,7 @@
 #include <wire/LedStatusMessage.hh>
 #include <wire/LedSetMessage.hh>
 #include <wire/FeatureConfig.hh>
+#include <wire/SecondaryAppRegisteredAppsMessage.hh>
 #include <wire/SysPacketDelayMessage.hh>
 #include <wire/SysSetPtpMessage.hh>
 
@@ -62,12 +63,12 @@ namespace legacy {
 ///
 /// @brief Convert a wire feature detector config to our API config object
 ///
-FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params);
+MultiSenseConfig::FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params);
 
 ///
 /// @brief Convert our API config object to a wire message
 ///
-crl::multisense::details::wire::FeatureDetectorConfigParams convert(const FeatureDetectorConfig &config);
+crl::multisense::details::wire::FeatureDetectorConfigParams convert(const MultiSenseConfig::FeatureDetectorConfig &config);
 
 ///
 /// @brief Convert a wire AuxCameraConfiguration to our AuxConfig API
@@ -126,6 +127,11 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
 /// @brief Convert a API lighting config to a wire lighting config
 ///
 crl::multisense::details::wire::LedSet convert (const MultiSenseConfig::LightingConfig &led);
+
+///
+/// @brief Convert a wire secondary application configuration to a vector of applications
+///
+std::vector<SecondaryApplication> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps);
 
 ///
 /// @brief Create a API transmission config object from wire types

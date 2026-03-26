@@ -213,6 +213,41 @@ std::vector<DataSource> expand_source(const DataSource &source)
     }
 }
 
+std::string application_string(const SecondaryApplication &app)
+{
+    switch (app)
+    {
+        case SecondaryApplication::FEATURE_DETECTOR:
+        {
+            return crl::multisense::details::wire::SECONDARY_APP_FEATURE_DETECTOR;
+        }
+        case SecondaryApplication::NONE:
+        default:
+        {
+            return "";
+        }
+
+    }
+}
+
+SecondaryApplication secondary_application(const std::string &app)
+{
+    if (app == crl::multisense::details::wire::SECONDARY_APP_FEATURE_DETECTOR)
+    {
+        return SecondaryApplication::FEATURE_DETECTOR;
+    }
+    else
+    {
+        return SecondaryApplication::NONE;
+    }
+}
+
+
+bool supported_application(const std::vector<SecondaryApplication> &available_apps, const SecondaryApplication &target_app)
+{
+    return std::find(std::begin(available_apps), std::end(available_apps), target_app) != std::end(available_apps);
+}
+
 ImuSample add_wire_sample(ImuSample sample,
                           const crl::multisense::details::wire::ImuSample &wire,
                           const ImuSampleScalars &scalars)

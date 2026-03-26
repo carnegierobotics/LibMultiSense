@@ -42,9 +42,9 @@
 namespace multisense {
 namespace legacy {
 
-FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params)
+MultiSenseConfig::FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params)
 {
-    FeatureDetectorConfig config;
+    MultiSenseConfig::FeatureDetectorConfig config;
     config.number_of_features = params.numberOfFeatures;
     config.grouping_enabled = params.grouping;
     config.motion_octave = params.motion;
@@ -52,7 +52,7 @@ FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetec
     return config;
 }
 
-crl::multisense::details::wire::FeatureDetectorConfigParams convert(const FeatureDetectorConfig &config)
+crl::multisense::details::wire::FeatureDetectorConfigParams convert(const MultiSenseConfig::FeatureDetectorConfig &config)
 {
     crl::multisense::details::wire::FeatureDetectorConfigParams params{};
     params.numberOfFeatures = config.number_of_features;
@@ -504,6 +504,18 @@ crl::multisense::details::wire::LedSet convert(const MultiSenseConfig::LightingC
         output.number_of_pulses = led.external->pulses_per_exposure;
         output.invert_pulse = false;
         output.led_delay_us = static_cast<uint32_t>(led.external->startup_time.count());
+    }
+
+    return output;
+}
+
+std::vector<SecondaryApplication> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps)
+{
+    std::vector<SecondaryApplication> output;
+
+    for (const auto &app: apps.apps)
+    {
+        output.emplace_back(secondary_application(app.appName));
     }
 
     return output;

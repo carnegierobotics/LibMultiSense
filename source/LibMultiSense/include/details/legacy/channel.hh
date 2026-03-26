@@ -269,6 +269,23 @@ private:
     Status stop_streams_internal(const std::vector<DataSource> &sources);
 
     ///
+    /// @brief Query the full set of secondary applications which the camera supports. Note there is an assumption
+    ///        only one secondary application can be active at a given time
+    ///
+    std::optional<std::vector<SecondaryApplication>> query_available_secondary_applications();
+
+    ///
+    /// @brief Manage secondary application on the camera. Handle auto deactivate
+    ///
+    Status manage_secondary_application(const SecondaryApplication &app, bool activate);
+
+    ///
+    /// @brief Manage secondary application on the camera. Send raw control messages without regard for
+    ///        the current state
+    ///
+    Status manage_secondary_application_raw(const SecondaryApplication &app, bool activate);
+
+    ///
     /// @brief Image meta callback used to internally receive images sent from the MultiSense
     ///
     void image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data);
@@ -378,6 +395,16 @@ private:
     /// @brief The current set of active data streams the MultiSense is transmitting.
     ///
     std::set<DataSource> m_active_streams{};
+
+    ///
+    /// @brief The current active secondary application
+    ///
+    std::optional<SecondaryApplication> m_active_secondary_application{};
+
+    ///
+    /// @brief Secondary applications which are available
+    ///
+    std::optional<std::vector<SecondaryApplication>> m_avaliable_secondary_applications{};
 
     ///
     /// @brief The currently active image frame user callback

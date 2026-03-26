@@ -98,6 +98,8 @@
 #include <wire/SecondaryAppControlMessage.hh>
 #include <wire/SecondaryAppDataMessage.hh>
 #include <wire/SecondaryAppMetaMessage.hh>
+#include <wire/SecondaryAppGetRegisteredAppsMessage.hh>
+#include <wire/SecondaryAppRegisteredAppsMessage.hh>
 #include <wire/FeatureMessage.hh>
 #include <wire/FeatureMetaMessage.hh>
 #include <wire/FeatureConfig.hh>
@@ -346,6 +348,11 @@ Status LegacyChannel::connect(const Config &config)
         CRL_EXCEPTION("Unable to query the camera's configuration");
     }
 
+    //
+    // Check secondary applications available
+    //
+    m_avaliable_secondary_applications = query_available_secondary_applications();
+
     m_connected = true;
 
     return Status::OK;
@@ -570,38 +577,60 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
     //
     if (config.feature_detector_config)
     {
-        // We first need to get the current config to preserve internal options
-        const auto secondary_config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
-                                                                              m_socket,
-                                                                              wire::SecondaryAppGetConfig(),
-                                                                              m_transmit_id++,
-                                                                              m_current_mtu,
-                                                                              m_config.receive_timeout);
-
-        wire::FeatureDetectorConfigParams params = convert(config.feature_detector_config.value());
-        if (secondary_config && secondary_config->dataLength >= sizeof(wire::FeatureDetectorConfigParams))
+        //
+        // Activate the application
+        //
+        if (const auto status = manage_secondary_application(SecondaryApplication::FEATURE_DETECTOR, true); status != Status::OK)
         {
-            std::memcpy(&params, secondary_config->data, sizeof(wire::FeatureDetectorConfigParams));
-            params.numberOfFeatures = config.feature_detector_config->number_of_features;
-            params.grouping = config.feature_detector_config->grouping_enabled;
-            params.motion = config.feature_detector_config->motion_octave;
+            responses.push_back(status);
         }
 
-        wire::SecondaryAppControl control;
-        control.dataLength = sizeof(wire::FeatureDetectorConfigParams);
-        std::memcpy(control.data, &params, sizeof(wire::FeatureDetectorConfigParams));
-
-        const auto feature_ack = wait_for_ack(m_message_assembler,
-                                              m_socket,
-                                              control,
-                                              m_transmit_id++,
-                                              m_current_mtu,
-                                              m_config.receive_timeout,
-                                              setting_retries);
-
-        if (!feature_ack || feature_ack->status != wire::Ack::Status_Ok)
+        if (m_active_secondary_application &&
+            m_active_secondary_application.value() == SecondaryApplication::FEATURE_DETECTOR)
         {
-            responses.push_back(get_status(feature_ack->status));
+            // We first need to get the current config to preserve internal options
+            const auto secondary_config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
+                                                                                  m_socket,
+                                                                                  wire::SecondaryAppGetConfig(),
+                                                                                  m_transmit_id++,
+                                                                                  m_current_mtu,
+                                                                                  m_config.receive_timeout);
+
+            wire::FeatureDetectorConfigParams params = convert(config.feature_detector_config.value());
+            if (secondary_config && secondary_config->dataLength >= sizeof(wire::FeatureDetectorConfigParams))
+            {
+                std::memcpy(&params, secondary_config->data, sizeof(wire::FeatureDetectorConfigParams));
+                params.numberOfFeatures = config.feature_detector_config->number_of_features;
+                params.grouping = config.feature_detector_config->grouping_enabled;
+                params.motion = config.feature_detector_config->motion_octave;
+            }
+
+            wire::SecondaryAppControl control;
+            control.dataLength = sizeof(wire::FeatureDetectorConfigParams);
+            std::memcpy(control.data, &params, sizeof(wire::FeatureDetectorConfigParams));
+
+            const auto feature_ack = wait_for_ack(m_message_assembler,
+                                                  m_socket,
+                                                  control,
+                                                  m_transmit_id++,
+                                                  m_current_mtu,
+                                                  m_config.receive_timeout,
+                                                  setting_retries);
+
+            if (!feature_ack || feature_ack->status != wire::Ack::Status_Ok)
+            {
+                responses.push_back(get_status(feature_ack->status));
+            }
+        }
+    }
+    else
+    {
+        //
+        // Deactivate the application
+        //
+        if (const auto status = manage_secondary_application(SecondaryApplication::FEATURE_DETECTOR, false); status != Status::OK)
+        {
+            responses.push_back(status);
         }
     }
 
@@ -962,7 +991,7 @@ std::optional<MultiSenseConfig> LegacyChannel::query_configuration(bool has_aux_
     {
         wire::FeatureDetectorConfigParams params;
         std::memcpy(&params, secondary_config->data, sizeof(wire::FeatureDetectorConfigParams));
-        feature_config = params;
+        feature_config = std::move(params);
     }
 
     if (camera_config)
@@ -1123,6 +1152,97 @@ Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sourc
     return Status::TIMEOUT;
 }
 
+std::optional<std::vector<SecondaryApplication>> LegacyChannel::query_available_secondary_applications()
+{
+    using namespace crl::multisense::details;
+
+    if (const auto applications = wait_for_data<wire::SecondaryAppRegisteredApps>(m_message_assembler,
+                                                                                  m_socket,
+                                                                                  wire::SecondaryAppGetRegisteredApps(),
+                                                                                  m_transmit_id++,
+                                                                                  m_current_mtu,
+                                                                                  m_config.receive_timeout); applications)
+    {
+        return std::make_optional(convert(applications.value()));
+    }
+
+    return std::nullopt;
+}
+
+Status LegacyChannel::manage_secondary_application(const SecondaryApplication &app, bool activate)
+{
+    if (m_active_secondary_application && m_active_secondary_application.value() == app && activate)
+    {
+        return Status::OK;
+    }
+
+    if (!m_active_secondary_application && !activate)
+    {
+        return Status::OK;
+    }
+
+    if (!m_avaliable_secondary_applications || !supported_application(m_avaliable_secondary_applications.value(), app))
+    {
+        return Status::UNSUPPORTED;
+    }
+
+    //
+    // Deactivate the current application first if one is running and we want to activate a new application
+    //
+    if (activate && m_active_secondary_application && m_active_secondary_application.value() != app)
+    {
+        if (const auto status = manage_secondary_application_raw(m_active_secondary_application.value(), false); status == Status::OK)
+        {
+            m_active_secondary_application = std::nullopt;
+        }
+        else
+        {
+            return status;
+        }
+    }
+
+    //
+    // Manage the application
+    //
+    if (const auto status = manage_secondary_application_raw(app, activate); status == Status::OK)
+    {
+        m_active_secondary_application = activate ? std::make_optional(app) : std::nullopt;
+    }
+    else
+    {
+        return status;
+    }
+
+    return Status::OK;
+}
+
+Status LegacyChannel::manage_secondary_application_raw(const SecondaryApplication &app, bool activate)
+{
+    using namespace crl::multisense::details;
+
+    const auto app_string = application_string(app);
+
+    wire::SecondaryAppActivate cmd(activate ? 1 : 0, app_string);
+
+    if (const auto ack = wait_for_ack(m_message_assembler,
+                                      m_socket,
+                                      cmd,
+                                      m_transmit_id++,
+                                      m_current_mtu,
+                                      m_config.receive_timeout); ack)
+    {
+        if (ack->status != wire::Ack::Status_Ok)
+        {
+            CRL_DEBUG("Manage secondary app %s ack invalid: %" PRIi32 "\n", app_string.c_str(), ack->status);
+            return get_status(ack->status);
+        }
+
+        return Status::OK;
+    }
+
+    return Status::TIMEOUT;
+}
+
 void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
     using namespace crl::multisense::details;
@@ -1150,43 +1270,43 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
         return;
     }
 
-    utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(meta->second.dataP), meta->second.dataLength);
-    wire::FeatureDetectorMeta feature_meta(metaStream, wire::FeatureDetectorMeta::VERSION);
+    utility::BufferStreamReader meta_stream(reinterpret_cast<const uint8_t *>(meta->second.dataP), meta->second.dataLength);
+    wire::FeatureDetectorMeta feature_meta(meta_stream, wire::FeatureDetectorMeta::VERSION);
 
     utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(wire_data.dataP), wire_data.length);
-    wire::FeatureDetector featureDetector(stream, wire::FeatureDetector::VERSION);
+    wire::FeatureDetector detector(stream, wire::FeatureDetector::VERSION);
 
     FeatureMessage feature_msg;
     feature_msg.source = source[0];
-    feature_msg.descriptor_type = DescriptorType::ORB;
+    feature_msg.descriptor_type = FeatureDescriptorType::ORB;
 
-    const size_t startDescriptor = featureDetector.numFeatures * sizeof(wire::Feature);
-    uint8_t * feature_data = reinterpret_cast<uint8_t *>(featureDetector.dataP);
+    const size_t start_descriptor = detector.numFeatures * sizeof(wire::Feature);
+    uint8_t * feature_data = reinterpret_cast<uint8_t *>(detector.dataP);
 
-    feature_msg.keypoints.reserve(featureDetector.numFeatures);
-    for (size_t i = 0; i < featureDetector.numFeatures; i++)
+    feature_msg.keypoints.reserve(detector.numFeatures);
+    for (size_t i = 0; i < detector.numFeatures; i++)
     {
-        wire::Feature f = *reinterpret_cast<wire::Feature *>(feature_data + (i * sizeof(wire::Feature)));
-        KeyPoint kp;
-        kp.x = f.x;
-        kp.y = f.y;
-        kp.angle = f.angle;
-        kp.response = f.resp;
-        kp.octave = f.octave;
-        kp.class_id = f.descriptor;
-        feature_msg.keypoints.push_back(kp);
+        const auto f = reinterpret_cast<wire::Feature *>(feature_data + (i * sizeof(wire::Feature)));
+
+        FeatureKeyPoint keypoint;
+        keypoint.x = f->x;
+        keypoint.y = f->y;
+        keypoint.angle = f->angle;
+        keypoint.response = f->resp;
+        keypoint.octave = f->octave;
+        keypoint.class_id = f->descriptor;
+        feature_msg.keypoints.push_back(std::move(keypoint));
     }
 
-    feature_msg.descriptors.reserve(featureDetector.numDescriptors * sizeof(wire::Descriptor));
-    for (size_t j = 0; j < featureDetector.numDescriptors; j++)
+    feature_msg.descriptors.reserve(detector.numDescriptors * sizeof(wire::Descriptor));
+    for (size_t j = 0; j < detector.numDescriptors; j++)
     {
-        wire::Descriptor d = *reinterpret_cast<wire::Descriptor *>(feature_data + (startDescriptor + (j * sizeof(wire::Descriptor))));
+        wire::Descriptor d = *reinterpret_cast<wire::Descriptor *>(feature_data + (start_descriptor + (j * sizeof(wire::Descriptor))));
         const uint8_t* d_bytes = reinterpret_cast<const uint8_t*>(d.d);
         feature_msg.descriptors.insert(feature_msg.descriptors.end(), d_bytes, d_bytes + sizeof(wire::Descriptor));
     }
 
-    const nanoseconds capture_time{seconds{wire_data.timeSeconds} +
-                                  microseconds{wire_data.timeMicroSeconds}};
+    const nanoseconds capture_time{seconds{wire_data.timeSeconds} + microseconds{wire_data.timeMicroSeconds}};
     const TimeT capture_time_point{capture_time};
     const TimeT ptp_capture_time_point{nanoseconds{feature_meta.ptpNanoSeconds}};
 
@@ -1195,7 +1315,9 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
 
 void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t frame_id)
 {
+    //
     // Create a new frame if one does not exist, or add the input feature to the corresponding frame
+    //
     if (m_frame_buffer.count(frame_id) == 0)
     {
         ImageFrame frame;
@@ -1208,7 +1330,9 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
         m_frame_buffer[frame_id].add_feature(std::move(feature));
     }
 
+    //
     // Check if our frame is valid, if so dispatch to our callbacks and notify anyone who is waiting on the next frame
+    //
     if (const auto &frame = m_frame_buffer[frame_id];
             std::all_of(std::begin(m_active_streams),
                         std::end(m_active_streams),

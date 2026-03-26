@@ -164,28 +164,20 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("JPEG", multisense::Image::PixelFormat::JPEG)
         .value("H264", multisense::Image::PixelFormat::H264);
 
-    // KeyPoint
-    py::class_<multisense::KeyPoint>(m, "KeyPoint")
+    // FeatureKeyPoint
+    py::class_<multisense::FeatureKeyPoint>(m, "FeatureKeyPoint")
         .def(py::init<>())
-        .def_readwrite("x", &multisense::KeyPoint::x)
-        .def_readwrite("y", &multisense::KeyPoint::y)
-        .def_readwrite("angle", &multisense::KeyPoint::angle)
-        .def_readwrite("response", &multisense::KeyPoint::response)
-        .def_readwrite("octave", &multisense::KeyPoint::octave)
-        .def_readwrite("class_id", &multisense::KeyPoint::class_id);
+        .def_readwrite("x", &multisense::FeatureKeyPoint::x)
+        .def_readwrite("y", &multisense::FeatureKeyPoint::y)
+        .def_readwrite("angle", &multisense::FeatureKeyPoint::angle)
+        .def_readwrite("response", &multisense::FeatureKeyPoint::response)
+        .def_readwrite("octave", &multisense::FeatureKeyPoint::octave)
+        .def_readwrite("class_id", &multisense::FeatureKeyPoint::class_id);
 
-    // DescriptorType
-    py::enum_<multisense::DescriptorType>(m, "DescriptorType")
-        .value("UNKNOWN", multisense::DescriptorType::UNKNOWN)
-        .value("ORB", multisense::DescriptorType::ORB);
-
-    // FeatureDetectorConfig
-    py::class_<multisense::FeatureDetectorConfig>(m, "FeatureDetectorConfig")
-        .def(py::init<>())
-        PYBIND11_JSON_SUPPORT(multisense::FeatureDetectorConfig)
-        .def_readwrite("number_of_features", &multisense::FeatureDetectorConfig::number_of_features)
-        .def_readwrite("grouping_enabled", &multisense::FeatureDetectorConfig::grouping_enabled)
-        .def_readwrite("motion_octave", &multisense::FeatureDetectorConfig::motion_octave);
+    // FeatureDescriptorType
+    py::enum_<multisense::FeatureDescriptorType>(m, "FeatureDescriptorType")
+        .value("UNKNOWN", multisense::FeatureDescriptorType::UNKNOWN)
+        .value("ORB", multisense::FeatureDescriptorType::ORB);
 
     // FeatureMessage
     py::class_<multisense::FeatureMessage>(m, "FeatureMessage")
@@ -520,6 +512,14 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("internal", &multisense::MultiSenseConfig::LightingConfig::internal)
         .def_readwrite("external", &multisense::MultiSenseConfig::LightingConfig::external);
 
+    // FeatureDetectorConfig
+    py::class_<multisense::MultiSenseConfig::FeatureDetectorConfig>(m, "FeatureDetectorConfig")
+        .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::MultiSenseConfig::FeatureDetectorConfig)
+        .def_readwrite("number_of_features", &multisense::MultiSenseConfig::FeatureDetectorConfig::number_of_features)
+        .def_readwrite("grouping_enabled", &multisense::MultiSenseConfig::FeatureDetectorConfig::grouping_enabled)
+        .def_readwrite("motion_octave", &multisense::MultiSenseConfig::FeatureDetectorConfig::motion_octave);
+
     // MultiSenseConfig
     py::class_<multisense::MultiSenseConfig>(m, "MultiSenseConfig")
         .def(py::init<>())
@@ -535,7 +535,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("time_config", &multisense::MultiSenseConfig::time_config)
         .def_readwrite("network_config", &multisense::MultiSenseConfig::network_config)
         .def_readwrite("imu_config", &multisense::MultiSenseConfig::imu_config)
-        .def_readwrite("lighting_config", &multisense::MultiSenseConfig::lighting_config);
+        .def_readwrite("lighting_config", &multisense::MultiSenseConfig::lighting_config)
+        .def_readwrite("feature_detector_config", &multisense::MultiSenseConfig::feature_detector_config);
 
     // MultiSenseStatus::PtpStatus
     py::class_<multisense::MultiSenseStatus::PtpStatus>(m, "PtpStatus")
