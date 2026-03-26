@@ -134,7 +134,7 @@ int main(int argc, char** argv)
     config.frames_per_second = fps;
 
     //
-    // Set the feature detector to enable the feature detector config
+    // Set the feature detector config to enable the feature detector
     //
     config.feature_detector_config = lms::MultiSenseConfig::FeatureDetectorConfig{number_of_features, true, 1};
     if (const auto status = channel->set_config(config); status != lms::Status::OK && status != lms::Status::INCOMPLETE_APPLICATION)
@@ -168,7 +168,9 @@ int main(int argc, char** argv)
                 {
                     const auto& features = frame->get_feature(lms::DataSource::LEFT_ORB_FEATURES);
 
+                    //
                     // Use the native OpenCV utility to convert keypoints and draw them
+                    //
                     cv::drawKeypoints(display_img, features.cv_keypoints(), display_img, cv::Scalar(0, 255, 0));
                 }
 
