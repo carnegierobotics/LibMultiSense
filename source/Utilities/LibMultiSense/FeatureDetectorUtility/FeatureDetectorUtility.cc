@@ -132,15 +132,20 @@ int main(int argc, char** argv)
 
     auto config = channel->get_config();
     config.frames_per_second = fps;
+
+    //
+    // Set the feature detector to enable the feature detector config
+    //
     config.feature_detector_config = lms::MultiSenseConfig::FeatureDetectorConfig{number_of_features, true, 1};
     if (const auto status = channel->set_config(config); status != lms::Status::OK && status != lms::Status::INCOMPLETE_APPLICATION)
     {
-        std::cout << "Feature detector not supported: " << lms::to_string(status) << std::endl;
+        std::cerr << "Feature detector not supported: " << lms::to_string(status) << std::endl;
         exit(1);
     }
 
-
-    // Start both the rectified image and the corresponding feature stream
+    //
+    // Start both the left image and the corresponding feature stream
+    //
     const std::vector<lms::DataSource> sources = {lms::DataSource::LEFT_MONO_RAW, lms::DataSource::LEFT_ORB_FEATURES};
 
     if (const auto status = channel->start_streams(sources); status != lms::Status::OK)

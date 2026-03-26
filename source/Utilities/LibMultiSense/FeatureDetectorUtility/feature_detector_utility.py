@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# @file image_cal_utility.cc
+# @file feature_detector_utility.cc
 #
 # Copyright 2013-2026
 # Carnegie Robotics, LLC
@@ -54,13 +54,14 @@ def main(args):
         config = channel.get_config()
         if config:
             config.frames_per_second = args.fps
-            # Set feature configuration
+
+            # Set feature configuration to enable the feature detector
             config.feature_detector_config = lms.FeatureDetectorConfig()
             config.feature_detector_config.number_of_features = args.num_features
             config.feature_detector_config.grouping_enabled = True
             config.feature_detector_config.motion_octave = 1
             status = channel.set_config(config)
-            if status != lms.Status.OK or status != lms.Status.INCOMPLETE_APPLICATION:
+            if status != lms.Status.OK:
                 print("Cannot enable feature detector", lms.to_string(status))
 
 
@@ -97,4 +98,3 @@ if __name__ == '__main__':
     parser.add_argument("-n", "--num-features", type=int, default=1500, help="The max number of features to target.")
     parser.add_argument("-f", "--fps", type=int, default=10, help="The framerate of the camera.")
     main(parser.parse_args())
-
