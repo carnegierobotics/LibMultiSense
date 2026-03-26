@@ -368,6 +368,14 @@ void LegacyChannel::disconnect()
     }
 
     //
+    // Deactivate our current secondary application if one exists
+    //
+    if (m_active_secondary_application)
+    {
+        manage_secondary_application(m_active_secondary_application.value(), false);
+    }
+
+    //
     // Stop all our streams before disconnecting
     //
     stop_streams({DataSource::ALL});
@@ -1245,6 +1253,7 @@ Status LegacyChannel::manage_secondary_application_raw(const SecondaryApplicatio
 
 void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
+    std::cout << "got feature meta" << std::endl;
     using namespace crl::multisense::details;
     const auto wire_meta = deserialize<wire::SecondaryAppMetadata>(*data);
     m_secondary_app_meta_cache[wire_meta.frameId] = wire_meta;
@@ -1252,6 +1261,7 @@ void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vecto
 
 void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
+    std::cout << "got feature" << std::endl;
     using namespace crl::multisense::details;
     using namespace std::chrono;
 
@@ -1282,6 +1292,8 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
 
     const size_t start_descriptor = detector.numFeatures * sizeof(wire::Feature);
     uint8_t * feature_data = reinterpret_cast<uint8_t *>(detector.dataP);
+
+    std::cout << wire_data.frameId << " " << detector.numFeatures << std::endl;
 
     feature_msg.keypoints.reserve(detector.numFeatures);
     for (size_t i = 0; i < detector.numFeatures; i++)
@@ -1330,6 +1342,20 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
         m_frame_buffer[frame_id].add_feature(std::move(feature));
     }
 
+    const auto &f = m_frame_buffer[frame_id];
+    for (const auto & e : m_active_streams)
+    {
+        std::cout << static_cast<size_t>(e) << std::endl;
+        if (is_image_source(e))
+        {
+            std::cout <<  f.has_image(e) << std::endl;
+        }
+        if (is_feature_source(e))
+        {
+            std::cout << f.has_feature(e) << std::endl;
+        }
+    }
+
     //
     // Check if our frame is valid, if so dispatch to our callbacks and notify anyone who is waiting on the next frame
     //
@@ -1342,13 +1368,30 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
                             return true;
                         }))
     {
+        //
+        // Notify anyone waiting on the next frame
+        //
         m_image_frame_notifier.set_and_notify(frame);
 
-        std::lock_guard<std::mutex> lock(m_image_callback_mutex);
-        if (m_user_image_frame_callback)
+        //
+        // Service the callback if it's valid
+        //
         {
-            m_user_image_frame_callback(frame);
+            std::lock_guard<std::mutex> lock(m_image_callback_mutex);
+            if (m_user_image_frame_callback)
+            {
+                m_user_image_frame_callback(frame);
+            }
         }
+
+
+        //
+        // Remove our image frame from our frame buffer and the associated image metadata since we are
+        // now done with it internally
+        //
+        m_frame_buffer.erase(frame_id);
+        m_meta_cache.erase(frame_id);
+        //m_secondary_app_meta_cache.erase(frame_id);
     }
 }
 
@@ -1396,6 +1439,8 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
         CRL_DEBUG("invalid image source\n");
         return;
     }
+
+    std::cout << "got image " << wire_image.frameId << std::endl;
 
     //
     // Copy our calibration and device info locally to make this thread safe
@@ -1688,6 +1733,7 @@ void LegacyChannel::handle_and_dispatch(Image image,
         //
         m_frame_buffer.erase(frame_id);
         m_meta_cache.erase(frame_id);
+        //m_secondary_app_meta_cache.erase(frame_id);
     }
 
     //
