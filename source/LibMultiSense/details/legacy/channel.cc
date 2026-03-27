@@ -1256,6 +1256,7 @@ void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vecto
     using namespace crl::multisense::details;
     auto wire_meta = std::make_shared<wire::SecondaryAppMetadata>(deserialize<wire::SecondaryAppMetadata>(*data));
     const auto frame_id = wire_meta->frameId;
+    std::cout << "meta frame id: " << frame_id << std::endl;
     m_secondary_app_meta_cache[frame_id] = std::move(wire_meta);
 }
 
@@ -1267,10 +1268,12 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
     const auto wire_data = deserialize<wire::SecondaryAppData>(*data);
     const auto source = convert_sources(static_cast<uint64_t>(wire_data.sourceExtended) << 32 | wire_data.source);
 
-    if (source.size() != 1 || !is_feature_source(source[0]))
+    if (source.size() != 1 || !is_feature_source(source.front()))
     {
         return;
     }
+
+    std::cout << "features: " << wire_data.frameId << " " << static_cast<int>(source.front()) << std::endl;
 
     const auto meta = m_secondary_app_meta_cache.find(wire_data.frameId);
     if (meta == std::end(m_secondary_app_meta_cache))
@@ -1286,7 +1289,7 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
     wire::FeatureDetector detector(stream, wire::FeatureDetector::VERSION);
 
     FeatureMessage feature_msg;
-    feature_msg.source = source[0];
+    feature_msg.source = source.front();
     feature_msg.descriptor_type = FeatureDescriptorType::ORB;
 
     const size_t start_descriptor = detector.numFeatures * sizeof(wire::Feature);
@@ -1374,7 +1377,7 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
         //
         m_frame_buffer.erase(frame_id);
         m_meta_cache.erase(frame_id);
-        //m_secondary_app_meta_cache.erase(frame_id);
+        m_secondary_app_meta_cache.erase(frame_id);
     }
 
     //
@@ -1383,7 +1386,7 @@ void LegacyChannel::handle_and_dispatch_feature(FeatureMessage feature, int64_t 
     //
     m_frame_buffer.erase(std::begin(m_frame_buffer), m_frame_buffer.lower_bound(frame_id));
     m_meta_cache.erase(std::begin(m_meta_cache), m_meta_cache.lower_bound(frame_id));
-    //m_secondary_app_meta_cache.erase(std::begin(m_secondary_app_meta_cache), m_meta_cache.lower_bound(frame_id));
+    m_secondary_app_meta_cache.erase(std::begin(m_secondary_app_meta_cache), m_secondary_app_meta_cache.lower_bound(frame_id));
 }
 
 void LegacyChannel::image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
@@ -1722,7 +1725,7 @@ void LegacyChannel::handle_and_dispatch(Image image,
         //
         m_frame_buffer.erase(frame_id);
         m_meta_cache.erase(frame_id);
-        //m_secondary_app_meta_cache.erase(frame_id);
+        m_secondary_app_meta_cache.erase(frame_id);
     }
 
     //
@@ -1731,7 +1734,7 @@ void LegacyChannel::handle_and_dispatch(Image image,
     //
     m_frame_buffer.erase(std::begin(m_frame_buffer), m_frame_buffer.lower_bound(frame_id));
     m_meta_cache.erase(std::begin(m_meta_cache), m_meta_cache.lower_bound(frame_id));
-    //m_secondary_app_meta_cache.erase(std::begin(m_secondary_app_meta_cache), m_meta_cache.lower_bound(frame_id));
+    m_secondary_app_meta_cache.erase(std::begin(m_secondary_app_meta_cache), m_secondary_app_meta_cache.lower_bound(frame_id));
 }
 
 }
