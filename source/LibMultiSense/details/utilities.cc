@@ -55,6 +55,7 @@
 
 #ifdef HAVE_OPENCV
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/features2d.hpp>
 #endif
 
 #include "MultiSense/MultiSenseUtilities.hh"
@@ -173,6 +174,34 @@ cv::Mat Image::cv_mat() const
                    width,
                    cv_type,
                    const_cast<uint8_t*>(raw_data->data() + image_data_offset)};
+}
+
+std::vector<cv::KeyPoint> FeatureMessage::cv_keypoints() const
+{
+    std::vector<cv::KeyPoint> kp;
+    kp.reserve(keypoints.size());
+
+    for (const auto &k : keypoints)
+    {
+        kp.emplace_back(k.x, k.y, 0.0f, k.angle, k.response, k.octave, k.class_id);
+    }
+
+    return kp;
+}
+
+cv::Mat FeatureMessage::cv_descriptors() const
+{
+    if (keypoints.empty())
+    {
+        return cv::Mat{};
+    }
+
+    const int descriptor_size = descriptors.size() / keypoints.size();
+
+    return cv::Mat{static_cast<int>(keypoints.size()),
+                   descriptor_size,
+                   CV_8UC1,
+                   const_cast<uint8_t*>(descriptors.data())};
 }
 #endif
 

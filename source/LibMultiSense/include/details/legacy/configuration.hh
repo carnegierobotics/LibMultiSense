@@ -50,6 +50,8 @@
 #include <wire/ImuConfigMessage.hh>
 #include <wire/LedStatusMessage.hh>
 #include <wire/LedSetMessage.hh>
+#include <wire/FeatureConfig.hh>
+#include <wire/SecondaryAppRegisteredAppsMessage.hh>
 #include <wire/SysPacketDelayMessage.hh>
 #include <wire/SysSetPtpMessage.hh>
 
@@ -57,6 +59,16 @@
 
 namespace multisense {
 namespace legacy {
+
+///
+/// @brief Convert a wire feature detector config to our API config object
+///
+MultiSenseConfig::FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params);
+
+///
+/// @brief Convert our API config object to a wire message
+///
+crl::multisense::details::wire::FeatureDetectorConfigParams convert(const MultiSenseConfig::FeatureDetectorConfig &config);
 
 ///
 /// @brief Convert a wire AuxCameraConfiguration to our AuxConfig API
@@ -70,6 +82,7 @@ MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config
                          const std::optional<crl::multisense::details::wire::AuxCamConfig> &aux_config,
                          const std::optional<crl::multisense::details::wire::ImuConfig> &imu_config,
                          const std::optional<crl::multisense::details::wire::LedStatus> &led_config,
+                         const std::optional<crl::multisense::details::wire::FeatureDetectorConfigParams> &feature_config,
                          const crl::multisense::details::wire::SysPacketDelay &packet_delay,
                          bool ptp_enabled,
                          const MultiSenseInfo::DeviceInfo &info,
@@ -114,6 +127,11 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
 /// @brief Convert a API lighting config to a wire lighting config
 ///
 crl::multisense::details::wire::LedSet convert (const MultiSenseConfig::LightingConfig &led);
+
+///
+/// @brief Convert a wire secondary application configuration to a vector of applications
+///
+std::vector<SecondaryApplication> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps);
 
 ///
 /// @brief Create a API transmission config object from wire types

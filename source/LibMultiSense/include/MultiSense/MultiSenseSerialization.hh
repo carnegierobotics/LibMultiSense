@@ -171,7 +171,13 @@ NLOHMANN_JSON_SERIALIZE_ENUM(DataSource, {
     {DataSource::AUX_RAW, "AUX_RAW"},
     {DataSource::AUX_RECTIFIED_RAW, "AUX_RECTIFIED_RAW"},
     {DataSource::COST_RAW, "COST_RAW"},
-    {DataSource::IMU, "IMU"}
+    {DataSource::IMU, "IMU"},
+    {DataSource::LEFT_ORB_FEATURES, "LEFT_ORB_FEATURES"},
+    {DataSource::RIGHT_ORB_FEATURES, "RIGHT_ORB_FEATURES"},
+    {DataSource::AUX_ORB_FEATURES, "AUX_ORB_FEATURES"},
+    {DataSource::LEFT_RECTIFIED_ORB_FEATURES, "LEFT_RECTIFIED_ORB_FEATURES"},
+    {DataSource::RIGHT_RECTIFIED_ORB_FEATURES, "RIGHT_RECTIFIED_ORB_FEATURES"},
+    {DataSource::AUX_RECTIFIED_ORB_FEATURES, "AUX_RECTIFIED_ORB_FEATURES"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(CameraCalibration::DistortionType, {
@@ -332,6 +338,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig::ImuConfig,
                                    gyroscope,
                                    magnetometer)
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig::FeatureDetectorConfig,
+                                   number_of_features,
+                                   grouping_enabled,
+                                   motion_octave)
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig,
                                    width,
                                    height,
@@ -343,7 +354,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig,
                                    time_config,
                                    network_config,
                                    imu_config,
-                                   lighting_config)
+                                   lighting_config,
+                                   feature_detector_config)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::PtpStatus,
                                    grandmaster_present,

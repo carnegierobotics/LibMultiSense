@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/FeatureDetectorMetaMessage.hh
+ * @file FeatureMetaMessage.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC
@@ -41,9 +41,12 @@
 #include <typeinfo>
 
 #include "utility/Portability.hh"
-#include <MultiSense/MultiSenseChannel.hh>
+#include <wire/Protocol.hh>
 
-using namespace crl::multisense::details;
+namespace crl {
+namespace multisense {
+namespace details {
+namespace wire {
 
 class WIRE_HEADER_ATTRIBS_ FeatureDetectorMetaHeader {
   public:
@@ -150,5 +153,10 @@ public:
 };
 
 #endif // !SENSORPOD_FIRMWARE
+
+} // namespace wire
+} // namespace details
+} // namespace multisense
+} // namespace crl
 
 #endif

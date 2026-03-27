@@ -40,7 +40,7 @@
 #include <typeinfo>
 #include <cmath>
 
-#include "MultiSense/details/utility/Portability.hh"
+#include "utility/Portability.hh"
 
 namespace crl {
 namespace multisense {
@@ -88,6 +88,27 @@ public:
     };
 
     SecondaryAppMetadata() {};
+
+    SecondaryAppMetadata(const SecondaryAppMetadata& other) = delete;
+
+    SecondaryAppMetadata(SecondaryAppMetadata&& other) noexcept :
+        SecondaryAppMetaHeader(std::move(other)),
+        mRef(other.mRef)
+    {
+        other.mRef = nullptr;
+    }
+
+    SecondaryAppMetadata& operator=(SecondaryAppMetadata&& other) noexcept {
+        if (this != &other) {
+            delete mRef;
+
+            SecondaryAppMetaHeader::operator=(std::move(other));
+
+            mRef = other.mRef;
+            other.mRef = nullptr;
+        }
+        return *this;
+    }
 
     ~SecondaryAppMetadata() {
       if (mRef)

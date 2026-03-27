@@ -72,7 +72,13 @@ constexpr crl::multisense::details::wire::SourceType all_sources = {
     crl::multisense::details::wire::SOURCE_CHROMA_AUX |
     crl::multisense::details::wire::SOURCE_CHROMA_RECT_AUX |
     crl::multisense::details::wire::SOURCE_DISPARITY_COST |
-    crl::multisense::details::wire::SOURCE_IMU
+    crl::multisense::details::wire::SOURCE_IMU |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_0 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_1 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_2 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_3 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_4 |
+    crl::multisense::details::wire::SOURCE_SECONDARY_APP_DATA_5
 };
 
 ///
@@ -103,6 +109,11 @@ struct ImuSampleScalars
 bool is_image_source(const DataSource &source);
 
 ///
+/// @brief Determine if a datasource is a feature source
+///
+bool is_feature_source(const DataSource &source);
+
+///
 /// Convert a wire status to a API Status
 ///
 Status get_status(const crl::multisense::details::wire::Ack::AckStatus &status);
@@ -131,6 +142,21 @@ crl::multisense::details::wire::SourceType convert_sources(const std::vector<Dat
 /// @brief Expand sources since some sources may represent multiple sources on the wire
 ///
 std::vector<DataSource> expand_source(const DataSource &source);
+
+///
+/// @brief Convert a secondary application to a string
+///
+std::string application_string(const SecondaryApplication &app);
+
+///
+/// @brief Convert a string to a secondary application
+///
+SecondaryApplication secondary_application(const std::string &app);
+
+///
+/// @brief Check if an application is supported
+///
+bool supported_application(const std::vector<SecondaryApplication> &available_apps, const SecondaryApplication &target_app);
 
 ///
 /// @brief Add a wire sample to a ImuSample
