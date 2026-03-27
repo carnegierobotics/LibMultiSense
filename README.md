@@ -928,6 +928,9 @@ corresponding image frames.
 
 The following example demonstrates how to retrieve and render features on a rectified image.
 
+> [!NOTE]
+> MultiSense firmware version v7.34 or newer is required to use the onboard feature detector
+
 ### Python
 
 ```python
