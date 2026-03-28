@@ -61,7 +61,14 @@ def update_calibration(cal, new_focal_length):
 
     return cal;
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense rectified focal length utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-r", "--rectified-focal-length", type=float, help="The new rectified focal length")
+    parser.add_argument("-s", "--set", action="store_true", help="Write the new calibration to camera (default query)")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
