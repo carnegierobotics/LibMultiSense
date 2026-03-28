@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# @file version_info_utility.cc
+# @file device_info_utility.cc
 #
 # Copyright 2013-2025
 # Carnegie Robotics, LLC
@@ -36,26 +36,16 @@
 #
 
 import argparse
-import datetime
-import time
+import json
 
 import libmultisense as lms
 
-def get_ptp_status_string(status):
-    if status.ptp is None:
-        return "PTP not supported"
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense device info utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    args = parser.parse_args()
 
-    grandmaster_id = ",".join(str(i) for i in status.ptp.grandmaster_id)
-
-    output = f"Grandmaster present: {status.ptp.grandmaster_present}, "\
-             f"Grandmaster id: {grandmaster_id}, " \
-             f"Grandmaster offset (s): {status.ptp.grandmaster_offset.total_seconds()}, " \
-             f"Path delay (s): {status.ptp.path_delay.total_seconds()}, " \
-             f"Steps from local to grandmaster: {status.ptp.steps_from_local_to_grandmaster}"
-
-    return output
-
-def main(args):
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
@@ -65,35 +55,10 @@ def main(args):
             print("Invalid channel")
             exit(1)
 
-    config = channel.get_config()
-    if config.time_config is None:
-        print("Camera does not support PTP")
-        exit(1)
-    config.time_config.ptp_enabled = True
-    status = channel.set_config(config)
-    if status != lms.Status.OK:
-        print("Cannot set configuration", lms.to_string(status))
-        exit(1)
-
-    if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW]) != lms.Status.OK:
-        print("Unable to start streams")
-        exit(1)
-
-    while True:
-        frame = channel.get_next_image_frame()
-        if frame:
-            now = datetime.datetime.now()
-            delay = (frame.ptp_frame_time - now).total_seconds()
-            print(f"Acquired image header to current time offset (s): {delay}")
-
-        status = channel.get_system_status()
-        if status:
-            print(get_ptp_status_string(status))
-
-        time.sleep(1)
+        print(json.dumps(channel.get_info().device.json,
+                         sort_keys=True,
+                         indent=4,
+                         separators=(',', ': ')))
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense version info utility")
-    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
-    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    main(parser.parse_args())
+    main()

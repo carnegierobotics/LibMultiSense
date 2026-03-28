@@ -79,6 +79,18 @@ def main(args):
                     print(f"frame_id: {frame.frame_id} time: {frame.frame_time}")
 
 if __name__ == '__main__':
+    main()
+
+    with lms.MultiChannelSynchronizer(channels, datetime.timedelta(milliseconds=args.tolerance)) as synchronizer:
+        timeout = datetime.timedelta(milliseconds=500)
+        while True:
+            frames = synchronizer.get_synchronized_frame(timeout)
+            if frames:
+                print("sync group:")
+                for frame in frames:
+                    print(f"frame_id: {frame.frame_id} time: {frame.frame_time}")
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense multi-channel synchronization utility")
     parser.add_argument("-a", "--ip_addresses", action='append', help="The IPv4 addresses of the MultiSense to synchronize.")
     parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")

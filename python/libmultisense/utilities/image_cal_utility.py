@@ -110,6 +110,23 @@ def main(args):
                 write_cal(intrinsics, extrinsics, 3, calibration.aux)
 
 if __name__ == '__main__':
+    main()
+ not args.disable_confirmation and (os.path.exists(args.intrinsics) or os.path.exists(args.extrinsics)):
+                print("One or both of the input file already exists\n")
+                res = input("Really overwrite these files? (y/n):")[0]
+                if res != 'Y' and res != 'y':
+                    print("Aborting")
+                    exit(1)
+
+            intrinsics = cv2.FileStorage(args.intrinsics, cv2.FILE_STORAGE_WRITE)
+            extrinsics = cv2.FileStorage(args.extrinsics, cv2.FILE_STORAGE_WRITE)
+
+            write_cal(intrinsics, extrinsics, 1, calibration.left)
+            write_cal(intrinsics, extrinsics, 2, calibration.right)
+            if calibration.aux:
+                write_cal(intrinsics, extrinsics, 3, calibration.aux)
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser("LibMultiSense image cal utility")
     parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
     parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")

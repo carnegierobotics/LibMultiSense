@@ -83,7 +83,18 @@ def save_image(frame, source, save_depth, save_aux_depth):
         if bgr:
             lms.write_image(bgr, base_path + ".ppm")
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense save image utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-n", "--number-of-images", type=int, default=1, help="The number of images to save.")
+    streams_group = parser.add_mutually_exclusive_group(required=True)
+    streams_group.add_argument("-d", "--save-depth", action='store_true', help="Save a 16 bit depth image.")
+    streams_group.add_argument("-x", "--save-aux-depth", action='store_true', help="Save a 16 bit depth image in the aux frame.")
+    streams_group.add_argument("-l", "--save-left-rect", action='store_true', help="Save a left rectified image.")
+    streams_group.add_argument("-c", "--save-color", action='store_true', help="Save a color image.")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu

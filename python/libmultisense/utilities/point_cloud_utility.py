@@ -51,7 +51,14 @@ color_point_type = np.dtype({'names': ['x', 'y', 'z', 'blue', 'green', 'red'],
                             'offsets': [0, 4, 8, 12, 13, 14],
                             'itemsize': 15})
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense save pointcloud utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-r", "--max-range", type=float, default=50.0, help="The max point cloud range in meters.")
+    parser.add_argument("-c", "--use-color", action="store_true", help="Try to use the aux color image for colorizing")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
