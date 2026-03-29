@@ -39,6 +39,7 @@
 #define LibMultiSense_details_wire_protocol
 
 #include <stdint.h>
+#include <string.h>
 
 #include "../utility/Portability.hh"
 
@@ -361,6 +362,23 @@ static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
     for(uint32_t i_=0; i_<(n_); i_++)           \
         for(uint32_t j_=0; j_<(m_); j_++)       \
             (d_)[i_][j_] = (s_)[i_][j_];        \
+
+//
+// Some helper functions
+
+inline bool ignoredUdpProtocol(const std::vector<uint8_t>& dgramPayload)
+{
+    // Ignore RTPS headers
+    if (dgramPayload.size() < 20) // minimum RTPS header size, but only read 4 bytes
+    {
+        static uint8_t rtps_magic[4] = {0x52, 0x54, 0x50, 0x53}; // RTPS
+        if (memcmp(dgramPayload.data(), rtps_magic, sizeof(rtps_magic)) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 }}}} // namespaces
 
