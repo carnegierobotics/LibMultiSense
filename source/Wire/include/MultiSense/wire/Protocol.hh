@@ -40,7 +40,7 @@
 
 #include <stdint.h>
 
-#include "../utility/Portability.hh"
+#include "MultiSense/utility/Portability.hh"
 
 // Expose some configuration constants to the preprocessor (at least until C++17)
 #ifndef MULTISENSE_WIRE_BITS_PER_PIXEL
