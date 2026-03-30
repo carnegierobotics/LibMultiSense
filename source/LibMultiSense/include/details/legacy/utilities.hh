@@ -36,13 +36,13 @@
 
 #pragma once
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
-#include <wire/AckMessage.hh>
-#include <wire/ImageMetaMessage.hh>
-#include <wire/ImuDataMessage.hh>
-#include <wire/ImuInfoMessage.hh>
+#include <MultiSense/utility/Exception.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/AckMessage.hh>
+#include <MultiSense/wire/ImageMetaMessage.hh>
+#include <MultiSense/wire/ImuDataMessage.hh>
+#include <MultiSense/wire/ImuInfoMessage.hh>
 
 #include "details/legacy/message.hh"
 #include "details/legacy/udp.hh"

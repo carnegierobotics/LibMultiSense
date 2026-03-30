@@ -36,15 +36,15 @@
 
 #pragma once
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <MultiSense/utility/Exception.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
 
-#include <wire/ImuInfoMessage.hh>
-#include <wire/SysDeviceInfoMessage.hh>
-#include <wire/SysDeviceModesMessage.hh>
-#include <wire/SysNetworkMessage.hh>
-#include <wire/VersionResponseMessage.hh>
+#include <MultiSense/wire/ImuInfoMessage.hh>
+#include <MultiSense/wire/SysDeviceInfoMessage.hh>
+#include <MultiSense/wire/SysDeviceModesMessage.hh>
+#include <MultiSense/wire/SysNetworkMessage.hh>
+#include <MultiSense/wire/VersionResponseMessage.hh>
 
 #include "MultiSense/MultiSenseTypes.hh"
 

@@ -40,7 +40,7 @@
 
 #include <typeinfo>
 
-#include "utility/Portability.hh"
+#include "MultiSense/utility/Portability.hh"
 #include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense::details;
