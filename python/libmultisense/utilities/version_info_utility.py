@@ -39,7 +39,12 @@ import argparse
 
 import libmultisense as lms
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense version info utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
@@ -57,17 +62,3 @@ def main(args):
 
 if __name__ == '__main__':
     main()
-")
-            exit(1)
-
-        info = channel.get_info();
-
-        print("Firmware build date :  ", info.version.firmware_build_date)
-        print("Firmware version    :  ", info.version.firmware_version.to_string())
-        print("Hardware version    :  ", hex(info.version.hardware_version))
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense version info utility")
-    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
-    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    main(parser.parse_args())
