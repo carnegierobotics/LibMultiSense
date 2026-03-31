@@ -1256,7 +1256,6 @@ void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vecto
     using namespace crl::multisense::details;
     auto wire_meta = std::make_shared<wire::SecondaryAppMetadata>(deserialize<wire::SecondaryAppMetadata>(*data));
     const auto frame_id = wire_meta->frameId;
-    std::cout << "meta frame id: " << frame_id << std::endl;
     m_secondary_app_meta_cache[frame_id] = std::move(wire_meta);
 }
 
@@ -1272,8 +1271,6 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
     {
         return;
     }
-
-    std::cout << "features: " << wire_data.frameId << " " << static_cast<int>(source.front()) << std::endl;
 
     const auto meta = m_secondary_app_meta_cache.find(wire_data.frameId);
     if (meta == std::end(m_secondary_app_meta_cache))
