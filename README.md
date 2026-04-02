@@ -62,9 +62,12 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Color Image Generation](#color-image-generation)
   - [Python](#python-7)
   - [C++](#c-7)
-- [IMU Data Streaming](#imu-data-streaming)
+- [Lighting Control](#lighting-control)
   - [Python](#python-8)
   - [C++](#c-8)
+- [IMU Data Streaming](#imu-data-streaming)
+  - [Python](#python-9)
+  - [C++](#c-9)
 
 ## Client Networking Prerequisite
 
@@ -731,6 +734,108 @@ int main(int argc, char** argv)
             {
                 cv::imwrite(std::to_string(image_frame->frame_id) + ".png", bgr->cv_mat());
             }
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+## Lighting Control
+
+MultiSense units like the KS21 contain integrated lighting which can be controlled via the `lighting_config`. Some units also support driving external LEDs via GPIO.
+
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        config = channel.get_config()
+
+        # Check if the camera supports lighting
+        if config.lighting_config is not None:
+            # Internal LEDs (Integrated into the camera)
+            if config.lighting_config.internal is not None:
+                # Set the lighting intensity to 50%
+                config.lighting_config.internal.intensity = 50.0
+                # Enable flashing. When enabled the lights will only be on while the camera is exposing
+                config.lighting_config.internal.flash = True
+
+            # External LEDs (Driven via external GPIO)
+            if config.lighting_config.external is not None:
+                # Set the external lighting intensity to 100%
+                config.lighting_config.external.intensity = 100.0
+                # Sync external flash with the main stereo pair
+                config.lighting_config.external.flash = lms.FlashMode.SYNC_WITH_MAIN_STEREO
+                # Number of pulses per exposure (useful for human persistence of vision)
+                config.lighting_config.external.pulses_per_exposure = 1
+
+            if channel.set_config(config) != lms.Status.OK:
+                print("Cannot set configuration")
+                exit(1)
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    auto config = channel->get_config();
+
+    // Check if the camera supports lighting
+    if (config.lighting_config)
+    {
+        // Internal LEDs (Integrated into the camera)
+        if (config.lighting_config->internal)
+        {
+            // Set the lighting intensity to 50%
+            config.lighting_config->internal->intensity = 50.0f;
+            // Enable flashing. When enabled the lights will only be on while the camera is exposing
+            config.lighting_config->internal->flash = true;
+        }
+
+        // External LEDs (Driven via external GPIO)
+        if (config.lighting_config->external)
+        {
+            // Set the external lighting intensity to 100%
+            config.lighting_config->external->intensity = 100.0f;
+            // Sync external flash with the main stereo pair
+            config.lighting_config->external->flash = lms::MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode::SYNC_WITH_MAIN_STEREO;
+            // Number of pulses per exposure (useful for human persistence of vision)
+            config.lighting_config->external->pulses_per_exposure = 1;
+        }
+
+        if (const auto status = channel->set_config(config); status != lms::Status::OK)
+        {
+            std::cerr << "Cannot set configuration" << std::endl;
+            return 1;
         }
     }
 
