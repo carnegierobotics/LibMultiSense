@@ -39,7 +39,7 @@
  *   2024-04-12, hshibata@carnegierobotics.com, IRAD.2033.1, support mingw64
  **/
 
-#include "utility/Exception.hh"
+#include "MultiSense/utility/Exception.hh"
 
 #include <stdio.h>
 #include <stdarg.h>

@@ -36,10 +36,10 @@
 
 #pragma once
 
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
-#include <wire/StatusResponseMessage.hh>
-#include <wire/PtpStatusResponseMessage.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/StatusResponseMessage.hh>
+#include <MultiSense/wire/PtpStatusResponseMessage.hh>
 
 #include "MultiSense/MultiSenseTypes.hh"
 

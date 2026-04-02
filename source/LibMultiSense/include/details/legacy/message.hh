@@ -44,9 +44,9 @@
 #include <mutex>
 #include <optional>
 
-#include <utility/BufferStream.hh>
-#include <wire/Protocol.hh>
-#include <wire/AckMessage.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/wire/AckMessage.hh>
 
 #include "details/legacy/storage.hh"
 

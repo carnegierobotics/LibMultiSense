@@ -39,8 +39,8 @@
  *   2012-08-14, dlr@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "utility/TimeStamp.hh"
-#include "utility/Exception.hh"
+#include "MultiSense/utility/TimeStamp.hh"
+#include "MultiSense/utility/Exception.hh"
 
 #ifndef WIN32
 #include <sys/time.h>
