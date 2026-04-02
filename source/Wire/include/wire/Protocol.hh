@@ -40,6 +40,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <vector>
 
 #include "../utility/Portability.hh"
 
@@ -368,16 +369,14 @@ static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
 
 inline bool ignoredUdpProtocol(const std::vector<uint8_t>& dgramPayload)
 {
+    //
     // Ignore RTPS headers
-    if (dgramPayload.size() < 20) // minimum RTPS header size, but only read 4 bytes
-    {
-        static uint8_t rtps_magic[4] = {0x52, 0x54, 0x50, 0x53}; // RTPS
-        if (memcmp(dgramPayload.data(), rtps_magic, sizeof(rtps_magic)) == 0)
-        {
-            return true;
-        }
-    }
-    return false;
+    // Minimum RTPS header size is 20, but only need to read the first 4 bytes
+    return (dgramPayload.size() < 20 &&
+            dgramPayload[0] == 0x52 && // R
+            dgramPayload[1] == 0x54 && // T
+            dgramPayload[2] == 0x50 && // P
+            dgramPayload[3] == 0x53); // S
 }
 
 }}}} // namespaces
