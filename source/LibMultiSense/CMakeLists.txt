@@ -30,7 +30,7 @@ else()
 
 endif()
 
-target_link_libraries(MultiSense MultiSenseWire)
+target_link_libraries(MultiSense MultiSenseWire ${FILESYSTEM_LIBRARY})
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
