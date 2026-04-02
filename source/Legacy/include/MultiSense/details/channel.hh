@@ -283,7 +283,7 @@ private:
     //
     // The version of this API
 
-    static CRL_CONSTEXPR VersionType API_VERSION = 0x0704; // 7.4
+    static CRL_CONSTEXPR VersionType API_VERSION = 0x0705; // 7.5
 
     //
     // Misc. internal constants
