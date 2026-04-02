@@ -121,7 +121,7 @@ function multisense_protocol.dissector(tvb, pinfo, tree)
             end
         end
     end
-    
+
     if messages[sequenceIdentifier] == "failed" then
         print(header:add_proto_expert_info(multisense_lost_packet))
     end
