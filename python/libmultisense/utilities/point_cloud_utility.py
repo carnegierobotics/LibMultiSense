@@ -115,9 +115,4 @@ def main():
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense save pointcloud utility")
-    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
-    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    parser.add_argument("-r", "--max-range", type=float, default=50.0, help="The max point cloud range in meters.")
-    parser.add_argument("-c", "--use-color", action="store_true", help="Try to use the aux color image for colorizing")
-    main(parser.parse_args())
+    main()
