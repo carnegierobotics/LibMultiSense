@@ -36,7 +36,6 @@
 #
 
 import argparse
-import os
 
 import libmultisense as lms
 

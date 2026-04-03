@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# @file version_info_utility.cc
+# @file ptp_utility.cc
 #
 # Copyright 2013-2025
 # Carnegie Robotics, LLC
@@ -70,32 +70,32 @@ def main():
             print("Invalid channel")
             exit(1)
 
-    config = channel.get_config()
-    if config.time_config is None:
-        print("Camera does not support PTP")
-        exit(1)
-    config.time_config.ptp_enabled = True
-    status = channel.set_config(config)
-    if status != lms.Status.OK:
-        print("Cannot set configuration", lms.to_string(status))
-        exit(1)
+        config = channel.get_config()
+        if config.time_config is None:
+            print("Camera does not support PTP")
+            exit(1)
+        config.time_config.ptp_enabled = True
+        status = channel.set_config(config)
+        if status != lms.Status.OK:
+            print("Cannot set configuration", lms.to_string(status))
+            exit(1)
 
-    if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW]) != lms.Status.OK:
-        print("Unable to start streams")
-        exit(1)
+        if channel.start_streams([lms.DataSource.LEFT_RECTIFIED_RAW]) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
 
-    while True:
-        frame = channel.get_next_image_frame()
-        if frame:
-            now = datetime.datetime.now()
-            delay = (frame.ptp_frame_time - now).total_seconds()
-            print(f"Acquired image header to current time offset (s): {delay}")
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame:
+                now = datetime.datetime.now()
+                delay = (frame.ptp_frame_time - now).total_seconds()
+                print(f"Acquired image header to current time offset (s): {delay}")
 
-        status = channel.get_system_status()
-        if status:
-            print(get_ptp_status_string(status))
+            status = channel.get_system_status()
+            if status:
+                print(get_ptp_status_string(status))
 
-        time.sleep(1)
+            time.sleep(1)
 
 if __name__ == '__main__':
     main()
