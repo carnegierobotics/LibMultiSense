@@ -41,7 +41,7 @@ from jsondiff import diff
 
 import libmultisense as lms
 
-def main(args):
+def main():
     parser = argparse.ArgumentParser("LibMultiSense feature detector utility")
     parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
     parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
