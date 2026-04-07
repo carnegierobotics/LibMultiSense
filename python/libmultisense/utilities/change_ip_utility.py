@@ -36,12 +36,21 @@
 #
 
 import argparse
-import os
 
 import libmultisense as lms
 
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense change ip utility")
+    parser.add_argument("-a", "--current-ip_address", default="10.66.171.21", help="The current IPv4 address of the MultiSense.")
+    parser.add_argument("-A", "--new-ip_address", default="10.66.171.21", help="The new IPv4 address of the MultiSense.")
+    parser.add_argument("-G", "--new-gateway", default="10.66.171.1", help="The new IPv4 gateway of the MultiSense.")
+    parser.add_argument("-N", "--new-netmask", default="255.255.255.0", help="The new IPv4 netmask of the MultiSense.")
+    parser.add_argument("-b", "--interface", help="send broadcast packet to a specified network interface. "
+                                                  "This resets the IP address to the new configured ip")
+    parser.add_argument("-y", "--disable-confirmation", action='store_true', help="Disable confirmation prompts")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.current_ip_address
     channel_config.connect_on_initialization = (args.interface is None)
@@ -76,12 +85,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense change ip utility")
-    parser.add_argument("-a", "--current-ip_address", default="10.66.171.21", help="The current IPv4 address of the MultiSense.")
-    parser.add_argument("-A", "--new-ip_address", default="10.66.171.21", help="The new IPv4 address of the MultiSense.")
-    parser.add_argument("-G", "--new-gateway", default="10.66.171.1", help="The new IPv4 gateway of the MultiSense.")
-    parser.add_argument("-N", "--new-netmask", default="255.255.255.0", help="The new IPv4 netmask of the MultiSense.")
-    parser.add_argument("-b", "--interface", help="send broadcast packet to a specified network interface. "
-                                                  "This resets the IP address to the new configured ip")
-    parser.add_argument("-y", "--disable-confirmation", action='store_true', help="Disable confirmation prompts")
-    main(parser.parse_args())
+    main()

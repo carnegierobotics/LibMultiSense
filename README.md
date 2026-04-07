@@ -86,7 +86,19 @@ Below are minimal examples demonstrating basic usage of LibMultiSense to capture
 Before running the examples make sure [LibMultiSense is installed](#Installation), and your machines network is
 [properly configured](#client-networking-prerequisite).
 
-For new users, it's recommended to start with the Python version of LibMultiSense
+For new users, it's recommended to start with the Python version of LibMultiSense. After installing the `libmultisense` package,
+several command-line utilities are automatically installed and can be run directly from your terminal:
+
+- `multisense_device_info_utility`: Display information about a connected MultiSense device.
+- `multisense_save_image_utility`: Save images (rectified, color, depth) from the camera to disk.
+- `multisense_point_cloud_utility`: Generate and save 3D point clouds in `.ply` format.
+- `multisense_version_info_utility`: Show firmware and hardware version information.
+- `multisense_change_ip_utility`: Update the network configuration of a MultiSense device.
+
+Example usage:
+```bash
+multisense_device_info_utility --ip_address 10.66.171.21
+```
 
 ### Python
 

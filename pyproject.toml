@@ -19,3 +19,14 @@ args = ["-DBUILD_PYTHON_BINDINGS=ON", "-DBUILD_JSON_SERIALIZATION=ON", "-DBUILD_
 [project.urls]
 Homepage = "https://github.com/carnegierobotics/libmultisense"
 Issues = "https://github.com/carnegierobotics/libmultisense/issues"
+
+[project.scripts]
+multisense_change_ip_utility = "libmultisense.utilities.change_ip_utility:main"
+multisense_device_info_utility = "libmultisense.utilities.device_info_utility:main"
+multisense_image_cal_utility = "libmultisense.utilities.image_cal_utility:main"
+multisense_multi_channel_utility = "libmultisense.utilities.multi_channel_utility:main"
+multisense_point_cloud_utility = "libmultisense.utilities.point_cloud_utility:main"
+multisense_ptp_utility = "libmultisense.utilities.ptp_utility:main"
+multisense_rectified_focal_length_utility = "libmultisense.utilities.rectified_focal_length_utility:main"
+multisense_save_image_utility = "libmultisense.utilities.save_image_utility:main"
+multisense_version_info_utility = "libmultisense.utilities.version_info_utility:main"
