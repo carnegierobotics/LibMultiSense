@@ -7,6 +7,3 @@ if(OpenCV_FOUND)
 else()
     message("Missing OpenCV. Not building the c++ FeatureDetectorUtility")
 endif()
-install(FILES feature_detector_utility.py PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-        DESTINATION "bin")
-
