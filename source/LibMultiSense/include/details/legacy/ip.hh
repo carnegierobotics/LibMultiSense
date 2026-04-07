@@ -82,5 +82,10 @@ std::unique_ptr<sockaddr_in> get_broadcast_sockaddr(uint16_t command_port);
 ///
 std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_name, bool broadcast);
 
+///
+/// @brief Close a given socket
+///
+void close_socket(socket_t socket);
+
 }
 }
