@@ -109,7 +109,11 @@ bool header_valid(const std::vector<uint8_t> &raw_data)
 
     if (wire::HEADER_MAGIC != header.magic)
     {
-        CRL_DEBUG("bad protocol magic: 0x%x, expecting 0x%x\n", header.magic, wire::HEADER_MAGIC);
+        if (!wire::ignoredUdpProtocol(raw_data))
+        {
+            CRL_DEBUG("bad protocol magic: 0x%x, expecting 0x%x\n", header.magic, wire::HEADER_MAGIC);
+        }
+
         return false;
     }
     else if (wire::HEADER_VERSION != header.version)
