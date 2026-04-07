@@ -156,6 +156,11 @@ private:
 MULTISENSE_API std::string to_string(const Status &status);
 
 ///
+/// @brief Convert a DataSource object to a user readable string
+///
+MULTISENSE_API std::string to_string(const DataSource &source);
+
+///
 /// @brief Write a image to a specific path on disk. The type of serialization is determined by the
 ///        input path
 ///
