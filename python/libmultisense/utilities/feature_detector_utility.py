@@ -42,6 +42,13 @@ from jsondiff import diff
 import libmultisense as lms
 
 def main(args):
+    parser = argparse.ArgumentParser("LibMultiSense feature detector utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-n", "--num-features", type=int, default=1500, help="The max number of features to target.")
+    parser.add_argument("-f", "--fps", type=int, default=10, help="The framerate of the camera.")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
@@ -92,9 +99,4 @@ def main(args):
                     break
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense feature detector utility")
-    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
-    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    parser.add_argument("-n", "--num-features", type=int, default=1500, help="The max number of features to target.")
-    parser.add_argument("-f", "--fps", type=int, default=10, help="The framerate of the camera.")
-    main(parser.parse_args())
+    main()

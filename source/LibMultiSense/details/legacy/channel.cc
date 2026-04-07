@@ -224,6 +224,8 @@ Status LegacyChannel::connect(const Config &config)
 
     std::lock_guard<std::mutex> lock(m_mutex);
 
+    disconnect_internal();
+
     //
     // Setup networking
     //
@@ -286,6 +288,7 @@ Status LegacyChannel::connect(const Config &config)
     if (const auto status = stop_streams_internal({DataSource::ALL}); status != Status::OK)
     {
         CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
+        disconnect_internal();
         return status;
     }
 
@@ -295,6 +298,7 @@ Status LegacyChannel::connect(const Config &config)
     if (const auto status = set_mtu(config.mtu); status != Status::OK)
     {
         CRL_DEBUG("Unable to set MTU: %s\n", to_string(status).c_str());
+        disconnect_internal();
         return status;
     }
 
@@ -307,7 +311,9 @@ Status LegacyChannel::connect(const Config &config)
     }
     else
     {
-        CRL_EXCEPTION("Unable to query the camera's calibration");
+        CRL_DEBUG("Unable to query the camera's calibration");
+        disconnect_internal();
+        return Status::FAILED;
     }
 
     //
@@ -319,7 +325,9 @@ Status LegacyChannel::connect(const Config &config)
     }
     else
     {
-        CRL_EXCEPTION("Unable to query the camera's info ");
+        CRL_DEBUG("Unable to query the camera's info ");
+        disconnect_internal();
+        return Status::FAILED;
     }
 
     //
@@ -345,7 +353,9 @@ Status LegacyChannel::connect(const Config &config)
     }
     else
     {
-        CRL_EXCEPTION("Unable to query the camera's configuration");
+        CRL_DEBUG("Unable to query the camera's configuration");
+        disconnect_internal();
+        return Status::FAILED;
     }
 
     //
@@ -360,13 +370,6 @@ Status LegacyChannel::connect(const Config &config)
 
 void LegacyChannel::disconnect()
 {
-    using namespace crl::multisense::details;
-
-    if (!m_connected)
-    {
-        return;
-    }
-
     //
     // Deactivate our current secondary application if one exists
     //
@@ -378,9 +381,21 @@ void LegacyChannel::disconnect()
     //
     // Stop all our streams before disconnecting
     //
-    stop_streams({DataSource::ALL});
+    if (m_connected)
+    {
+        stop_streams({DataSource::ALL});
+    }
 
     std::lock_guard<std::mutex> lock(m_mutex);
+
+    disconnect_internal();
+
+    return;
+}
+
+void LegacyChannel::disconnect_internal()
+{
+    using namespace crl::multisense::details;
 
     m_connected = false;
 
@@ -396,7 +411,12 @@ void LegacyChannel::disconnect()
 
     m_udp_receiver = nullptr;
 
-    return;
+    if (m_socket.sensor_socket != INVALID_SOCKET)
+    {
+        close_socket(m_socket.sensor_socket);
+    }
+
+    m_socket = NetworkSocket{};
 }
 
 std::optional<ImageFrame> LegacyChannel::get_next_image_frame()

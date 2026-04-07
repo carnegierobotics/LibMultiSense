@@ -92,7 +92,9 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("UNKNOWN", multisense::Status::UNKNOWN)
         .value("EXCEPTION", multisense::Status::EXCEPTION)
         .value("UNINITIALIZED", multisense::Status::UNINITIALIZED)
-        .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION);
+        .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION)
+        .def("__str__", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::prepend())
+        .def("__repr__", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::prepend());
 
     // DataSource
     py::enum_<multisense::DataSource>(m, "DataSource")
@@ -123,7 +125,9 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("LEFT_RECTIFIED_ORB_FEATURES", multisense::DataSource::LEFT_RECTIFIED_ORB_FEATURES)
         .value("RIGHT_RECTIFIED_ORB_FEATURES", multisense::DataSource::RIGHT_RECTIFIED_ORB_FEATURES)
         .value("AUX_RECTIFIED_ORB_FEATURES", multisense::DataSource::AUX_RECTIFIED_ORB_FEATURES)
-        .value("IMU", multisense::DataSource::IMU);
+        .value("IMU", multisense::DataSource::IMU)
+        .def("__str__", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::prepend())
+        .def("__repr__", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::prepend());
 
     // ColorImageEncoding
     py::enum_<multisense::ColorImageEncoding>(m, "ColorImageEncoding")
@@ -1020,7 +1024,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         });
 
 
-    m.def("to_string", &multisense::to_string, py::call_guard<py::gil_scoped_release>());
+    m.def("to_string", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::call_guard<py::gil_scoped_release>());
+    m.def("to_string", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::call_guard<py::gil_scoped_release>());
 
     m.def("write_image",
           [](const multisense::Image &image, const std::string &path)

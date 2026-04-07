@@ -50,6 +50,7 @@ The LibMultiSense C++ and Python library has been tested with the following oper
   - [Git Submodule](#git-submodule)
 - [Documentation](#documentation)
 - [Support](#support)
+- [Wireshark Plugin](#wireshark-plugin)
 - [Camera Configuration](#camera-configuration)
   - [Python](#python-4)
   - [C++](#c-4)
@@ -62,12 +63,15 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Color Image Generation](#color-image-generation)
   - [Python](#python-7)
   - [C++](#c-7)
-- [IMU Data Streaming](#imu-data-streaming)
+- [Lighting Control](#lighting-control)
   - [Python](#python-8)
   - [C++](#c-8)
-- [Feature Rendering](#feature-rendering)
+- [IMU Data Streaming](#imu-data-streaming)
   - [Python](#python-9)
   - [C++](#c-9)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-10)
+  - [C++](#c-10)
 
 ## Client Networking Prerequisite
 
@@ -85,7 +89,19 @@ Below are minimal examples demonstrating basic usage of LibMultiSense to capture
 Before running the examples make sure [LibMultiSense is installed](#Installation), and your machines network is
 [properly configured](#client-networking-prerequisite).
 
-For new users, it's recommended to start with the Python version of LibMultiSense
+For new users, it's recommended to start with the Python version of LibMultiSense. After installing the `libmultisense` package,
+several command-line utilities are automatically installed and can be run directly from your terminal:
+
+- `multisense_device_info_utility`: Display information about a connected MultiSense device.
+- `multisense_save_image_utility`: Save images (rectified, color, depth) from the camera to disk.
+- `multisense_point_cloud_utility`: Generate and save 3D point clouds in `.ply` format.
+- `multisense_version_info_utility`: Show firmware and hardware version information.
+- `multisense_change_ip_utility`: Update the network configuration of a MultiSense device.
+
+Example usage:
+```bash
+multisense_device_info_utility --ip_address 10.66.171.21
+```
 
 ### Python
 
@@ -391,6 +407,39 @@ please use the [GitHub issues system](https://github.com/carnegierobotics/LibMul
 
 For product support, please see the [support section of our website](https://carnegierobotics.com/support)
 Individual support requests can be created in our [support portal](https://carnegierobotics.com/submitaticket)
+
+## Wireshark Plugin
+
+A Wireshark Lua dissector is provided in the `wireshark` directory to help analyze MultiSense network traffic on UDP port 9001.
+
+### Installation
+
+To install the plugin:
+
+#### Linux
+
+Copy the plugin to your personal Wireshark plugins directory:
+
+```bash
+mkdir -p ~/.local/lib/wireshark/plugins
+cp wireshark/multisense.lua ~/.local/lib/wireshark/plugins/
+```
+
+#### Windows
+
+Copy `wireshark/multisense.lua` to `%APPDATA%\Wireshark\plugins`.
+
+#### MacOS
+
+Copy `wireshark/multisense.lua` to `~/.config/wireshark/plugins`.
+
+#### Manual Loading
+
+Alternatively, you can load the plugin manually when starting Wireshark:
+
+```bash
+wireshark -X lua_script:wireshark/multisense.lua
+```
 
 ---
 
@@ -743,7 +792,108 @@ int main(int argc, char** argv)
 
 ---
 
-=======
+## Lighting Control
+
+MultiSense units like the KS21 contain integrated lighting which can be controlled via the `lighting_config`. Some units also support driving external LEDs via GPIO.
+
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        config = channel.get_config()
+
+        # Check if the camera supports lighting
+        if config.lighting_config is not None:
+            # Internal LEDs (Integrated into the camera)
+            if config.lighting_config.internal is not None:
+                # Set the lighting intensity to 50%
+                config.lighting_config.internal.intensity = 50.0
+                # Enable flashing. When enabled the lights will only be on while the camera is exposing
+                config.lighting_config.internal.flash = True
+
+            # External LEDs (Driven via external GPIO)
+            if config.lighting_config.external is not None:
+                # Set the external lighting intensity to 100%
+                config.lighting_config.external.intensity = 100.0
+                # Sync external flash with the main stereo pair
+                config.lighting_config.external.flash = lms.FlashMode.SYNC_WITH_MAIN_STEREO
+                # Number of pulses per exposure (useful for human persistence of vision)
+                config.lighting_config.external.pulses_per_exposure = 1
+
+            if channel.set_config(config) != lms.Status.OK:
+                print("Cannot set configuration")
+                exit(1)
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    auto config = channel->get_config();
+
+    // Check if the camera supports lighting
+    if (config.lighting_config)
+    {
+        // Internal LEDs (Integrated into the camera)
+        if (config.lighting_config->internal)
+        {
+            // Set the lighting intensity to 50%
+            config.lighting_config->internal->intensity = 50.0f;
+            // Enable flashing. When enabled the lights will only be on while the camera is exposing
+            config.lighting_config->internal->flash = true;
+        }
+
+        // External LEDs (Driven via external GPIO)
+        if (config.lighting_config->external)
+        {
+            // Set the external lighting intensity to 100%
+            config.lighting_config->external->intensity = 100.0f;
+            // Sync external flash with the main stereo pair
+            config.lighting_config->external->flash = lms::MultiSenseConfig::LightingConfig::ExternalConfig::FlashMode::SYNC_WITH_MAIN_STEREO;
+            // Number of pulses per exposure (useful for human persistence of vision)
+            config.lighting_config->external->pulses_per_exposure = 1;
+        }
+
+        if (const auto status = channel->set_config(config); status != lms::Status::OK)
+        {
+            std::cerr << "Cannot set configuration" << std::endl;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
 ## IMU Data Streaming
 
 LibMultiSense supports streaming IMU data from the camera. The IMU must first be configured
