@@ -35,7 +35,6 @@
  **/
 
 #include <algorithm>
-#include <iostream>
 
 #include "details/legacy/configuration.hh"
 #include "details/legacy/utilities.hh"
@@ -413,8 +412,8 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
         }
         case MultiSenseInfo::DeviceInfo::LightingType::PATTERN_PROJECTOR_OUTPUT_TRIGGER:
         {
-            if (devinfo.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i){
-                std::cout << "Detected KS21i lighting - external\n";
+            if (devinfo.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i)
+            {
                 lighting::ExternalConfig::FlashMode mode = lighting::ExternalConfig::FlashMode::NONE;
                 if (led.rolling_shutter_led)
                 {
@@ -426,8 +425,9 @@ MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::L
                 }
 
                 external = lighting::ExternalConfig{intensity, mode, led.number_of_pulses, std::chrono::microseconds{led.led_delay_us}};
-            } else {
-                std::cout << "Detected KS21 standard lighting - internal\n";
+            }
+            else
+            {
                 internal = lighting::InternalConfig{intensity, led.flash != 0};
             }
 
