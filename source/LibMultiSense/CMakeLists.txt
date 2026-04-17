@@ -9,6 +9,9 @@ endif()
 set(DETAILS_SRC details/factory.cc
                 details/multi_channel.cc
                 details/utilities.cc
+                details/amb/channel.cc
+                details/amb/http.cc
+                details/amb/utilities.cc
                 details/legacy/calibration.cc
                 details/legacy/channel.cc
                 details/legacy/configuration.cc
@@ -63,8 +66,11 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 # We want to link against our child libraries.
 #
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(HTTPLIB REQUIRED IMPORTED_TARGET cpp-httplib)
+find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense Threads::Threads)
+target_link_libraries(MultiSense Threads::Threads PkgConfig::HTTPLIB OpenSSL::SSL OpenSSL::Crypto)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     target_link_libraries(MultiSense ws2_32)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")

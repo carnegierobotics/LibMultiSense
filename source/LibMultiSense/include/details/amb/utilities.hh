@@ -1,7 +1,7 @@
 /**
- * @file factory.cc
+ * @file utilities.hh
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,61 +31,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "details/amb/channel.hh"
-#include "details/legacy/channel.hh"
+#pragma once
 
-namespace multisense
-{
+#include <string>
 
-std::unique_ptr<Channel> Channel::create(const Config &config,
-                                         const ChannelImplementation &impl)
-{
-    switch (impl)
-    {
-        case ChannelImplementation::AUTO:
-        {
-            try
-            {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        case ChannelImplementation::LEGACY:
-        {
-            try
-            {
-                return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        case ChannelImplementation::AMB:
-        {
-            try
-            {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        default:
-        {
-            return nullptr;
-        }
-    }
+namespace multisense{
+namespace amb{
+
+std::string base64_decode(const std::string &input);
+
 }
-
 }

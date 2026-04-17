@@ -223,7 +223,7 @@ installed via pip into a Python virtual environment or a local Python project.
 
 To install the LibMultiSense Python bindings
 
-    > sudo apt install build-essential pybind11-dev nlohmann-json3-dev
+    > sudo apt install build-essential pybind11-dev nlohmann-json3-dev libcpp-httplib-dev
 
     > git clone https://github.com/carnegierobotics/LibMultiSense.git
     > cd LibMultiSense

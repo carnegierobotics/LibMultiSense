@@ -1,7 +1,7 @@
 /**
- * @file factory.cc
+ * @file utilities.cc
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,61 +31,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "details/amb/channel.hh"
-#include "details/legacy/channel.hh"
+#include "details/amb/utilities.hh"
 
-namespace multisense
-{
+#include <vector>
 
-std::unique_ptr<Channel> Channel::create(const Config &config,
-                                         const ChannelImplementation &impl)
+namespace multisense{
+namespace amb{
+
+std::string base64_decode(const std::string &input)
 {
-    switch (impl)
+    std::string decoded_string;
+
+    // Create a lookup table initialized to -1
+    std::vector<int> base64_lookup(256, -1);
+
+    // Populate the lookup table with Base64 characters
+    const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    for (int i = 0; i < 64; i++)
     {
-        case ChannelImplementation::AUTO:
+        base64_lookup[base64_chars[i]] = i;
+    }
+
+    int val = 0;
+    int valb = -8;
+
+    for (unsigned char c : input)
+    {
+        if (base64_lookup[c] == -1)
         {
-            try
-            {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
-            }
+            break;
         }
-        case ChannelImplementation::LEGACY:
+
+        //
+        // Shift the current value over by 6 bits and add the new 6 bits
+        //
+        val = (val << 6) + base64_lookup[c];
+        valb += 6;
+
+        //
+        // Once we have at least 8 bits (a full byte), extract it
+        //
+        if (valb >= 0)
         {
-            try
-            {
-                return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        case ChannelImplementation::AMB:
-        {
-            try
-            {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        default:
-        {
-            return nullptr;
+            decoded_string.push_back(char((val >> valb) & 0xFF));
+            valb -= 8;
         }
     }
+    return decoded_string;
 }
 
+}
 }

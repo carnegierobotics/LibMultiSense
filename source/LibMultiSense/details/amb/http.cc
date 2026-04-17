@@ -1,7 +1,7 @@
 /**
- * @file factory.cc
+ * @file http.cc
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,61 +31,35 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include "details/amb/channel.hh"
-#include "details/legacy/channel.hh"
+#include "details/amb/http.hh"
 
-namespace multisense
-{
+#include <utility/Exception.hh>
 
-std::unique_ptr<Channel> Channel::create(const Config &config,
-                                         const ChannelImplementation &impl)
+namespace multisense{
+namespace amb{
+
+std::optional<nlohmann::json> http_get(std::unique_ptr<httplib::Client> &client, const std::string &endpoint)
 {
-    switch (impl)
-    {
-        case ChannelImplementation::AUTO:
-        {
-            try
-            {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        case ChannelImplementation::LEGACY:
-        {
-            try
-            {
-                return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        case ChannelImplementation::AMB:
-        {
-            try
-            {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
-            }
-            catch(const std::exception &e)
-            {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
-            }
-        }
-        default:
-        {
-            return nullptr;
-        }
-    }
+     auto result = client->Get(endpoint);
+
+     if (result)
+     {
+         if (result->status == 200)
+         {
+             return nlohmann::json::parse(result->body);
+         }
+         else
+         {
+             CRL_DEBUG("HTTP GET request to %s returned error: %s\n",
+                       endpoint.c_str(), std::to_string(result->status).c_str());
+         }
+     }
+
+     return std::nullopt;
 }
 
+}
 }
