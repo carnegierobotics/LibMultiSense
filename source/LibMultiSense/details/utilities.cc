@@ -503,4 +503,101 @@ std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
     return create_color_pointcloud<void>(frame, max_range, DataSource::UNKNOWN, disparity_source);
 }
 
+std::map<std::string, std::vector<float>> parse_yaml(std::istream& stream)
+{
+    std::map<std::string, std::vector<float>> data;
+    std::string token;
+    while (stream >> token)
+    {
+        //
+        // Skip comments or YAML headers
+        //
+        if (token.front() == '%' || token.front() == '-')
+        {
+            stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        //
+        // We expect "key:"
+        //
+        size_t colon_pos = token.find(':');
+        if (colon_pos == std::string::npos)
+        {
+            continue;
+        }
+
+        std::string key = token.substr(0, colon_pos);
+        std::vector<float> values;
+
+        //
+        // If there was something after the colon in the same token, we don't handle it here
+        // for simplicity, we assume standard YAML spacing for keys.
+        //
+        stream >> std::ws;
+        int next_char = stream.peek();
+
+        if (next_char == '[')
+        {
+            stream.ignore(); // skip '['
+            stream >> values;
+        }
+        else
+        {
+            std::string value_indicator;
+            if (stream >> value_indicator)
+            {
+                if (value_indicator == "!!opencv-matrix")
+                {
+                    //
+                    // For an OpenCV matrix, we look for the "data:" key and its associated array
+                    //
+                    while (stream >> token)
+                    {
+                        if (token == "data:")
+                        {
+                            stream >> std::ws;
+                            if (stream.peek() == '[')
+                            {
+                                stream.ignore();
+                                stream >> values;
+                            }
+                            break;
+                        }
+                        else if (token.back() == ':')
+                        {
+                            //
+                            // Some other sub-key (rows, cols, dt), skip its value
+                            //
+                            std::string dummy;
+                            stream >> dummy;
+                        }
+                    }
+                }
+                else
+                {
+                    //
+                    // Try to parse as a single scalar value
+                    //
+                    try
+                    {
+                        values.push_back(std::stof(value_indicator));
+                    }
+                    catch (...)
+                    {
+                        // Not a scalar, ignore
+                    }
+                }
+            }
+        }
+
+        if (!key.empty() && !values.empty())
+        {
+            data[key] = values;
+        }
+    }
+
+    return data;
+}
+
 }

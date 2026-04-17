@@ -34,9 +34,13 @@
  *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <sstream>
+
 #include "details/amb/channel.hh"
 #include "details/amb/http.hh"
 #include "details/amb/utilities.hh"
+
+#include <MultiSense/MultiSenseUtilities.hh>
 
 #include <utility/Exception.hh>
 
@@ -177,9 +181,24 @@ std::optional<StereoCalibration> AmbChannel::query_calibration()
 
     if (calibration_json)
     {
-        const auto intrinsics_yaml = base64_decode(calibration_json.value()["calibration"]["intrinsics"].get<std::string>());
-        const auto extrinsics_yaml = base64_decode(calibration_json.value()["calibration"]["intrinsics"].get<std::string>());
-        return m_calibration;
+        auto intrinsics_yaml = std::stringstream(base64_decode(calibration_json.value()["calibration"]["intrinsics"].get<std::string>()));
+        auto extrinsics_yaml = std::stringstream(base64_decode(calibration_json.value()["calibration"]["extrinsics"].get<std::string>()));
+
+        const auto intrinsics = parse_yaml(intrinsics_yaml);
+        const auto extrinsics = parse_yaml(extrinsics_yaml);
+
+        StereoCalibration output;
+        std::memcpy(&output.left.K, intrinsics.at("M1").data(), 9 * sizeof(float));
+        output.left.D = intrinsics.at("D1");
+        std::memcpy(&output.left.R, extrinsics.at("R1").data(), 9 * sizeof(float));
+        std::memcpy(&output.left.P, extrinsics.at("P1").data(), 12 * sizeof(float));
+
+        std::memcpy(&output.right.K, intrinsics.at("M2").data(), 9 * sizeof(float));
+        output.right.D = intrinsics.at("D2");
+        std::memcpy(&output.right.R, extrinsics.at("R2").data(), 9 * sizeof(float));
+        std::memcpy(&output.right.P, extrinsics.at("P2").data(), 12 * sizeof(float));
+
+        return output;
     }
 
     return std::nullopt;

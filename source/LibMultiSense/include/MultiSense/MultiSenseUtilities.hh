@@ -37,8 +37,12 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
 #include <sstream>
 #include <vector>
 
@@ -444,6 +448,113 @@ MULTISENSE_API bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, c
     }
 
     return true;
+}
+
+///
+/// @brief Parse a YAML stream into a map of vectors. This implementation is designed to handle basic YAML structures
+///        and OpenCV's matrix serialization format.
+///
+/// @param stream Input stream to parse yaml data from
+/// @return The parsed mapping between keys and values
+///
+MULTISENSE_API std::map<std::string, std::vector<float>> parse_yaml(std::istream& stream);
+
+///
+/// @brief Write a matrix to a YAML stream in OpenCV format
+///
+/// @param stream The output stream to write to
+/// @param name The name of the YAML matrix
+/// @param rows The number of rows in the matrix
+/// @param columns The number of columns in the matrix
+/// @param data A pointer to the raw data to write
+///
+template<typename T>
+std::ostream& write_yaml_matrix(std::ostream& stream, const std::string& name, uint32_t rows, uint32_t columns, const T* data)
+{
+    stream << name << ": !!opencv-matrix\n";
+    stream << "   rows: " << rows << "\n";
+    stream << "   cols: " << columns << "\n";
+    stream << "   dt: d\n";
+    stream << "   data: [ ";
+
+    stream.precision(17);
+    stream << std::scientific;
+    for (uint32_t i = 0; i < rows; i++)
+    {
+        if (i != 0)
+        {
+            stream << ",\n";
+            stream << "           ";
+        }
+        for (uint32_t j = 0; j < columns; j++)
+        {
+            if (j != 0)
+            {
+                stream << ", ";
+            }
+            stream << std::setw(22) << data[i * columns + j];
+        }
+    }
+    stream << " ]\n";
+    return stream;
+}
+
+///
+/// @brief Overload the >> operator for std::vector to parse YAML-style arrays.
+///        This will flatten nested arrays into a single vector.
+///
+template<typename T>
+std::istream& operator>>(std::istream& stream, std::vector<T>& data)
+{
+    char c;
+    while (stream >> c)
+    {
+        if (c == '[')
+        {
+            stream >> data;
+        }
+        else if (c == ']')
+        {
+            break;
+        }
+        else if (c == ',')
+        {
+            continue;
+        }
+        else
+        {
+            stream.putback(c);
+            T value;
+            if (stream >> value)
+            {
+                data.push_back(value);
+            }
+            else
+            {
+                //
+                // Clear error state to recover from invalid scalar (e.g., NaN or typo)
+                //
+                stream.clear();
+
+                //
+                // Consume the bad token up to the next delimiter or whitespace
+                //
+                while (stream.get(c))
+                {
+                    if (c == ',' || c == ']')
+                    {
+                        stream.putback(c);
+                        break;
+                    }
+                    if (std::isspace(c))
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return stream;
 }
 
 }
