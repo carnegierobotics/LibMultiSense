@@ -44,6 +44,8 @@
 #include <MultiSense/MultiSenseTypes.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
+#include "multisense-webrtc-client.h"
+
 #include <utility/Exception.hh>
 
 namespace multisense {
