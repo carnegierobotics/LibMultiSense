@@ -71,7 +71,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(HTTPLIB REQUIRED IMPORTED_TARGET cpp-httplib)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense Threads::Threads PkgConfig::HTTPLIB OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(MultiSense Threads::Threads PkgConfig::HTTPLIB OpenSSL::SSL OpenSSL::Crypto multisense-webrtc-client)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     target_link_libraries(MultiSense ws2_32)
