@@ -65,18 +65,18 @@ AmbChannel::~AmbChannel() = default;
 Status AmbChannel::start_streams(const std::vector<DataSource> &sources)
 {
     (void) sources;
-    return Status::UNSUPPORTED;
+    return Status::OK;
 }
 
 Status AmbChannel::stop_streams(const std::vector<DataSource> &sources)
 {
     (void) sources;
-    return Status::UNSUPPORTED;
+    return Status::OK;
 }
 
 void AmbChannel::add_image_frame_callback(std::function<void(const ImageFrame&)> callback)
 {
-    (void) callback;
+    m_user_image_frame_callback = callback;
     return;
 }
 
@@ -127,17 +127,57 @@ Status AmbChannel::connect(const Config &config)
         return Status::FAILED;
     }
 
+    //
+    // Connect our WebRTC client
+    //
+    m_webtrc = std::make_unique<WebRtcClient>("https://" + config.ip_address);
+
+    if (!m_webtrc)
+    {
+        return Status::FAILED;
+    }
+
+    //
+    // TODO (malvarado): Handle this better
+    //
+    m_webtrc->connect(true, true, true, true);
+
+    m_webtrc->set_frame_callback([this](ImageFrame& frame)
+                                 {
+                                     frame.calibration = m_calibration;
+                                     if (m_user_image_frame_callback)
+                                     {
+                                         m_user_image_frame_callback(frame);
+                                     }
+
+                                     m_image_frame_notifier.set_and_notify(frame);
+                                 });
+
+    m_connected = true;
+
     return Status::OK;
 };
 
 void AmbChannel::disconnect()
 {
+    if (m_webtrc)
+    {
+        m_webtrc->disconnect();
+    }
+
+    m_connected = false;
+
     return;
 };
 
 std::optional<ImageFrame> AmbChannel::get_next_image_frame()
 {
-    return std::nullopt;
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
+    return m_image_frame_notifier.wait(m_config.receive_timeout);
 }
 
 std::optional<ImuFrame> AmbChannel::get_next_imu_frame()
@@ -153,7 +193,7 @@ MultiSenseConfig AmbChannel::get_config()
 Status AmbChannel::set_config(const MultiSenseConfig &config)
 {
     (void) config;
-    return Status::UNSUPPORTED;
+    return Status::OK;
 }
 
 StereoCalibration AmbChannel::get_calibration()

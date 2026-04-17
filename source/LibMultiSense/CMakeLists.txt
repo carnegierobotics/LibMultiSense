@@ -13,6 +13,7 @@ set(DETAILS_SRC details/factory.cc
                 details/amb/info.cc
                 details/amb/http.cc
                 details/amb/utilities.cc
+                details/amb/webrtc.cc
                 details/legacy/calibration.cc
                 details/legacy/channel.cc
                 details/legacy/configuration.cc

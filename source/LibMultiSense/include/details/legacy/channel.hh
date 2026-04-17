@@ -44,6 +44,7 @@
 #include <utility/BufferStream.hh>
 #include <wire/ImageMetaMessage.hh>
 
+#include "details/utilities.hh"
 #include "details/legacy/ip.hh"
 #include "details/legacy/message.hh"
 #include "details/legacy/storage.hh"
@@ -52,72 +53,6 @@
 
 namespace multisense{
 namespace legacy{
-
-template <typename T>
-class FrameNotifier
-{
-public:
-
-    FrameNotifier() = default;
-
-    ~FrameNotifier()
-    {
-        m_cv.notify_all();
-    }
-
-    ///
-    /// @brief Copy a frame into the local storage, and notify all waiters that the frame is valid
-    ///
-    void set_and_notify(const T &in_frame)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_frame = in_frame;
-        m_cv.notify_all();
-    }
-
-    ///
-    /// @brief Wait for the notifier to be valid. If the timeout is invalid, will wait forever
-    ///
-    template <class Rep, class Period>
-    std::optional<T> wait(const std::optional<std::chrono::duration<Rep, Period>>& timeout)
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-
-        std::optional<T> output_frame = std::nullopt;
-        if (timeout)
-        {
-            if (std::cv_status::no_timeout == m_cv.wait_for(lock, timeout.value()))
-            {
-                output_frame = std::move(m_frame);
-            }
-        }
-        else
-        {
-            m_cv.wait(lock);
-            output_frame = std::move(m_frame);
-        }
-
-        //
-        // Reset the frame
-        //
-        m_frame = std::nullopt;
-
-        return output_frame;
-    }
-
-    std::optional<T> wait()
-    {
-        const std::optional<std::chrono::milliseconds> timeout = std::nullopt;
-        return wait(timeout);
-    }
-
-private:
-
-    std::mutex m_mutex;
-    std::condition_variable m_cv;
-    std::optional<T> m_frame;
-};
-
 
 class LegacyChannel : public Channel
 {

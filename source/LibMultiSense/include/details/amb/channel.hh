@@ -43,6 +43,9 @@
 #endif
 #include <httplib.h>
 
+#include "details/utilities.hh"
+#include "details/amb/webrtc.hh"
+
 namespace multisense{
 namespace amb{
 
@@ -190,9 +193,29 @@ private:
     MultiSenseConfig m_multisense_config{};
 
     ///
+    /// @brief The currently active image frame user callback
+    ///
+    std::function<void(const ImageFrame&)> m_user_image_frame_callback{};
+
+    ///
+    /// @brief Notifier used to service the get_next_image_frame member function
+    ///
+    FrameNotifier<ImageFrame> m_image_frame_notifier{};
+
+    ///
     /// @brief HTTP client to handle https get/post requests
     ///
     std::unique_ptr<httplib::Client> m_http_client = nullptr;
+
+    ///
+    /// @brief WebRTC client for querying images
+    ///
+    std::unique_ptr<WebRtcClient> m_webtrc = nullptr;
+
+    ///
+    /// @brief Atomic flag to determine if we are connected to an active camera
+    ///
+    std::atomic_bool m_connected = false;
 };
 
 }
