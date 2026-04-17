@@ -10,6 +10,7 @@ set(DETAILS_SRC details/factory.cc
                 details/multi_channel.cc
                 details/utilities.cc
                 details/amb/channel.cc
+                details/amb/info.cc
                 details/amb/http.cc
                 details/amb/utilities.cc
                 details/legacy/calibration.cc

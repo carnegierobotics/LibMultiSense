@@ -37,9 +37,11 @@
 #include <sstream>
 
 #include "details/amb/channel.hh"
+#include "details/amb/info.hh"
 #include "details/amb/http.hh"
 #include "details/amb/utilities.hh"
 
+#include <MultiSense/MultiSenseTypes.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 #include <utility/Exception.hh>
@@ -110,6 +112,19 @@ Status AmbChannel::connect(const Config &config)
         return Status::FAILED;
     }
 
+    //
+    // Update our cached info
+    //
+    if (auto info = query_info(); info)
+    {
+        m_info = std::move(info.value());
+    }
+    else
+    {
+        CRL_DEBUG("Unable to query the camera's device info");
+        return Status::FAILED;
+    }
+
     return Status::OK;
 };
 
@@ -177,12 +192,12 @@ Status AmbChannel::set_network_config(const MultiSenseInfo::NetworkInfo &config,
 
 std::optional<StereoCalibration> AmbChannel::query_calibration()
 {
-    const auto calibration_json = http_get(m_http_client, "/conf/conf.json");
+    const auto config_json = http_get(m_http_client, "/conf/conf.json");
 
-    if (calibration_json)
+    if (config_json)
     {
-        auto intrinsics_yaml = std::stringstream(base64_decode(calibration_json.value()["calibration"]["intrinsics"].get<std::string>()));
-        auto extrinsics_yaml = std::stringstream(base64_decode(calibration_json.value()["calibration"]["extrinsics"].get<std::string>()));
+        auto intrinsics_yaml = std::stringstream(base64_decode(config_json.value()["calibration"]["intrinsics"].get<std::string>()));
+        auto extrinsics_yaml = std::stringstream(base64_decode(config_json.value()["calibration"]["extrinsics"].get<std::string>()));
 
         const auto intrinsics = parse_yaml(intrinsics_yaml);
         const auto extrinsics = parse_yaml(extrinsics_yaml);
@@ -200,6 +215,47 @@ std::optional<StereoCalibration> AmbChannel::query_calibration()
 
         return output;
     }
+
+    return std::nullopt;
+}
+
+std::optional<MultiSenseInfo> AmbChannel::query_info()
+{
+    const auto info_json = http_get(m_http_client, "/conf/info.json");
+    const auto config_json = http_get(m_http_client, "/conf/conf.json");
+
+    if (info_json && config_json)
+    {
+        const auto device_info_json = info_json.value()["device"];
+
+        MultiSenseInfo::DeviceInfo device_info;
+        // TODO (malvarado): Handle the rest of this conversion for more complex types
+        device_info.build_date = device_info_json["builddate"].get<std::string>();
+        device_info.serial_number = device_info_json["serialnum"].get<std::string>();
+        device_info.imager_name = device_info_json["imagername"].get<std::string>();
+        device_info.imager_width = device_info_json["imagerwidth"].get<uint32_t>();
+        device_info.imager_height = device_info_json["imagerheight"].get<uint32_t>();
+        device_info.lens_name = device_info_json["lensname"].get<std::string>();
+        //device_info.nominal_stereo_baseline = device_info_json["nominalbaseline"];
+        //device_info.nominal_focal_length = device_info_json["nominalfocallength"];
+        //device_info.nominal_relative_aperture = device_info_json["nominalrelativeaperture"];
+        device_info.number_of_lights = device_info_json["lightingnumber"].get<uint32_t>();
+
+        MultiSenseInfo::NetworkInfo network_info;
+        network_info.ip_address = config_json.value()["network"]["ip-address"].get<std::string>();
+        network_info.netmask = cidr_to_netmask(config_json.value()["network"]["netmask"].get<uint32_t>());
+
+        MultiSenseInfo::SensorVersion version_info;
+        std::vector<MultiSenseInfo::SupportedOperatingMode> operating_modes;
+
+        MultiSenseInfo info{std::move(device_info),
+                            std::move(version_info),
+                            std::move(operating_modes),
+                            std::nullopt,
+                            std::move(network_info)};
+        return info;
+    }
+
 
     return std::nullopt;
 }

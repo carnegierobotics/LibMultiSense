@@ -165,6 +165,11 @@ private:
     std::optional<StereoCalibration> query_calibration();
 
     ///
+    /// @brief Query the MultiSense Info
+    ///
+    std::optional<MultiSenseInfo> query_info();
+
+    ///
     /// @brief Channel config
     ///
     Config m_config{};
