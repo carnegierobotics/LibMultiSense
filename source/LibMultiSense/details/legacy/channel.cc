@@ -319,7 +319,8 @@ Status LegacyChannel::connect(const Config &config)
     //
     if ((m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S27 ||
          m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::S30 ||
-         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21) &&
+         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21 ||
+         m_info.device.hardware_revision == MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i) &&
          m_info.version.firmware_version < MultiSenseInfo::Version{7, 22, 0})
     {
         CRL_DEBUG("WARNING: Please upgrade the MultiSense firmware to the most recent firmware release "
