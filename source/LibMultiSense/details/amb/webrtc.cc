@@ -127,6 +127,8 @@ void WebRtcClient::c_frame_callback(void* left_data,
         return;
     }
 
+    std::cout << left_size << " " << right_size << " " << disparity_size << std::endl;
+
     // TODO (malvarado): do this better
     static size_t frame_id = 0;
     ImageFrame frame;
@@ -135,7 +137,7 @@ void WebRtcClient::c_frame_callback(void* left_data,
     frame.frame_time = now;
     frame.ptp_frame_time = now;
 
-    auto create_image = [](void* data, int size, DataSource source, Image::PixelFormat format) -> std::optional<Image>
+    auto create_image = [](void* data, int size, size_t width, size_t height, DataSource source, Image::PixelFormat format) -> std::optional<Image>
     {
         if (data == nullptr || size <= 0)
         {
@@ -152,23 +154,37 @@ void WebRtcClient::c_frame_callback(void* left_data,
         image.source = source;
         image.format = format;
         // TODO (malvarado) : fix this
-        image.width = 1920;
-        image.height = 1200;
+        image.width = width;
+        image.height = height;
 
         return image;
     };
 
-    if (auto left_image = create_image(left_data, left_size, DataSource::LEFT_RECTIFIED_RAW, Image::PixelFormat::MONO8); left_image)
+    if (auto left_image = create_image(left_data,
+                                       left_size,
+                                       1920,
+                                       1200,
+                                       DataSource::LEFT_RECTIFIED_RAW,
+                                       Image::PixelFormat::MONO8); left_image)
     {
         frame.add_image(left_image.value());
     }
 
-    if (auto right_image = create_image(right_data, right_size, DataSource::RIGHT_RECTIFIED_RAW, Image::PixelFormat::MONO8); right_image)
+    if (auto right_image = create_image(right_data,
+                                        right_size,
+                                        1920,
+                                        1200,
+                                        DataSource::RIGHT_RECTIFIED_RAW,
+                                        Image::PixelFormat::MONO8); right_image)
     {
         frame.add_image(right_image.value());
     }
 
-    if (auto disparity_image = create_image(disparity_data, disparity_size, DataSource::LEFT_DISPARITY_RAW, Image::PixelFormat::MONO16); disparity_image)
+    if (auto disparity_image = create_image(disparity_data,
+                                            disparity_size,
+                                            960,
+                                            600,
+                                            DataSource::LEFT_DISPARITY_RAW, Image::PixelFormat::MONO16); disparity_image)
     {
         frame.add_image(disparity_image.value());
     }
