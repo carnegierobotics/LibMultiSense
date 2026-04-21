@@ -96,6 +96,11 @@ Status AmbChannel::connect(const Config &config)
         return Status::FAILED;
     }
 
+    if (config.receive_timeout)
+    {
+        m_http_client->set_read_timeout(config.receive_timeout.value());
+    }
+
     //
     // TODO (malvarado): Figure out the right way to resolve certs
     //
@@ -311,6 +316,8 @@ bool is_amb_camera(const std::string &ip_address)
     {
         return false;
     }
+
+    client->set_read_timeout(std::chrono::seconds(1));
 
     client->enable_server_certificate_verification(false);
 
