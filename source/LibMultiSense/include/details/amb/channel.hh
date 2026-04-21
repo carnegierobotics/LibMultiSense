@@ -218,5 +218,12 @@ private:
     std::atomic_bool m_connected = false;
 };
 
+///
+/// @brief Helper function to test if an amb camera is connected to a specific IP address
+///
+/// @param ip_address The ip address where the amb camera should be connected
+///
+bool is_amb_camera(const std::string &ip_address);
+
 }
 }

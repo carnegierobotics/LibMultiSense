@@ -47,14 +47,29 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
     {
         case ChannelImplementation::AUTO:
         {
-            try
+            if (amb::is_amb_camera(config.ip_address))
             {
-                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
+                try
+                {
+                    return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
+                }
+                catch(const std::exception &e)
+                {
+                    CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
+                    return nullptr;
+                }
             }
-            catch(const std::exception &e)
+            else
             {
-                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
-                return nullptr;
+                try
+                {
+                    return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
+                }
+                catch(const std::exception &e)
+                {
+                    CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
+                    return nullptr;
+                }
             }
         }
         case ChannelImplementation::LEGACY:

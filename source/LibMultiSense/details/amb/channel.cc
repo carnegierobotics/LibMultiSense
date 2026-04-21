@@ -144,6 +144,7 @@ Status AmbChannel::connect(const Config &config)
 
     m_webtrc->set_frame_callback([this](ImageFrame& frame)
                                  {
+                                     std::cout << "got new frame" << std::endl;
                                      frame.calibration = m_calibration;
                                      if (m_user_image_frame_callback)
                                      {
@@ -300,6 +301,20 @@ std::optional<MultiSenseInfo> AmbChannel::query_info()
 
 
     return std::nullopt;
+}
+
+bool is_amb_camera(const std::string &ip_address)
+{
+    auto client  = std::make_unique<httplib::Client>("https://" + ip_address);
+
+    if (!client)
+    {
+        return false;
+    }
+
+    client->enable_server_certificate_verification(false);
+
+    return static_cast<bool>(http_get(client, "/conf/info.json"));
 }
 
 }
