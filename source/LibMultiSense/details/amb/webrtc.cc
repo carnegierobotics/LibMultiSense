@@ -131,6 +131,9 @@ void WebRtcClient::c_frame_callback(void* left_data,
     static size_t frame_id = 0;
     ImageFrame frame;
     frame.frame_id = ++frame_id;
+    const auto now = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now());
+    frame.frame_time = now;
+    frame.ptp_frame_time = now;
 
     auto create_image = [](void* data, int size, DataSource source, Image::PixelFormat format) -> std::optional<Image>
     {

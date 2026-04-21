@@ -6,6 +6,8 @@ if (@BUILD_JSON_SERIALIZATION@)
     find_dependency(nlohmann_json 3.9)
 endif ()
 find_dependency(Threads)
+
+# TODO (malvarado): Make this conditional
 find_dependency(multisense-webrtc-client)
 find_dependency(OpenSSL)
 find_dependency(PkgConfig)
