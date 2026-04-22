@@ -246,6 +246,9 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
     size_t color_step = 0;
     double color_disparity_scale = 0.0;
 
+    double scale_x = 1.0;
+    double scale_y = 1.0;
+
     if constexpr (std::is_same_v<Color, void>)
     {
         if (disparity.format != Image::PixelFormat::MONO16 || disparity.width < 0 || disparity.height < 0)
@@ -263,10 +266,10 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
         color_step = sizeof(Color);
 
         if (disparity.format != Image::PixelFormat::MONO16 ||
-            color->width != disparity.width ||
-            color->height != disparity.height ||
-            disparity.width < 0 ||
-            disparity.height < 0)
+            disparity.width <= 0 ||
+            disparity.height <= 0 ||
+            color->width <= 0 ||
+            color->height <= 0)
         {
             return std::nullopt;
         }
@@ -274,12 +277,13 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
         const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
         const double color_tx = color->calibration.P[0][3] / color->calibration.P[0][0];
         color_disparity_scale = color_tx / tx;
+
+        scale_x = static_cast<double>(color->width) / static_cast<double>(disparity.width);
+        scale_y = static_cast<double>(color->height) / static_cast<double>(disparity.height);
     }
 
     constexpr double scale = 1.0 / 16.0;
-
     const double squared_range = max_range * max_range;
-
     const QMatrix Q(disparity.calibration, calibration.right);
 
     PointCloud<Color> output;
@@ -314,14 +318,19 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
             }
             else
             {
-                //
-                // Use the approximation that color_pixel_u = disp_u - (tx_color/ tx) * d
-                //
-                const size_t color_index = color->image_data_offset +
-                                           (h * color->width * color_step) +
-                                           static_cast<size_t>((static_cast<double>(w) - (color_disparity_scale * d))) * color_step;
+                const int color_u = static_cast<int>((static_cast<double>(w) - (color_disparity_scale * d)) * scale_x);
+                const int color_v = static_cast<int>(static_cast<double>(h) * scale_y);
 
-                const Color color_pixel = *reinterpret_cast<const Color*>(color->raw_data->data() + color_index);
+                Color color_pixel{};
+
+                if (color_u >= 0 && color_u < color->width && color_v >= 0 && color_v < color->height)
+                {
+                    const size_t color_index = color->image_data_offset +
+                                               (color_v * color->width * color_step) +
+                                               (color_u * color_step);
+
+                    color_pixel = *reinterpret_cast<const Color*>(color->raw_data->data() + color_index);
+                }
 
                 output.cloud.push_back(Point<Color>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z),
                                                     color_pixel});
