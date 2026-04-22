@@ -108,16 +108,14 @@ public:
     /// @brief Construct a minimal Q matrix from calibrations
     ///
     /// @param reference_cal The calibration corresponding to the image where disaprities are computed with
-    /// @param matching_cal The calibration corresponding to the image where pixels is the disparity image are matched
-    ///                     against
     ///
-    QMatrix(const CameraCalibration &reference_cal, const CameraCalibration &matching_cal):
+    QMatrix(const CameraCalibration &reference_cal, double tx, double cx_prime):
         fx_(reference_cal.P[0][0]),
         fy_(reference_cal.P[1][1]),
         cx_(reference_cal.P[0][2]),
         cy_(reference_cal.P[1][2]),
-        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
-        cx_prime_(matching_cal.P[0][2]),
+        tx_(tx),
+        cx_prime_(cx_prime),
         fytx_(fy_ * tx_),
         fxtx_(fx_ * tx_),
         fycxtx_(fy_ * cx_ * tx_),
@@ -284,7 +282,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
 
     constexpr double scale = 1.0 / 16.0;
     const double squared_range = max_range * max_range;
-    const QMatrix Q(disparity.calibration, calibration.right);
+    const QMatrix Q(disparity.calibration, calibration.right.rectified_translation()[0], calibration.right.P[0][2] / scale_x);
 
     PointCloud<Color> output;
     output.cloud.reserve(disparity.width * disparity.height);
@@ -300,7 +298,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
             const double d =
                 static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
 
-            if (d == 0.0)
+            if (d == 0.0 || d >= 255)
             {
                 continue;
             }

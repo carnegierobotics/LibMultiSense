@@ -123,7 +123,7 @@ TEST(QMatrix, reproject)
         CameraCalibration::DistortionType::NONE,
         {}};
 
-    QMatrix q{left_calibration, right_calibration};
+    QMatrix q{left_calibration, right_calibration.rectified_translation()[0], right_calibration.P[0][2]};
 
     // Project a dummy point into the left/right camera
     const double x = 0.5;

@@ -380,7 +380,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
 
     constexpr double scale = 1.0 / 16.0;
 
-    const QMatrix Q{disparity.calibration, frame.calibration.right};
+    const QMatrix Q(disparity.calibration, frame.calibration.right.rectified_translation()[0], frame.calibration.right.P[0][2]);
 
     //
     // Search through our configured pixel window testing to see if the disparity value projected into the aux
