@@ -34,6 +34,7 @@
  *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include "details/utilities.hh"
 #include "details/amb/webrtc.hh"
 
 #include <cstring>
@@ -58,8 +59,9 @@ extern "C"
 namespace multisense {
 namespace amb {
 
-WebRtcClient::WebRtcClient(const std::string& host)
-    : m_impl(nullptr)
+WebRtcClient::WebRtcClient(const std::string& host, const StereoCalibration &calibration)
+    : m_impl(nullptr),
+      m_calibration(calibration)
 {
     m_impl = create_mswebrtc_impl(host.c_str());
 }
@@ -127,8 +129,6 @@ void WebRtcClient::c_frame_callback(void* left_data,
         return;
     }
 
-    std::cout << left_size << " " << right_size << " " << disparity_size << std::endl;
-
     // TODO (malvarado): do this better
     static size_t frame_id = 0;
     ImageFrame frame;
@@ -137,7 +137,13 @@ void WebRtcClient::c_frame_callback(void* left_data,
     frame.frame_time = now;
     frame.ptp_frame_time = now;
 
-    auto create_image = [](void* data, int size, size_t width, size_t height, DataSource source, Image::PixelFormat format) -> std::optional<Image>
+    auto create_image = [](void* data,
+                           int size,
+                           size_t width,
+                           size_t height,
+                           const CameraCalibration &calibration,
+                           DataSource source,
+                           Image::PixelFormat format) -> std::optional<Image>
     {
         if (data == nullptr || size <= 0)
         {
@@ -156,14 +162,19 @@ void WebRtcClient::c_frame_callback(void* left_data,
         // TODO (malvarado) : fix this
         image.width = width;
         image.height = height;
+        image.calibration = calibration;
 
         return image;
     };
 
+    //
+    // @TODO (malvarado) fix image sizes
+    //
     if (auto left_image = create_image(left_data,
                                        left_size,
                                        1920,
                                        1200,
+                                       client->m_calibration.left,
                                        DataSource::LEFT_RECTIFIED_RAW,
                                        Image::PixelFormat::MONO8); left_image)
     {
@@ -174,6 +185,7 @@ void WebRtcClient::c_frame_callback(void* left_data,
                                         right_size,
                                         1920,
                                         1200,
+                                        client->m_calibration.right,
                                         DataSource::RIGHT_RECTIFIED_RAW,
                                         Image::PixelFormat::MONO8); right_image)
     {
@@ -184,6 +196,7 @@ void WebRtcClient::c_frame_callback(void* left_data,
                                             disparity_size,
                                             960,
                                             600,
+                                            scale_calibration(client->m_calibration.left, 0.5, 0.5),
                                             DataSource::LEFT_DISPARITY_RAW, Image::PixelFormat::MONO16); disparity_image)
     {
         frame.add_image(disparity_image.value());

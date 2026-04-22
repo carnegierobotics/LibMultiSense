@@ -133,9 +133,17 @@ Status AmbChannel::connect(const Config &config)
     }
 
     //
+    // TODO (malvarado): Fix this
+    //
+    m_multisense_config = MultiSenseConfig();
+    m_multisense_config.width = 1920;
+    m_multisense_config.height = 1200;
+    m_multisense_config.frames_per_second = 30.0f;
+
+    //
     // Connect our WebRTC client
     //
-    m_webtrc = std::make_unique<WebRtcClient>("https://" + config.ip_address);
+    m_webtrc = std::make_unique<WebRtcClient>("https://" + config.ip_address, m_calibration);
 
     if (!m_webtrc)
     {

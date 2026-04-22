@@ -52,7 +52,7 @@ public:
     ///
     /// @brief Create a new WebRTC client which attaches to a server at a specific hostname
     ///
-    explicit WebRtcClient(const std::string& host);
+    explicit WebRtcClient(const std::string& host, const StereoCalibration &calibration);
     ~WebRtcClient();
 
     WebRtcClient(const WebRtcClient&) = delete;
@@ -92,11 +92,19 @@ private:
                                  void* user_data);
 
     ///
-    /// @param Pointer to the base C WebRTC implementation
+    /// @brief Pointer to the base C WebRTC implementation
     ///
     void* m_impl = nullptr;
 
+    ///
+    /// @brief The user supplied frame callback to call when a new frame arrives
+    ///
     std::function<void(ImageFrame&)> m_frame_callback;
+
+    ///
+    /// @brief Calibration to associate with the incoming images
+    ///
+    StereoCalibration m_calibration;
 };
 
 } // namespace amb
