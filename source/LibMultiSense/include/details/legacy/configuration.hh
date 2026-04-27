@@ -121,7 +121,7 @@ crl::multisense::details::wire::ImuConfig convert(const MultiSenseConfig::ImuCon
 /// @brief Convert a wire lighting config to a API lighting config
 ///
 MultiSenseConfig::LightingConfig convert(const crl::multisense::details::wire::LedStatus &led,
-                                         const MultiSenseInfo::DeviceInfo::LightingType &type);
+                                         const MultiSenseInfo::DeviceInfo &devinfo);
 
 ///
 /// @brief Convert a API lighting config to a wire lighting config
