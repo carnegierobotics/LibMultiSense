@@ -181,7 +181,7 @@ TEST(create_depth_image, mono_and_float)
 
     const auto disparity_image = create_example_disparity_image(left_calibration, right_calibration, 3.0, disk_distance_m, 1920, 1200);
 
-    ImageFrame frame{0, {}, StereoCalibration{left_calibration, right_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
+    ImageFrame frame{0, {}, {}, StereoCalibration{left_calibration, right_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
     frame.add_image(disparity_image);
 
     const float invalid = 7000.0;
@@ -266,7 +266,7 @@ TEST(get_aux_3d_point, basic_tests)
 
     const auto disparity_image = create_example_disparity_image(left_calibration, right_calibration, 3.0, disk_distance_m, 1920, 1200);
 
-    ImageFrame frame{0, {}, StereoCalibration{left_calibration, right_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
+    ImageFrame frame{0, {}, {}, StereoCalibration{left_calibration, right_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
     frame.add_image(disparity_image);
 
     const auto invalid_point = get_aux_3d_point(frame, Pixel{0, 0}, 100, 0.01);
@@ -371,7 +371,7 @@ TEST(create_pointcloud, basic_tests)
 
     const auto disparity_image = create_example_disparity_image(left_calibration, right_calibration, 3.0, disk_distance_m, 1920, 1200);
 
-    ImageFrame frame{0, {}, StereoCalibration{left_calibration, right_calibration, std::nullopt}, {}, {}, {}, {}, {}, {}};
+    ImageFrame frame{0, {}, {}, StereoCalibration{left_calibration, right_calibration, std::nullopt}, {}, {}, {}, {}, {}, {}};
     frame.add_image(disparity_image);
 
     const auto point_cloud = create_pointcloud(frame, disk_distance_m + 3.0);

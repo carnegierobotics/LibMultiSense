@@ -461,8 +461,8 @@ void featureDetectorCallback(const secondary_app::Header& header,
     }
     else
     {
-        if ((fHeader.source == feature_detector::Source_Feature_Left)
-        || (fHeader.source == feature_detector::Source_Feature_Rectified_Left))
+        if ((fHeader.source == feature_detector::Source_ORB_Feature_Left)
+        || (fHeader.source == feature_detector::Source_ORB_Feature_Left_Rectified))
          {
             auto it = userData->elapsedTime.find(fHeader.frameId);
             if (it == userData->elapsedTime.end()) {
@@ -547,7 +547,7 @@ int main(int    argc,
 
     Status status;
     system::VersionInfo v;
-    VersionType version;
+    crl::multisense::VersionType version;
     std::vector<system::DeviceMode> deviceModes;
     system::DeviceMode operatingMode;
     image::Calibration calibration;
@@ -747,11 +747,11 @@ int main(int    argc,
     {
         status = channelP->startStreams((operatingMode.supportedDataSources & Source_Luma_Left)  |
                                         (operatingMode.supportedDataSources & Source_Luma_Right) |
-                                        feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+                                        feature_detector::Source_ORB_Feature_Left|feature_detector::Source_ORB_Feature_Right);
     }
     else
     {
-        status = channelP->startStreams(feature_detector::Source_Feature_Left|feature_detector::Source_Feature_Right);
+        status = channelP->startStreams(feature_detector::Source_ORB_Feature_Left|feature_detector::Source_ORB_Feature_Right);
     }
 
 

@@ -37,22 +37,23 @@
 #ifndef __FEATURE_DETECTOR_UTILITIES_H__
 #define __FEATURE_DETECTOR_UTILITIES_H__
 
-#include "FeatureDetectorMessage.hh"
-#include "FeatureDetectorMetaMessage.hh"
-#include "FeatureDetectorConfig.hh"
+#include <wire/FeatureMessage.hh>
+#include <wire/FeatureMetaMessage.hh>
+#include <wire/FeatureConfig.hh>
 
 using namespace crl::multisense;
 using namespace crl::multisense::details;
+using namespace crl::multisense::details::wire;
 
 namespace feature_detector
 {
 
-static CRL_CONSTEXPR DataSource Source_Feature_Left            = Source_Secondary_App_Data_0;
-static CRL_CONSTEXPR DataSource Source_Feature_Right           = Source_Secondary_App_Data_1;
-static CRL_CONSTEXPR DataSource Source_Feature_Aux             = Source_Secondary_App_Data_2;
-static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Left  = Source_Secondary_App_Data_3;
-static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Right = Source_Secondary_App_Data_4;
-static CRL_CONSTEXPR DataSource Source_Feature_Rectified_Aux   = Source_Secondary_App_Data_5;
+static CRL_CONSTEXPR DataSource Source_ORB_Feature_Left            = Source_Secondary_App_Data_0;
+static CRL_CONSTEXPR DataSource Source_ORB_Feature_Right           = Source_Secondary_App_Data_1;
+static CRL_CONSTEXPR DataSource Source_ORB_Feature_Aux             = Source_Secondary_App_Data_2;
+static CRL_CONSTEXPR DataSource Source_ORB_Feature_Left_Rectified  = Source_Secondary_App_Data_3;
+static CRL_CONSTEXPR DataSource Source_ORB_Feature_Right_Rectified = Source_Secondary_App_Data_4;
+static CRL_CONSTEXPR DataSource Source_ORB_Feature_Aux_Rectified   = Source_Secondary_App_Data_5;
 
 /** The recommended maximum number of features for full resolution camera operation */
 static CRL_CONSTEXPR int RECOMMENDED_MAX_FEATURES_FULL_RES    = 5000;
@@ -229,10 +230,10 @@ Status secondaryAppDataExtract(feature_detector::Header &header, const secondary
   using namespace crl::multisense::details;
 
   utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(orig.secondaryAppDataP), orig.secondaryAppDataLength);
-  FeatureDetector featureDetector(stream, FeatureDetector::VERSION);
+  wire::FeatureDetector featureDetector(stream, wire::FeatureDetector::VERSION);
 
   utility::BufferStreamReader metaStream(reinterpret_cast<const uint8_t *>(orig.secondaryAppMetadataP), orig.secondaryAppMetadataLength);
-  FeatureDetectorMeta _meta(metaStream, FeatureDetectorMeta::VERSION);
+  wire::FeatureDetectorMeta _meta(metaStream, wire::FeatureDetectorMeta::VERSION);
 
 
   header.source         = featureDetector.source;
@@ -256,16 +257,16 @@ Status secondaryAppDataExtract(feature_detector::Header &header, const secondary
   header.numFeatures    = featureDetector.numFeatures;
   header.numDescriptors = featureDetector.numDescriptors;
 
-  const size_t startDescriptor=featureDetector.numFeatures*sizeof(Feature);
+  const size_t startDescriptor=featureDetector.numFeatures*sizeof(wire::Feature);
 
   uint8_t * dataP = reinterpret_cast<uint8_t *>(featureDetector.dataP);
   for (size_t i = 0; i < featureDetector.numFeatures; i++) {
-      feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(Feature)));
+      feature_detector::Feature f = *reinterpret_cast<feature_detector::Feature *>(dataP + (i * sizeof(wire::Feature)));
       header.features->push_back(f);
   }
 
   for (size_t j = 0;j < featureDetector.numDescriptors; j++) {
-      feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(Descriptor))));
+      feature_detector::Descriptor d = *reinterpret_cast<feature_detector::Descriptor *>(dataP + (startDescriptor + (j * sizeof(wire::Descriptor))));
       header.descriptors->push_back(d);
   }
 
