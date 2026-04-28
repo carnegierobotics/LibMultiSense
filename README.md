@@ -1064,3 +1064,235 @@ int main(int argc, char** argv)
     return 0;
 }
 ```
+<<<<<<< Updated upstream
+=======
+
+---
+
+## Query Camera Calibration
+
+The camera's internal stereo calibration can be queried from the MultiSense. This calibration corresponds to the
+full-resolution operating mode of the camera and can be used to rectify raw images or project 3D points.
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Query the camera calibration
+        calibration = channel.get_calibration()
+
+        # Print the intrinsic matrix (K) for the left camera
+        print("Left Camera Intrinsic Matrix (K):")
+        print(calibration.left.K)
+
+        # Print the rectified projection matrix (P) for the left camera
+        print("Left Camera Rectified Projection Matrix (P):")
+        print(calibration.left.P)
+
+        # Print the distortion coefficients (D) for the left camera
+        print("Left Camera Distortion Coefficients (D):")
+        print(calibration.left.D)
+
+        # Access aux camera calibration if present
+        if calibration.aux is not None:
+             print("Aux Camera Intrinsic Matrix (K):")
+             print(calibration.aux.K)
+
+        # Create a Q matrix to convert disparity pixels to 3D point clouds
+        Q = lms.QMatrix(calibration.left, calibration.right);
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    // Query the camera calibration
+    const auto calibration = channel->get_calibration();
+
+    // Access intrinsic matrix (K) for the left camera
+    std::cout << "Left Camera Intrinsic Matrix (K):" << std::endl;
+    for (const auto& row : calibration.left.K)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Access rectified projection matrix (P) for the left camera
+    std::cout << "Left Camera Rectified Projection Matrix (P):" << std::endl;
+    for (const auto& row : calibration.left.P)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Generate a Q matrix to convert disparity points to 3D point clouds
+    const auto Q = QMatrix(calibration.left, calibration.right);
+
+    return 0;
+}
+```
+
+---
+
+## Feature Rendering
+
+LibMultiSense supports retrieving image features computed on-camera. These are synchronized with the
+corresponding image frames.
+
+The following example demonstrates how to retrieve and render features on a rectified image.
+
+> [!NOTE]
+> MultiSense firmware version v7.34 or newer is required to use the onboard feature detector
+
+### Python
+
+```python
+import libmultisense as lms
+import cv2
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Set the feature detector config to enable the feature detector
+        config = channel.get_config()
+        config.feature_detector_config = lms.FeatureDetectorConfig()
+        config.feature_detector_config.number_of_features = 1500
+        config.feature_detector_config.grouping_enabled = True
+        channel.set_config(config)
+
+        # Start both the rectified image and the corresponding feature stream
+        sources = [lms.DataSource.LEFT_MONO_RAW, lms.DataSource.LEFT_ORB_FEATURES]
+        if channel.start_streams(sources) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
+
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame and frame.has_image(lms.DataSource.LEFT_MONO_RAW):
+                img = frame.get_image(lms.DataSource.LEFT_MONO_RAW).as_array
+
+                # Convert grayscale to BGR for color rendering
+                display_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+                if frame.has_feature(lms.DataSource.LEFT_ORB_FEATURES):
+                    features = frame.get_feature(lms.DataSource.LEFT_ORB_FEATURES)
+                    print(f"Frame {frame.frame_id}: Received {len(features.keypoints)} features")
+
+                    for kp in features.keypoints:
+                        cv2.circle(display_img, (int(kp.x), int(kp.y)), 3, (0, 255, 0), -1)
+
+                cv2.imshow("MultiSense Features", display_img)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+#define HAVE_OPENCV 1
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    //
+    // Set the feature detector config to enable the feature detector
+    //
+    auto config = channel->get_config();
+    config.feature_detector_config = lms::MultiSenseConfig::FeatureDetectorConfig{number_of_features, true, 1};
+    channel->set_config(config);
+
+    // Start both the rectified image and the corresponding feature stream
+    const std::vector<lms::DataSource> sources = {
+        lms::DataSource::LEFT_MONO_RAW,
+        lms::DataSource::LEFT_ORB_FEATURES
+    };
+
+    if (const auto status = channel->start_streams(sources); status != lms::Status::OK)
+    {
+        std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
+        return 1;
+    }
+
+    while(true)
+    {
+        if (const auto frame = channel->get_next_image_frame(); frame)
+        {
+            if (frame->has_image(lms::DataSource::LEFT_MONO_RAW))
+            {
+                cv::Mat img = frame->get_image(lms::DataSource::LEFT_MONO_RAW).cv_mat();
+                cv::Mat display_img;
+                cv::cvtColor(img, display_img, cv::COLOR_GRAY2BGR);
+
+                if (frame->has_feature(lms::DataSource::LEFT_ORB_FEATURES))
+                {
+                    const auto& features = frame->get_feature(lms::DataSource::LEFT_ORB_FEATURES);
+
+                    // Use the native OpenCV utility to convert keypoints and draw them
+                    cv::drawKeypoints(display_img, features.cv_keypoints(), display_img, cv::Scalar(0, 255, 0));
+                }
+
+                cv::imshow("MultiSense Features", display_img);
+                if (cv::waitKey(1) == 'q') break;
+            }
+        }
+    }
+
+    return 0;
+}
+```
+>>>>>>> Stashed changes
