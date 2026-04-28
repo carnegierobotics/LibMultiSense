@@ -1074,4 +1074,6 @@ PYBIND11_MODULE(_libmultisense, m) {
     m.def("create_bgr_from_ycbcr420", &multisense::create_bgr_from_ycbcr420, py::call_guard<py::gil_scoped_release>());
 
     m.def("create_bgr_image", &multisense::create_bgr_image, py::call_guard<py::gil_scoped_release>());
+
+    m.def("scale_calibration", &multisense::scale_calibration, py::call_guard<py::gil_scoped_release>());
 }

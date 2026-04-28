@@ -236,6 +236,16 @@ MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
                                                      const DataSource &output_source);
 
 ///
+/// @brief Scale a calibration to align with a different operating resolution
+///
+/// @param calibration The input calibration to scale
+/// @param scale The scale factor to apply to the calibration
+///
+/// @return A scaled calibration
+///
+MULTISENSE_API CameraCalibration scale_calibration(CameraCalibration calibration, double scale);
+
+///
 /// @brief Create a point cloud from a image frame and a color source.
 ///
 /// @param disparity A disparity image to convert to a pointcloud
