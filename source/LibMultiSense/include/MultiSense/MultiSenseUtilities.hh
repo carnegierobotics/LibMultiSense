@@ -133,6 +133,18 @@ public:
         return Point<void>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
     }
 
+
+    std::array<std::array<double, 4>, 4> matrix() const
+    {
+        //
+        // See https://docs.carnegierobotics.com/cookbook/overview.html#reproject-disparity-images-to-3d-point-clouds
+        //
+        return std::array<std::array<double, 4>, 4>{{{fytx_, 0.0, 0.0, -fycxtx_},
+                                                     {0.0, fxtx_, 0.0, -fxcytx_},
+                                                     {0.0, 0.0, 0.0, fxfytx_},
+                                                     {0.0, 0.0, -fy_, fycxcxprime_}}};
+    }
+
 private:
     double fx_ = 0.0;
     double fy_ = 0.0;

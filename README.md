@@ -1089,7 +1089,8 @@ def main():
             print("Invalid channel")
             exit(1)
 
-        # Query the camera calibration
+        # Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame
+        # also contains a scaled calibration which can be easier to handle depending on the application
         calibration = channel.get_calibration()
 
         # Print the intrinsic matrix (K) for the left camera
@@ -1111,6 +1112,7 @@ def main():
 
         # Create a Q matrix to convert disparity pixels to 3D point clouds
         Q = lms.QMatrix(calibration.left, calibration.right);
+        print(Q.matrix())
 
 if __name__ == "__main__":
     main()
@@ -1134,7 +1136,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Query the camera calibration
+    // Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame also contains
+    // a scaled calibration which can be easier to handle depending on the application
     const auto calibration = channel->get_calibration();
 
     // Access intrinsic matrix (K) for the left camera
