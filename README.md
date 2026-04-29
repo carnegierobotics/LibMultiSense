@@ -1,5 +1,7 @@
 # LibMultiSense
 
+[![codecov](https://codecov.io/gh/carnegierobotics/LibMultiSense/branch/master/graph/badge.svg)](https://codecov.io/gh/carnegierobotics/LibMultiSense)
+
 LibMultiSense is a C++ and Python library designed to simplify interaction with the MultiSense S family of stereo
 sensors developed by Carnegie Robotics. It provides a comprehensive, easy-to-use API for capturing and processing
 stereo sensor data an generating depth images, color images, and 3D point clouds.
