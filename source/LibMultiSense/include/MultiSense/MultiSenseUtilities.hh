@@ -112,14 +112,14 @@ public:
         fy_(reference_cal.P[1][1]),
         cx_(reference_cal.P[0][2]),
         cy_(reference_cal.P[1][2]),
-        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
+        tx_(static_cast<double>(matching_cal.P[0][3]) / static_cast<double>(matching_cal.P[0][0])),
         cx_prime_(matching_cal.P[0][2]),
         fytx_(fy_ * tx_),
         fxtx_(fx_ * tx_),
         fycxtx_(fy_ * cx_ * tx_),
         fxcytx_(fx_ * cy_ * tx_),
         fxfytx_(fx_ * fy_ * tx_),
-        fycxcxprime_(fy_ * (cx_ - cx_prime_))
+        fycxcxprime_(fy_ * (static_cast<double>(cx_) - static_cast<double>(cx_prime_)))
     {
     }
 
