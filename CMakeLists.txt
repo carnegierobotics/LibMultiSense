@@ -50,9 +50,21 @@ option(BUILD_OPENCV "Use OpenCV if found on the host system" OFF)
 option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
 option(BUILD_JSON_SERIALIZATION "Build json type serialization with nlohmann json." OFF)
 option(ENABLE_ASAN "Build with AddressSanitizer instrumentation." OFF)
+option(ENABLE_COVERAGE "Build with code coverage instrumentation." OFF)
 
 if (BUILD_TESTS)
     enable_testing()
+endif()
+
+if (ENABLE_COVERAGE)
+    if (MSVC)
+        message(FATAL_ERROR "ENABLE_COVERAGE is only supported with Clang or GCC toolchains.")
+    endif()
+
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+
+    include(cmake/coverage.cmake)
 endif()
 
 #
