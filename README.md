@@ -197,6 +197,21 @@ the following CMake argument should be set
 This will require a system installation of googletest, or an installation which can be pointed to with CMake's
 `CMAKE_PREFIX_PATH` argument
 
+### Code Coverage
+
+LibMultiSense supports generating unit test coverage reports using `lcov` and `genhtml`.
+To enable coverage instrumentation, set the following CMake argument:
+
+    -DENABLE_COVERAGE=ON
+
+Once enabled, you can generate the coverage report by running:
+
+```bash
+make coverage
+```
+
+The report will be generated in `build/coverage_report/index.html`. This requires `lcov` and `genhtml` to be installed on the system and is supported on Linux with GCC or Clang.
+
 ---
 
 ## Installation
