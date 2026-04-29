@@ -777,7 +777,8 @@ PYBIND11_MODULE(_libmultisense, m) {
     // Utilities
     py::class_<multisense::QMatrix>(m, "QMatrix")
         .def(py::init<const multisense::CameraCalibration &, const multisense::CameraCalibration &>())
-        .def("reproject", &multisense::QMatrix::reproject);
+        .def("reproject", &multisense::QMatrix::reproject)
+        .def("matrix", &multisense::QMatrix::matrix);
 
     py::class_<multisense::Pixel>(m, "Pixel")
         .def(py::init<>())
@@ -1073,4 +1074,6 @@ PYBIND11_MODULE(_libmultisense, m) {
     m.def("create_bgr_from_ycbcr420", &multisense::create_bgr_from_ycbcr420, py::call_guard<py::gil_scoped_release>());
 
     m.def("create_bgr_image", &multisense::create_bgr_image, py::call_guard<py::gil_scoped_release>());
+
+    m.def("scale_calibration", &multisense::scale_calibration, py::call_guard<py::gil_scoped_release>());
 }

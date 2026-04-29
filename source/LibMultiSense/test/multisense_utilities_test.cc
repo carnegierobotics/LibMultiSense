@@ -147,6 +147,103 @@ TEST(QMatrix, reproject)
     EXPECT_NEAR(z, repojected_pt.z, epsilon);
 }
 
+TEST(QMatrix, matrix)
+{
+    const float fx = 1500.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+    const double tx = -0.27;
+
+    // Use double for the product to ensure we get an exact -405.0f
+    const float fxtx = static_cast<float>(static_cast<double>(fx) * tx);
+
+    CameraCalibration left_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    CameraCalibration right_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, fxtx}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    QMatrix q{left_calibration, right_calibration};
+
+    const auto matrix = q.matrix();
+
+    const double expected_fytx = static_cast<double>(fy) * tx;
+    const double expected_fxtx = static_cast<double>(fx) * tx;
+    const double expected_fycxtx = static_cast<double>(fy) * static_cast<double>(cx) * tx;
+    const double expected_fxcytx = static_cast<double>(fx) * static_cast<double>(cy) * tx;
+    const double expected_fxfytx = static_cast<double>(fx) * static_cast<double>(fy) * tx;
+    const double expected_fycxcxprime = 0.0;
+
+    const double epsilon = 1e-6;
+
+    EXPECT_NEAR(matrix[0][0], expected_fytx, epsilon);
+    EXPECT_NEAR(matrix[0][1], 0.0, epsilon);
+    EXPECT_NEAR(matrix[0][2], 0.0, epsilon);
+    EXPECT_NEAR(matrix[0][3], -expected_fycxtx, epsilon);
+
+    EXPECT_NEAR(matrix[1][0], 0.0, epsilon);
+    EXPECT_NEAR(matrix[1][1], expected_fxtx, epsilon);
+    EXPECT_NEAR(matrix[1][2], 0.0, epsilon);
+    EXPECT_NEAR(matrix[1][3], -expected_fxcytx, epsilon);
+
+    EXPECT_NEAR(matrix[2][0], 0.0, epsilon);
+    EXPECT_NEAR(matrix[2][1], 0.0, epsilon);
+    EXPECT_NEAR(matrix[2][2], 0.0, epsilon);
+    EXPECT_NEAR(matrix[2][3], expected_fxfytx, epsilon);
+
+    EXPECT_NEAR(matrix[3][0], 0.0, epsilon);
+    EXPECT_NEAR(matrix[3][1], 0.0, epsilon);
+    EXPECT_NEAR(matrix[3][2], -static_cast<double>(fy), epsilon);
+    EXPECT_NEAR(matrix[3][3], expected_fycxcxprime, epsilon);
+}
+
+TEST(scale_calibration, basic)
+{
+    const float fx = 1500.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+    const float tx = -0.27;
+
+    CameraCalibration cal{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, fx * tx}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    const double scale = 0.5;
+    const auto scaled_cal = scale_calibration(cal, scale);
+
+    EXPECT_FLOAT_EQ(scaled_cal.K[0][0], fx * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.K[0][2], cx * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.K[1][1], fy * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.K[1][2], cy * scale);
+
+    EXPECT_FLOAT_EQ(scaled_cal.P[0][0], fx * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.P[0][2], cx * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.P[0][3], fx * tx * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.P[1][1], fy * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.P[1][2], cy * scale);
+    EXPECT_FLOAT_EQ(scaled_cal.P[1][3], 0.0);
+
+    // Ensure other values are unchanged
+    EXPECT_FLOAT_EQ(scaled_cal.K[0][1], cal.K[0][1]);
+    EXPECT_FLOAT_EQ(scaled_cal.K[1][0], cal.K[1][0]);
+    EXPECT_FLOAT_EQ(scaled_cal.K[2][0], cal.K[2][0]);
+    EXPECT_FLOAT_EQ(scaled_cal.K[2][1], cal.K[2][1]);
+    EXPECT_FLOAT_EQ(scaled_cal.K[2][2], cal.K[2][2]);
+}
+
 TEST(create_depth_image, mono_and_float)
 {
     const float fx = 1000.0;
