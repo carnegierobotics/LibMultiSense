@@ -1,7 +1,7 @@
 /**
  * @file channel.hh
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,35 +31,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
 #pragma once
 
-#include <set>
-
 #include "MultiSense/MultiSenseChannel.hh"
 
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
-#include <wire/ImageMetaMessage.hh>
+#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
+#include <httplib.h>
 
 #include "details/utilities.hh"
-#include "details/legacy/ip.hh"
-#include "details/legacy/message.hh"
-#include "details/legacy/storage.hh"
-#include "details/legacy/udp.hh"
-#include "details/legacy/utilities.hh"
+#include "details/amb/webrtc.hh"
 
 namespace multisense{
-namespace legacy{
+namespace amb{
 
-class LegacyChannel : public Channel
+class AmbChannel : public Channel
 {
 public:
-    explicit LegacyChannel(const Config &config);
+    explicit AmbChannel(const Config &config);
 
-    virtual ~LegacyChannel();
+    virtual ~AmbChannel();
 
     ///
     /// @brief Start a collection of image streams. Repeated calls to this function will not implicitly
@@ -168,26 +163,6 @@ public:
 private:
 
     ///
-    /// @brief Internal member to disconnect without locking
-    ///
-    void disconnect_internal();
-
-    ///
-    /// @brief Try and set the MTU
-    ///
-    Status set_mtu(uint16_t mtu);
-
-    ///
-    /// @brief Set the MTU. If the MTU is invalid, try and find the best MTU via a basic search
-    ///
-    Status set_mtu(const std::optional<uint16_t> &mtu);
-
-    ///
-    /// @brief Query the full configuration
-    ///
-    std::optional<MultiSenseConfig> query_configuration(bool has_aux_camera, bool has_imu, bool ptp_enabled);
-
-    ///
     /// @brief Query the calibration from the camera
     ///
     std::optional<StereoCalibration> query_calibration();
@@ -198,89 +173,9 @@ private:
     std::optional<MultiSenseInfo> query_info();
 
     ///
-    /// @brief Query the device_info from the camera
-    ///
-    std::optional<MultiSenseInfo::DeviceInfo> query_device_info();
-
-    ///
-    /// @brief Internal member to stop image streams
-    ///
-    Status stop_streams_internal(const std::vector<DataSource> &sources);
-
-    ///
-    /// @brief Image meta callback used to internally receive images sent from the MultiSense
-    ///
-    void image_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data);
-
-    ///
-    /// @brief Image callback used to internally receive images sent from the MultiSense
-    ///
-    void image_callback(std::shared_ptr<const std::vector<uint8_t>> data);
-
-    ///
-    /// @brief Compressed image callback used to internally receive compressed images sent from the MultiSense
-    ///
-    void compressed_image_callback(std::shared_ptr<const std::vector<uint8_t>> data);
-
-    ///
-    /// @brief Disparity callback used to internally receive images sent from the MultiSense
-    ///
-    void disparity_callback(std::shared_ptr<const std::vector<uint8_t>> data);
-
-    ///
-    /// @brief Disparity callback used to internally receive images sent from the MultiSense
-    ///
-    void imu_callback(std::shared_ptr<const std::vector<uint8_t>> data);
-
-    ///
-    /// @brief Handle internal process, and potentially dispatch a image
-    ///
-    void handle_and_dispatch(Image image,
-                             const crl::multisense::details::wire::ImageMeta &metadata,
-                             int64_t frame_id,
-                             const StereoCalibration &calibration,
-                             const TimeT &capture_time,
-                             const TimeT &ptp_capture_time);
-
-    ///
-    /// @brief Internal mutex used to handle updates from users
-    ///
-    std::mutex m_mutex{};
-
-    ///
-    /// @brief Internal mutex used to handle user callbacks for image data
-    ///
-    std::mutex m_image_callback_mutex{};
-
-    ///
-    /// @brief Internal mutex used to handle user callbacks imu data
-    ///
-    std::mutex m_imu_callback_mutex{};
-
-    ///
-    /// @brief Atomic flag to determine if we are connected to an active camera
-    ///
-    std::atomic_bool m_connected = false;
-
-    ///
-    /// @brief The current MTU the camera is operating with
-    ///
-    std::atomic_uint16_t m_current_mtu = 1500;
-
-    ///
     /// @brief Channel config
     ///
     Config m_config{};
-
-    ///
-    /// @brief Active network socket for receiving and transmitting data
-    ///
-    NetworkSocket m_socket{};
-
-    ///
-    /// @brief Monotonically increasing internal id used to uniquely identify requests sent to the camera
-    ///
-    std::atomic_uint16_t m_transmit_id = 0;
 
     ///
     /// @brief The current cached calibration stored here for convenience
@@ -298,19 +193,9 @@ private:
     MultiSenseConfig m_multisense_config{};
 
     ///
-    /// @brief The current set of active data streams the MultiSense is transmitting.
-    ///
-    std::set<DataSource> m_active_streams{};
-
-    ///
     /// @brief The currently active image frame user callback
     ///
     std::function<void(const ImageFrame&)> m_user_image_frame_callback{};
-
-    ///
-    /// @brief The currently active imu frame user callback
-    ///
-    std::function<void(const ImuFrame&)> m_user_imu_frame_callback{};
 
     ///
     /// @brief Notifier used to service the get_next_image_frame member function
@@ -318,51 +203,27 @@ private:
     FrameNotifier<ImageFrame> m_image_frame_notifier{};
 
     ///
-    /// @brief Notifier used to service the get_next_imu_frame member function
+    /// @brief HTTP client to handle https get/post requests
     ///
-    FrameNotifier<ImuFrame> m_imu_frame_notifier{};
+    std::unique_ptr<httplib::Client> m_http_client = nullptr;
 
     ///
-    /// @brief A cache of image metadata associated with a specific frame id
+    /// @brief WebRTC client for querying images
     ///
-    std::map<int64_t, crl::multisense::details::wire::ImageMeta> m_meta_cache{};
+    std::unique_ptr<WebRtcClient> m_webtrc = nullptr;
 
     ///
-    /// @brief A cache of image frames associated with a specific frame id
+    /// @brief Atomic flag to determine if we are connected to an active camera
     ///
-    std::map<int64_t, ImageFrame> m_frame_buffer{};
-
-    ///
-    /// @brief The max number of IMU messages which can be batched over the wire
-    ///
-    std::atomic_uint32_t m_max_batched_imu_messages = 0;
-
-    ///
-    /// @brief Scalars to convert imu samples from wire units to standard LibMultiSense units
-    ///
-    ImuSampleScalars m_imu_scalars{};
-
-    ///
-    /// @brief A cache of IMU samples which will be internally filled until it reaches the
-    ///        sample threshold for dispatch
-    ///
-    ImuFrame m_current_imu_frame{};
-
-    ///
-    /// @brief A collection of buffers to avoid dynamic allocation for incoming messages
-    ///
-    std::shared_ptr<BufferPool> m_buffer_pool = nullptr;
-
-    ///
-    /// @brief Helper object to receive UDP traffic. Internally manages a receive thread
-    ///
-    std::unique_ptr<UdpReceiver> m_udp_receiver = nullptr;
-
-    ///
-    /// @brief Helper object to assemble raw UDP packets into complete MultiSense wire messages
-    ///
-    MessageAssembler m_message_assembler;
+    std::atomic_bool m_connected = false;
 };
+
+///
+/// @brief Helper function to test if an amb camera is connected to a specific IP address
+///
+/// @param ip_address The ip address where the amb camera should be connected
+///
+bool is_amb_camera(const std::string &ip_address);
 
 }
 }

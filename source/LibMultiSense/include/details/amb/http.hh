@@ -1,7 +1,7 @@
 /**
- * @file calibration.hh
+ * @file http.hh
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,51 +31,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2025-01-17, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
 #pragma once
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <nlohmann/json.hpp>
 
-#include <wire/SysCameraCalibrationMessage.hh>
+#ifndef CPPHTTPLIB_OPENSSL_SUPPORT
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#endif
 
-#include "MultiSense/MultiSenseTypes.hh"
+#include <httplib.h>
 
-namespace multisense {
-namespace legacy {
+#include <optional>
+#include <string>
 
-///
-/// @brief Check if the CameraCalData object is valid
-///
-bool is_valid(const crl::multisense::details::wire::CameraCalData &cal);
+namespace multisense{
+namespace amb{
 
-///
-/// @brief Convert a wire calibration to our API calibration object
-///
-CameraCalibration convert(const crl::multisense::details::wire::CameraCalData &cal);
-
-///
-/// @brief Convert our API calibration object to a wire message
-///
-crl::multisense::details::wire::CameraCalData convert(const CameraCalibration &cal);
-
-///
-/// @brief Convert a wire calibration to our API calibration object
-///
-StereoCalibration convert(const crl::multisense::details::wire::SysCameraCalibration &cal);
-
-///
-/// @brief Convert our API calibration object to a wire calibration
-///
-crl::multisense::details::wire::SysCameraCalibration convert(const StereoCalibration &cal);
-
-///
-/// @brief Get the correct calibration corresponding to the input source
-///
-CameraCalibration select_calibration(const StereoCalibration &input, const DataSource &source);
+std::optional<nlohmann::json> http_get(std::unique_ptr<httplib::Client> &client, const std::string &endpoint);
 
 }
 }
+

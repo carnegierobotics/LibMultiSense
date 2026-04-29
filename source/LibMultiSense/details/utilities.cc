@@ -380,7 +380,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
 
     constexpr double scale = 1.0 / 16.0;
 
-    const QMatrix Q{disparity.calibration, frame.calibration.right};
+    const QMatrix Q(disparity.calibration, frame.calibration.right.rectified_translation()[0], frame.calibration.right.P[0][2]);
 
     //
     // Search through our configured pixel window testing to see if the disparity value projected into the aux
@@ -501,6 +501,135 @@ std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
                                                   const DataSource &disparity_source)
 {
     return create_color_pointcloud<void>(frame, max_range, DataSource::UNKNOWN, disparity_source);
+}
+
+std::map<std::string, std::vector<float>> parse_yaml(std::istream& stream)
+{
+    std::map<std::string, std::vector<float>> data;
+    std::string token;
+    while (stream >> token)
+    {
+        //
+        // Skip comments or YAML headers
+        //
+        if (token.front() == '%' || token.front() == '-')
+        {
+            stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        //
+        // We expect "key:"
+        //
+        size_t colon_pos = token.find(':');
+        if (colon_pos == std::string::npos)
+        {
+            continue;
+        }
+
+        std::string key = token.substr(0, colon_pos);
+        std::vector<float> values;
+
+        //
+        // If there was something after the colon in the same token, we don't handle it here
+        // for simplicity, we assume standard YAML spacing for keys.
+        //
+        stream >> std::ws;
+        int next_char = stream.peek();
+
+        if (next_char == '[')
+        {
+            stream.ignore(); // skip '['
+            stream >> values;
+        }
+        else
+        {
+            std::string value_indicator;
+            if (stream >> value_indicator)
+            {
+                if (value_indicator == "!!opencv-matrix")
+                {
+                    //
+                    // For an OpenCV matrix, we look for the "data:" key and its associated array
+                    //
+                    while (stream >> token)
+                    {
+                        if (token == "data:")
+                        {
+                            stream >> std::ws;
+                            if (stream.peek() == '[')
+                            {
+                                stream.ignore();
+                                stream >> values;
+                            }
+                            break;
+                        }
+                        else if (token.back() == ':')
+                        {
+                            //
+                            // Some other sub-key (rows, cols, dt), skip its value
+                            //
+                            std::string dummy;
+                            stream >> dummy;
+                        }
+                    }
+                }
+                else
+                {
+                    //
+                    // Try to parse as a single scalar value
+                    //
+                    try
+                    {
+                        values.push_back(std::stof(value_indicator));
+                    }
+                    catch (...)
+                    {
+                        // Not a scalar, ignore
+                    }
+                }
+            }
+        }
+
+        if (!key.empty() && !values.empty())
+        {
+            data[key] = values;
+        }
+    }
+
+    return data;
+}
+
+CameraCalibration scale_calibration(const CameraCalibration &input, double x_scale, double y_scale)
+{
+    auto output = input;
+
+    output.K[0][0] = static_cast<float>(static_cast<double>(output.K[0][0]) * x_scale); // fx
+    output.K[0][2] = static_cast<float>(static_cast<double>(output.K[0][2]) * x_scale); // cx
+    output.K[1][1] = static_cast<float>(static_cast<double>(output.K[1][1]) * y_scale); // fy
+    output.K[1][2] = static_cast<float>(static_cast<double>(output.K[1][2]) * y_scale); // cy
+
+    output.P[0][0] = static_cast<float>(static_cast<double>(output.P[0][0]) * x_scale); // fx
+    output.P[0][2] = static_cast<float>(static_cast<double>(output.P[0][2]) * x_scale); // cx
+    output.P[0][3] = static_cast<float>(static_cast<double>(output.P[0][3]) * x_scale); // fx * tx
+    output.P[1][1] = static_cast<float>(static_cast<double>(output.P[1][1]) * y_scale); // fy
+    output.P[1][2] = static_cast<float>(static_cast<double>(output.P[1][2]) * y_scale); // cy
+
+    return output;
+}
+
+StereoCalibration scale_calibration(const StereoCalibration &input, double x_scale, double y_scale)
+{
+    auto output = input;
+
+    output.left = scale_calibration(input.left, x_scale, y_scale);
+    output.right = scale_calibration(input.right, x_scale, y_scale);
+    if (input.aux)
+    {
+        output.aux = scale_calibration(input.aux.value(), x_scale, y_scale);
+    }
+
+    return output;
 }
 
 }

@@ -37,8 +37,12 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
 #include <sstream>
 #include <vector>
 
@@ -104,16 +108,14 @@ public:
     /// @brief Construct a minimal Q matrix from calibrations
     ///
     /// @param reference_cal The calibration corresponding to the image where disaprities are computed with
-    /// @param matching_cal The calibration corresponding to the image where pixels is the disparity image are matched
-    ///                     against
     ///
-    QMatrix(const CameraCalibration &reference_cal, const CameraCalibration &matching_cal):
+    QMatrix(const CameraCalibration &reference_cal, double tx, double cx_prime):
         fx_(reference_cal.P[0][0]),
         fy_(reference_cal.P[1][1]),
         cx_(reference_cal.P[0][2]),
         cy_(reference_cal.P[1][2]),
-        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
-        cx_prime_(matching_cal.P[0][2]),
+        tx_(tx),
+        cx_prime_(cx_prime),
         fytx_(fy_ * tx_),
         fxtx_(fx_ * tx_),
         fycxtx_(fy_ * cx_ * tx_),
@@ -242,6 +244,9 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
     size_t color_step = 0;
     double color_disparity_scale = 0.0;
 
+    double scale_x = 1.0;
+    double scale_y = 1.0;
+
     if constexpr (std::is_same_v<Color, void>)
     {
         if (disparity.format != Image::PixelFormat::MONO16 || disparity.width < 0 || disparity.height < 0)
@@ -259,10 +264,10 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
         color_step = sizeof(Color);
 
         if (disparity.format != Image::PixelFormat::MONO16 ||
-            color->width != disparity.width ||
-            color->height != disparity.height ||
-            disparity.width < 0 ||
-            disparity.height < 0)
+            disparity.width <= 0 ||
+            disparity.height <= 0 ||
+            color->width <= 0 ||
+            color->height <= 0)
         {
             return std::nullopt;
         }
@@ -270,13 +275,14 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
         const double tx = calibration.right.P[0][3] / calibration.right.P[0][0];
         const double color_tx = color->calibration.P[0][3] / color->calibration.P[0][0];
         color_disparity_scale = color_tx / tx;
+
+        scale_x = static_cast<double>(color->width) / static_cast<double>(disparity.width);
+        scale_y = static_cast<double>(color->height) / static_cast<double>(disparity.height);
     }
 
     constexpr double scale = 1.0 / 16.0;
-
     const double squared_range = max_range * max_range;
-
-    const QMatrix Q(disparity.calibration, calibration.right);
+    const QMatrix Q(disparity.calibration, calibration.right.rectified_translation()[0], calibration.right.P[0][2] / scale_x);
 
     PointCloud<Color> output;
     output.cloud.reserve(disparity.width * disparity.height);
@@ -292,7 +298,7 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
             const double d =
                 static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
 
-            if (d == 0.0)
+            if (d == 0.0 || d >= 255)
             {
                 continue;
             }
@@ -310,14 +316,19 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
             }
             else
             {
-                //
-                // Use the approximation that color_pixel_u = disp_u - (tx_color/ tx) * d
-                //
-                const size_t color_index = color->image_data_offset +
-                                           (h * color->width * color_step) +
-                                           static_cast<size_t>((static_cast<double>(w) - (color_disparity_scale * d))) * color_step;
+                const int color_u = static_cast<int>((static_cast<double>(w) - (color_disparity_scale * d)) * scale_x);
+                const int color_v = static_cast<int>(static_cast<double>(h) * scale_y);
 
-                const Color color_pixel = *reinterpret_cast<const Color*>(color->raw_data->data() + color_index);
+                Color color_pixel{};
+
+                if (color_u >= 0 && color_u < color->width && color_v >= 0 && color_v < color->height)
+                {
+                    const size_t color_index = color->image_data_offset +
+                                               (color_v * color->width * color_step) +
+                                               (color_u * color_step);
+
+                    color_pixel = *reinterpret_cast<const Color*>(color->raw_data->data() + color_index);
+                }
 
                 output.cloud.push_back(Point<Color>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z),
                                                     color_pixel});
@@ -444,6 +455,113 @@ MULTISENSE_API bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, c
     }
 
     return true;
+}
+
+///
+/// @brief Parse a YAML stream into a map of vectors. This implementation is designed to handle basic YAML structures
+///        and OpenCV's matrix serialization format.
+///
+/// @param stream Input stream to parse yaml data from
+/// @return The parsed mapping between keys and values
+///
+MULTISENSE_API std::map<std::string, std::vector<float>> parse_yaml(std::istream& stream);
+
+///
+/// @brief Write a matrix to a YAML stream in OpenCV format
+///
+/// @param stream The output stream to write to
+/// @param name The name of the YAML matrix
+/// @param rows The number of rows in the matrix
+/// @param columns The number of columns in the matrix
+/// @param data A pointer to the raw data to write
+///
+template<typename T>
+std::ostream& write_yaml_matrix(std::ostream& stream, const std::string& name, uint32_t rows, uint32_t columns, const T* data)
+{
+    stream << name << ": !!opencv-matrix\n";
+    stream << "   rows: " << rows << "\n";
+    stream << "   cols: " << columns << "\n";
+    stream << "   dt: d\n";
+    stream << "   data: [ ";
+
+    stream.precision(17);
+    stream << std::scientific;
+    for (uint32_t i = 0; i < rows; i++)
+    {
+        if (i != 0)
+        {
+            stream << ",\n";
+            stream << "           ";
+        }
+        for (uint32_t j = 0; j < columns; j++)
+        {
+            if (j != 0)
+            {
+                stream << ", ";
+            }
+            stream << std::setw(22) << data[i * columns + j];
+        }
+    }
+    stream << " ]\n";
+    return stream;
+}
+
+///
+/// @brief Overload the >> operator for std::vector to parse YAML-style arrays.
+///        This will flatten nested arrays into a single vector.
+///
+template<typename T>
+std::istream& operator>>(std::istream& stream, std::vector<T>& data)
+{
+    char c;
+    while (stream >> c)
+    {
+        if (c == '[')
+        {
+            stream >> data;
+        }
+        else if (c == ']')
+        {
+            break;
+        }
+        else if (c == ',')
+        {
+            continue;
+        }
+        else
+        {
+            stream.putback(c);
+            T value;
+            if (stream >> value)
+            {
+                data.push_back(value);
+            }
+            else
+            {
+                //
+                // Clear error state to recover from invalid scalar (e.g., NaN or typo)
+                //
+                stream.clear();
+
+                //
+                // Consume the bad token up to the next delimiter or whitespace
+                //
+                while (stream.get(c))
+                {
+                    if (c == ',' || c == ']')
+                    {
+                        stream.putback(c);
+                        break;
+                    }
+                    if (std::isspace(c))
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    return stream;
 }
 
 }

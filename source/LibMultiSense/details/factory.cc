@@ -34,6 +34,7 @@
  *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include "details/amb/channel.hh"
 #include "details/legacy/channel.hh"
 
 namespace multisense
@@ -44,6 +45,33 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
 {
     switch (impl)
     {
+        case ChannelImplementation::AUTO:
+        {
+            if (amb::is_amb_camera(config.ip_address))
+            {
+                try
+                {
+                    return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
+                }
+                catch(const std::exception &e)
+                {
+                    CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
+                    return nullptr;
+                }
+            }
+            else
+            {
+                try
+                {
+                    return std::unique_ptr<legacy::LegacyChannel>(new legacy::LegacyChannel(config));
+                }
+                catch(const std::exception &e)
+                {
+                    CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
+                    return nullptr;
+                }
+            }
+        }
         case ChannelImplementation::LEGACY:
         {
             try
@@ -53,6 +81,18 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
             catch(const std::exception &e)
             {
                 CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
+                return nullptr;
+            }
+        }
+        case ChannelImplementation::AMB:
+        {
+            try
+            {
+                return std::unique_ptr<amb::AmbChannel>(new amb::AmbChannel(config));
+            }
+            catch(const std::exception &e)
+            {
+                CRL_DEBUG("Unable to create ambarella channel %s\n", e.what());
                 return nullptr;
             }
         }

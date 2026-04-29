@@ -1,7 +1,7 @@
 /**
- * @file calibration.hh
+ * @file utilities.hh
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,51 +31,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2025-01-17, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
 #pragma once
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <string>
 
-#include <wire/SysCameraCalibrationMessage.hh>
+namespace multisense{
+namespace amb{
 
-#include "MultiSense/MultiSenseTypes.hh"
-
-namespace multisense {
-namespace legacy {
-
-///
-/// @brief Check if the CameraCalData object is valid
-///
-bool is_valid(const crl::multisense::details::wire::CameraCalData &cal);
-
-///
-/// @brief Convert a wire calibration to our API calibration object
-///
-CameraCalibration convert(const crl::multisense::details::wire::CameraCalData &cal);
-
-///
-/// @brief Convert our API calibration object to a wire message
-///
-crl::multisense::details::wire::CameraCalData convert(const CameraCalibration &cal);
-
-///
-/// @brief Convert a wire calibration to our API calibration object
-///
-StereoCalibration convert(const crl::multisense::details::wire::SysCameraCalibration &cal);
-
-///
-/// @brief Convert our API calibration object to a wire calibration
-///
-crl::multisense::details::wire::SysCameraCalibration convert(const StereoCalibration &cal);
-
-///
-/// @brief Get the correct calibration corresponding to the input source
-///
-CameraCalibration select_calibration(const StereoCalibration &input, const DataSource &source);
+std::string base64_decode(const std::string &input);
 
 }
 }

@@ -52,9 +52,17 @@ public:
     enum class ChannelImplementation
     {
         ///
+        /// @brief Attempt to automatically detect the camera type at connection time
+        ///
+        AUTO,
+        ///
         /// @brief Use the Legacy MultiSense wire protocol implemented as part of LibMultiSense
         ///
-        LEGACY
+        LEGACY,
+        ///
+        /// @brief Use the Amberella MultiSense wire protocol implemented as part of LibMultiSense
+        ///
+        AMB
     };
 
     ///
@@ -130,7 +138,7 @@ public:
     ///        implementations
     ///
     static std::unique_ptr<Channel> create(const Config &config,
-                                           const ChannelImplementation &impl = ChannelImplementation::LEGACY);
+                                           const ChannelImplementation &impl = ChannelImplementation::AUTO);
 
     Channel() = default;
 

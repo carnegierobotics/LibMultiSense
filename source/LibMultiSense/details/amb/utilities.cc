@@ -1,7 +1,7 @@
 /**
- * @file calibration.hh
+ * @file utilities.cc
  *
- * Copyright 2013-2025
+ * Copyright 2013-2026
  * Carnegie Robotics, LLC
  * 4501 Hatfield Street, Pittsburgh, PA 15201
  * http://www.carnegierobotics.com
@@ -31,51 +31,58 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2025-01-17, malvarado@carnegierobotics.com, IRAD, Created file.
+ *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#pragma once
+#include "details/amb/utilities.hh"
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <vector>
 
-#include <wire/SysCameraCalibrationMessage.hh>
+namespace multisense{
+namespace amb{
 
-#include "MultiSense/MultiSenseTypes.hh"
+std::string base64_decode(const std::string &input)
+{
+    std::string decoded_string;
 
-namespace multisense {
-namespace legacy {
+    // Create a lookup table initialized to -1
+    std::vector<int> base64_lookup(256, -1);
 
-///
-/// @brief Check if the CameraCalData object is valid
-///
-bool is_valid(const crl::multisense::details::wire::CameraCalData &cal);
+    // Populate the lookup table with Base64 characters
+    const std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-///
-/// @brief Convert a wire calibration to our API calibration object
-///
-CameraCalibration convert(const crl::multisense::details::wire::CameraCalData &cal);
+    for (int i = 0; i < 64; i++)
+    {
+        base64_lookup[base64_chars[i]] = i;
+    }
 
-///
-/// @brief Convert our API calibration object to a wire message
-///
-crl::multisense::details::wire::CameraCalData convert(const CameraCalibration &cal);
+    int val = 0;
+    int valb = -8;
 
-///
-/// @brief Convert a wire calibration to our API calibration object
-///
-StereoCalibration convert(const crl::multisense::details::wire::SysCameraCalibration &cal);
+    for (unsigned char c : input)
+    {
+        if (base64_lookup[c] == -1)
+        {
+            break;
+        }
 
-///
-/// @brief Convert our API calibration object to a wire calibration
-///
-crl::multisense::details::wire::SysCameraCalibration convert(const StereoCalibration &cal);
+        //
+        // Shift the current value over by 6 bits and add the new 6 bits
+        //
+        val = (val << 6) + base64_lookup[c];
+        valb += 6;
 
-///
-/// @brief Get the correct calibration corresponding to the input source
-///
-CameraCalibration select_calibration(const StereoCalibration &input, const DataSource &source);
+        //
+        // Once we have at least 8 bits (a full byte), extract it
+        //
+        if (valb >= 0)
+        {
+            decoded_string.push_back(char((val >> valb) & 0xFF));
+            valb -= 8;
+        }
+    }
+    return decoded_string;
+}
 
 }
 }

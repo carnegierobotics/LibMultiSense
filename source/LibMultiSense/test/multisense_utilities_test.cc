@@ -123,7 +123,7 @@ TEST(QMatrix, reproject)
         CameraCalibration::DistortionType::NONE,
         {}};
 
-    QMatrix q{left_calibration, right_calibration};
+    QMatrix q{left_calibration, right_calibration.rectified_translation()[0], right_calibration.P[0][2]};
 
     // Project a dummy point into the left/right camera
     const double x = 0.5;
@@ -388,4 +388,54 @@ TEST(create_pointcloud, basic_tests)
 
     ASSERT_TRUE(point_cloud_empty);
     ASSERT_TRUE(point_cloud_empty->cloud.empty());
+}
+
+TEST(YAML, write_yaml_and_parse)
+{
+    const float data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    const uint32_t rows = 2;
+    const uint32_t cols = 3;
+
+    std::stringstream ss;
+    write_yaml_matrix(ss, "test_matrix", rows, cols, data);
+
+    const auto parsed_data = parse_yaml(ss);
+
+    ASSERT_EQ(parsed_data.count("test_matrix"), 1);
+    ASSERT_EQ(parsed_data.at("test_matrix").size(), rows * cols);
+    for (size_t i = 0 ; i < rows * cols ; ++i)
+    {
+        EXPECT_FLOAT_EQ(parsed_data.at("test_matrix").at(i), data[i]);
+    }
+}
+
+TEST(YAML, robustness)
+{
+    std::stringstream ss;
+    ss << "%YAML:1.0\n";
+    ss << "scalar_val: 42.5\n";
+    ss << "list_val: [10, invalid_float, 30]\n";
+    ss << "matrix_val: !!opencv-matrix\n";
+    ss << "  rows: 1\n";
+    ss << "  cols: 2\n";
+    ss << "  dt: d\n";
+    ss << "  data: [1.1, 2.2]\n";
+    ss << "another_scalar: 100\n";
+
+    const auto parsed_data = parse_yaml(ss);
+
+    ASSERT_EQ(parsed_data.count("scalar_val"), 1);
+    EXPECT_FLOAT_EQ(parsed_data.at("scalar_val").at(0), 42.5);
+
+    ASSERT_EQ(parsed_data.count("list_val"), 1);
+    ASSERT_EQ(parsed_data.at("list_val").size(), 2);
+    EXPECT_FLOAT_EQ(parsed_data.at("list_val")[0], 10.0);
+    EXPECT_FLOAT_EQ(parsed_data.at("list_val")[1], 30.0);
+
+    ASSERT_EQ(parsed_data.count("matrix_val"), 1);
+    ASSERT_EQ(parsed_data.at("matrix_val").size(), 2);
+    EXPECT_FLOAT_EQ(parsed_data.at("matrix_val")[0], 1.1);
+
+    ASSERT_EQ(parsed_data.count("another_scalar"), 1);
+    EXPECT_FLOAT_EQ(parsed_data.at("another_scalar")[0], 100.0);
 }

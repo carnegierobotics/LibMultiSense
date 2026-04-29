@@ -7,6 +7,12 @@ if (@BUILD_JSON_SERIALIZATION@)
 endif ()
 find_dependency(Threads)
 
+# TODO (malvarado): Make this conditional
+find_dependency(multisense-webrtc-client)
+find_dependency(OpenSSL)
+find_dependency(PkgConfig)
+pkg_check_modules(HTTPLIB REQUIRED IMPORTED_TARGET cpp-httplib)
+
 include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseTargets.cmake")
 
 check_required_components(MultiSense)
