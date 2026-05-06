@@ -41,17 +41,17 @@
 
 #include "MultiSense/details/utility/Portability.hh"
 #include "MultiSense/details/utility/Thread.hh"
-#include <utility/BufferStream.hh>
+#include <MultiSense/utility/BufferStream.hh>
 #include "MultiSense/details/utility/Units.hh"
 #include "MultiSense/details/listeners.hh"
 #include "MultiSense/details/signal.hh"
 #include "MultiSense/details/storage.hh"
-#include <wire/Protocol.hh>
-#include <wire/ImageMetaMessage.hh>
-#include <wire/SecondaryAppMetaMessage.hh>
-#include <wire/StatusResponseMessage.hh>
-#include <wire/PtpStatusResponseMessage.hh>
-#include <wire/VersionResponseMessage.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/wire/ImageMetaMessage.hh>
+#include <MultiSense/wire/SecondaryAppMetaMessage.hh>
+#include <MultiSense/wire/StatusResponseMessage.hh>
+#include <MultiSense/wire/PtpStatusResponseMessage.hh>
+#include <MultiSense/wire/VersionResponseMessage.hh>
 
 #ifdef WIN32
 #ifndef WIN32_LEAN_AND_MEAN

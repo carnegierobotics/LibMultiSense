@@ -42,9 +42,9 @@
 
 #include <cmath>
 
-#include <utility/Portability.hh>
-#include <utility/BufferStream.hh>
-#include <wire/Protocol.hh>
+#include <MultiSense/utility/Portability.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/Protocol.hh>
 
 using namespace crl::multisense::details;
 

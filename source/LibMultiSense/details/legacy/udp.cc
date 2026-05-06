@@ -38,16 +38,16 @@
 #include <functional>
 #include <iostream>
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <MultiSense/utility/Exception.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
 
-#include <wire/CompressedImageMessage.hh>
-#include <wire/DisparityMessage.hh>
-#include <wire/ImageMessage.hh>
-#include <wire/ImageMetaMessage.hh>
-#include <wire/ImuDataMessage.hh>
-#include <wire/LidarDataMessage.hh>
+#include <MultiSense/wire/CompressedImageMessage.hh>
+#include <MultiSense/wire/DisparityMessage.hh>
+#include <MultiSense/wire/ImageMessage.hh>
+#include <MultiSense/wire/ImageMetaMessage.hh>
+#include <MultiSense/wire/ImuDataMessage.hh>
+#include <MultiSense/wire/LidarDataMessage.hh>
 
 #include "details/legacy/udp.hh"
 

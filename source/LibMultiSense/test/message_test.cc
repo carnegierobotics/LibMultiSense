@@ -41,7 +41,7 @@
 
 #include <details/legacy/message.hh>
 
-#include <wire/SysDeviceInfoMessage.hh>
+#include <MultiSense/wire/SysDeviceInfoMessage.hh>
 
 using namespace multisense::legacy;
 
