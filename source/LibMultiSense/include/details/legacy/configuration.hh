@@ -36,24 +36,24 @@
 
 #pragma once
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <MultiSense/utility/Exception.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
 
-#include <wire/AuxCamConfigMessage.hh>
-#include <wire/AuxCamControlMessage.hh>
-#include <wire/AuxCamGetConfigMessage.hh>
-#include <wire/CamConfigMessage.hh>
-#include <wire/CamControlMessage.hh>
-#include <wire/CamGetConfigMessage.hh>
-#include <wire/CamSetResolutionMessage.hh>
-#include <wire/ImuConfigMessage.hh>
-#include <wire/LedStatusMessage.hh>
-#include <wire/LedSetMessage.hh>
-#include <wire/FeatureConfig.hh>
-#include <wire/SecondaryAppRegisteredAppsMessage.hh>
-#include <wire/SysPacketDelayMessage.hh>
-#include <wire/SysSetPtpMessage.hh>
+#include <MultiSense/wire/AuxCamConfigMessage.hh>
+#include <MultiSense/wire/AuxCamControlMessage.hh>
+#include <MultiSense/wire/AuxCamGetConfigMessage.hh>
+#include <MultiSense/wire/CamConfigMessage.hh>
+#include <MultiSense/wire/CamControlMessage.hh>
+#include <MultiSense/wire/CamGetConfigMessage.hh>
+#include <MultiSense/wire/CamSetResolutionMessage.hh>
+#include <MultiSense/wire/FeatureConfig.hh>
+#include <MultiSense/wire/ImuConfigMessage.hh>
+#include <MultiSense/wire/LedStatusMessage.hh>
+#include <MultiSense/wire/LedSetMessage.hh>
+#include <MultiSense/wire/SecondaryAppRegisteredAppsMessage.hh>
+#include <MultiSense/wire/SysPacketDelayMessage.hh>
+#include <MultiSense/wire/SysSetPtpMessage.hh>
 
 #include "MultiSense/MultiSenseTypes.hh"
 

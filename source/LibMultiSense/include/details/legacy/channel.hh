@@ -40,10 +40,10 @@
 
 #include "MultiSense/MultiSenseChannel.hh"
 
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
-#include <wire/ImageMetaMessage.hh>
-#include <wire/SecondaryAppMetaMessage.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/ImageMetaMessage.hh>
+#include <MultiSense/wire/SecondaryAppMetaMessage.hh>
 
 #include "details/legacy/ip.hh"
 #include "details/legacy/message.hh"

@@ -112,14 +112,14 @@ public:
         fy_(reference_cal.P[1][1]),
         cx_(reference_cal.P[0][2]),
         cy_(reference_cal.P[1][2]),
-        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
+        tx_(static_cast<double>(matching_cal.P[0][3]) / static_cast<double>(matching_cal.P[0][0])),
         cx_prime_(matching_cal.P[0][2]),
         fytx_(fy_ * tx_),
         fxtx_(fx_ * tx_),
         fycxtx_(fy_ * cx_ * tx_),
         fxcytx_(fx_ * cy_ * tx_),
         fxfytx_(fx_ * fy_ * tx_),
-        fycxcxprime_(fy_ * (cx_ - cx_prime_))
+        fycxcxprime_(fy_ * (static_cast<double>(cx_) - static_cast<double>(cx_prime_)))
     {
     }
 
@@ -131,6 +131,18 @@ public:
         const double z = fxfytx_ * inversebeta;
 
         return Point<void>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
+    }
+
+
+    std::array<std::array<double, 4>, 4> matrix() const
+    {
+        //
+        // See https://docs.carnegierobotics.com/cookbook/overview.html#reproject-disparity-images-to-3d-point-clouds
+        //
+        return std::array<std::array<double, 4>, 4>{{{fytx_, 0.0, 0.0, -fycxtx_},
+                                                     {0.0, fxtx_, 0.0, -fxcytx_},
+                                                     {0.0, 0.0, 0.0, fxfytx_},
+                                                     {0.0, 0.0, -fy_, fycxcxprime_}}};
     }
 
 private:
@@ -222,6 +234,16 @@ MULTISENSE_API std::optional<Image> create_bgr_from_ycbcr420(const Image &luma,
 ///
 MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
                                                      const DataSource &output_source);
+
+///
+/// @brief Scale a calibration to align with a different operating resolution
+///
+/// @param calibration The input calibration to scale
+/// @param scale The scale factor to apply to the calibration
+///
+/// @return A scaled calibration
+///
+MULTISENSE_API CameraCalibration scale_calibration(CameraCalibration calibration, double scale);
 
 ///
 /// @brief Create a point cloud from a image frame and a color source.

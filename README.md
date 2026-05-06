@@ -1,5 +1,7 @@
 # LibMultiSense
 
+[![codecov](https://codecov.io/gh/carnegierobotics/LibMultiSense/branch/master/graph/badge.svg)](https://codecov.io/gh/carnegierobotics/LibMultiSense)
+
 LibMultiSense is a C++ and Python library designed to simplify interaction with the MultiSense S family of stereo
 sensors developed by Carnegie Robotics. It provides a comprehensive, easy-to-use API for capturing and processing
 stereo sensor data an generating depth images, color images, and 3D point clouds.
@@ -69,9 +71,12 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [IMU Data Streaming](#imu-data-streaming)
   - [Python](#python-9)
   - [C++](#c-9)
-- [Feature Rendering](#feature-rendering)
+- [Query Camera Calibration](#query-camera-calibration)
   - [Python](#python-10)
   - [C++](#c-10)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-11)
+  - [C++](#c-11)
 
 ## Client Networking Prerequisite
 
@@ -199,6 +204,21 @@ the following CMake argument should be set
 
 This will require a system installation of googletest, or an installation which can be pointed to with CMake's
 `CMAKE_PREFIX_PATH` argument
+
+### Code Coverage
+
+LibMultiSense supports generating unit test coverage reports using `lcov` and `genhtml`.
+To enable coverage instrumentation, set the following CMake argument:
+
+    -DENABLE_COVERAGE=ON
+
+Once enabled, you can generate the coverage report by running:
+
+```bash
+make coverage
+```
+
+The report will be generated in `build/coverage_report/index.html`. This requires `lcov` and `genhtml` to be installed on the system and is supported on Linux with GCC or Clang.
 
 ---
 
@@ -1071,6 +1091,107 @@ int main(int argc, char** argv)
 
 ---
 
+## Query Camera Calibration
+
+The camera's internal stereo calibration can be queried from the MultiSense. This calibration corresponds to the
+full-resolution operating mode of the camera and can be used to rectify raw images or project 3D points.
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame
+        # also contains a scaled calibration which can be easier to handle depending on the application
+        calibration = channel.get_calibration()
+
+        # Print the intrinsic matrix (K) for the left camera
+        print("Left Camera Intrinsic Matrix (K):")
+        print(calibration.left.K)
+
+        # Print the rectified projection matrix (P) for the left camera
+        print("Left Camera Rectified Projection Matrix (P):")
+        print(calibration.left.P)
+
+        # Print the distortion coefficients (D) for the left camera
+        print("Left Camera Distortion Coefficients (D):")
+        print(calibration.left.D)
+
+        # Access aux camera calibration if present
+        if calibration.aux is not None:
+             print("Aux Camera Intrinsic Matrix (K):")
+             print(calibration.aux.K)
+
+        # Create a Q matrix to convert disparity pixels to 3D point clouds
+        Q = lms.QMatrix(calibration.left, calibration.right);
+        print(Q.matrix())
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    // Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame also contains
+    // a scaled calibration which can be easier to handle depending on the application
+    const auto calibration = channel->get_calibration();
+
+    // Access intrinsic matrix (K) for the left camera
+    std::cout << "Left Camera Intrinsic Matrix (K):" << std::endl;
+    for (const auto& row : calibration.left.K)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Access rectified projection matrix (P) for the left camera
+    std::cout << "Left Camera Rectified Projection Matrix (P):" << std::endl;
+    for (const auto& row : calibration.left.P)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Generate a Q matrix to convert disparity points to 3D point clouds
+    const auto Q = QMatrix(calibration.left, calibration.right);
+
+    return 0;
+}
+```
+
+---
+
 ## Feature Rendering
 
 LibMultiSense supports retrieving image features computed on-camera. These are synchronized with the
@@ -1079,7 +1200,7 @@ corresponding image frames.
 The following example demonstrates how to retrieve and render features on a rectified image.
 
 > [!NOTE]
-> MultiSense firmware version v7.34 or newer is required to use the onboard feature detector
+> MultiSense firmware version v7.36 or newer is required to use the onboard feature detector
 
 ### Python
 

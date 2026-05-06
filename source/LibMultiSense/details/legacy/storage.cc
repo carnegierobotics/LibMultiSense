@@ -36,7 +36,7 @@
 
 #include <algorithm>
 
-#include <utility/Exception.hh>
+#include <MultiSense/utility/Exception.hh>
 
 #include "details/legacy/storage.hh"
 

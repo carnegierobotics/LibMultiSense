@@ -34,7 +34,7 @@
  *   2024-12-24, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
-#include <utility/Exception.hh>
+#include <MultiSense/utility/Exception.hh>
 
 #include "details/legacy/ip.hh"
 

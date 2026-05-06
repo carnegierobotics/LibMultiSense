@@ -37,59 +37,59 @@
 
 #include "MultiSense/details/channel.hh"
 
-#include <wire/AckMessage.hh>
+#include <MultiSense/wire/AckMessage.hh>
 
-#include <wire/VersionResponseMessage.hh>
-#include <wire/StatusResponseMessage.hh>
-#include <wire/PtpStatusResponseMessage.hh>
+#include <MultiSense/wire/VersionResponseMessage.hh>
+#include <MultiSense/wire/StatusResponseMessage.hh>
+#include <MultiSense/wire/PtpStatusResponseMessage.hh>
 
-#include <wire/AuxCamConfigMessage.hh>
-#include <wire/CamConfigMessage.hh>
-#include <wire/RemoteHeadConfigMessage.hh>
-#include <wire/CompressedImageMessage.hh>
-#include <wire/DisparityMessage.hh>
-#include <wire/ImageMessage.hh>
-#include <wire/ImageMetaMessage.hh>
-#include <wire/JpegMessage.hh>
+#include <MultiSense/wire/AuxCamConfigMessage.hh>
+#include <MultiSense/wire/CamConfigMessage.hh>
+#include <MultiSense/wire/RemoteHeadConfigMessage.hh>
+#include <MultiSense/wire/CompressedImageMessage.hh>
+#include <MultiSense/wire/DisparityMessage.hh>
+#include <MultiSense/wire/ImageMessage.hh>
+#include <MultiSense/wire/ImageMetaMessage.hh>
+#include <MultiSense/wire/JpegMessage.hh>
 
-#include <wire/CamHistoryMessage.hh>
+#include <MultiSense/wire/CamHistoryMessage.hh>
 
-#include <wire/LidarDataMessage.hh>
+#include <MultiSense/wire/LidarDataMessage.hh>
 
-#include <wire/LedStatusMessage.hh>
+#include <MultiSense/wire/LedStatusMessage.hh>
 
-#include <wire/LedSensorStatusMessage.hh>
+#include <MultiSense/wire/LedSensorStatusMessage.hh>
 
-#include <wire/PollMotorInfoMessage.hh>
+#include <MultiSense/wire/PollMotorInfoMessage.hh>
 
-#include <wire/SysMtuMessage.hh>
-#include <wire/SysNetworkMessage.hh>
-#include <wire/SysFlashResponseMessage.hh>
-#include <wire/SysDeviceInfoMessage.hh>
-#include <wire/SysCameraCalibrationMessage.hh>
-#include <wire/SysSensorCalibrationMessage.hh>
-#include <wire/SysTransmitDelayMessage.hh>
-#include <wire/SysPacketDelayMessage.hh>
-#include <wire/SysLidarCalibrationMessage.hh>
-#include <wire/SysDeviceModesMessage.hh>
-#include <wire/SysExternalCalibrationMessage.hh>
+#include <MultiSense/wire/SysMtuMessage.hh>
+#include <MultiSense/wire/SysNetworkMessage.hh>
+#include <MultiSense/wire/SysFlashResponseMessage.hh>
+#include <MultiSense/wire/SysDeviceInfoMessage.hh>
+#include <MultiSense/wire/SysCameraCalibrationMessage.hh>
+#include <MultiSense/wire/SysSensorCalibrationMessage.hh>
+#include <MultiSense/wire/SysTransmitDelayMessage.hh>
+#include <MultiSense/wire/SysPacketDelayMessage.hh>
+#include <MultiSense/wire/SysLidarCalibrationMessage.hh>
+#include <MultiSense/wire/SysDeviceModesMessage.hh>
+#include <MultiSense/wire/SysExternalCalibrationMessage.hh>
 
-#include <wire/SysPpsMessage.hh>
+#include <MultiSense/wire/SysPpsMessage.hh>
 
-#include <wire/ImuDataMessage.hh>
-#include <wire/ImuConfigMessage.hh>
-#include <wire/ImuInfoMessage.hh>
+#include <MultiSense/wire/ImuDataMessage.hh>
+#include <MultiSense/wire/ImuConfigMessage.hh>
+#include <MultiSense/wire/ImuInfoMessage.hh>
 
-#include <wire/SysTestMtuResponseMessage.hh>
+#include <MultiSense/wire/SysTestMtuResponseMessage.hh>
 
-#include <wire/GroundSurfaceModel.hh>
-#include <wire/ApriltagDetections.hh>
-#include <wire/SecondaryAppDataMessage.hh>
-#include <wire/SecondaryAppControlMessage.hh>
-#include <wire/SecondaryAppConfigMessage.hh>
-#include <wire/SecondaryAppActivateMessage.hh>
-#include <wire/SecondaryAppGetRegisteredAppsMessage.hh>
-#include <wire/SecondaryAppRegisteredAppsMessage.hh>
+#include <MultiSense/wire/GroundSurfaceModel.hh>
+#include <MultiSense/wire/ApriltagDetections.hh>
+#include <MultiSense/wire/SecondaryAppDataMessage.hh>
+#include <MultiSense/wire/SecondaryAppControlMessage.hh>
+#include <MultiSense/wire/SecondaryAppConfigMessage.hh>
+#include <MultiSense/wire/SecondaryAppActivateMessage.hh>
+#include <MultiSense/wire/SecondaryAppGetRegisteredAppsMessage.hh>
+#include <MultiSense/wire/SecondaryAppRegisteredAppsMessage.hh>
 
 #include <limits>
 

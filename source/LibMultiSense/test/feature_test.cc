@@ -36,9 +36,9 @@
 #include <MultiSense/MultiSenseTypes.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
-#include <utility/BufferStream.hh>
-#include <wire/FeatureMessage.hh>
-#include <wire/FeatureMetaMessage.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/FeatureMessage.hh>
+#include <MultiSense/wire/FeatureMetaMessage.hh>
 
 #ifdef HAVE_OPENCV
 #include <opencv2/core.hpp>

@@ -59,7 +59,7 @@
 #endif
 
 #include "MultiSense/MultiSenseUtilities.hh"
-#include <utility/Exception.hh>
+#include <MultiSense/utility/Exception.hh>
 
 namespace multisense {
 namespace {
@@ -529,6 +529,23 @@ std::optional<Image> create_bgr_image(const ImageFrame &frame, const DataSource 
     }
 
     return std::nullopt;
+}
+
+CameraCalibration scale_calibration(CameraCalibration calibration, double scale)
+{
+    calibration.K[0][0] *= scale;
+    calibration.K[0][2] *= scale;
+    calibration.K[1][1] *= scale;
+    calibration.K[1][2] *= scale;
+
+    calibration.P[0][0] *= scale;
+    calibration.P[0][2] *= scale;
+    calibration.P[0][3] *= scale;
+    calibration.P[1][1] *= scale;
+    calibration.P[1][2] *= scale;
+    calibration.P[1][3] *= scale;
+
+    return calibration;
 }
 
 std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
