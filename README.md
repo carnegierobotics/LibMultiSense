@@ -69,6 +69,9 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [IMU Data Streaming](#imu-data-streaming)
   - [Python](#python-9)
   - [C++](#c-9)
+- [Query Camera Calibration](#query-camera-calibration)
+  - [Python](#python-10)
+  - [C++](#c-10)
 
 ## Client Networking Prerequisite
 
@@ -1060,6 +1063,107 @@ int main(int argc, char** argv)
             }
         }
     }
+
+    return 0;
+}
+```
+
+---
+
+## Query Camera Calibration
+
+The camera's internal stereo calibration can be queried from the MultiSense. This calibration corresponds to the
+full-resolution operating mode of the camera and can be used to rectify raw images or project 3D points.
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame
+        # also contains a scaled calibration which can be easier to handle depending on the application
+        calibration = channel.get_calibration()
+
+        # Print the intrinsic matrix (K) for the left camera
+        print("Left Camera Intrinsic Matrix (K):")
+        print(calibration.left.K)
+
+        # Print the rectified projection matrix (P) for the left camera
+        print("Left Camera Rectified Projection Matrix (P):")
+        print(calibration.left.P)
+
+        # Print the distortion coefficients (D) for the left camera
+        print("Left Camera Distortion Coefficients (D):")
+        print(calibration.left.D)
+
+        # Access aux camera calibration if present
+        if calibration.aux is not None:
+             print("Aux Camera Intrinsic Matrix (K):")
+             print(calibration.aux.K)
+
+        # Create a Q matrix to convert disparity pixels to 3D point clouds
+        Q = lms.QMatrix(calibration.left, calibration.right);
+        print(Q.matrix())
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    // Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame also contains
+    // a scaled calibration which can be easier to handle depending on the application
+    const auto calibration = channel->get_calibration();
+
+    // Access intrinsic matrix (K) for the left camera
+    std::cout << "Left Camera Intrinsic Matrix (K):" << std::endl;
+    for (const auto& row : calibration.left.K)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Access rectified projection matrix (P) for the left camera
+    std::cout << "Left Camera Rectified Projection Matrix (P):" << std::endl;
+    for (const auto& row : calibration.left.P)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Generate a Q matrix to convert disparity points to 3D point clouds
+    const auto Q = QMatrix(calibration.left, calibration.right);
 
     return 0;
 }
