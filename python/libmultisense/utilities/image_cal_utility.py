@@ -65,7 +65,16 @@ def write_cal(intrinsics, extrinsics, index, camera_cal):
     extrinsics.write("P" + str(index), np.array(camera_cal.P))
     extrinsics.write("R" + str(index), np.array(camera_cal.R))
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense image cal utility")
+    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-i", "--intrinsics", required=True, help="The path to the intrinsics file to read from/write to.")
+    parser.add_argument("-e", "--extrinsics", required=True, help="The path to the extrinsics file to read from/write to.")
+    parser.add_argument("-s", "--set-cal", action='store_true', help="Write the calibration to the camera")
+    parser.add_argument("-y", "--disable-confirmation", action='store_true', help="Disable confirmation prompts")
+    args = parser.parse_args()
+
     channel_config = lms.ChannelConfig()
     channel_config.ip_address = args.ip_address
     channel_config.mtu = args.mtu
@@ -110,11 +119,4 @@ def main(args):
                 write_cal(intrinsics, extrinsics, 3, calibration.aux)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense image cal utility")
-    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
-    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    parser.add_argument("-i", "--intrinsics", required=True, help="The path to the intrinsics file to read from/write to.")
-    parser.add_argument("-e", "--extrinsics", required=True, help="The path to the extrinsics file to read from/write to.")
-    parser.add_argument("-s", "--set-cal", action='store_true', help="Write the calibration to the camera")
-    parser.add_argument("-y", "--disable-confirmation", action='store_true', help="Disable confirmation prompts")
-    main(parser.parse_args())
+    main()

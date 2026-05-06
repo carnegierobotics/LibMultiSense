@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# @file version_info_utility.cc
+# @file multi_channel_utility.py
 #
 # Copyright 2013-2025
 # Carnegie Robotics, LLC
@@ -32,31 +32,56 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Significant history (date, user, job code, action):
-#   2025-02-07, malvarado@carnegierobotics.com, IRAD, Created file.
+#   2025-12-02, malvarado@carnegierobotics.com, IRAD, Created file.
 #
 
 import argparse
+import datetime
+import numpy as np
 
 import libmultisense as lms
 
-def main(args):
-    channel_config = lms.ChannelConfig()
-    channel_config.ip_address = args.ip_address
-    channel_config.mtu = args.mtu
+def main():
+    parser = argparse.ArgumentParser("LibMultiSense multi-channel synchronization utility")
+    parser.add_argument("-a", "--ip_addresses", action='append', help="The IPv4 addresses of the MultiSense to synchronize.")
+    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
+    parser.add_argument("-t", "--tolerance", type=int, default=50, help="The sync tolerance in milliseconds.")
+    args = parser.parse_args()
 
-    with lms.Channel.create(channel_config) as channel:
+    channels = []
+    for ip_address in args.ip_addresses:
+        channel_config = lms.ChannelConfig()
+        channel_config.ip_address = ip_address
+        channel_config.mtu = args.mtu
+
+        channel = lms.Channel.create(channel_config)
         if not channel:
             print("Invalid channel")
             exit(1)
 
-        info = channel.get_info();
 
-        print("Firmware build date :  ", info.version.firmware_build_date)
-        print("Firmware version    :  ", info.version.firmware_version.to_string())
-        print("Hardware version    :  ", hex(info.version.hardware_version))
+        config = channel.get_config()
+        config.frames_per_second = 10.0
+        config.time_config.ptp_enabled = True
+        if channel.set_config(config) != lms.Status.OK:
+            print("Cannot set configuration")
+            exit(1)
+
+
+        if channel.start_streams([lms.DataSource.LEFT_MONO_RAW]) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
+
+        channels.append(channel)
+
+    with lms.MultiChannelSynchronizer(channels, datetime.timedelta(milliseconds=args.tolerance)) as synchronizer:
+        timeout = datetime.timedelta(milliseconds=500)
+        while True:
+            frames = synchronizer.get_synchronized_frame(timeout)
+            if frames:
+                print("sync group:")
+                for frame in frames:
+                    print(f"frame_id: {frame.frame_id} time: {frame.frame_time}")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser("LibMultiSense version info utility")
-    parser.add_argument("-a", "--ip_address", default="10.66.171.21", help="The IPv4 address of the MultiSense.")
-    parser.add_argument("-m", "--mtu", type=int, default=1500, help="The MTU to use to communicate with the camera.")
-    main(parser.parse_args())
+    main()

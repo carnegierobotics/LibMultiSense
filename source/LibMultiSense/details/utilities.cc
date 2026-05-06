@@ -155,6 +155,36 @@ std::string to_string(const Status &status)
     return "UNKNOWN";
 }
 
+std::string to_string(const DataSource &source)
+{
+    switch(source)
+    {
+        case DataSource::UNKNOWN: {return "UNKNOWN";}
+        case DataSource::ALL: {return "ALL";}
+        case DataSource::LEFT_MONO_RAW: {return "LEFT";}
+        case DataSource::RIGHT_MONO_RAW: {return "RIGHT";}
+        case DataSource::LEFT_MONO_COMPRESSED: {return "LEFT_COMPRESSED";}
+        case DataSource::RIGHT_MONO_COMPRESSED: {return "RIGHT_COMPRESSED";}
+        case DataSource::LEFT_RECTIFIED_RAW: {return "LEFT_RECTIFIED";}
+        case DataSource::RIGHT_RECTIFIED_RAW: {return "RIGHT_RECTIFIED";}
+        case DataSource::LEFT_RECTIFIED_COMPRESSED: {return "LEFT_RECTIFIED_COMPRESSED";}
+        case DataSource::RIGHT_RECTIFIED_COMPRESSED: {return "RIGHT_RECTIFIED_COMPRESSED";}
+        case DataSource::LEFT_DISPARITY_RAW: {return "DISPARITY";}
+        case DataSource::LEFT_DISPARITY_COMPRESSED: {return "DISPARITY_COMPRESSED";}
+        case DataSource::AUX_COMPRESSED: {return "AUX_COMPRESSED";}
+        case DataSource::AUX_RECTIFIED_COMPRESSED: {return "AUX_RECTIFIED_COMPRESSED";}
+        case DataSource::AUX_LUMA_RAW: {return "AUX_LUMA";}
+        case DataSource::AUX_LUMA_RECTIFIED_RAW: {return "AUX_LUMA_RECTIFIED";}
+        case DataSource::AUX_CHROMA_RAW: {return "AUX_CHROMA";}
+        case DataSource::AUX_CHROMA_RECTIFIED_RAW: {return "AUX_CHROMA_RECTIFIED";}
+        case DataSource::AUX_RAW: {return "AUX";}
+        case DataSource::AUX_RECTIFIED_RAW: {return "AUX_RECTIFIED";}
+        case DataSource::COST_RAW: {return "COST";}
+        case DataSource::IMU: {return "IMU";}
+    }
+    return "UNKNOWN";
+}
+
 
 #ifdef HAVE_OPENCV
 cv::Mat Image::cv_mat() const
@@ -464,6 +494,23 @@ std::optional<Image> create_bgr_image(const ImageFrame &frame, const DataSource 
     }
 
     return std::nullopt;
+}
+
+CameraCalibration scale_calibration(CameraCalibration calibration, double scale)
+{
+    calibration.K[0][0] *= scale;
+    calibration.K[0][2] *= scale;
+    calibration.K[1][1] *= scale;
+    calibration.K[1][2] *= scale;
+
+    calibration.P[0][0] *= scale;
+    calibration.P[0][2] *= scale;
+    calibration.P[0][3] *= scale;
+    calibration.P[1][1] *= scale;
+    calibration.P[1][2] *= scale;
+    calibration.P[1][3] *= scale;
+
+    return calibration;
 }
 
 std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,

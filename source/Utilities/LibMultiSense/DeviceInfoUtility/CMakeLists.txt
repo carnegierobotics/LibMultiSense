@@ -8,5 +8,3 @@ else()
     message("Missing nlohmann_json. Not building the c++ DeviceInfoUtility")
 endif()
 
-install(FILES device_info_utility.py PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-        DESTINATION "bin")

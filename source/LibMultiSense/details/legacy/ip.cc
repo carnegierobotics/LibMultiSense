@@ -102,8 +102,10 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
                             interface_name->c_str(),
                             interface_name->size()))
         {
+            const auto error = strerror(errno);
+            close_socket(server_socket);
             CRL_EXCEPTION("Failed to bind to device %s. Error: %s", interface_name->c_str(),
-                          strerror(errno));
+                          error);
         }
     #elif __APPLE__
         if (0 != setsockopt(server_socket,
@@ -112,8 +114,10 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
                             interface_name->c_str(),
                             interface_name->size() + 1))
         {
+            const auto error = strerror(errno);
+            close_socket(server_socket);
             CRL_EXCEPTION("Failed to bind to device %s. Error: %s", interface_name->c_str(),
-                          strerror(errno));
+                          error);
         }
     #else
         if (interface_name && !interface_name->empty())
@@ -133,7 +137,9 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
         const int b = 1;
         if (0 != setsockopt(server_socket, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char const*>(&b), sizeof(b)))
         {
-            CRL_EXCEPTION("Failed to configure broadcasting on a the socket. Error: %s", strerror(errno));
+            const auto error = strerror(errno);
+            close_socket(server_socket);
+            CRL_EXCEPTION("Failed to configure broadcasting on a the socket. Error: %s", error);
         }
     #endif
     }
@@ -143,13 +149,20 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
 #if WIN32
     u_long ioctl_arg = 1;
     if (0 != ioctlsocket(server_socket, FIONBIO, &ioctl_arg))
+    {
+        close_socket(server_socket);
         CRL_EXCEPTION("failed to make a socket non-blocking: %d",WSAGetLastError ());
+    }
 #else
     const int flags = fcntl(server_socket, F_GETFL, 0);
 
     if (0 != fcntl(server_socket, F_SETFL, flags | O_NONBLOCK))
+    {
+        const auto error = strerror(errno);
+        close_socket(server_socket);
         CRL_EXCEPTION("failed to make a socket non-blocking: %s",
-                      strerror(errno));
+                      error);
+    }
 #endif
 
     //
@@ -159,8 +172,12 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
 
     if (0 != setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, (char*) &reuseSocket,
                         sizeof(reuseSocket)))
+    {
+        const auto error = strerror(errno);
+        close_socket(server_socket);
         CRL_EXCEPTION("failed to turn on socket reuse flag: %s",
-                      strerror(errno));
+                      error);
+    }
 
     //
     // We want very large buffers to store several images
@@ -177,8 +194,10 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
         0 != setsockopt(server_socket, SOL_SOCKET, SO_SNDBUF, (char*) &bufferSize,
                         sizeof(bufferSize)))
     {
+        const auto error = strerror(errno);
+        close_socket(server_socket);
         CRL_EXCEPTION("failed to adjust socket buffer sizes (%d bytes): %s",
-                      bufferSize, strerror(errno));
+                      bufferSize, error);
     }
 
     //
@@ -191,8 +210,12 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
     address.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (0 != ::bind(server_socket, (struct sockaddr*) &address, sizeof(address)))
+    {
+        const auto error = strerror(errno);
+        close_socket(server_socket);
         CRL_EXCEPTION("failed to bind the server socket to system-assigned port: %s",
-                      strerror(errno));
+                      error);
+    }
 
     //
     // Retrieve the system assigned local UDP port
@@ -203,12 +226,23 @@ std::tuple<socket_t, uint16_t> bind(const std::optional<std::string>& interface_
 #endif
     if (0 != getsockname(server_socket, (struct sockaddr*) &address, &len))
     {
-        CRL_EXCEPTION("getsockname() failed: %s", strerror(errno));
+        const auto error = strerror(errno);
+        close_socket(server_socket);
+        CRL_EXCEPTION("getsockname() failed: %s", error);
     }
 
     auto server_socket_port = htons(address.sin_port);
 
     return std::make_tuple(server_socket, server_socket_port);
+}
+
+void close_socket(socket_t socket)
+{
+#if WIN32
+    closesocket(socket);
+#else
+    ::close(socket);
+#endif
 }
 
 }

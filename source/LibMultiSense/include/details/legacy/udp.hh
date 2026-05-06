@@ -54,7 +54,7 @@ namespace legacy{
 struct NetworkSocket
 {
     std::unique_ptr<sockaddr_in> sensor_address = nullptr;
-    socket_t sensor_socket;
+    socket_t sensor_socket = INVALID_SOCKET;
     uint16_t server_socket_port = 0;
 };
 

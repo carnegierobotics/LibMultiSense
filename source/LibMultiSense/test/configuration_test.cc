@@ -726,8 +726,9 @@ TEST(convert, imu_config_limit_messages)
 TEST(convert, lighting_config_round_trip)
 {
     const auto wire_config = create_valid_lighting_wire_config();
+    const auto device_info = create_device_info(1920, 1200);
 
-    const auto config = convert(wire_config, multisense::MultiSenseInfo::DeviceInfo::LightingType::EXTERNAL);
+    const auto config = convert(wire_config, device_info);
 
     check_equal(config, wire_config);
     check_equal(config, convert(config));

@@ -233,6 +233,11 @@ public:
 private:
 
     ///
+    /// @brief Internal member to disconnect without locking
+    ///
+    void disconnect_internal();
+
+    ///
     /// @brief Try and set the MTU
     ///
     Status set_mtu(uint16_t mtu);

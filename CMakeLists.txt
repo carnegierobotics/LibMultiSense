@@ -13,7 +13,7 @@ if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
 endif()
 
-set(version "7.5.0")
+set(version "7.6.0")
 set(CPACK_PACKAGE_VERSION ${version})
 
 project(LibMultiSense
@@ -130,11 +130,19 @@ else()
 endif()
 
 #
-# Use full RPATH
+# Specify a relative RPATH to support both configure-time and install-time prefixes.
 #
 set (CMAKE_SKIP_BUILD_RPATH FALSE)
 set (CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
+elseif(UNIX)
+    # [[ ]] keeps $ORIGIN literal for the linker instead of letting CMake expand it.
+    set(CMAKE_INSTALL_RPATH [[$ORIGIN/../lib]])
+else()
+    # RPATH is not supported for non-ELF platforms. Keep the configure-time default.
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #
