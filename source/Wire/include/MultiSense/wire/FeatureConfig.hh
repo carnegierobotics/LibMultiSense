@@ -29,6 +29,10 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Significant history (date, user, job code, action):
+ *   2024-11-22, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2025-01-14, hshibata@carnegierobotics.com, IRAD, options added
  **/
 
 #ifndef LibMultiSense_FeatureConfig_hh
