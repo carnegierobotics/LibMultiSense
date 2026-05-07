@@ -37,9 +37,9 @@
 #ifndef __FEATURE_DETECTOR_UTILITIES_H__
 #define __FEATURE_DETECTOR_UTILITIES_H__
 
-#include <wire/FeatureMessage.hh>
-#include <wire/FeatureMetaMessage.hh>
-#include <wire/FeatureConfig.hh>
+#include <MultiSense/wire/FeatureMessage.hh>
+#include <MultiSense/wire/FeatureMetaMessage.hh>
+#include <MultiSense/wire/FeatureConfig.hh>
 
 using namespace crl::multisense;
 using namespace crl::multisense::details;
