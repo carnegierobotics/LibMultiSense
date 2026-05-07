@@ -15,6 +15,7 @@ endif()
 
 set(version "7.6.0")
 set(CPACK_PACKAGE_VERSION ${version})
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(LibMultiSense
   LANGUAGES C CXX
@@ -64,13 +65,12 @@ if (ENABLE_COVERAGE)
     add_compile_options(--coverage -O0 -g)
     add_link_options(--coverage)
 
-    include(cmake/coverage.cmake)
+    include(MultiSenseCoverage)
 endif()
 
 #
 # We want to build "Release" by default
 #
-
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Selecting default build type: Release")
     #set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
@@ -87,35 +87,7 @@ if (NOT BUILD_LEGACY_API)
     #
     # Ensure compiler support for std::filesystem
     #
-
-    set(FILESYSTEM_CODE "
-        #include <filesystem>
-        int main() {
-            std::filesystem::path p(\"/\");
-            return std::filesystem::exists(p) ? 0 : 1;
-        }
-    ")
-
-    check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM)
-
-    if (NOT HAVE_STD_FILESYSTEM)
-        # Try linking with stdc++fs (GCC < 9, Clang < 9)
-        set(CMAKE_REQUIRED_LIBRARIES stdc++fs)
-        check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_STDCXXFS)
-        if (HAVE_STD_FILESYSTEM_STDCXXFS)
-            set(FILESYSTEM_LIBRARY stdc++fs)
-            set(HAVE_STD_FILESYSTEM TRUE)
-        else()
-            # Try linking with c++fs (older Clang/libc++)
-            set(CMAKE_REQUIRED_LIBRARIES c++fs)
-            check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_CXXFS)
-            if (HAVE_STD_FILESYSTEM_CXXFS)
-                set(FILESYSTEM_LIBRARY c++fs)
-                set(HAVE_STD_FILESYSTEM TRUE)
-            endif()
-        endif()
-        unset(CMAKE_REQUIRED_LIBRARIES)
-    endif()
+    include(MultiSenseCxxCheckFilesystem RESULT_VARIABLE MULTISENSE_CMAKE_MODULE_CXX_CHECK_FILESYSTEM)
 
     if (NOT HAVE_STD_FILESYSTEM)
         message(FATAL_ERROR "The new MultiSense API requires a compiler with std::filesystem support (C++17).")
@@ -125,13 +97,7 @@ endif()
 #
 # Check if the compiler supports constexpr
 #
-check_cxx_source_compiles (
-    "int main() { constexpr int x = 0; }"
-    HAVE_CONSTEXPR
-)
-if (HAVE_CONSTEXPR)
-    add_definitions(-DCRL_HAVE_CONSTEXPR)
-endif ()
+include(MultiSenseCxxCheckConstexpr RESULT_VARIABLE MULTISENSE_CMAKE_MODULE_CXX_CHECK_CONSTEXPR)
 
 #
 # For Backwards compatibility with other ROS builds
@@ -227,5 +193,5 @@ endif ()
 #
 
 if(CMAKE_ENABLE_CPACK)
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
+    include(MultiSenseCPack)
 endif()

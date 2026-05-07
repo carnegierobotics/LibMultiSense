@@ -121,6 +121,8 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_CONSTEXPR}
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_FILESYSTEM}
   DESTINATION lib/cmake/MultiSense)
 
 

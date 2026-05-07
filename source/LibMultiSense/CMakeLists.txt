@@ -77,8 +77,9 @@ endif()
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiSenseConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
-  INSTALL_DESTINATION lib/cmake/MultiSense)
+  "${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake"
+  INSTALL_DESTINATION "lib/cmake/MultiSense"
+)
 
 # create install targets
 install(TARGETS MultiSense
@@ -101,6 +102,8 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_CONSTEXPR}
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_FILESYSTEM}
   DESTINATION lib/cmake/MultiSense)
 
 install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)
