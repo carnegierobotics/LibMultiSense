@@ -33,7 +33,14 @@ add_custom_target(coverage
     # Capture coverage data
     COMMAND ${LCOV_PATH} --directory ${CMAKE_BINARY_DIR} --capture --output-file ${CMAKE_BINARY_DIR}/coverage.info ${LCOV_FLAGS}
     # Remove system headers and third-party code
-    COMMAND ${LCOV_PATH} --remove ${CMAKE_BINARY_DIR}/coverage.info '/usr/*' '*/test/*' '*/vcpkg_installed/*' '*/details/legacy/*' --output-file ${CMAKE_BINARY_DIR}/coverage_filtered.info ${LCOV_FLAGS}
+    COMMAND ${LCOV_PATH} --remove ${CMAKE_BINARY_DIR}/coverage.info 
+        '/usr/*' 
+        '*/test/*' 
+        '*/vcpkg_installed/*' 
+        '*/details/legacy/*' 
+        '*_test.cc' 
+        '*/Utilities/Legacy/*TestUtility/*'
+        --output-file ${CMAKE_BINARY_DIR}/coverage_filtered.info ${LCOV_FLAGS}
     # Generate HTML report
     COMMAND ${GENHTML_PATH} ${CMAKE_BINARY_DIR}/coverage_filtered.info --output-directory ${CMAKE_BINARY_DIR}/coverage_report
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
