@@ -561,7 +561,8 @@ TEST(write_image, unsupported_extension)
               DataSource::LEFT_MONO_RAW,
               aux_calibration};
 
-    EXPECT_FALSE(write_image(img, "test.png"));
+    const auto path = std::filesystem::temp_directory_path() / "test.png";
+    EXPECT_FALSE(write_image(img, path));
 }
 
 TEST(write_image, pgm_mono8)
@@ -590,8 +591,9 @@ TEST(write_image, pgm_mono8)
               DataSource::LEFT_MONO_RAW,
               aux_calibration};
 
-    EXPECT_TRUE(write_image(img, "test.pgm"));
-    std::filesystem::remove("test.pgm");
+    const auto path = std::filesystem::temp_directory_path() / "test.pgm";
+    EXPECT_TRUE(write_image(img, path));
+    std::filesystem::remove(path);
 }
 
 TEST(write_image, pgm_mono16)
@@ -620,8 +622,9 @@ TEST(write_image, pgm_mono16)
               DataSource::LEFT_DISPARITY_RAW,
               aux_calibration};
 
-    EXPECT_TRUE(write_image(img, "test.pgm"));
-    std::filesystem::remove("test.pgm");
+    const auto path = std::filesystem::temp_directory_path() / "test.pgm";
+    EXPECT_TRUE(write_image(img, path));
+    std::filesystem::remove(path);
 }
 
 TEST(write_image, ppm_bgr8)
@@ -650,8 +653,9 @@ TEST(write_image, ppm_bgr8)
               DataSource::LEFT_MONO_RAW,
               aux_calibration};
 
-    EXPECT_TRUE(write_image(img, "test.ppm"));
-    std::filesystem::remove("test.ppm");
+    const auto path = std::filesystem::temp_directory_path() / "test.ppm";
+    EXPECT_TRUE(write_image(img, path));
+    std::filesystem::remove(path);
 }
 
 TEST(write_image, unhandled_format)
@@ -680,8 +684,9 @@ TEST(write_image, unhandled_format)
               DataSource::LEFT_MONO_RAW,
               aux_calibration};
 
-    EXPECT_FALSE(write_image(img, "test.ppm"));
-    std::filesystem::remove("test.ppm");
+    const auto path = std::filesystem::temp_directory_path() / "test.ppm";
+    EXPECT_FALSE(write_image(img, path));
+    std::filesystem::remove(path);
 }
 
 TEST(write_image, invalid_file_path)
