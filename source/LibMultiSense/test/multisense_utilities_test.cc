@@ -878,7 +878,7 @@ TEST(create_bgr_from_ycbcr420, invalid_formats)
     Image y_invalid{std::make_shared<const std::vector<uint8_t>>(y_data),
                   0, width * height, Image::PixelFormat::MONO16, // INVALID
                   static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RAW, aux_calibration};
-    
+
     Image cbcr_valid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
                      0, width / 2 * height / 2, Image::PixelFormat::MONO16,
                      static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RAW, aux_calibration};
@@ -935,7 +935,7 @@ TEST(create_bgr_image, valid_images)
     Image y_valid{std::make_shared<const std::vector<uint8_t>>(y_data),
                   0, width * height, Image::PixelFormat::MONO8,
                   static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RECTIFIED_RAW, aux_calibration};
-    
+
     Image cbcr_valid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
                      0, width / 2 * height / 2, Image::PixelFormat::MONO16,
                      static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RECTIFIED_RAW, aux_calibration};
