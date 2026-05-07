@@ -1,5 +1,5 @@
 /**
- * @file LibMultiSense/FeatureDetectorMessage.hh
+ * @file FeatureConfig.hh
  *
  * Copyright 2024-2025
  * Carnegie Robotics, LLC
@@ -31,18 +31,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * Significant history (date, user, job code, action):
- *   2024-22-11, patrick.smith@carnegierobotics.com, IRAD, Created file.
- *   2025-14-01, hshibata@carnegierobotics.com, IRAD, options added
+ *   2024-11-22, patrick.smith@carnegierobotics.com, IRAD, Created file.
+ *   2025-01-14, hshibata@carnegierobotics.com, IRAD, options added
  **/
 
+#ifndef LibMultiSense_FeatureConfig_hh
+#define LibMultiSense_FeatureConfig_hh
 
-#ifndef __FEATURE_DETECTOR_CONFIG_H__
-#define __FEATURE_DETECTOR_CONFIG_H__
+#include <MultiSense/utility/Portability.hh>
+#include <MultiSense/wire/Protocol.hh>
 
-#include <MultiSense/details/utility/Portability.hh>
-#include <MultiSense/MultiSenseTypes.hh>
-
-using namespace crl::multisense::details;
+namespace crl {
+namespace multisense {
+namespace details {
+namespace wire {
 
 #pragma pack(push, 1)
 
@@ -91,4 +93,9 @@ struct FeatureDetectorConfigParams {
 
 #pragma pack(pop)
 
-#endif /* end of include guard: __FEATURE_DETECTOR_CONFIG_H__ */
+} // namespace wire
+} // namespace details
+} // namespace multisense
+} // namespace crl
+
+#endif

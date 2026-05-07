@@ -14,6 +14,7 @@ endif()
 
 add_subdirectory(ChangeIpUtility)
 add_subdirectory(DeviceInfoUtility)
+add_subdirectory(FeatureDetectorUtility)
 add_subdirectory(ImageCalUtility)
 add_subdirectory(MultiChannelUtility)
 add_subdirectory(PointCloudUtility)

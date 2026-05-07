@@ -251,7 +251,7 @@ namespace details {
 
         std::pair<bool, KEY> will_drop_() {
             const bool will_drop = m_map.size() == m_depth;
-            KEY drop_key; // If will_drop is false, this value is intentionally uninitialized
+            KEY drop_key{};
 
             if (will_drop)
             {

@@ -104,7 +104,13 @@ enum class DataSource : uint16_t
     AUX_RAW,
     AUX_RECTIFIED_RAW,
     COST_RAW,
-    IMU
+    IMU,
+    LEFT_ORB_FEATURES,
+    RIGHT_ORB_FEATURES,
+    AUX_ORB_FEATURES,
+    LEFT_RECTIFIED_ORB_FEATURES,
+    RIGHT_RECTIFIED_ORB_FEATURES,
+    AUX_RECTIFIED_ORB_FEATURES
 };
 
 enum class ColorImageEncoding : uint16_t
@@ -317,6 +323,93 @@ struct ImageHistogram
 };
 
 ///
+/// @brief Represents a generic feature keypoint
+///
+struct FeatureKeyPoint
+{
+    ///
+    /// @brief x location of the keypoint in the output image
+    ///
+    float x = 0.0f;
+
+    ///
+    /// @brief y location of the keypoint in the output image
+    ///
+    float y = 0.0f;
+
+    ///
+    /// @brief the angle of the intensity centroid
+    ///
+    float angle = 0.0f;
+
+    ///
+    /// @brief harris conerness core
+    ///
+    float response = 0.0f;
+
+    ///
+    /// @brief the image pyramid layer the keypoint was generated from
+    ///
+    uint32_t octave = 0;
+
+    ///
+    /// @brief optional grouping id
+    ///
+    uint32_t class_id = 0;
+};
+
+///
+/// @brief The descriptor type for features
+///
+enum class FeatureDescriptorType : uint8_t
+{
+    UNKNOWN,
+    ORB
+};
+
+///
+/// @brief A collection of features and their descriptors
+///
+struct FeatureMessage
+{
+    ///
+    /// @brief DataSource associated with the features
+    ///
+    DataSource source = DataSource::UNKNOWN;
+
+    ///
+    /// @brief The typeof feature descriptor used
+    ///
+    FeatureDescriptorType descriptor_type = FeatureDescriptorType::UNKNOWN;
+
+    ///
+    /// @brief Image keypoints for featrues
+    ///
+    std::vector<FeatureKeyPoint> keypoints{};
+
+    ///
+    /// @brief Raw descriptors for the features
+    ///
+    std::vector<uint8_t> descriptors{};
+
+#ifdef HAVE_OPENCV
+    ///
+    /// @brief Convert keypoints to native OpenCV keypoints
+    ///
+    std::vector<cv::KeyPoint> cv_keypoints() const;
+
+    ///
+    /// @brief Convert descriptors to a native OpenCV Mat.
+    ///        The cv::Mat returned here wraps the underlying descriptor data pointer associated with
+    ///        the FeatureMessage object. If the input FeatureMessage object goes out of scope while you are
+    ///        still using the corresponding cv::Mat, you will need to `clone` the cv::Mat creating an internal
+    ///        copy of all the data
+    ///
+    cv::Mat cv_descriptors() const;
+#endif
+};
+
+///
 /// @brief A frame containing multiple images (indexed by DataSource).
 ///
 struct ImageFrame
@@ -351,6 +444,35 @@ struct ImageFrame
     }
 
     ///
+    /// @brief Add a feature message to the frame, keyed by its DataSource.
+    ///
+    void add_feature(const FeatureMessage& feature)
+    {
+        features[feature.source] = feature;
+    }
+
+    ///
+    /// @brief Retrieve feature message by DataSource. Throws if not found.
+    ///
+    const FeatureMessage& get_feature(const DataSource &source) const
+    {
+        auto it = features.find(source);
+        if (it == features.end())
+        {
+            throw std::runtime_error("No feature found for requested DataSource");
+        }
+        return it->second;
+    }
+
+    ///
+    /// @brief Check if we have features for a given data source
+    ///
+    bool has_feature(const DataSource &source) const
+    {
+        return (features.find(source) != features.end());
+    }
+
+    ///
     /// @brief The unique monotonically increasing ID for each frame populated by the MultiSense
     ///
     int64_t frame_id = 0;
@@ -359,6 +481,11 @@ struct ImageFrame
     /// @brief The images associated with each source in the frame
     ///
     std::map<DataSource, Image> images{};
+
+    ///
+    /// @brief The features associated with each source in the frame
+    ///
+    std::map<DataSource, FeatureMessage> features{};
 
     ///
     /// @brief The scaled calibration for the entire camera
@@ -506,6 +633,15 @@ struct ImuRange
     {
         return range == rhs.range && resolution == rhs.resolution;
     }
+};
+
+///
+/// @brief supported secondary applications
+///
+enum class SecondaryApplication : uint8_t
+{
+    NONE,
+    FEATURE_DETECTOR
 };
 
 
@@ -1036,6 +1172,35 @@ struct MultiSenseConfig
     };
 
     ///
+    /// @brief Configuration for the on-camera feature detector
+    ///
+    struct FeatureDetectorConfig
+    {
+
+        ///
+        /// @brief Max number of features to detect
+        ///
+        uint32_t number_of_features = 1500;
+
+        ///
+        /// @brief Attempt to group features with similar class ids
+        ///
+        bool grouping_enabled = true;
+
+        uint32_t motion_octave = 1;
+
+        ///
+        /// @brief Equality operator
+        ///
+        bool operator==(const FeatureDetectorConfig &rhs) const
+        {
+            return number_of_features == rhs.number_of_features &&
+                   grouping_enabled == rhs.grouping_enabled &&
+                   motion_octave == rhs.motion_octave;
+        }
+    };
+
+    ///
     /// @brief The operating width of the MultiSense in pixels. For available operating resolutions
     ///        see the MultiSenseInfo::SupportedOperatingMode
     ///
@@ -1094,6 +1259,11 @@ struct MultiSenseConfig
     std::optional<LightingConfig> lighting_config = std::nullopt;
 
     ///
+    /// @brief The feature detector configuration for the camera. If invalid, the camera does not support feature detection
+    ///
+    std::optional<FeatureDetectorConfig> feature_detector_config = std::nullopt;
+
+    ///
     /// @brief Equality operator
     ///
     bool operator==(const MultiSenseConfig &rhs) const
@@ -1108,7 +1278,8 @@ struct MultiSenseConfig
                time_config == rhs.time_config &&
                network_config == rhs.network_config &&
                imu_config == rhs.imu_config &&
-               lighting_config == rhs.lighting_config;
+               lighting_config == rhs.lighting_config &&
+               feature_detector_config == rhs.feature_detector_config;
     }
 };
 
