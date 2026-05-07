@@ -27,6 +27,8 @@ set(WIRE_HEADERS
   include/MultiSense/wire/CompressedImageMessage.hh
   include/MultiSense/wire/DisparityMessage.hh
   include/MultiSense/wire/ExposureConfigMessage.hh
+  include/MultiSense/wire/FeatureMessage.hh
+  include/MultiSense/wire/FeatureMetaMessage.hh
   include/MultiSense/wire/GroundSurfaceModel.hh
   include/MultiSense/wire/ImageMessage.hh
   include/MultiSense/wire/ImageMetaMessage.hh
