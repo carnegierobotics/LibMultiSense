@@ -4,6 +4,19 @@ include(CMakeFindDependencyMacro)
 find_dependency(MultiSenseWire)
 find_dependency(Threads)
 
+set(LIBMULTISENSE_BUILT_WITH_CONSTEXPR @HAVE_CONSTEXPR@)
+
+include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseCxxCheckConstexpr.cmake")
+
+if (LIBMULTISENSE_BUILT_WITH_CONSTEXPR AND NOT HAVE_CONSTEXPR)
+    message(WARNING
+            "The legacy MultiSense API was built with constexpr support, but constexpr was not detected")
+endif()
+if (NOT LIBMULTISENSE_BUILT_WITH_CONSTEXPR AND HAVE_CONSTEXPR)
+    message(WARNING
+            "The legacy MultiSense API was not built with constexpr support, but constexpr was detected")
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseTargets.cmake")
 
 check_required_components(MultiSense)
