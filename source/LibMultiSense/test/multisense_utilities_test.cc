@@ -35,6 +35,7 @@
  **/
 
 #include <cmath>
+#include <filesystem>
 
 #include <gtest/gtest.h>
 
@@ -486,3 +487,464 @@ TEST(create_pointcloud, basic_tests)
     ASSERT_TRUE(point_cloud_empty);
     ASSERT_TRUE(point_cloud_empty->cloud.empty());
 }
+
+TEST(to_string, status)
+{
+    EXPECT_EQ(to_string(Status::OK), "OK");
+    EXPECT_EQ(to_string(Status::TIMEOUT), "TIMEOUT");
+    EXPECT_EQ(to_string(Status::INTERNAL_ERROR), "ERROR");
+    EXPECT_EQ(to_string(Status::FAILED), "FAILED");
+    EXPECT_EQ(to_string(Status::UNSUPPORTED), "UNSUPPORTED");
+    EXPECT_EQ(to_string(Status::UNKNOWN), "UNKNOWN");
+    EXPECT_EQ(to_string(Status::EXCEPTION), "EXCEPTION");
+    EXPECT_EQ(to_string(Status::UNINITIALIZED), "UNINITIALIZED");
+    EXPECT_EQ(to_string(Status::INCOMPLETE_APPLICATION), "INCOMPLETE_APPLICATION");
+    EXPECT_EQ(to_string(static_cast<Status>(999)), "UNKNOWN");
+}
+
+TEST(to_string, data_source)
+{
+    EXPECT_EQ(to_string(DataSource::UNKNOWN), "UNKNOWN");
+    EXPECT_EQ(to_string(DataSource::ALL), "ALL");
+    EXPECT_EQ(to_string(DataSource::LEFT_MONO_RAW), "LEFT");
+    EXPECT_EQ(to_string(DataSource::RIGHT_MONO_RAW), "RIGHT");
+    EXPECT_EQ(to_string(DataSource::LEFT_MONO_COMPRESSED), "LEFT_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::RIGHT_MONO_COMPRESSED), "RIGHT_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_RAW), "LEFT_RECTIFIED");
+    EXPECT_EQ(to_string(DataSource::RIGHT_RECTIFIED_RAW), "RIGHT_RECTIFIED");
+    EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_COMPRESSED), "LEFT_RECTIFIED_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::RIGHT_RECTIFIED_COMPRESSED), "RIGHT_RECTIFIED_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::LEFT_DISPARITY_RAW), "DISPARITY");
+    EXPECT_EQ(to_string(DataSource::LEFT_DISPARITY_COMPRESSED), "DISPARITY_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::AUX_COMPRESSED), "AUX_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::AUX_RECTIFIED_COMPRESSED), "AUX_RECTIFIED_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::AUX_LUMA_RAW), "AUX_LUMA");
+    EXPECT_EQ(to_string(DataSource::AUX_LUMA_RECTIFIED_RAW), "AUX_LUMA_RECTIFIED");
+    EXPECT_EQ(to_string(DataSource::AUX_CHROMA_RAW), "AUX_CHROMA");
+    EXPECT_EQ(to_string(DataSource::AUX_CHROMA_RECTIFIED_RAW), "AUX_CHROMA_RECTIFIED");
+    EXPECT_EQ(to_string(DataSource::AUX_RAW), "AUX");
+    EXPECT_EQ(to_string(DataSource::AUX_RECTIFIED_RAW), "AUX_RECTIFIED");
+    EXPECT_EQ(to_string(DataSource::COST_RAW), "COST");
+    EXPECT_EQ(to_string(DataSource::IMU), "IMU");
+    EXPECT_EQ(to_string(DataSource::LEFT_ORB_FEATURES), "LEFT_ORB");
+    EXPECT_EQ(to_string(DataSource::RIGHT_ORB_FEATURES), "RIGHT_ORB");
+    EXPECT_EQ(to_string(DataSource::AUX_ORB_FEATURES), "AUX_ORB");
+    EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_ORB_FEATURES), "LEFT_RECTIFIED_ORB");
+    EXPECT_EQ(to_string(DataSource::RIGHT_RECTIFIED_ORB_FEATURES), "RIGHT_RECTIFIED_ORB");
+    EXPECT_EQ(to_string(DataSource::AUX_RECTIFIED_ORB_FEATURES), "AUX_RECTIFIED_ORB");
+    EXPECT_EQ(to_string(static_cast<DataSource>(0xFFFFFFFF)), "UNKNOWN");
+}
+
+TEST(write_image, unsupported_extension)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10, 0);
+    Image img{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              100,
+              Image::PixelFormat::MONO8,
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_MONO_RAW,
+              aux_calibration};
+
+    EXPECT_FALSE(write_image(img, "test.png"));
+}
+
+TEST(write_image, pgm_mono8)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10, 128);
+    Image img{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              100,
+              Image::PixelFormat::MONO8,
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_MONO_RAW,
+              aux_calibration};
+
+    EXPECT_TRUE(write_image(img, "test.pgm"));
+    std::filesystem::remove("test.pgm");
+}
+
+TEST(write_image, pgm_mono16)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10 * 2, 128);
+    Image img{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              200,
+              Image::PixelFormat::MONO16,
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_DISPARITY_RAW,
+              aux_calibration};
+
+    EXPECT_TRUE(write_image(img, "test.pgm"));
+    std::filesystem::remove("test.pgm");
+}
+
+TEST(write_image, ppm_bgr8)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10 * 3, 128);
+    Image img{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              300,
+              Image::PixelFormat::BGR8,
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_MONO_RAW,
+              aux_calibration};
+
+    EXPECT_TRUE(write_image(img, "test.ppm"));
+    std::filesystem::remove("test.ppm");
+}
+
+TEST(write_image, unhandled_format)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10 * 4, 128);
+    Image img{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              400,
+              Image::PixelFormat::FLOAT32,
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_MONO_RAW,
+              aux_calibration};
+
+    EXPECT_FALSE(write_image(img, "test.ppm"));
+    std::filesystem::remove("test.ppm");
+}
+
+TEST(write_image, invalid_file_path)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10, 128);
+    Image img{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              100,
+              Image::PixelFormat::MONO8,
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_MONO_RAW,
+              aux_calibration};
+
+    EXPECT_FALSE(write_image(img, "/invalid_path_that_does_not_exist/test.pgm"));
+}
+
+TEST(create_depth_image, missing_disparity)
+{
+    ImageFrame frame{0, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+    EXPECT_FALSE(create_depth_image(frame, Image::PixelFormat::FLOAT32, DataSource::LEFT_DISPARITY_RAW, false, 0.0));
+}
+
+TEST(create_depth_image, invalid_disparity_format)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration cal{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10, 0);
+    Image disparity{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              100,
+              Image::PixelFormat::MONO8, // Should be MONO16
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_DISPARITY_RAW,
+              cal};
+
+    ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, std::nullopt}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity);
+
+    EXPECT_FALSE(create_depth_image(frame, Image::PixelFormat::FLOAT32, DataSource::LEFT_DISPARITY_RAW, false, 0.0));
+}
+
+TEST(create_depth_image, missing_aux_calib)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration cal{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    auto disparity = create_example_disparity_image(cal, cal, 3.0, 4.0, 10, 10);
+    ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, std::nullopt}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity);
+
+    EXPECT_FALSE(create_depth_image(frame, Image::PixelFormat::FLOAT32, DataSource::LEFT_DISPARITY_RAW, true, 0.0));
+}
+
+TEST(create_depth_image, unsupported_depth_format)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration cal{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    auto disparity = create_example_disparity_image(cal, cal, 3.0, 4.0, 10, 10);
+    ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, cal}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity);
+
+    EXPECT_FALSE(create_depth_image(frame, Image::PixelFormat::BGR8, DataSource::LEFT_DISPARITY_RAW, false, 0.0));
+}
+
+TEST(get_aux_3d_point, missing_disparity)
+{
+    ImageFrame frame{0, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+    EXPECT_FALSE(get_aux_3d_point(frame, Pixel{0, 0}, 100, 0.01));
+}
+
+TEST(get_aux_3d_point, invalid_disparity_format)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration cal{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    std::vector<uint8_t> data(10 * 10, 0);
+    Image disparity{std::make_shared<const std::vector<uint8_t>>(data),
+              0,
+              100,
+              Image::PixelFormat::MONO8, // Should be MONO16
+              10,
+              10,
+              {},
+              {},
+              DataSource::LEFT_DISPARITY_RAW,
+              cal};
+
+    ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, cal}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity);
+
+    EXPECT_FALSE(get_aux_3d_point(frame, Pixel{0, 0}, 100, 0.01));
+}
+
+TEST(get_aux_3d_point, missing_aux_calib)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration cal{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    auto disparity = create_example_disparity_image(cal, cal, 3.0, 4.0, 10, 10);
+    ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, std::nullopt}, {}, {}, {}, {}, {}, {}};
+    frame.add_image(disparity);
+
+    EXPECT_FALSE(get_aux_3d_point(frame, Pixel{0, 0}, 100, 0.01));
+}
+
+TEST(create_bgr_from_ycbcr420, invalid_formats)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    const size_t width = 100;
+    const size_t height = 100;
+
+    std::vector<uint8_t> y_data(width * height, 42);
+    std::vector<uint8_t> cbcr_data(width * height/2, 128);
+
+    Image y_valid{std::make_shared<const std::vector<uint8_t>>(y_data),
+                  0, width * height, Image::PixelFormat::MONO8,
+                  static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RAW, aux_calibration};
+    Image y_invalid{std::make_shared<const std::vector<uint8_t>>(y_data),
+                  0, width * height, Image::PixelFormat::MONO16, // INVALID
+                  static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RAW, aux_calibration};
+    
+    Image cbcr_valid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
+                     0, width / 2 * height / 2, Image::PixelFormat::MONO16,
+                     static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RAW, aux_calibration};
+    Image cbcr_invalid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
+                     0, width / 2 * height / 2, Image::PixelFormat::MONO8, // INVALID
+                     static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RAW, aux_calibration};
+
+    EXPECT_FALSE(create_bgr_from_ycbcr420(y_invalid, cbcr_valid, DataSource::AUX_RAW));
+    EXPECT_FALSE(create_bgr_from_ycbcr420(y_valid, cbcr_invalid, DataSource::AUX_RAW));
+}
+
+TEST(create_bgr_image, not_ycbcr)
+{
+    ImageFrame frame{0, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+    frame.aux_color_encoding = ColorImageEncoding::NONE;
+    EXPECT_FALSE(create_bgr_image(frame, DataSource::AUX_RAW));
+}
+
+TEST(create_bgr_image, invalid_output_source)
+{
+    ImageFrame frame{0, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+    frame.aux_color_encoding = ColorImageEncoding::YCBCR420;
+    EXPECT_FALSE(create_bgr_image(frame, DataSource::LEFT_MONO_RAW));
+}
+
+TEST(create_bgr_image, missing_images)
+{
+    ImageFrame frame{0, {}, {}, {}, {}, {}, {}, {}, {}, {}};
+    frame.aux_color_encoding = ColorImageEncoding::YCBCR420;
+    EXPECT_FALSE(create_bgr_image(frame, DataSource::AUX_RAW));
+    EXPECT_FALSE(create_bgr_image(frame, DataSource::AUX_RECTIFIED_RAW));
+}
+
+TEST(create_bgr_image, valid_images)
+{
+    const float fx = 1000.0;
+    const float fy = 1000.0;
+    const float cx = 960.0;
+    const float cy = 600.0;
+
+    CameraCalibration aux_calibration{
+        {{{fx, 0.0, cx}, {0.0, fy, cy}, {0.0, 0.0, 1.0}}},
+        {{{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}},
+        {{{fx, 0.0, cx, 0.0}, {0.0, fy, cy, 0.0}, {0.0, 0.0, 1.0, 0.0}}},
+        CameraCalibration::DistortionType::NONE,
+        {}};
+
+    const size_t width = 100;
+    const size_t height = 100;
+
+    std::vector<uint8_t> y_data(width * height, 42);
+    std::vector<uint8_t> cbcr_data(width * height/2, 128);
+
+    Image y_valid{std::make_shared<const std::vector<uint8_t>>(y_data),
+                  0, width * height, Image::PixelFormat::MONO8,
+                  static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RECTIFIED_RAW, aux_calibration};
+    
+    Image cbcr_valid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
+                     0, width / 2 * height / 2, Image::PixelFormat::MONO16,
+                     static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RECTIFIED_RAW, aux_calibration};
+
+    ImageFrame frame{0, {}, {}, StereoCalibration{aux_calibration, aux_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
+    frame.aux_color_encoding = ColorImageEncoding::YCBCR420;
+    frame.add_image(y_valid);
+    frame.add_image(cbcr_valid);
+
+    EXPECT_TRUE(create_bgr_image(frame, DataSource::AUX_RECTIFIED_RAW));
+}
+
