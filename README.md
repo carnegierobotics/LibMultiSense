@@ -102,6 +102,11 @@ several command-line utilities are automatically installed and can be run direct
 - `multisense_point_cloud_utility`: Generate and save 3D point clouds in `.ply` format.
 - `multisense_version_info_utility`: Show firmware and hardware version information.
 - `multisense_change_ip_utility`: Update the network configuration of a MultiSense device.
+- `multisense_image_cal_utility`: Query or set the intrinsic and extrinsic calibration of the MultiSense device.
+- `multisense_multi_channel_utility`: Synchronize outputs from multiple MultiSense devices (requires PTP synchronization).
+- `multisense_ptp_utility`: Check the current PTP sync of the MultiSense device.
+- `multisense_rectified_focal_length_utility`: Update the focal length of the rectified image used to compute disparity.
+- `multisense_feature_detector_utility`: Display a live feed of detected features on the left rectified image.
 
 Example usage:
 ```bash
