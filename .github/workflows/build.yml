@@ -147,7 +147,7 @@ jobs:
         shared_libs: [true]
         legacy_api: [false]
         build_json_serialization: [true]
-        build_opencv: [false]
+        build_opencv: [true]
         python_bindings: [true]
         include:
           # Build one representative static macOS configuration.
@@ -157,7 +157,7 @@ jobs:
             shared_libs: false
             legacy_api: false
             build_json_serialization: true
-            build_opencv: false
+            build_opencv: true
             python_bindings: true
 
     uses: ./.github/workflows/build-macos.yml
@@ -188,7 +188,7 @@ jobs:
         shared_libs: [true]
         legacy_api: [false]
         build_json_serialization: [true]
-        build_opencv: [false]
+        build_opencv: [true]
         python_bindings: [true]
         include:
           # Build one representative static Windows configuration.
@@ -197,7 +197,7 @@ jobs:
             shared_libs: false
             legacy_api: false
             build_json_serialization: true
-            build_opencv: false
+            build_opencv: true
             python_bindings: true
 
     uses: ./.github/workflows/build-windows.yml
