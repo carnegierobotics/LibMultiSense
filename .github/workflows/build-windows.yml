@@ -63,7 +63,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ./.cache/vcpkg/archives
-          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ inputs.build_json_serialization && 'json' || 'nojson' }}-${{ inputs.build_opencv && 'opencv' || 'noopencv' }}-${{ inputs.python_bindings && 'python' || 'nopython' }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
           restore-keys: |
             ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-
             ${{ runner.os }}-x64-windows-vcpkg-binary-
@@ -71,7 +71,21 @@ jobs:
       - name: Install vcpkg dependencies
         shell: bash
         run: |
-          ./vcpkg/vcpkg install --triplet x64-windows
+          features=()
+
+          if [ "${{ inputs.build_json_serialization }}" = "true" ]; then
+            features+=(--x-feature=json-serialization)
+          fi
+
+          if [ "${{ inputs.build_opencv }}" = "true" ]; then
+            features+=(--x-feature=opencv)
+          fi
+
+          if [ "${{ inputs.python_bindings }}" = "true" ]; then
+            features+=(--x-feature=python-bindings)
+          fi
+
+          ./vcpkg/vcpkg install --triplet x64-windows "${features[@]}"
 
       #
       # Build the library

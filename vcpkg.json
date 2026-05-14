@@ -1,15 +1,38 @@
 {
-  "dependencies": [
-    "gtest",
-    "nlohmann-json",
-    "pybind11",
-    {
-      "name": "opencv",
-      "features": [
-        "opencv_core",
-        "opencv_imgcodecs",
-        "opencv_imgproc"
+  "name": "libmultisense",
+  "version": "7.8.0",
+  "features": {
+    "json-serialization": {
+      "description": "Build JSON serialization helpers",
+      "dependencies": [
+        "nlohmann-json"
+      ]
+    },
+    "opencv": {
+      "description": "Build OpenCV support",
+      "dependencies": [
+        {
+          "name": "opencv",
+          "default-features": false,
+          "features": [
+            "highgui",
+            "jpeg",
+            "png"
+          ]
+        }
+      ]
+    },
+    "python-bindings": {
+      "description": "Build Python bindings",
+      "dependencies": [
+        "pybind11"
+      ]
+    },
+    "tests": {
+      "description": "Build test dependencies",
+      "dependencies": [
+        "gtest"
       ]
     }
-  ]
+  }
 }
