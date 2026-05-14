@@ -37,7 +37,6 @@
 
 import argparse
 import cv2
-from jsondiff import diff
 
 import libmultisense as lms
 
