@@ -1,0 +1,122 @@
+name: Build LibMultiSense on Windows
+
+on:
+  workflow_call:
+    inputs:
+      windows_version:
+        type: string
+        default: windows-latest
+        description: A valid Windows runner name.
+      build_type:
+        type: string
+        default: Release
+        description: One of {Release, Debug}.
+      shared_libs:
+        type: boolean
+        default: true
+        description: Whether to build the shared libraries.
+      legacy_api:
+        type: boolean
+        default: false
+        description: Whether to build the legacy API.
+      build_json_serialization:
+        type: boolean
+        default: false
+        description: Whether to build with JSON serialization.
+      build_opencv:
+        type: boolean
+        default: false
+        description: Whether to build with OpenCV support.
+      python_bindings:
+        type: boolean
+        default: true
+        description: Whether to build the Python bindings.
+      upload_artifacts:
+        type: boolean
+        default: false
+        description: Whether to upload artifacts.
+
+jobs:
+  build:
+    runs-on: ${{ inputs.windows_version }}
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      NAME: ${{ inputs.windows_version }}-${{ inputs.build_type == 'Release' && 'release' || 'debug' }}-${{ inputs.shared_libs && 'shared' || 'static' }}-${{ inputs.legacy_api && 'legacy' || 'modern' }}-${{ inputs.build_json_serialization && inputs.build_opencv && 'full' || 'minimal' }}-${{ inputs.python_bindings && 'python' || 'no-python' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      #
+      # Install build dependencies
+      #
+
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+
+      - name: Cache vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./vcpkg/packages
+            ./vcpkg_installed
+            ./vcpkg/install
+            ./vcpkg/scripts
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Install vcpkg dependencies
+        shell: bash
+        run: |
+          ./vcpkg/vcpkg install --triplet x64-windows
+
+      #
+      # Build the library
+      #
+
+      - name: Build library
+        shell: bash
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DBUILD_SHARED_LIBS=${{ inputs.shared_libs }} \
+            -DBUILD_LEGACY_API=${{ inputs.legacy_api }} \
+            -DBUILD_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
+            -DBUILD_OPENCV=${{ inputs.build_opencv }} \
+            -DBUILD_PYTHON_BINDINGS=${{ inputs.python_bindings }} \
+            -DCMAKE_INSTALL_PREFIX=install
+
+          cmake --build build --config ${{ inputs.build_type }} -j "$(nproc || echo 8)"
+          cmake --install build --config ${{ inputs.build_type }}
+
+      - name: Build pip wheel
+        if: inputs.python_bindings
+        shell: bash
+        run: |
+          mkdir pip-wheel
+          python -m venv .venv
+          source .venv/Scripts/activate
+          python -m pip wheel --wheel-dir pip-wheel .
+
+      #
+      # Upload artifacts
+      #
+
+      - name: Upload library artifact
+        uses: actions/upload-artifact@v7
+        if: inputs.upload_artifacts
+        with:
+          name: install-${{ env.NAME }}
+          path: install/
+
+      - name: Upload pip wheel Artifact
+        uses: actions/upload-artifact@v7
+        if: inputs.upload_artifacts && inputs.python_bindings
+        with:
+          name: libmultisense-wheel-${{ env.NAME }}
+          path: pip-wheel/

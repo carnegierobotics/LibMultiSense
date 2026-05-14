@@ -10,219 +10,206 @@ on:
       - master
 
 jobs:
+  #
+  # Ubuntu
+  #
 
-  build-ubuntu:
+  # Build modern API on modern Ubuntu versions for various configurations.
+  build-ubuntu-modern-api:
     strategy:
+      fail-fast: false
       matrix:
-        ubuntu: [ubuntu-22.04, ubuntu-24.04]
-        compiler: [gcc, clang]
-    runs-on: ${{ matrix.ubuntu }}
-    env:
-      CC: ${{ matrix.compiler == 'clang' && 'clang' || 'gcc' }}
-      CXX: ${{ matrix.compiler == 'clang' && 'clang++' || 'g++' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        ubuntu_version: [ubuntu-24.04]
+        compiler: [gcc]
+        build_type: [Release, Debug]
+        shared_libs: [true, false]
+        minimal: [true, false]
+        include:
+          # Build Clang in representative full shared configurations.
+          - ubuntu_version: ubuntu-24.04
+            compiler: clang
+            build_type: Release
+            shared_libs: true
+            minimal: false
 
-      - name: Install Ubuntu dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtest-dev nlohmann-json3-dev pybind11-dev python3-pip ninja-build lcov
+          - ubuntu_version: ubuntu-24.04
+            compiler: clang
+            build_type: Debug
+            shared_libs: true
+            minimal: false
 
-      - name: Install Clang
-        if: matrix.compiler == 'clang'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang
+    uses: ./.github/workflows/build-ubuntu.yml
+    with:
+      ubuntu_version: ${{ matrix.ubuntu_version }}
+      compiler: ${{ matrix.compiler }}
+      build_type: ${{ matrix.build_type }}
+      shared_libs: ${{ matrix.shared_libs }}
+      testing: true
+      legacy_api: false
+      build_json_serialization: ${{ !matrix.minimal }}
+      build_opencv: ${{ !matrix.minimal }}
+      python_bindings: true
+      asan: false
+      coverage: false
+      upload_artifacts: ${{ matrix.compiler == 'gcc' && matrix.build_type == 'Release' && matrix.shared_libs && !matrix.minimal }}
 
-      - name: Build Release
-        run: |
-          cmake -B build-release -S . \
-            -DCMAKE_C_COMPILER="${CC}" \
-            -DCMAKE_CXX_COMPILER="${CXX}" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_TESTS=ON \
-            -DBUILD_JSON_SERIALIZATION=ON \
-            -DBUILD_LEGACY_API=OFF \
-            -DCMAKE_INSTALL_PREFIX=install-release
+  # Build modern API on older Ubuntu versions for limited configurations.
+  build-ubuntu-modern-api-old-ubuntu:
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu_version: [ubuntu-22.04]
 
-          cmake --build build-release -j "$(nproc)"
-          make -C build-release test
-          cmake --install build-release
-          mkdir pip-wheel
-          python -m venv .venv
-          source .venv/bin/activate
-          pip wheel --wheel-dir pip-wheel .
+    uses: ./.github/workflows/build-ubuntu.yml
+    with:
+      ubuntu_version: ${{ matrix.ubuntu_version }}
+      compiler: gcc
+      build_type: Release
+      shared_libs: true
+      testing: true
+      legacy_api: false
+      build_json_serialization: true
+      build_opencv: true
+      python_bindings: true
+      asan: false
+      coverage: false
+      upload_artifacts: false
 
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: install-release-ubuntu-${{ matrix.ubuntu }}-${{ matrix.compiler }}
-          path: install-release/
+  # Build legacy API in limited configurations.
+  build-ubuntu-legacy-api:
+    strategy:
+      fail-fast: false
+      matrix:
+        shared_libs: [true, false]
 
-      - name: Upload pip wheel Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: libmultisense-wheel-${{ matrix.ubuntu }}-${{ matrix.compiler }}
-          path: pip-wheel/
+    uses: ./.github/workflows/build-ubuntu.yml
+    with:
+      ubuntu_version: ubuntu-24.04
+      compiler: gcc
+      build_type: Release
+      shared_libs: ${{ matrix.shared_libs }}
+      testing: true
+      legacy_api: true
+      build_json_serialization: true
+      build_opencv: true
+      python_bindings: false # No Python bindings for legacy API.
+      asan: false
+      coverage: false
+      upload_artifacts: false
 
-      - name: Build Debug
-        run: |
-          cmake -B build-debug -S . \
-            -DCMAKE_C_COMPILER="${CC}" \
-            -DCMAKE_CXX_COMPILER="${CXX}" \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DBUILD_TESTS=ON \
-            -DBUILD_JSON_SERIALIZATION=ON \
-            -DBUILD_LEGACY_API=OFF \
-            -DENABLE_COVERAGE=${{ matrix.compiler == 'gcc' && 'ON' || 'OFF' }} \
-            -DCMAKE_INSTALL_PREFIX=install-debug
+  # Build code coverage.
+  build-ubuntu-coverage:
+    uses: ./.github/workflows/build-ubuntu.yml
+    with:
+      ubuntu_version: ubuntu-24.04
+      compiler: gcc
+      build_type: Debug
+      shared_libs: true
+      testing: true
+      legacy_api: false
+      build_json_serialization: true
+      build_opencv: true
+      python_bindings: false
+      asan: false
+      coverage: true
+      upload_artifacts: false
+    secrets: inherit
 
-          cmake --build build-debug -j "$(nproc)"
-          if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            cmake --build build-debug --target coverage
-          fi
-          cmake --install build-debug
+  # Build with address sanitizer.
+  build-ubuntu-asan:
+    uses: ./.github/workflows/build-ubuntu.yml
+    with:
+      ubuntu_version: ubuntu-24.04
+      compiler: gcc
+      build_type: Debug
+      shared_libs: true
+      testing: true
+      legacy_api: false
+      build_json_serialization: true
+      build_opencv: true
+      python_bindings: false
+      asan: true
+      coverage: false
+      upload_artifacts: false
 
-      - name: Upload Coverage to Codecov
-        if: matrix.compiler == 'gcc'
-        uses: codecov/codecov-action@v4
-        with:
-          file: build-debug/coverage_filtered.info
-          fail_ci_if_error: false
-          token: ${{ secrets.CODECOV_TOKEN }}
+  #
+  # macOS
+  #
 
+  # Build only the modern API in various configurations.
   build-macos:
-    name: Build on macOS (${{ matrix.compiler }})
-    runs-on: macOS-latest
     strategy:
+      fail-fast: false
       matrix:
+        macos_version: [macos-latest]
         compiler: [apple-clang, brew-llvm]
-    env:
-      CC: ${{ matrix.compiler == 'brew-llvm' && 'clang' || 'cc' }}
-      CXX: ${{ matrix.compiler == 'brew-llvm' && 'clang++' || 'c++' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+        build_type: [Release, Debug]
+        shared_libs: [true]
+        legacy_api: [false]
+        build_json_serialization: [true]
+        build_opencv: [false]
+        python_bindings: [true]
+        include:
+          # Build one representative static macOS configuration.
+          - macos_version: macos-latest
+            compiler: apple-clang
+            build_type: Release
+            shared_libs: false
+            legacy_api: false
+            build_json_serialization: true
+            build_opencv: false
+            python_bindings: true
 
-      - name: Install macOS Deps
-        run: |
-          brew install pybind11 nlohmann-json googletest
+    uses: ./.github/workflows/build-macos.yml
+    secrets: inherit
+    with:
+      macos_version: ${{ matrix.macos_version }}
+      compiler: ${{ matrix.compiler }}
+      build_type: ${{ matrix.build_type }}
+      shared_libs: ${{ matrix.shared_libs }}
+      testing: true
+      legacy_api: ${{ matrix.legacy_api }}
+      build_json_serialization: ${{ matrix.build_json_serialization }}
+      build_opencv: ${{ matrix.build_opencv }}
+      python_bindings: ${{ matrix.python_bindings }}
+      upload_artifacts: ${{ matrix.build_type == 'Release' && matrix.shared_libs }}
 
-      - name: Install Homebrew LLVM
-        if: matrix.compiler == 'brew-llvm'
-        run: |
-          brew install llvm
-          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+  #
+  # Windows
+  #
 
-      - name: Build Release
-        run: |
-          cmake -B build -S . \
-            -DCMAKE_C_COMPILER="${CC}" \
-            -DCMAKE_CXX_COMPILER="${CXX}" \
-            -DBUILD_JSON_SERIALIZATION=ON \
-            -DBUILD_PYTHON_BINDINGS=ON \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_LEGACY_API=OFF \
-            -DBUILD_TESTS=ON \
-            -DCMAKE_INSTALL_PREFIX=install-release
-
-          cmake --build build --target install -j "$(sysctl -n hw.ncpu)"
-          mkdir pip-wheel
-          pip wheel --wheel-dir pip-wheel ${{ github.workspace }}
-          make -C build test
-
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-install-release-${{ matrix.compiler }}
-          path: install-release/
-
-      - name: Upload pip wheel Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: libmultisense-wheel-macos-${{ matrix.compiler }}
-          path: pip-wheel/
-
-      - name: Build Debug
-        run: |
-          cmake -B build -S . \
-            -DCMAKE_C_COMPILER="${CC}" \
-            -DCMAKE_CXX_COMPILER="${CXX}" \
-            -DBUILD_JSON_SERIALIZATION=ON \
-            -DBUILD_PYTHON_BINDINGS=ON \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DBUILD_LEGACY_API=OFF \
-            -DBUILD_TESTS=ON
-
-          cmake --build build -j "$(sysctl -n hw.ncpu)"
-          make -C build test
-
+  # Build only the modern API in various configurations.
   build-windows:
-    name: Build on Windows
-    runs-on: windows-2022
-    env:
-        VCPKG_ROOT: "${{ github.workspace }}/vcpkg"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    strategy:
+      fail-fast: false
+      matrix:
+        windows_version: [windows-2022]
+        build_type: [Release, Debug]
+        shared_libs: [true]
+        legacy_api: [false]
+        build_json_serialization: [true]
+        build_opencv: [false]
+        python_bindings: [true]
+        include:
+          # Build one representative static Windows configuration.
+          - windows_version: windows-2022
+            build_type: Release
+            shared_libs: false
+            legacy_api: false
+            build_json_serialization: true
+            build_opencv: false
+            python_bindings: true
 
-      - name: Install vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git
-          ./vcpkg/bootstrap-vcpkg.bat
-
-      - name: Cache vcpkg
-        uses: actions/cache@v3
-        with:
-          path: |
-            ./vcpkg/packages
-            ./vcpkg_installed
-            ./vcpkg/install
-            ./vcpkg/scripts
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            ${{ runner.os }}-vcpkg-
-
-      - name: Install vcpkg dependencies
-        run: ${{ github.workspace }}/vcpkg/vcpkg install --triplet x64-windows
-
-      - name: Build Release
-        shell: bash
-        run: |
-          cmake -B build -S . \
-            -DBUILD_JSON_SERIALIZATION=ON \
-            -DBUILD_PYTHON_BINDINGS=ON \
-            -DBUILD_LEGACY_API=OFF \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=install-release
-
-          cmake --build build --config Release --target install -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
-          mkdir pip-wheel
-          pip wheel --wheel-dir pip-wheel .
-
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-install-release
-          path: ${{ github.workspace }}/install-release
-
-      - name: Upload pip wheel Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: libmulitisense-wheel-windows
-          path: pip-wheel/
-
-      - name: Build Debug
-        shell: bash
-        run: |
-          cmake -B build -S . \
-            -DBUILD_JSON_SERIALIZATION=ON \
-            -DBUILD_PYTHON_BINDINGS=ON \
-            -DBUILD_LEGACY_API=OFF \
-            -DCMAKE_BUILD_TYPE=Debug
-
-          cmake --build build --config Debug -j "$(nproc || sysctl -n hw.ncpu || echo 8)"
+    uses: ./.github/workflows/build-windows.yml
+    with:
+      windows_version: ${{ matrix.windows_version }}
+      build_type: ${{ matrix.build_type }}
+      shared_libs: ${{ matrix.shared_libs }}
+      legacy_api: ${{ matrix.legacy_api }}
+      build_json_serialization: ${{ matrix.build_json_serialization }}
+      build_opencv: ${{ matrix.build_opencv }}
+      python_bindings: ${{ matrix.python_bindings }}
+      upload_artifacts: ${{ matrix.build_type == 'Release' && matrix.shared_libs }}
 
   build-android:
     name: Build on Android
