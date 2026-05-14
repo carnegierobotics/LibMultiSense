@@ -1,1 +1,1 @@
-This is the MultiSense API version 7.7.0
+This is the MultiSense API version 7.8.0
