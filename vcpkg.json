@@ -1,7 +1,15 @@
 {
-    "dependencies": [
-        "gtest",
-        "nlohmann-json",
-        "pybind11"
-    ]
+  "dependencies": [
+    "gtest",
+    "nlohmann-json",
+    "pybind11",
+    {
+      "name": "opencv",
+      "features": [
+        "opencv_core",
+        "opencv_imgcodecs",
+        "opencv_imgproc"
+      ]
+    }
+  ]
 }
