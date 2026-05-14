@@ -49,7 +49,6 @@
 #include <iostream>
 #include <thread>
 
-#define HAVE_OPENCV 1
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>

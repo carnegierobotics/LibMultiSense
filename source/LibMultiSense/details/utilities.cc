@@ -53,7 +53,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/features2d.hpp>
 #endif
@@ -64,7 +64,7 @@
 namespace multisense {
 namespace {
 
-#ifndef HAVE_OPENCV
+#ifndef MULTISENSE_HAVE_OPENCV
 bool write_binary_image(const Image &image, const std::filesystem::path &path)
 {
     std::ofstream output(path, std::ios::binary | std::ios::out);
@@ -193,7 +193,7 @@ std::string to_string(const DataSource &source)
 }
 
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 cv::Mat Image::cv_mat() const
 {
     int cv_type = 0;

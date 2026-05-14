@@ -682,7 +682,6 @@ if __name__ == "__main__":
 
 #include <opencv2/opencv.hpp>
 
-#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
@@ -777,7 +776,6 @@ if __name__ == "__main__":
 
 #include <opencv2/opencv.hpp>
 
-#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
@@ -1264,7 +1262,6 @@ if __name__ == "__main__":
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 

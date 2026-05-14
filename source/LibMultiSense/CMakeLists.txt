@@ -37,7 +37,7 @@ target_include_directories(MultiSense
 
 if (BUILD_OPENCV)
   if(OpenCV_FOUND)
-    target_compile_definitions(MultiSense PRIVATE HAVE_OPENCV)
+    target_compile_definitions(MultiSense PUBLIC MULTISENSE_HAVE_OPENCV)
 
     target_include_directories(MultiSense PUBLIC ${OpenCV_INCLUDE_DIRS})
 
