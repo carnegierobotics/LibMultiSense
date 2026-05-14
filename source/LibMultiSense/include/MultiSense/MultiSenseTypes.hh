@@ -303,7 +303,7 @@ struct Image
     ///        the corresponding cv::Mat, you will need to `clone` the cv::Mat creating an internal copy
     ///        of all the data
     ///
-    cv::Mat cv_mat() const;
+    MULTISENSE_API cv::Mat cv_mat() const;
 #endif
 };
 
@@ -402,7 +402,7 @@ struct FeatureMessage
     ///
     /// @brief Convert keypoints to native OpenCV keypoints
     ///
-    std::vector<cv::KeyPoint> cv_keypoints() const;
+    MULTISENSE_API std::vector<cv::KeyPoint> cv_keypoints() const;
 
     ///
     /// @brief Convert descriptors to a native OpenCV Mat.
@@ -411,7 +411,7 @@ struct FeatureMessage
     ///        still using the corresponding cv::Mat, you will need to `clone` the cv::Mat creating an internal
     ///        copy of all the data
     ///
-    cv::Mat cv_descriptors() const;
+    MULTISENSE_API cv::Mat cv_descriptors() const;
 #endif
 };
 
