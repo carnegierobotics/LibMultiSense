@@ -141,11 +141,10 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=install
 
           cmake --build build -j "$(nproc)"
-          if [ "${{ inputs.testing }}" = "true" ]; then
-            ctest --test-dir build --output-on-failure
-          fi
           if [ "${{ inputs.coverage }}" = "true" ]; then
             cmake --build build --target coverage
+          elif [ "${{ inputs.testing }}" = "true" ]; then
+            ctest --test-dir build --output-on-failure
           fi
           cmake --install build
 
