@@ -561,7 +561,7 @@ TEST(write_image, unsupported_extension)
               DataSource::LEFT_MONO_RAW,
               aux_calibration};
 
-    const auto path = std::filesystem::temp_directory_path() / "test.png";
+    const auto path = std::filesystem::temp_directory_path() / "test.unsupported";
     EXPECT_FALSE(write_image(img, path));
 }
 
