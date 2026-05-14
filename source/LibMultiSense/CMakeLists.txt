@@ -27,6 +27,7 @@ else()
     add_library(MultiSense STATIC ${MULTISENSE_HEADERS}
                                    ${DETAILS_SRC})
     set_target_properties(MultiSense PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(MultiSense PUBLIC MultiSense_STATIC)
 
 endif()
 

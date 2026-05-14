@@ -52,11 +52,17 @@
 #endif
 
 #if !defined(MULTISENSE_API)
-#if defined (_MSC_VER)
-#define MULTISENSE_API __declspec(dllexport)
-#else
-#define MULTISENSE_API
-#endif
+#  if defined (_MSC_VER)
+#    if defined (MultiSense_STATIC)
+#      define MULTISENSE_API
+#    elif defined (MultiSense_EXPORTS)
+#      define MULTISENSE_API __declspec(dllexport)
+#    else
+#      define MULTISENSE_API __declspec(dllimport)
+#    endif
+#  else
+#    define MULTISENSE_API
+#  endif
 #endif
 
 
