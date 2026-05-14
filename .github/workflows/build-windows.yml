@@ -42,6 +42,7 @@ jobs:
 
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
       NAME: ${{ inputs.windows_version }}-${{ inputs.build_type == 'Release' && 'release' || 'debug' }}-${{ inputs.shared_libs && 'shared' || 'static' }}-${{ inputs.legacy_api && 'legacy' || 'modern' }}-${{ inputs.build_json_serialization && inputs.build_opencv && 'full' || 'minimal' }}-${{ inputs.python_bindings && 'python' || 'no-python' }}
 
     steps:
@@ -58,17 +59,14 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.bat
 
-      - name: Cache vcpkg
-        uses: actions/cache@v4
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v5
         with:
-          path: |
-            ./vcpkg/packages
-            ./vcpkg_installed
-            ./vcpkg/install
-            ./vcpkg/scripts
-          key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+          path: ./.cache/vcpkg/archives
+          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-
+            ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-
+            ${{ runner.os }}-x64-windows-vcpkg-binary-
 
       - name: Install vcpkg dependencies
         shell: bash
