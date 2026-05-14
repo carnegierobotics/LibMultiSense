@@ -38,6 +38,7 @@ on:
 
 jobs:
   build:
+    name: "${{ inputs.python_bindings && 'configure build install wheel' || 'configure build install' }}"
     runs-on: ${{ inputs.windows_version }}
 
     env:

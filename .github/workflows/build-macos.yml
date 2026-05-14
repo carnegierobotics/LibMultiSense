@@ -46,6 +46,7 @@ on:
 
 jobs:
   build:
+    name: "${{ inputs.testing && 'configure build test install' || 'configure build install' }}"
     runs-on: ${{ inputs.macos_version }}
 
     env:

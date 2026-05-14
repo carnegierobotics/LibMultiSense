@@ -54,6 +54,7 @@ on:
 
 jobs:
   build:
+    name: "${{ inputs.coverage && 'configure build coverage upload' || inputs.testing && 'configure build test install' || 'configure build install' }}"
     runs-on: ${{ inputs.ubuntu_version }}
 
     env:

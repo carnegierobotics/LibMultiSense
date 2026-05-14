@@ -16,6 +16,7 @@ jobs:
 
   # Build modern API on modern Ubuntu versions for various configurations.
   build-ubuntu-modern-api:
+    name: "${{ matrix.ubuntu_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, ${{ matrix.minimal && 'minimal' || 'full' }}, python"
     strategy:
       fail-fast: false
       matrix:
@@ -55,6 +56,7 @@ jobs:
 
   # Build modern API on older Ubuntu versions for limited configurations.
   build-ubuntu-modern-api-old-ubuntu:
+    name: "${{ matrix.ubuntu_version }}, modern API, gcc, Release, shared, full, python"
     strategy:
       fail-fast: false
       matrix:
@@ -77,6 +79,7 @@ jobs:
 
   # Build legacy API in limited configurations.
   build-ubuntu-legacy-api:
+    name: "${{ matrix.ubuntu_version }}, legacy API, gcc, Release, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, no-python"
     strategy:
       fail-fast: false
       matrix:
@@ -99,6 +102,7 @@ jobs:
 
   # Build code coverage.
   build-ubuntu-coverage:
+    name: "${{ matrix.ubuntu_version }}, coverage, gcc, Debug, shared, full, no-python"
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -117,6 +121,7 @@ jobs:
 
   # Build with address sanitizer.
   build-ubuntu-asan:
+    name: "${{ matrix.ubuntu_version }}, ASan, gcc, Debug, shared, full, no-python"
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -138,6 +143,7 @@ jobs:
 
   # Build only the modern API in various configurations.
   build-macos:
+    name: "${{ matrix.macos_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
     strategy:
       fail-fast: false
       matrix:
@@ -180,6 +186,7 @@ jobs:
 
   # Build only the modern API in various configurations.
   build-windows:
+    name: "${{ matrix.windows_version }}, modern API, MSVC, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
     strategy:
       fail-fast: false
       matrix:
