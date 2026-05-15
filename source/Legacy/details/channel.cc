@@ -507,7 +507,8 @@ wire::SourceType impl::sourceApiToWire(DataSource mask)
     if (mask & Source_Secondary_App_Data_3)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_3;
     if (mask & Source_Secondary_App_Data_4)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_4;
     if (mask & Source_Secondary_App_Data_5)             wire_mask |= wire::SOURCE_SECONDARY_APP_DATA_5;
-
+    if (mask & Source_Wide_Rect_Left)                   wire_mask |= wire::SOURCE_WIDE_RECT_LEFT;
+    if (mask & Source_Wide_Rect_Right)                  wire_mask |= wire::SOURCE_WIDE_RECT_RIGHT;
     return wire_mask;
 }
 
@@ -552,6 +553,8 @@ DataSource impl::sourceWireToApi(wire::SourceType mask)
     if (mask & wire::SOURCE_SECONDARY_APP_DATA_3)           api_mask |= Source_Secondary_App_Data_3;
     if (mask & wire::SOURCE_SECONDARY_APP_DATA_4)           api_mask |= Source_Secondary_App_Data_4;
     if (mask & wire::SOURCE_SECONDARY_APP_DATA_5)           api_mask |= Source_Secondary_App_Data_5;
+    if (mask & wire::SOURCE_WIDE_RECT_LEFT)                 api_mask |= Source_Wide_Rect_Left;
+    if (mask & wire::SOURCE_WIDE_RECT_RIGHT)                api_mask |= Source_Wide_Rect_Right;
 
     return api_mask;
 }

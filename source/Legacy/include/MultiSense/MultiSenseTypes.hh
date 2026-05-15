@@ -154,6 +154,9 @@ static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_2          = (1ull<<32
 static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_3          = (1ull<<33);
 static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_4          = (1ull<<34);
 static CRL_CONSTEXPR DataSource Source_Secondary_App_Data_5          = (1ull<<35);
+static CRL_CONSTEXPR DataSource Source_Wide_Rect_Left                = (1ull<<45);
+static CRL_CONSTEXPR DataSource Source_Wide_Rect_Right               = (1ull<<46);
+
 
 /**
  * Use Roi_Full_Image as the height and width when setting the autoExposureRoi
