@@ -247,23 +247,23 @@ jobs:
       python_bindings: ${{ matrix.python_bindings }}
       upload_artifacts: ${{ matrix.build_type == 'Release' && matrix.shared_libs }}
 
+  #
+  # Android
+  #
+
   # Cross-compile the modern API for Android.
   build-android:
-    name: android
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+    name: "Android, ${{ matrix.android_abi }}, ${{ matrix.build_type }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        android_abi: [arm64-v8a]
+        android_platform: [android-24]
+        build_type: [Release]
 
-      - name: Build Release
-        run: |
-          cmake -B build-android -S . \
-            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake \
-            -DANDROID_ABI=arm64-v8a \
-            -DANDROID_PLATFORM=android-24 \
-            -DBUILD_TESTS=OFF \
-            -DBUILD_PYTHON_BINDINGS=OFF \
-            -DBUILD_LEGACY_API=OFF \
-            -DCMAKE_BUILD_TYPE=Release
-
-          cmake --build build-android -j "$(nproc)"
+    uses: ./.github/workflows/build-android.yml
+    with:
+      ubuntu_version: ubuntu-latest
+      android_abi: ${{ matrix.android_abi }}
+      android_platform: ${{ matrix.android_platform }}
+      build_type: ${{ matrix.build_type }}
