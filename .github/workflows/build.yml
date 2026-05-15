@@ -18,7 +18,7 @@ jobs:
   # This matrix covers compiler regressions, Debug/Release behavior, static/shared linkages, and both minimal and
   # comprehensive optional dependency builds.
   build-ubuntu:
-    name: "${{ matrix.ubuntu_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, ${{ matrix.minimal && 'minimal' || 'full' }}, python"
+    name: "${{ matrix.ubuntu_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, ${{ matrix.minimal && 'minimal' || 'full' }}, ${{ matrix.minimal && 'no-python' || 'python' }}"
     strategy:
       fail-fast: false
       matrix:
@@ -51,7 +51,7 @@ jobs:
       legacy_api: false
       build_json_serialization: ${{ !matrix.minimal }}
       build_opencv: ${{ !matrix.minimal }}
-      python_bindings: true
+      python_bindings: ${{ !matrix.minimal }} # Python bindings require JSON serialization.
       asan: false
       coverage: false
       upload_artifacts: ${{ matrix.compiler == 'gcc' && matrix.build_type == 'Release' && matrix.shared_libs && !matrix.minimal }}
