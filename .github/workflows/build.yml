@@ -189,10 +189,19 @@ jobs:
   # Windows
   #
 
+  # Warm the Windows vcpkg binary archive cache before the Windows build matrix runs.  The expensive dependency build
+  # should only run when the vcpkg baseline or manifest changes; each builder then restores from this archive.
+  build-windows-vcpkg-cache:
+    name: Windows vcpkg cache
+    uses: ./.github/workflows/build-windows-vcpkg-cache.yml
+    with:
+      windows_version: windows-2022
+
   # Build the modern API on Windows with both MSVC and ClangCL across Debug/Release plus one static build.  This is a
   # smaller set of configurations than Ubuntu intended solely to catch platform-specific issues.  It is expected that
   # more nuanced issues will be caught by the comprehensive set of Ubuntu configurations.
   build-windows:
+    needs: build-windows-vcpkg-cache
     name: "${{ matrix.windows_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
     strategy:
       fail-fast: false

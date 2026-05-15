@@ -64,34 +64,15 @@ jobs:
           git clone https://github.com/microsoft/vcpkg.git
           ./vcpkg/bootstrap-vcpkg.bat
 
-      - name: Cache vcpkg binary archives
-        uses: actions/cache@v5
+      - name: Restore vcpkg binary archives
+        uses: actions/cache/restore@v5
         with:
           path: ./.cache/vcpkg/archives
-          key: ${{ runner.os }}-${{ inputs.windows_version }}-${{ inputs.compiler }}-x64-windows-vcpkg-binary-${{ inputs.build_json_serialization && 'json' || 'nojson' }}-${{ inputs.build_opencv && 'opencv' || 'noopencv' }}-${{ inputs.python_bindings && 'python' || 'nopython' }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ inputs.windows_version }}-${{ inputs.compiler }}-x64-windows-vcpkg-binary-
-            ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-
-            ${{ runner.os }}-x64-windows-vcpkg-binary-
 
-      - name: Install vcpkg dependencies
-        shell: bash
-        run: |
-          features=()
-
-          if [ "${{ inputs.build_json_serialization }}" = "true" ]; then
-            features+=(--x-feature=json-serialization)
-          fi
-
-          if [ "${{ inputs.build_opencv }}" = "true" ]; then
-            features+=(--x-feature=opencv)
-          fi
-
-          if [ "${{ inputs.python_bindings }}" = "true" ]; then
-            features+=(--x-feature=python-bindings)
-          fi
-
-          ./vcpkg/vcpkg install --triplet x64-windows "${features[@]}"
+          # Restore the full dependency archive warmed by build-windows-vcpkg-cache.
+          # CMake's vcpkg toolchain materializes the manifest dependencies from it.
+          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          fail-on-cache-miss: true
 
       #
       # Build the library
@@ -107,6 +88,8 @@ jobs:
           fi
 
           cmake -B build -S . "${cmake_args[@]}" \
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-windows \
             -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
             -DBUILD_SHARED_LIBS=${{ inputs.shared_libs }} \
             -DBUILD_LEGACY_API=${{ inputs.legacy_api }} \
