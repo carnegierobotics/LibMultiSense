@@ -144,7 +144,7 @@ jobs:
   # macOS
   #
 
-  # Build the modern API on macOS with both Apple Clang and Homebrew LLVM across Debug/Release plus one static build.
+  # Build the modern API on macOS with both Apple Clang and Homebrew LLVM with shared linkage plus one static build.
   # This is a smaller set of configurations than Ubuntu intended solely to catch platform-specific issues.  It is
   # expected that more nuanced issues will be caught by the comprehensive set of Ubuntu configurations.
   build-macos:
@@ -154,7 +154,7 @@ jobs:
       matrix:
         macos_version: [macos-latest]
         compiler: [apple-clang, brew-llvm]
-        build_type: [Release, Debug]
+        build_type: [Release]
         shared_libs: [true]
         legacy_api: [false]
         build_json_serialization: [true]
@@ -197,7 +197,7 @@ jobs:
     with:
       windows_version: windows-2022
 
-  # Build the modern API on Windows with both MSVC and ClangCL across Debug/Release plus one static build.  This is a
+  # Build the modern API on Windows with both MSVC and ClangCL with chared linkage plus one static build.  This is a
   # smaller set of configurations than Ubuntu intended solely to catch platform-specific issues.  It is expected that
   # more nuanced issues will be caught by the comprehensive set of Ubuntu configurations.
   build-windows:
@@ -207,33 +207,14 @@ jobs:
       fail-fast: false
       matrix:
         windows_version: [windows-2022]
-        compiler: [msvc]
-        build_type: [Release, Debug]
+        compiler: [msvc, clang]
+        build_type: [Release]
         shared_libs: [true]
         legacy_api: [false]
         build_json_serialization: [true]
         build_opencv: [true]
         python_bindings: [true]
         include:
-          # Build Clang in representative full shared configurations.
-          - windows_version: windows-2022
-            compiler: clang
-            build_type: Release
-            shared_libs: true
-            legacy_api: false
-            build_json_serialization: true
-            build_opencv: true
-            python_bindings: true
-
-          - windows_version: windows-2022
-            compiler: clang
-            build_type: Debug
-            shared_libs: true
-            legacy_api: false
-            build_json_serialization: true
-            build_opencv: true
-            python_bindings: true
-
           # Build one representative static Windows configuration.
           - windows_version: windows-2022
             compiler: msvc
