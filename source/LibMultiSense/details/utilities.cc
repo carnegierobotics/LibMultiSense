@@ -243,8 +243,16 @@ cv::Mat FeatureMessage::cv_descriptors() const
 
 bool write_image(const Image &image, const std::filesystem::path &path)
 {
-#ifdef HAVE_OPENCV
-    return cv::imwrite(path.string(), image.cv_mat());
+#ifdef MULTISENSE_HAVE_OPENCV
+    try
+    {
+        return cv::imwrite(path.string(), image.cv_mat());
+    }
+    catch (const cv::Exception &e)
+    {
+        CRL_DEBUG("Failed to write image to disk: %s", e.what());
+        return false;
+    }
 #else
     const auto extension = path.extension();
     if (extension == ".pgm" || extension == ".PGM" || extension == ".ppm" || extension == ".PPM")
