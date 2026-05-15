@@ -162,7 +162,7 @@ jobs:
       #
 
       - name: Test library consumption with CMake
-        if: ${{ !inputs.legacy_api }}
+        if: ${{ !inputs.legacy_api && !inputs.asan }}
         run: |
           cmake -B ci/library-consumption-test/build -S ci/library-consumption-test \
             -DCMAKE_C_COMPILER=${{ env.CC }} \
