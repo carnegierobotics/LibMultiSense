@@ -105,7 +105,7 @@ jobs:
 
   # Build/evaluate code coverage and upload results to Codecov.
   build-ubuntu-coverage:
-    name: "ubuntu-24.04, Code Coverage"
+    name: Code Coverage
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -124,7 +124,7 @@ jobs:
 
   # Build with address sanitizer and execute the unit tests.
   build-ubuntu-asan:
-    name: "ubuntu-24.04, Address Sanitizer"
+    name: Address Sanitizer
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
