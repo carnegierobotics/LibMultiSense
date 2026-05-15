@@ -53,7 +53,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/features2d.hpp>
 #endif
@@ -64,7 +64,7 @@
 namespace multisense {
 namespace {
 
-#ifndef HAVE_OPENCV
+#ifndef MULTISENSE_HAVE_OPENCV
 bool write_binary_image(const Image &image, const std::filesystem::path &path)
 {
     std::ofstream output(path, std::ios::binary | std::ios::out);
@@ -193,7 +193,7 @@ std::string to_string(const DataSource &source)
 }
 
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 cv::Mat Image::cv_mat() const
 {
     int cv_type = 0;
@@ -243,8 +243,16 @@ cv::Mat FeatureMessage::cv_descriptors() const
 
 bool write_image(const Image &image, const std::filesystem::path &path)
 {
-#ifdef HAVE_OPENCV
-    return cv::imwrite(path.string(), image.cv_mat());
+#ifdef MULTISENSE_HAVE_OPENCV
+    try
+    {
+        return cv::imwrite(path.string(), image.cv_mat());
+    }
+    catch (const cv::Exception &e)
+    {
+        CRL_DEBUG("Failed to write image to disk: %s", e.what());
+        return false;
+    }
 #else
     const auto extension = path.extension();
     if (extension == ".pgm" || extension == ".PGM" || extension == ".ppm" || extension == ".PPM")

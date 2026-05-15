@@ -40,7 +40,7 @@
 #include <MultiSense/wire/FeatureMessage.hh>
 #include <MultiSense/wire/FeatureMetaMessage.hh>
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 #include <opencv2/core.hpp>
 #include <opencv2/features2d.hpp>
 #endif
@@ -90,7 +90,7 @@ TEST(ImageFrame, Features)
     EXPECT_EQ(frame.frame_id, 1234);
 }
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 TEST(FeatureMessage, OpenCVConversion)
 {
     FeatureMessage msg;
