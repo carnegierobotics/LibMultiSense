@@ -47,7 +47,7 @@
 #include <tuple>
 #include <vector>
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 #include <opencv2/core/mat.hpp>
 #endif
 
@@ -289,7 +289,7 @@ struct Image
         return std::nullopt;
     }
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
     ///
     /// @brief Transform a image into a cv::Mat object if the user wants to build OpenCV utilities
     ///        The cv::Mat returned here wraps the underlying image data pointer associated with
@@ -392,7 +392,7 @@ struct FeatureMessage
     ///
     std::vector<uint8_t> descriptors{};
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
     ///
     /// @brief Convert keypoints to native OpenCV keypoints
     ///
