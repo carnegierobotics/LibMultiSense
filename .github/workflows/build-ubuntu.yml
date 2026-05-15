@@ -179,6 +179,6 @@ jobs:
         if: inputs.coverage
         uses: codecov/codecov-action@v6
         with:
-          file: build/coverage_filtered.info
+          files: build/coverage_filtered.info
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
