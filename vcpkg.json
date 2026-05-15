@@ -1,38 +1,18 @@
 {
   "name": "libmultisense",
   "version": "7.8.0",
-  "features": {
-    "json-serialization": {
-      "description": "Build JSON serialization helpers",
-      "dependencies": [
-        "nlohmann-json"
+  "dependencies": [
+    "gtest",
+    "nlohmann-json",
+    {
+      "name": "opencv",
+      "default-features": false,
+      "features": [
+        "highgui",
+        "jpeg",
+        "png"
       ]
     },
-    "opencv": {
-      "description": "Build OpenCV support",
-      "dependencies": [
-        {
-          "name": "opencv",
-          "default-features": false,
-          "features": [
-            "highgui",
-            "jpeg",
-            "png"
-          ]
-        }
-      ]
-    },
-    "python-bindings": {
-      "description": "Build Python bindings",
-      "dependencies": [
-        "pybind11"
-      ]
-    },
-    "tests": {
-      "description": "Build test dependencies",
-      "dependencies": [
-        "gtest"
-      ]
-    }
-  }
+    "pybind11"
+  ]
 }
