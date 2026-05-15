@@ -7,6 +7,10 @@ on:
         type: string
         default: windows-latest
         description: A valid Windows runner name.
+      compiler:
+        type: string
+        default: msvc
+        description: One of {msvc, clang}.
       build_type:
         type: string
         default: Release
@@ -44,7 +48,7 @@ jobs:
     env:
       VCPKG_ROOT: ${{ github.workspace }}/vcpkg
       VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
-      NAME: ${{ inputs.windows_version }}-${{ inputs.build_type == 'Release' && 'release' || 'debug' }}-${{ inputs.shared_libs && 'shared' || 'static' }}-${{ inputs.legacy_api && 'legacy' || 'modern' }}-${{ inputs.build_json_serialization && inputs.build_opencv && 'full' || 'minimal' }}-${{ inputs.python_bindings && 'python' || 'no-python' }}
+      NAME: ${{ inputs.windows_version }}-${{ inputs.compiler }}-${{ inputs.build_type == 'Release' && 'release' || 'debug' }}-${{ inputs.shared_libs && 'shared' || 'static' }}-${{ inputs.legacy_api && 'legacy' || 'modern' }}-${{ inputs.build_json_serialization && inputs.build_opencv && 'full' || 'minimal' }}-${{ inputs.python_bindings && 'python' || 'no-python' }}
 
     steps:
       - name: Checkout code
@@ -64,8 +68,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ./.cache/vcpkg/archives
-          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ inputs.build_json_serialization && 'json' || 'nojson' }}-${{ inputs.build_opencv && 'opencv' || 'noopencv' }}-${{ inputs.python_bindings && 'python' || 'nopython' }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          key: ${{ runner.os }}-${{ inputs.windows_version }}-${{ inputs.compiler }}-x64-windows-vcpkg-binary-${{ inputs.build_json_serialization && 'json' || 'nojson' }}-${{ inputs.build_opencv && 'opencv' || 'noopencv' }}-${{ inputs.python_bindings && 'python' || 'nopython' }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
           restore-keys: |
+            ${{ runner.os }}-${{ inputs.windows_version }}-${{ inputs.compiler }}-x64-windows-vcpkg-binary-
             ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-
             ${{ runner.os }}-x64-windows-vcpkg-binary-
 
@@ -95,7 +100,13 @@ jobs:
       - name: Build library
         shell: bash
         run: |
-          cmake -B build -S . \
+          cmake_args=()
+
+          if [ "${{ inputs.compiler }}" = "clang" ]; then
+            cmake_args+=(-T ClangCL)
+          fi
+
+          cmake -B build -S . "${cmake_args[@]}" \
             -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
             -DBUILD_SHARED_LIBS=${{ inputs.shared_libs }} \
             -DBUILD_LEGACY_API=${{ inputs.legacy_api }} \

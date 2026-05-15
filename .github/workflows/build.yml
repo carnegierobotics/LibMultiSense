@@ -186,11 +186,12 @@ jobs:
 
   # Build only the modern API in various configurations.
   build-windows:
-    name: "${{ matrix.windows_version }}, modern API, MSVC, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
+    name: "${{ matrix.windows_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
     strategy:
       fail-fast: false
       matrix:
         windows_version: [windows-2022]
+        compiler: [msvc]
         build_type: [Release, Debug]
         shared_libs: [true]
         legacy_api: [false]
@@ -198,8 +199,28 @@ jobs:
         build_opencv: [true]
         python_bindings: [true]
         include:
+          # Build Clang in representative full shared configurations.
+          - windows_version: windows-2022
+            compiler: clang
+            build_type: Release
+            shared_libs: true
+            legacy_api: false
+            build_json_serialization: true
+            build_opencv: true
+            python_bindings: true
+
+          - windows_version: windows-2022
+            compiler: clang
+            build_type: Debug
+            shared_libs: true
+            legacy_api: false
+            build_json_serialization: true
+            build_opencv: true
+            python_bindings: true
+
           # Build one representative static Windows configuration.
           - windows_version: windows-2022
+            compiler: msvc
             build_type: Release
             shared_libs: false
             legacy_api: false
@@ -210,6 +231,7 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     with:
       windows_version: ${{ matrix.windows_version }}
+      compiler: ${{ matrix.compiler }}
       build_type: ${{ matrix.build_type }}
       shared_libs: ${{ matrix.shared_libs }}
       legacy_api: ${{ matrix.legacy_api }}
