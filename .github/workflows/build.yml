@@ -79,7 +79,7 @@ jobs:
 
   # Build legacy API in limited configurations.
   build-ubuntu-legacy-api:
-    name: "${{ matrix.ubuntu_version }}, legacy API, gcc, Release, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, no-python"
+    name: "ubuntu-24.04, legacy API, gcc, Release, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, no-python"
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +102,7 @@ jobs:
 
   # Build code coverage.
   build-ubuntu-coverage:
-    name: "${{ matrix.ubuntu_version }}, coverage, gcc, Debug, shared, full, no-python"
+    name: "ubuntu-24.04, coverage, gcc, Debug, shared, full, no-python"
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -121,7 +121,7 @@ jobs:
 
   # Build with address sanitizer.
   build-ubuntu-asan:
-    name: "${{ matrix.ubuntu_version }}, ASan, gcc, Debug, shared, full, no-python"
+    name: "ubuntu-24.04, ASan, gcc, Debug, shared, full, no-python"
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -241,11 +241,11 @@ jobs:
       upload_artifacts: ${{ matrix.build_type == 'Release' && matrix.shared_libs }}
 
   build-android:
-    name: Build on Android
+    name: android
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build Release
         run: |
@@ -259,4 +259,3 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release
 
           cmake --build build-android -j "$(nproc)"
-
