@@ -55,6 +55,8 @@ jobs:
             -DANDROID_ABI=${{ inputs.android_abi }} \
             -DANDROID_PLATFORM=${{ inputs.android_platform }} \
             -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
-            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/install"
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/install" \
+            -DMultiSense_DIR="${{ github.workspace }}/install/lib/cmake/MultiSense" \
+            -DMultiSenseWire_DIR="${{ github.workspace }}/install/lib/cmake/MultiSenseWire"
 
           cmake --build ci/library-consumption-test/build-android -j "$(nproc)"
