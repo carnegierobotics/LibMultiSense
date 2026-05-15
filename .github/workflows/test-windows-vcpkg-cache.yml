@@ -1,0 +1,91 @@
+name: Test Windows vcpkg Cache
+
+on:
+  pull_request:
+    branches:
+      - master
+
+env:
+  VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+  VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
+
+jobs:
+  warm-cache:
+    name: warm zlib cache
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+
+      - name: Write smoke manifest
+        shell: bash
+        run: |
+          mkdir -p vcpkg-smoke
+          cat > vcpkg-smoke/vcpkg.json <<'EOF'
+          {
+            "name": "libmultisense-vcpkg-cache-smoke",
+            "version": "0.0.0",
+            "dependencies": [
+              "zlib"
+            ]
+          }
+          EOF
+
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v5
+        with:
+          path: ./.cache/vcpkg/archives
+          key: ${{ runner.os }}-windows-2022-x64-windows-vcpkg-smoke-zlib-${{ hashFiles('.github/workflows/test-windows-vcpkg-cache.yml') }}
+
+      - name: Install smoke dependency
+        shell: bash
+        run: |
+          ./vcpkg/vcpkg install --triplet x64-windows --x-manifest-root=vcpkg-smoke
+
+  restore-cache:
+    name: restore zlib cache
+    needs: warm-cache
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+
+      - name: Write smoke manifest
+        shell: bash
+        run: |
+          mkdir -p vcpkg-smoke
+          cat > vcpkg-smoke/vcpkg.json <<'EOF'
+          {
+            "name": "libmultisense-vcpkg-cache-smoke",
+            "version": "0.0.0",
+            "dependencies": [
+              "zlib"
+            ]
+          }
+          EOF
+
+      - name: Restore vcpkg binary archives
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.cache/vcpkg/archives
+          key: ${{ runner.os }}-windows-2022-x64-windows-vcpkg-smoke-zlib-${{ hashFiles('.github/workflows/test-windows-vcpkg-cache.yml') }}
+          fail-on-cache-miss: true
+
+      - name: Install smoke dependency from restored archive
+        shell: bash
+        run: |
+          ./vcpkg/vcpkg install --triplet x64-windows --x-manifest-root=vcpkg-smoke
