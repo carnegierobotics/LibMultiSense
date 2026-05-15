@@ -41,6 +41,11 @@ option(CONSUME_OPENCV
 
 find_package(MultiSense REQUIRED)
 
+# FIXME: This should be handled by the consumer fixture, not the consumer.
+if (CONSUME_OPENCV)
+    find_package(OpenCV REQUIRED)
+endif()
+
 add_executable(multisense_consumption_test main.cc)
 target_link_libraries(multisense_consumption_test PRIVATE MultiSense)
 
