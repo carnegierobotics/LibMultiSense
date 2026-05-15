@@ -89,3 +89,4 @@ jobs:
         shell: bash
         run: |
           ./vcpkg/vcpkg install --triplet x64-windows --x-manifest-root=vcpkg-smoke
+
