@@ -14,8 +14,10 @@ jobs:
   # Ubuntu
   #
 
-  # Build modern API on modern Ubuntu versions for various configurations.
-  build-ubuntu-modern-api:
+  # Exercise the widest array of CMake option combinations for the modern API building on the latest Ubuntu runner.
+  # This matrix covers compiler regressions, Debug/Release behavior, static/shared linkages, and both minimal and
+  # comprehensive optional dependency builds.
+  build-ubuntu:
     name: "${{ matrix.ubuntu_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, ${{ matrix.minimal && 'minimal' || 'full' }}, python"
     strategy:
       fail-fast: false
@@ -54,8 +56,9 @@ jobs:
       coverage: false
       upload_artifacts: ${{ matrix.compiler == 'gcc' && matrix.build_type == 'Release' && matrix.shared_libs && !matrix.minimal }}
 
-  # Build modern API on older Ubuntu versions for limited configurations.
-  build-ubuntu-modern-api-old-ubuntu:
+  # Build the modern API on an older supported Ubuntu runner to ensure dependency versions and toolchain defaults do not
+  # silently drift to only support the latest Ubuntu runner.
+  build-ubuntu-old-ubuntu:
     name: "${{ matrix.ubuntu_version }}, modern API, gcc, Release, shared, full, python"
     strategy:
       fail-fast: false
@@ -77,7 +80,7 @@ jobs:
       coverage: false
       upload_artifacts: false
 
-  # Build legacy API in limited configurations.
+  # Build the legacy API with both static and shared linkages.
   build-ubuntu-legacy-api:
     name: "ubuntu-24.04, legacy API, gcc, Release, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, no-python"
     strategy:
@@ -100,9 +103,9 @@ jobs:
       coverage: false
       upload_artifacts: false
 
-  # Build code coverage.
+  # Build/evaluate code coverage and upload results to Codecov.
   build-ubuntu-coverage:
-    name: "ubuntu-24.04, coverage, gcc, Debug, shared, full, no-python"
+    name: "ubuntu-24.04, Code Coverage"
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -119,9 +122,9 @@ jobs:
       upload_artifacts: false
     secrets: inherit
 
-  # Build with address sanitizer.
+  # Build with address sanitizer and execute the unit tests.
   build-ubuntu-asan:
-    name: "ubuntu-24.04, ASan, gcc, Debug, shared, full, no-python"
+    name: "ubuntu-24.04, Address Sanitizer"
     uses: ./.github/workflows/build-ubuntu.yml
     with:
       ubuntu_version: ubuntu-24.04
@@ -141,7 +144,9 @@ jobs:
   # macOS
   #
 
-  # Build only the modern API in various configurations.
+  # Build the modern API on macOS with both Apple Clang and Homebrew LLVM across Debug/Release plus one static build.
+  # This is a smaller set of configurations than Ubuntu intended solely to catch platform-specific issues.  It is
+  # expected that more nuanced issues will be caught by the comprehensive set of Ubuntu configurations.
   build-macos:
     name: "${{ matrix.macos_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
     strategy:
@@ -184,7 +189,9 @@ jobs:
   # Windows
   #
 
-  # Build only the modern API in various configurations.
+  # Build the modern API on Windows with both MSVC and ClangCL across Debug/Release plus one static build.  This is a
+  # smaller set of configurations than Ubuntu intended solely to catch platform-specific issues.  It is expected that
+  # more nuanced issues will be caught by the comprehensive set of Ubuntu configurations.
   build-windows:
     name: "${{ matrix.windows_version }}, modern API, ${{ matrix.compiler }}, ${{ matrix.build_type }}, ${{ matrix.shared_libs && 'shared' || 'static' }}, full, python"
     strategy:
@@ -240,6 +247,7 @@ jobs:
       python_bindings: ${{ matrix.python_bindings }}
       upload_artifacts: ${{ matrix.build_type == 'Release' && matrix.shared_libs }}
 
+  # Cross-compile the modern API for Android.
   build-android:
     name: android
     runs-on: ubuntu-latest
