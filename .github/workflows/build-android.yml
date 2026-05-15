@@ -22,7 +22,7 @@ on:
 
 jobs:
   build:
-    name: configure build
+    name: configure build install consume
     runs-on: ${{ inputs.ubuntu_version }}
 
     steps:
@@ -38,6 +38,23 @@ jobs:
             -DBUILD_TESTS=OFF \
             -DBUILD_PYTHON_BINDINGS=OFF \
             -DBUILD_LEGACY_API=OFF \
-            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }}
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DCMAKE_INSTALL_PREFIX=install
 
           cmake --build build-android -j "$(nproc)"
+          cmake --install build-android
+
+      #
+      # Library consumption test
+      #
+
+      - name: Library consumption test (C++ cross-compile)
+        run: |
+          cmake -B ci/library-consumption-test/build-android -S ci/library-consumption-test \
+            -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK_LATEST_HOME/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI=${{ inputs.android_abi }} \
+            -DANDROID_PLATFORM=${{ inputs.android_platform }} \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/install"
+
+          cmake --build ci/library-consumption-test/build-android -j "$(nproc)"

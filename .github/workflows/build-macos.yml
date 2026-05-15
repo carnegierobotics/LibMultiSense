@@ -121,6 +121,31 @@ jobs:
           python3 -m pip wheel --wheel-dir pip-wheel .
 
       #
+      # Library consumption tests
+      #
+
+      - name: Test library consumption with CMake
+        if: ${{ !inputs.legacy_api }}
+        run: |
+          cmake -B ci/library-consumption-test/build -S ci/library-consumption-test \
+            -DCMAKE_C_COMPILER=${{ env.CC }} \
+            -DCMAKE_CXX_COMPILER=${{ env.CXX }} \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/install" \
+            -DCONSUME_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
+            -DCONSUME_OPENCV=${{ inputs.build_opencv }}
+          cmake --build ci/library-consumption-test/build -j "$(sysctl -n hw.ncpu)"
+          ./ci/library-consumption-test/build/multisense_consumption_test
+
+      - name: Test library consumption with Python
+        if: inputs.python_bindings
+        run: |
+          source .venv/bin/activate
+          pip install --no-index --find-links=pip-wheel libmultisense
+          python ci/library-consumption-test/consumption_test.py
+          multisense_version_info_utility --help
+
+      #
       # Upload artifacts
       #
 
