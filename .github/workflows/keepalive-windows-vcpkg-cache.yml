@@ -1,0 +1,21 @@
+name: Keep-alive Windows vcpkg Cache
+
+# GitHub Actions evicts caches that have not been accessed in the last 7 days and applies a 10 GiB-per-repository LRU
+# cap.  Both the eviction timer and the LRU ordering are reset on any read of the cache, so this workflow refreshes
+# the master branch's Windows vcpkg binary archive on a schedule.  PRs opened after a long quiet period can still fall
+# back to the master branch's cache for a fast Windows build.
+#
+# TODO: Move the cache to a permanent repository and update the workflow to use it.
+
+on:
+  schedule:
+    # Twice a week so a single delayed or skipped run does not let the 7-day eviction window lapse.
+    - cron: "0 2 * * 1,4"
+  workflow_dispatch:
+
+jobs:
+  refresh-windows-vcpkg-cache:
+    name: Refresh Windows vcpkg cache
+    uses: ./.github/workflows/build-windows-vcpkg-cache.yml
+    with:
+      windows_version: windows-2022
