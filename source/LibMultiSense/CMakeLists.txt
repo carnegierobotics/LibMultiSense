@@ -30,23 +30,27 @@ else()
 
 endif()
 
-target_link_libraries(MultiSense MultiSenseWire ${FILESYSTEM_LIBRARY})
+target_link_libraries(MultiSense PRIVATE MultiSenseWire)
+if (FILESYSTEM_LIBRARY)
+    target_link_libraries(MultiSense PUBLIC ${FILESYSTEM_LIBRARY})
+endif()
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
 
-if (BUILD_OPENCV)
-  if(OpenCV_FOUND)
+if (BUILD_OPENCV AND OpenCV_FOUND)
     target_compile_definitions(MultiSense PUBLIC MULTISENSE_HAVE_OPENCV)
 
-    target_include_directories(MultiSense PUBLIC ${OpenCV_INCLUDE_DIRS})
-
-    target_link_libraries(MultiSense ${OpenCV_LIBS})
-  endif()
+    target_link_libraries(MultiSense
+        PUBLIC
+            opencv_core
+            opencv_features2d
+        PRIVATE
+            opencv_imgcodecs)
 endif()
 
-if (BUILD_JSON_SERIALIZATION)
-    target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
+if (BUILD_JSON_SERIALIZATION AND nlohmann_json_FOUND)
+    target_link_libraries(MultiSense PUBLIC nlohmann_json::nlohmann_json)
 endif()
 
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
@@ -64,11 +68,11 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 #
 
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense Threads::Threads)
+target_link_libraries(MultiSense PRIVATE Threads::Threads)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-    target_link_libraries(MultiSense ws2_32)
+    target_link_libraries(MultiSense PRIVATE ws2_32)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(MultiSense rt)
+    target_link_libraries(MultiSense PRIVATE rt)
 endif()
 
 if (BUILD_TESTS)

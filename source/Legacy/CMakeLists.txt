@@ -59,7 +59,7 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
                        ${DETAILS_HEADERS}
                        ${DETAILS_SRC})
 
-target_link_libraries(MultiSense MultiSenseWire)
+target_link_libraries(MultiSense PUBLIC MultiSenseWire)
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
@@ -87,11 +87,11 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 #
 
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense Threads::Threads)
+target_link_libraries(MultiSense PRIVATE Threads::Threads)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-    target_link_libraries(MultiSense ws2_32)
+    target_link_libraries(MultiSense PRIVATE ws2_32)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(MultiSense rt)
+    target_link_libraries(MultiSense PRIVATE rt)
 endif()
 
 include(CMakePackageConfigHelpers)
