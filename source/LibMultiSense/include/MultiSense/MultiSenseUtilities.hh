@@ -256,10 +256,10 @@ MULTISENSE_API CameraCalibration scale_calibration(CameraCalibration calibration
 /// @return Return a colorized point cloud
 ///
 template<typename Color>
-MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
-                                                                        const std::optional<Image> &color,
-                                                                        double max_range,
-                                                                        const StereoCalibration &calibration)
+std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
+                                                         const std::optional<Image> &color,
+                                                         double max_range,
+                                                         const StereoCalibration &calibration)
 {
     size_t color_step = 0;
     double color_disparity_scale = 0.0;
@@ -359,10 +359,10 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
 /// @return Return a colorized point cloud
 ///
 template<typename Color>
-MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const ImageFrame &frame,
-                                                                        double max_range,
-                                                                        const DataSource &color_source = DataSource::UNKNOWN,
-                                                                        const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW)
+std::optional<PointCloud<Color>> create_color_pointcloud(const ImageFrame &frame,
+                                                         double max_range,
+                                                         const DataSource &color_source = DataSource::UNKNOWN,
+                                                         const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW)
 {
     if constexpr (std::is_same_v<Color, void>)
     {
@@ -399,7 +399,7 @@ MULTISENSE_API std::optional<PointCloud<void>> create_pointcloud(const ImageFram
 /// @return Return true if the pointcloud was written successfully
 ///
 template <typename Color>
-MULTISENSE_API bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, const std::filesystem::path &path)
+bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, const std::filesystem::path &path)
 {
     std::ofstream ply(path, std::ios::binary);
     if (!ply.good())
