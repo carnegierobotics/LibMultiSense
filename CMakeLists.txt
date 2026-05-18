@@ -128,7 +128,11 @@ set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 # Setup optional dependencies
 #
 if (BUILD_OPENCV)
-   find_package(OpenCV QUIET)
+   set(OPENCV_COMPONENTS core features2d imgcodecs)
+   if (MULTISENSE_BUILD_UTILITIES)
+      list(APPEND OPENCV_COMPONENTS highgui imgproc)
+   endif()
+   find_package(OpenCV QUIET COMPONENTS ${OPENCV_COMPONENTS})
 
   if(OpenCV_FOUND)
     message(STATUS "OpenCV found. Enabling OpenCV-specific code.")

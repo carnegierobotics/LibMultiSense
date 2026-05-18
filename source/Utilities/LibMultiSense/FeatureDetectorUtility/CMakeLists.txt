@@ -1,7 +1,10 @@
 if(BUILD_OPENCV AND OpenCV_FOUND)
     add_executable(FeatureDetectorUtility FeatureDetectorUtility.cc)
 
-    target_link_libraries (FeatureDetectorUtility ${MULTISENSE_UTILITY_LIBS})
+    target_link_libraries (FeatureDetectorUtility
+        ${MULTISENSE_UTILITY_LIBS}
+        opencv_highgui
+        opencv_imgproc)
 
     install(TARGETS FeatureDetectorUtility RUNTIME DESTINATION "bin")
 else()
