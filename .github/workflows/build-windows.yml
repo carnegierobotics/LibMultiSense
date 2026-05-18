@@ -1,0 +1,165 @@
+name: Build LibMultiSense on Windows
+
+on:
+  workflow_call:
+    inputs:
+      windows_version:
+        type: string
+        default: windows-latest
+        description: A valid Windows runner name.
+      compiler:
+        type: string
+        default: msvc
+        description: One of {msvc, clang}.
+      build_type:
+        type: string
+        default: Release
+        description: One of {Release, Debug}.
+      shared_libs:
+        type: boolean
+        default: true
+        description: Whether to build the shared libraries.
+      legacy_api:
+        type: boolean
+        default: false
+        description: Whether to build the legacy API.
+      build_json_serialization:
+        type: boolean
+        default: false
+        description: Whether to build with JSON serialization.
+      build_opencv:
+        type: boolean
+        default: false
+        description: Whether to build with OpenCV support.
+      python_bindings:
+        type: boolean
+        default: true
+        description: Whether to build the Python bindings.
+      upload_artifacts:
+        type: boolean
+        default: false
+        description: Whether to upload artifacts.
+
+jobs:
+  build:
+    name: "${{ inputs.python_bindings && 'configure build install wheel' || 'configure build install' }}"
+    runs-on: ${{ inputs.windows_version }}
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
+      NAME: ${{ inputs.windows_version }}-${{ inputs.compiler }}-${{ inputs.build_type == 'Release' && 'release' || 'debug' }}-${{ inputs.shared_libs && 'shared' || 'static' }}-${{ inputs.legacy_api && 'legacy' || 'modern' }}-${{ inputs.build_json_serialization && inputs.build_opencv && 'full' || 'minimal' }}-${{ inputs.python_bindings && 'python' || 'no-python' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      #
+      # Install build dependencies
+      #
+
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+
+      - name: Restore vcpkg binary archives
+        uses: actions/cache/restore@v5
+        with:
+          path: ./.cache/vcpkg/archives
+
+          # Restore the full dependency archive warmed by build-windows-vcpkg-cache.
+          # CMake's vcpkg toolchain materializes the manifest dependencies from it.
+          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          fail-on-cache-miss: true
+
+      #
+      # Build the library
+      #
+
+      - name: Build library
+        shell: bash
+        run: |
+          cmake_args=()
+
+          if [ "${{ inputs.compiler }}" = "clang" ]; then
+            cmake_args+=(-T ClangCL)
+          fi
+
+          cmake -B build -S . "${cmake_args[@]}" \
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-windows \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DBUILD_SHARED_LIBS=${{ inputs.shared_libs }} \
+            -DBUILD_LEGACY_API=${{ inputs.legacy_api }} \
+            -DBUILD_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
+            -DBUILD_OPENCV=${{ inputs.build_opencv }} \
+            -DBUILD_PYTHON_BINDINGS=${{ inputs.python_bindings }} \
+            -DCMAKE_INSTALL_PREFIX=install
+
+          cmake --build build --config ${{ inputs.build_type }} -j "$(nproc || echo 8)"
+          cmake --install build --config ${{ inputs.build_type }}
+
+      - name: Build pip wheel
+        if: inputs.python_bindings
+        shell: bash
+        run: |
+          mkdir pip-wheel
+          python -m venv .venv
+          source .venv/Scripts/activate
+          python -m pip wheel --wheel-dir pip-wheel .
+
+      #
+      # Library consumption tests
+      #
+
+      - name: Test library consumption with CMake
+        if: ${{ !inputs.legacy_api }}
+        shell: bash
+        run: |
+          cmake_args=()
+
+          if [ "${{ inputs.compiler }}" = "clang" ]; then
+            cmake_args+=(-T ClangCL)
+          fi
+
+          cmake -B ci/library-consumption-test/build -S ci/library-consumption-test "${cmake_args[@]}" \
+            -DCMAKE_TOOLCHAIN_FILE="${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake" \
+            -DVCPKG_TARGET_TRIPLET=x64-windows \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/install" \
+            -DCONSUME_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
+            -DCONSUME_OPENCV=${{ inputs.build_opencv }}
+
+          cmake --build ci/library-consumption-test/build --config ${{ inputs.build_type }} -j "$(nproc || echo 8)"
+
+          PATH="${{ github.workspace }}/install/bin:${{ github.workspace }}/ci/library-consumption-test/build/vcpkg_installed/x64-windows/bin:$PATH" \
+            ./ci/library-consumption-test/build/${{ inputs.build_type }}/multisense_consumption_test.exe
+
+      - name: Test library consumption with Python
+        if: inputs.python_bindings
+        shell: bash
+        run: |
+          source .venv/Scripts/activate
+          pip install --no-index --find-links=pip-wheel libmultisense
+          python ci/library-consumption-test/consumption_test.py
+          multisense_version_info_utility --help
+
+      #
+      # Upload artifacts
+      #
+
+      - name: Upload library artifact
+        uses: actions/upload-artifact@v7
+        if: inputs.upload_artifacts
+        with:
+          name: install-${{ env.NAME }}
+          path: install/
+
+      - name: Upload pip wheel Artifact
+        uses: actions/upload-artifact@v7
+        if: inputs.upload_artifacts && inputs.python_bindings
+        with:
+          name: libmultisense-wheel-${{ env.NAME }}
+          path: pip-wheel/

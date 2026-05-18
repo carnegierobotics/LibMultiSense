@@ -1,0 +1,164 @@
+name: Build LibMultiSense on macOS
+
+on:
+  workflow_call:
+    inputs:
+      macos_version:
+        type: string
+        default: macos-latest
+        description: A valid macOS runner name.
+      compiler:
+        type: string
+        default: apple-clang
+        description: One of {apple-clang, brew-llvm}.
+      build_type:
+        type: string
+        default: Release
+        description: One of {Release, Debug}.
+      shared_libs:
+        type: boolean
+        default: true
+        description: Whether to build the shared libraries.
+      testing:
+        type: boolean
+        default: false
+        description: Whether to enable testing.
+      legacy_api:
+        type: boolean
+        default: false
+        description: Whether to build the legacy API.
+      build_json_serialization:
+        type: boolean
+        default: false
+        description: Whether to build with JSON serialization.
+      build_opencv:
+        type: boolean
+        default: false
+        description: Whether to build with OpenCV support.
+      python_bindings:
+        type: boolean
+        default: true
+        description: Whether to build the Python bindings.
+      upload_artifacts:
+        type: boolean
+        default: false
+        description: Whether to upload artifacts.
+
+jobs:
+  build:
+    name: "${{ inputs.testing && 'configure build test install' || 'configure build install' }}"
+    runs-on: ${{ inputs.macos_version }}
+
+    env:
+      CC: ${{ inputs.compiler == 'brew-llvm' && 'clang' || 'cc' }}
+      CXX: ${{ inputs.compiler == 'brew-llvm' && 'clang++' || 'c++' }}
+      NAME: ${{ inputs.macos_version }}-${{ inputs.compiler }}-${{ inputs.build_type == 'Release' && 'release' || 'debug' }}-${{ inputs.shared_libs && 'shared' || 'static' }}-${{ inputs.legacy_api && 'legacy' || 'modern' }}-${{ inputs.build_json_serialization && inputs.build_opencv && 'full' || 'minimal' }}-${{ inputs.python_bindings && 'python' || 'nopython' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      #
+      # Install build dependencies
+      #
+
+      - name: Install Homebrew LLVM
+        if: inputs.compiler == 'brew-llvm'
+        run: |
+          brew install llvm
+          echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+
+      - name: Install testing dependencies
+        if: inputs.testing
+        run: |
+          brew install googletest
+
+      - name: Install JSON serialization dependencies
+        if: inputs.build_json_serialization
+        run: |
+          brew install nlohmann-json
+
+      - name: Install OpenCV dependencies
+        if: inputs.build_opencv
+        run: |
+          brew install opencv
+
+      - name: Install Python bindings dependencies
+        if: inputs.python_bindings
+        run: |
+          brew install pybind11
+
+      #
+      # Build the library
+      #
+
+      - name: Build library
+        run: |
+          cmake -B build -S . \
+            -DCMAKE_C_COMPILER=${{ env.CC }} \
+            -DCMAKE_CXX_COMPILER=${{ env.CXX }} \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DBUILD_SHARED_LIBS=${{ inputs.shared_libs }} \
+            -DBUILD_TESTS=${{ inputs.testing }} \
+            -DBUILD_LEGACY_API=${{ inputs.legacy_api }} \
+            -DBUILD_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
+            -DBUILD_OPENCV=${{ inputs.build_opencv }} \
+            -DBUILD_PYTHON_BINDINGS=${{ inputs.python_bindings }} \
+            -DCMAKE_INSTALL_PREFIX=install
+
+          cmake --build build -j "$(sysctl -n hw.ncpu)"
+          if [ "${{ inputs.testing }}" = "true" ]; then
+            ctest --test-dir build --output-on-failure
+          fi
+          cmake --install build
+
+      - name: Build pip wheel
+        if: inputs.python_bindings
+        run: |
+          mkdir pip-wheel
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip wheel --wheel-dir pip-wheel .
+
+      #
+      # Library consumption tests
+      #
+
+      - name: Test library consumption with CMake
+        if: ${{ !inputs.legacy_api }}
+        run: |
+          cmake -B ci/library-consumption-test/build -S ci/library-consumption-test \
+            -DCMAKE_C_COMPILER=${{ env.CC }} \
+            -DCMAKE_CXX_COMPILER=${{ env.CXX }} \
+            -DCMAKE_BUILD_TYPE=${{ inputs.build_type }} \
+            -DCMAKE_PREFIX_PATH="${{ github.workspace }}/install" \
+            -DCONSUME_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
+            -DCONSUME_OPENCV=${{ inputs.build_opencv }}
+          cmake --build ci/library-consumption-test/build -j "$(sysctl -n hw.ncpu)"
+          ./ci/library-consumption-test/build/multisense_consumption_test
+
+      - name: Test library consumption with Python
+        if: inputs.python_bindings
+        run: |
+          source .venv/bin/activate
+          pip install --no-index --find-links=pip-wheel libmultisense
+          python ci/library-consumption-test/consumption_test.py
+          multisense_version_info_utility --help
+
+      #
+      # Upload artifacts
+      #
+
+      - name: Upload library artifact
+        uses: actions/upload-artifact@v7
+        if: inputs.upload_artifacts
+        with:
+          name: install-${{ env.NAME }}
+          path: install/
+
+      - name: Upload pip wheel Artifact
+        uses: actions/upload-artifact@v7
+        if: inputs.upload_artifacts && inputs.python_bindings
+        with:
+          name: libmultisense-wheel-${{ env.NAME }}
+          path: pip-wheel/

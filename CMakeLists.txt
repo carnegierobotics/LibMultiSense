@@ -25,7 +25,7 @@ project(LibMultiSense
 
 include (CheckCXXSourceCompiles)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if(MSVC)
     string (REGEX REPLACE "/W3" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     string (REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     add_compile_options(/WX)
@@ -35,7 +35,7 @@ else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NOT MSVC)
     #
     # Fix warnings with __VA__OPT__ when we port to c++2a
     # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
