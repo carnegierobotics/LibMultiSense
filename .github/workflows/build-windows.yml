@@ -134,8 +134,7 @@ jobs:
 
           cmake --build ci/library-consumption-test/build --config ${{ inputs.build_type }} -j "$(nproc || echo 8)"
 
-          # MultiSense.dll lives in install/bin; transitive vcpkg DLLs live in vcpkg/installed/x64-windows/bin.
-          PATH="${{ github.workspace }}/install/bin:${{ env.VCPKG_ROOT }}/installed/x64-windows/bin:$PATH" \
+          PATH="${{ github.workspace }}/install/bin:${{ github.workspace }}/ci/library-consumption-test/build/vcpkg_installed/x64-windows/bin:$PATH" \
             ./ci/library-consumption-test/build/${{ inputs.build_type }}/multisense_consumption_test.exe
 
       - name: Test library consumption with Python
