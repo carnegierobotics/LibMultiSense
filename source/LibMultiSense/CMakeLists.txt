@@ -69,7 +69,7 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 #
 
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense PRIVATE Threads::Threads)
+target_link_libraries(MultiSense PUBLIC Threads::Threads)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     target_link_libraries(MultiSense PRIVATE ws2_32)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
