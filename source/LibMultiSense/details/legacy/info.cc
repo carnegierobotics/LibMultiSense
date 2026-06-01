@@ -72,8 +72,8 @@ MultiSenseInfo::DeviceInfo convert(const crl::multisense::details::wire::SysDevi
             {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::ST25; break;}
         case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:
             {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i; break;}
-        case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25i:
-            {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::ST25i; break;}
+        case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:
+            {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::STLC; break;}
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 
@@ -179,8 +179,8 @@ crl::multisense::details::wire::SysDeviceInfo convert(const MultiSenseInfo::Devi
             {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25; break;}
         case MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i:
             {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i; break;}
-        case MultiSenseInfo::DeviceInfo::HardwareRevision::ST25i:
-            {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25i; break;}
+        case MultiSenseInfo::DeviceInfo::HardwareRevision::STLC:
+            {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC; break;}
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 

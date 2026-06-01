@@ -1540,7 +1540,7 @@ struct MultiSenseInfo
             KS21_SILVER,
             ST25,
             KS21i,
-            ST25i
+            STLC
         };
 
         ///

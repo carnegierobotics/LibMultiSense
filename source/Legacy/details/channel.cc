@@ -578,7 +578,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
-    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25i:               return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25i;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_STLC:               return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -606,7 +606,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
-    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25i:               return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25i;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:               return system::DeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
