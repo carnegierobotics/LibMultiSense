@@ -1539,7 +1539,8 @@ struct MultiSenseInfo
             MONOCAM,
             KS21_SILVER,
             ST25,
-            KS21i
+            KS21i,
+            ST25i
         };
 
         ///
