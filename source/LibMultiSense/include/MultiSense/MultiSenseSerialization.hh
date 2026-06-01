@@ -222,7 +222,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::ImagerType, {
     {MultiSenseInfo::DeviceInfo::ImagerType::FLIR_TAU2, "FLIR_TAU2"},
     {MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY, "AR0234_GREY"},
     {MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR, "AR0239_COLOR"},
-    {MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280, "TENUM1280"}
+    {MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280, "TENUM1280"},
+    {MultiSenseInfo::DeviceInfo::ImagerType::TURA640, "TURA640"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::LightingType, {

@@ -1556,7 +1556,8 @@ struct MultiSenseInfo
             FLIR_TAU2,
             AR0234_GREY,
             AR0239_COLOR,
-            TENUM1280
+            TENUM1280,
+            TURA640
         };
 
         ///

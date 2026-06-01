@@ -638,7 +638,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("FLIR_TAU2", multisense::MultiSenseInfo::DeviceInfo::ImagerType::FLIR_TAU2)
         .value("AR0234_GREY", multisense::MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY)
         .value("AR0239_COLOR", multisense::MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR)
-        .value("TENUM1280", multisense::MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280);
+        .value("TENUM1280", multisense::MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280)
+        .value("TURA640", multisense::MultiSenseInfo::DeviceInfo::ImagerType::TURA640);
 
     // MultiSenseInfo::DeviceInfo::LightingType
     py::enum_<multisense::MultiSenseInfo::DeviceInfo::LightingType>(m, "LightingType")
