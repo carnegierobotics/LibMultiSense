@@ -13,7 +13,7 @@ if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
 endif()
 
-set(version "7.8.0")
+set(version "7.9.0")
 set(CPACK_PACKAGE_VERSION ${version})
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
@@ -73,8 +73,7 @@ endif()
 #
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Selecting default build type: Release")
-    #set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
-    set(CMAKE_BUILD_TYPE "DebugWithRelInfo" CACHE STRING "Build type (default: DebugWithRelInfo)" FORCE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
 endif ()
 
 #
