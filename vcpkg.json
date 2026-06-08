@@ -1,7 +1,18 @@
 {
-    "dependencies": [
-        "gtest",
-        "nlohmann-json",
-        "pybind11"
-    ]
+  "name": "libmultisense",
+  "version": "7.8.0",
+  "dependencies": [
+    "gtest",
+    "nlohmann-json",
+    {
+      "name": "opencv",
+      "default-features": false,
+      "features": [
+        "highgui",
+        "jpeg",
+        "png"
+      ]
+    },
+    "pybind11"
+  ]
 }
