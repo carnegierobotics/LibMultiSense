@@ -225,7 +225,7 @@ public:
  * @return A crl::multisense::Status indicating if the callback deregistration
  * succeeded or failed
  */
-Status secondaryAppDataExtract(feature_detector::Header &header, const secondary_app::Header &orig)
+inline Status secondaryAppDataExtract(feature_detector::Header &header, const secondary_app::Header &orig)
 {
   using namespace crl::multisense::details;
 
