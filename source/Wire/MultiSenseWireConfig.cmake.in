@@ -2,4 +2,15 @@
 
 include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseWireTargets.cmake")
 
+# The exported target is namespaced as `MultiSenseWire::MultiSenseWire`.
+# Historically, this was simply `MultiSenseWire`.  For backwards compatibility,
+# recreate the legacy `MultiSenseWire` target as an interface that forwards to
+# the current, namespaced target.
+# TODO: Remove this legacy support in a future, major release.
+if (NOT TARGET MultiSenseWire AND TARGET MultiSenseWire::MultiSenseWire)
+    add_library(MultiSenseWire INTERFACE IMPORTED)
+    set_target_properties(MultiSenseWire PROPERTIES
+        INTERFACE_LINK_LIBRARIES MultiSenseWire::MultiSenseWire)
+endif()
+
 check_required_components(MultiSenseWire)
