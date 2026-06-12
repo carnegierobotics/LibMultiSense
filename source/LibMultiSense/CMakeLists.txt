@@ -31,7 +31,11 @@ else()
 
 endif()
 
-target_link_libraries(MultiSense PRIVATE MultiSenseWire)
+# Provide a namespaced alias so that in-tree consumers can link against the same
+# target name that the installed package exports.
+add_library(MultiSense::MultiSense ALIAS MultiSense)
+
+target_link_libraries(MultiSense PRIVATE MultiSenseWire::MultiSenseWire)
 if (FILESYSTEM_LIBRARY)
     target_link_libraries(MultiSense PUBLIC ${FILESYSTEM_LIBRARY})
 endif()
@@ -96,6 +100,7 @@ install(TARGETS MultiSense
 )
 
 install(EXPORT MultiSenseTargets
+        NAMESPACE MultiSense::
         DESTINATION lib/cmake/MultiSense)
 
 write_basic_package_version_file(
