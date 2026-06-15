@@ -257,3 +257,36 @@ jobs:
       android_abi: ${{ matrix.android_abi }}
       android_platform: ${{ matrix.android_platform }}
       build_type: ${{ matrix.build_type }}
+
+  #
+  # Aggregate gate
+  #
+
+  # Single status check that aggregates the results of every required build job above.  This can be used as the single
+  # required status check for branch protection.
+  ci-status:
+    name: CI Status
+    # Run even when an upstream job fails so that a failed or skipped dependency reliably fails this gate.
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs:
+      - build-ubuntu
+      - build-ubuntu-old-ubuntu
+      - build-ubuntu-legacy-api
+      - build-ubuntu-coverage
+      - build-ubuntu-asan
+      - build-macos
+      - build-windows
+      - build-android
+    steps:
+      - name: Verify all build jobs succeeded
+        run: |
+          results="${{ join(needs.*.result, ' ') }}"
+          echo "Upstream job results: ${results}"
+          for result in ${results}; do
+            if [ "${result}" != "success" ]; then
+              echo "::error::One or more required build jobs did not succeed."
+              exit 1
+            fi
+          done
+          echo "All required build jobs succeeded."
