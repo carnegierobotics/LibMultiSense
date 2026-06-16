@@ -224,6 +224,8 @@ void check_equal(const crl::multisense::details::wire::SysDeviceInfo &wire,
             ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::ST25); break;
         case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:
             ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i); break;
+        case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:
+            ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::STLC); break;
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 
@@ -331,6 +333,13 @@ TEST(convert, wire_to_info_tura)
 {
     auto info = create_wire_info("test", "key");
     info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_TURA640;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_stlc)
+{
+    auto info = create_wire_info("test", "key");
+    info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
     check_equal(info, convert(info), "key");
 }
 
