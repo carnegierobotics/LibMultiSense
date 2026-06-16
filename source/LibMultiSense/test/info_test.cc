@@ -320,6 +320,20 @@ TEST(convert, wire_to_info)
     check_equal(info, convert(info), "key");
 }
 
+TEST(convert, wire_to_info_tenum)
+{
+    auto info = create_wire_info("test", "key");
+    info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_tura)
+{
+    auto info = create_wire_info("test", "key");
+    info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_TURA640;
+    check_equal(info, convert(info), "key");
+}
+
 TEST(convert, info_to_wire)
 {
     const auto info = create_info("test");
