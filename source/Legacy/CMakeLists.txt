@@ -59,7 +59,11 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
                        ${DETAILS_HEADERS}
                        ${DETAILS_SRC})
 
-target_link_libraries(MultiSense PUBLIC MultiSenseWire)
+# Provide a namespaced alias so that in-tree consumers can link against the same
+# target name that the installed package exports.
+add_library(MultiSense::MultiSense ALIAS MultiSense)
+
+target_link_libraries(MultiSense PUBLIC MultiSenseWire::MultiSenseWire)
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
@@ -110,6 +114,7 @@ install(TARGETS MultiSense
 )
 
 install(EXPORT MultiSenseTargets
+  NAMESPACE MultiSense::
   DESTINATION lib/cmake/MultiSense)
 
 write_basic_package_version_file(

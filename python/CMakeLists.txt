@@ -8,7 +8,7 @@ pybind11_add_module(_libmultisense MODULE bindings.cc)
 target_link_libraries(
     _libmultisense
     PRIVATE
-    MultiSense
+    MultiSense::MultiSense
     ${FILESYSTEM_LIBRARY})
 
 if (BUILD_JSON_SERIALIZATION)

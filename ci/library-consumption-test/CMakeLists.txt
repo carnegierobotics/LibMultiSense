@@ -47,6 +47,12 @@ if (CONSUME_OPENCV)
 endif()
 
 add_executable(multisense_consumption_test main.cc)
+
+# Link against the legacy `MultiSense` target rather than the modern, namespaced
+# `MultiSense::MultiSense` target.  The package configuration will forward the
+# legacy target to the namespaced target, thus evaluating both paths in a single
+# test.
+# TODO: Remove this when the legacy `MultiSense` target is removed.
 target_link_libraries(multisense_consumption_test PRIVATE MultiSense)
 
 if (CONSUME_JSON_SERIALIZATION)

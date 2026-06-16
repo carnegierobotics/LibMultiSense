@@ -19,4 +19,15 @@ endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseTargets.cmake")
 
+# The exported target is namespaced as `MultiSense::MultiSense`.  Historically,
+# this was simply `MultiSense`.  For backwards compatibility, recreate the
+# legacy `MultiSense` target as an interface that forwards to the current,
+# namespaced target.
+# TODO: Remove this legacy support in a future, major release.
+if (NOT TARGET MultiSense AND TARGET MultiSense::MultiSense)
+    add_library(MultiSense INTERFACE IMPORTED)
+    set_target_properties(MultiSense PROPERTIES
+        INTERFACE_LINK_LIBRARIES MultiSense::MultiSense)
+endif()
+
 check_required_components(MultiSense)

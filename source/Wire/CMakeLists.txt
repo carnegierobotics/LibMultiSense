@@ -124,6 +124,10 @@ else()
 
 endif()
 
+# Provide a namespaced alias so that in-tree consumers can link against the same
+# target name that the installed package exports.
+add_library(MultiSenseWire::MultiSenseWire ALIAS MultiSenseWire)
+
 target_compile_definitions(MultiSenseWire PRIVATE MultiSense_EXPORTS=True)
 if (MULTISENSE_USE_MONOTONIC_CLOCK)
     target_compile_definitions(MultiSenseWire PRIVATE USE_MONOTONIC_CLOCK=${MULTISENSE_USE_MONOTONIC_CLOCK})
@@ -165,7 +169,8 @@ install(TARGETS MultiSenseWire
 )
 
 install(EXPORT MultiSenseWireTargets
-DESTINATION lib/cmake/MultiSenseWire)
+  NAMESPACE MultiSenseWire::
+  DESTINATION lib/cmake/MultiSenseWire)
 
 install(FILES ${WIRE_HEADERS} DESTINATION include/MultiSense/wire)
 install(FILES ${UTILITY_HEADERS} DESTINATION include/MultiSense/utility)

@@ -1,7 +1,7 @@
 
 find_package(Threads REQUIRED)
 list(APPEND MULTISENSE_UTILITY_LIBS
-    MultiSense
+    MultiSense::MultiSense
     Threads::Threads
     ${FILESYSTEM_LIBRARY}
 )
