@@ -349,6 +349,27 @@ TEST(convert, info_to_wire)
     check_equal(convert(info, "key"), info, "key");
 }
 
+TEST(convert, info_to_wire_stlc)
+{
+    auto info = create_info("test");
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STLC;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_tura640)
+{
+    auto info = create_info("test");
+    info.imager_type = multisense::MultiSenseInfo::DeviceInfo::ImagerType::TURA640;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_tenum1280)
+{
+    auto info = create_info("test");
+    info.imager_type = multisense::MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280;
+    check_equal(convert(info, "key"), info, "key");
+}
+
 TEST(convert, version)
 {
     const auto version_wire = create_version();
