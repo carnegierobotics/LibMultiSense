@@ -3266,6 +3266,7 @@ public:
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21_SILVER         = 15;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_ST25                = 16;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_KS21i               = 17;
+    static CRL_CONSTEXPR uint32_t HARDWARE_REV_MULTISENSE_STLC                = 18;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_BCAM                           = 100;
     static CRL_CONSTEXPR uint32_t HARDWARE_REV_MONO                           = 101;
 
@@ -3279,6 +3280,7 @@ public:
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0234_GREY    = 200;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_AR0239_COLOR   = 202;
     static CRL_CONSTEXPR uint32_t IMAGER_TYPE_TENUM1280      = 300;
+    static CRL_CONSTEXPR uint32_t IMAGER_TYPE_TURA640        = 301;
 
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_NONE = 0;
     static CRL_CONSTEXPR uint32_t LIGHTING_TYPE_INTERNAL = 1;

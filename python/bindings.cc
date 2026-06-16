@@ -625,7 +625,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("MONOCAM", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::MONOCAM)
         .value("KS21_SILVER", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21_SILVER)
         .value("ST25", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::ST25)
-        .value("KS21i", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i);
+        .value("KS21i", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i)
+        .value("STLC", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STLC);
 
     // MultiSenseInfo::DeviceInfo::ImagerType
     py::enum_<multisense::MultiSenseInfo::DeviceInfo::ImagerType>(m, "ImagerType")
@@ -637,7 +638,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("FLIR_TAU2", multisense::MultiSenseInfo::DeviceInfo::ImagerType::FLIR_TAU2)
         .value("AR0234_GREY", multisense::MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY)
         .value("AR0239_COLOR", multisense::MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR)
-        .value("TENUM1280", multisense::MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280);
+        .value("TENUM1280", multisense::MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280)
+        .value("TURA640", multisense::MultiSenseInfo::DeviceInfo::ImagerType::TURA640);
 
     // MultiSenseInfo::DeviceInfo::LightingType
     py::enum_<multisense::MultiSenseInfo::DeviceInfo::LightingType>(m, "LightingType")

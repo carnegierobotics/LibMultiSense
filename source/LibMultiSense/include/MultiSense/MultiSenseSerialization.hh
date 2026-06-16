@@ -209,7 +209,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::HardwareRevision, {
     {MultiSenseInfo::DeviceInfo::HardwareRevision::MONOCAM, "MONOCAM"},
     {MultiSenseInfo::DeviceInfo::HardwareRevision::KS21_SILVER, "KS21_SILVER"},
     {MultiSenseInfo::DeviceInfo::HardwareRevision::ST25, "ST25"},
-    {MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i, "KS21i"}
+    {MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i, "KS21i"},
+    {MultiSenseInfo::DeviceInfo::HardwareRevision::STLC, "STLC"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::ImagerType, {
@@ -221,7 +222,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::ImagerType, {
     {MultiSenseInfo::DeviceInfo::ImagerType::FLIR_TAU2, "FLIR_TAU2"},
     {MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY, "AR0234_GREY"},
     {MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR, "AR0239_COLOR"},
-    {MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280, "TENUM1280"}
+    {MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280, "TENUM1280"},
+    {MultiSenseInfo::DeviceInfo::ImagerType::TURA640, "TURA640"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::LightingType, {
