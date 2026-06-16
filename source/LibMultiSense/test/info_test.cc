@@ -336,10 +336,31 @@ TEST(convert, wire_to_info_tura)
     check_equal(info, convert(info), "key");
 }
 
+TEST(convert, wire_to_info_234)
+{
+    auto info = create_wire_info("test", "key");
+    info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_AR0234_GREY;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_ks21i)
+{
+    auto info = create_wire_info("test", "key");
+    info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
+    check_equal(info, convert(info), "key");
+}
+
 TEST(convert, wire_to_info_stlc)
 {
     auto info = create_wire_info("test", "key");
     info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_st25)
+{
+    auto info = create_wire_info("test", "key");
+    info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
     check_equal(info, convert(info), "key");
 }
 
@@ -349,10 +370,31 @@ TEST(convert, info_to_wire)
     check_equal(convert(info, "key"), info, "key");
 }
 
+TEST(convert, info_to_wire_ks21i)
+{
+    auto info = create_info("test");
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i;
+    check_equal(convert(info, "key"), info, "key");
+}
+
 TEST(convert, info_to_wire_stlc)
 {
     auto info = create_info("test");
     info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STLC;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_st25)
+{
+    auto info = create_info("test");
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::ST25;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_234)
+{
+    auto info = create_info("test");
+    info.imager_type = multisense::MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY;
     check_equal(convert(info, "key"), info, "key");
 }
 
