@@ -1539,7 +1539,8 @@ struct MultiSenseInfo
             MONOCAM,
             KS21_SILVER,
             ST25,
-            KS21i
+            KS21i,
+            STLC
         };
 
         ///
@@ -1555,7 +1556,8 @@ struct MultiSenseInfo
             FLIR_TAU2,
             AR0234_GREY,
             AR0239_COLOR,
-            TENUM1280
+            TENUM1280,
+            TURA640
         };
 
         ///
