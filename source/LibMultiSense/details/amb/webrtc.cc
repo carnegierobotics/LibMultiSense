@@ -39,20 +39,9 @@
 #include <cstring>
 #include <iostream>
 
-// Declare the extern "C" functions exposed by the Rust FFI library
 extern "C"
 {
-    typedef void (*mswebrtc_frame_callback)(void* left_data, int left_size,
-                                            void* right_data, int right_size,
-                                            void* disparity_data, int disparity_size,
-                                            void* user_data);
-
-    void* create_mswebrtc_impl(const char* host);
-    bool connect_mswebrtc_impl(void* obj, bool left, bool right, bool disparity, bool nndata);
-    void disconnect_mswebrtc_impl(void* obj);
-    void destroy_mswebrtc_impl(void* obj);
-    void set_frame_callback_mswebrtc_impl(void* obj, mswebrtc_frame_callback cb, void* user_data);
-    void set_bitrate_mswebrtc_impl(void* obj, double bitrate);
+#include "multisense-webrtc-client.h"
 }
 
 namespace multisense {
@@ -108,12 +97,9 @@ void WebRtcClient::set_frame_callback(std::function<void(ImageFrame&)> callback)
     }
 }
 
-void WebRtcClient::c_frame_callback(void* left_data,
-                                    int left_size,
-                                    void* right_data,
-                                    int right_size,
-                                    void* disparity_data,
-                                    int disparity_size,
+void WebRtcClient::c_frame_callback(struct ImageData* left,
+                                    struct ImageData* right,
+                                    struct ImageData* disparity,
                                     void* user_data)
 {
     if (!user_data)
@@ -127,45 +113,61 @@ void WebRtcClient::c_frame_callback(void* left_data,
         return;
     }
 
-    // TODO (malvarado): do this better
-    static size_t frame_id = 0;
     ImageFrame frame;
-    frame.frame_id = ++frame_id;
 
-    auto create_image = [](void* data, int size, DataSource source, Image::PixelFormat format) -> std::optional<Image>
+    auto get_pixel_format = [](struct ImageData* data) -> Image::PixelFormat
     {
-        if (data == nullptr || size <= 0)
+        if (data->channels == 1 && data->bytewidth == 1)
+        {
+            return Image::PixelFormat::MONO8;
+        }
+        else if (data->channels == 1 && data->bytewidth == 2)
+        {
+            return Image::PixelFormat::MONO16;
+        }
+        else if (data->channels == 3 && data->bytewidth == 1)
+        {
+            return Image::PixelFormat::BGR8;
+        }
+
+        return Image::PixelFormat::UNKNOWN;
+    };
+
+    auto create_image = [get_pixel_format](struct ImageData* data, DataSource source) -> std::optional<Image>
+    {
+        if (data == nullptr || data->size <= 0 || data->data == nullptr)
         {
             return std::nullopt;
         }
 
         Image image;
-        auto buffer = std::make_shared<std::vector<uint8_t>>(size);
-        std::memcpy(buffer->data(), data, size);
+        auto buffer = std::make_shared<std::vector<uint8_t>>(data->size, 0);
+        std::memcpy(buffer->data(), data->data, 0);
 
         image.raw_data = buffer;
         image.image_data_offset = 0;
-        image.image_data_length = size;
+        image.image_data_length = data->size;
         image.source = source;
-        image.format = format;
-        // TODO (malvarado) : fix this
-        image.width = 1920;
-        image.height = 1200;
+
+        image.format = get_pixel_format(data);
+
+        image.width = data->width;
+        image.height = data->height;
 
         return image;
     };
 
-    if (auto left_image = create_image(left_data, left_size, DataSource::LEFT_RECTIFIED_RAW, Image::PixelFormat::MONO8); left_image)
+    if (auto left_image = create_image(left, DataSource::LEFT_RECTIFIED_RAW); left_image)
     {
         frame.add_image(left_image.value());
     }
 
-    if (auto right_image = create_image(right_data, right_size, DataSource::RIGHT_RECTIFIED_RAW, Image::PixelFormat::MONO8); right_image)
+    if (auto right_image = create_image(right, DataSource::RIGHT_RECTIFIED_RAW); right_image)
     {
         frame.add_image(right_image.value());
     }
 
-    if (auto disparity_image = create_image(disparity_data, disparity_size, DataSource::LEFT_DISPARITY_RAW, Image::PixelFormat::MONO16); disparity_image)
+    if (auto disparity_image = create_image(disparity, DataSource::LEFT_DISPARITY_RAW); disparity_image)
     {
         frame.add_image(disparity_image.value());
     }

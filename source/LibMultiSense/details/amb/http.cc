@@ -36,7 +36,7 @@
 
 #include "details/amb/http.hh"
 
-#include <utility/Exception.hh>
+#include <MultiSense/utility/Exception.hh>
 
 namespace multisense{
 namespace amb{

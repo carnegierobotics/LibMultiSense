@@ -41,6 +41,10 @@
 
 #include "MultiSense/MultiSenseTypes.hh"
 
+// Forward declarations in global namespace to match the C library types
+struct ImageData;
+struct MswebrtcImpl;
+
 namespace multisense {
 namespace amb {
 
@@ -83,18 +87,15 @@ private:
     ///
     /// @brief Private callback signature which the c client WebRTC uses to return images
     ///
-    static void c_frame_callback(void* left_data,
-                                 int left_size,
-                                 void* right_data,
-                                 int right_size,
-                                 void* disparity_data,
-                                 int disparity_size,
+    static void c_frame_callback(struct ImageData* left,
+                                 struct ImageData* right,
+                                 struct ImageData* disparity,
                                  void* user_data);
 
     ///
     /// @param Pointer to the base C WebRTC implementation
     ///
-    void* m_impl = nullptr;
+    struct MswebrtcImpl* m_impl = nullptr;
 
     std::function<void(ImageFrame&)> m_frame_callback;
 };
