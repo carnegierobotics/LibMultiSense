@@ -38,16 +38,16 @@
 #include "MultiSense/details/channel.hh"
 #include "MultiSense/details/query.hh"
 
-#include <wire/DisparityMessage.hh>
-#include <wire/SysMtuMessage.hh>
-#include <wire/SysGetMtuMessage.hh>
-#include <wire/StatusRequestMessage.hh>
-#include <wire/StatusResponseMessage.hh>
-#include <wire/PtpStatusRequestMessage.hh>
-#include <wire/PtpStatusResponseMessage.hh>
-#include <wire/VersionRequestMessage.hh>
-#include <wire/SysDeviceInfoMessage.hh>
-#include <wire/StreamControlMessage.hh>
+#include <MultiSense/wire/DisparityMessage.hh>
+#include <MultiSense/wire/SysMtuMessage.hh>
+#include <MultiSense/wire/SysGetMtuMessage.hh>
+#include <MultiSense/wire/StatusRequestMessage.hh>
+#include <MultiSense/wire/StatusResponseMessage.hh>
+#include <MultiSense/wire/PtpStatusRequestMessage.hh>
+#include <MultiSense/wire/PtpStatusResponseMessage.hh>
+#include <MultiSense/wire/VersionRequestMessage.hh>
+#include <MultiSense/wire/SysDeviceInfoMessage.hh>
+#include <MultiSense/wire/StreamControlMessage.hh>
 
 #include "MultiSense/details/utility/Functional.hh"
 
@@ -578,6 +578,7 @@ uint32_t impl::hardwareApiToWire(uint32_t a)
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
     case system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
+    case system::DeviceInfo::HARDWARE_REV_MULTISENSE_STLC:                return wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
     default:
         CRL_DEBUG("unknown API hardware type \"%d\"\n", a);
         return a; // pass through
@@ -605,6 +606,7 @@ uint32_t impl::hardwareWireToApi(uint32_t w)
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER:         return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21_SILVER;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
     case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:               return system::DeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
+    case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:                return system::DeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
     default:
         CRL_DEBUG("unknown WIRE hardware type \"%d\"\n", w);
         return w; // pass through
@@ -622,6 +624,7 @@ uint32_t impl::imagerApiToWire(uint32_t a)
     case system::DeviceInfo::IMAGER_TYPE_AR0239_COLOR:  return wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR;
     case system::DeviceInfo::IMAGER_TYPE_FLIR_TAU2:     return wire::SysDeviceInfo::IMAGER_TYPE_FLIR_TAU2;
     case system::DeviceInfo::IMAGER_TYPE_TENUM1280:     return wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280;
+    case system::DeviceInfo::IMAGER_TYPE_TURA640:       return wire::SysDeviceInfo::IMAGER_TYPE_TURA640;  
     default:
         CRL_DEBUG("unknown API imager type \"%d\"\n", a);
         return a; // pass through
@@ -639,6 +642,7 @@ uint32_t impl::imagerWireToApi(uint32_t w)
     case wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR:  return system::DeviceInfo::IMAGER_TYPE_AR0239_COLOR;
     case wire::SysDeviceInfo::IMAGER_TYPE_FLIR_TAU2:     return system::DeviceInfo::IMAGER_TYPE_FLIR_TAU2;
     case wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280:     return system::DeviceInfo::IMAGER_TYPE_TENUM1280;
+    case wire::SysDeviceInfo::IMAGER_TYPE_TURA640:       return system::DeviceInfo::IMAGER_TYPE_TURA640;
     default:
         CRL_DEBUG("unknown WIRE imager type \"%d\"\n", w);
         return w; // pass through

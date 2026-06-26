@@ -3,6 +3,7 @@ find_package(GTest REQUIRED)
 set(TEST_NAMES
     calibration_test
     configuration_test
+    feature_test
     info_test
     message_test
     multi_channel_test
@@ -13,7 +14,8 @@ set(TEST_NAMES
 
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cc)
-    target_link_libraries(${TEST_NAME} PRIVATE MultiSense
+    target_link_libraries(${TEST_NAME} PRIVATE MultiSense::MultiSense
+                                               MultiSenseWire::MultiSenseWire
                                                GTest::GTest GTest::Main)
 
     add_test(${TEST_NAME} ${TEST_NAME})

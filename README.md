@@ -1,5 +1,7 @@
 # LibMultiSense
 
+[![codecov](https://codecov.io/gh/carnegierobotics/LibMultiSense/branch/master/graph/badge.svg)](https://codecov.io/gh/carnegierobotics/LibMultiSense)
+
 LibMultiSense is a C++ and Python library designed to simplify interaction with the MultiSense S family of stereo
 sensors developed by Carnegie Robotics. It provides a comprehensive, easy-to-use API for capturing and processing
 stereo sensor data an generating depth images, color images, and 3D point clouds.
@@ -69,6 +71,12 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [IMU Data Streaming](#imu-data-streaming)
   - [Python](#python-9)
   - [C++](#c-9)
+- [Query Camera Calibration](#query-camera-calibration)
+  - [Python](#python-10)
+  - [C++](#c-10)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-11)
+  - [C++](#c-11)
 
 ## Client Networking Prerequisite
 
@@ -94,6 +102,11 @@ several command-line utilities are automatically installed and can be run direct
 - `multisense_point_cloud_utility`: Generate and save 3D point clouds in `.ply` format.
 - `multisense_version_info_utility`: Show firmware and hardware version information.
 - `multisense_change_ip_utility`: Update the network configuration of a MultiSense device.
+- `multisense_image_cal_utility`: Query or set the intrinsic and extrinsic calibration of the MultiSense device.
+- `multisense_multi_channel_utility`: Synchronize outputs from multiple MultiSense devices (requires PTP synchronization).
+- `multisense_ptp_utility`: Check the current PTP sync of the MultiSense device.
+- `multisense_rectified_focal_length_utility`: Update the focal length of the rectified image used to compute disparity.
+- `multisense_feature_detector_utility`: Display a live feed of detected features on the left rectified image.
 
 Example usage:
 ```bash
@@ -196,6 +209,21 @@ the following CMake argument should be set
 
 This will require a system installation of googletest, or an installation which can be pointed to with CMake's
 `CMAKE_PREFIX_PATH` argument
+
+### Code Coverage
+
+LibMultiSense supports generating unit test coverage reports using `lcov` and `genhtml`.
+To enable coverage instrumentation, set the following CMake argument:
+
+    -DENABLE_COVERAGE=ON
+
+Once enabled, you can generate the coverage report by running:
+
+```bash
+make coverage
+```
+
+The report will be generated in `build/coverage_report/index.html`. This requires `lcov` and `genhtml` to be installed on the system and is supported on Linux with GCC or Clang.
 
 ---
 
@@ -654,7 +682,6 @@ if __name__ == "__main__":
 
 #include <opencv2/opencv.hpp>
 
-#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
@@ -749,7 +776,6 @@ if __name__ == "__main__":
 
 #include <opencv2/opencv.hpp>
 
-#define HAVE_OPENCV 1
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
@@ -900,6 +926,7 @@ and ranges.
 ### Python
 
 ```python
+
 import libmultisense as lms
 
 def main():
@@ -1057,6 +1084,237 @@ int main(int argc, char** argv)
                               << ", y=" << sample.gyroscope->y
                               << ", z=" << sample.gyroscope->z << std::endl;
                 }
+            }
+        }
+    }
+
+    return 0;
+}
+```
+
+---
+
+## Query Camera Calibration
+
+The camera's internal stereo calibration can be queried from the MultiSense. This calibration corresponds to the
+full-resolution operating mode of the camera and can be used to rectify raw images or project 3D points.
+
+### Python
+
+```python
+import libmultisense as lms
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame
+        # also contains a scaled calibration which can be easier to handle depending on the application
+        calibration = channel.get_calibration()
+
+        # Print the intrinsic matrix (K) for the left camera
+        print("Left Camera Intrinsic Matrix (K):")
+        print(calibration.left.K)
+
+        # Print the rectified projection matrix (P) for the left camera
+        print("Left Camera Rectified Projection Matrix (P):")
+        print(calibration.left.P)
+
+        # Print the distortion coefficients (D) for the left camera
+        print("Left Camera Distortion Coefficients (D):")
+        print(calibration.left.D)
+
+        # Access aux camera calibration if present
+        if calibration.aux is not None:
+             print("Aux Camera Intrinsic Matrix (K):")
+             print(calibration.aux.K)
+
+        # Create a Q matrix to convert disparity pixels to 3D point clouds
+        Q = lms.QMatrix(calibration.left, calibration.right);
+        print(Q.matrix())
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    // Query the camera calibration. NOTE this is for the full resolution operating mode. Each frame also contains
+    // a scaled calibration which can be easier to handle depending on the application
+    const auto calibration = channel->get_calibration();
+
+    // Access intrinsic matrix (K) for the left camera
+    std::cout << "Left Camera Intrinsic Matrix (K):" << std::endl;
+    for (const auto& row : calibration.left.K)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Access rectified projection matrix (P) for the left camera
+    std::cout << "Left Camera Rectified Projection Matrix (P):" << std::endl;
+    for (const auto& row : calibration.left.P)
+    {
+        for (float val : row)
+        {
+            std::cout << val << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Generate a Q matrix to convert disparity points to 3D point clouds
+    const auto Q = QMatrix(calibration.left, calibration.right);
+
+    return 0;
+}
+```
+
+---
+
+## Feature Rendering
+
+LibMultiSense supports retrieving image features computed on-camera. These are synchronized with the
+corresponding image frames.
+
+The following example demonstrates how to retrieve and render features on a rectified image.
+
+> [!NOTE]
+> MultiSense firmware version v7.36 or newer is required to use the onboard feature detector
+
+### Python
+
+```python
+import libmultisense as lms
+import cv2
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    with lms.Channel.create(channel_config) as channel:
+        if not channel:
+            print("Invalid channel")
+            exit(1)
+
+        # Set the feature detector config to enable the feature detector
+        config = channel.get_config()
+        config.feature_detector_config = lms.FeatureDetectorConfig()
+        config.feature_detector_config.number_of_features = 1500
+        config.feature_detector_config.grouping_enabled = True
+        channel.set_config(config)
+
+        # Start both the rectified image and the corresponding feature stream
+        sources = [lms.DataSource.LEFT_MONO_RAW, lms.DataSource.LEFT_ORB_FEATURES]
+        if channel.start_streams(sources) != lms.Status.OK:
+            print("Unable to start streams")
+            exit(1)
+
+        while True:
+            frame = channel.get_next_image_frame()
+            if frame and frame.has_image(lms.DataSource.LEFT_MONO_RAW):
+                img = frame.get_image(lms.DataSource.LEFT_MONO_RAW).as_array
+
+                # Convert grayscale to BGR for color rendering
+                display_img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+                if frame.has_feature(lms.DataSource.LEFT_ORB_FEATURES):
+                    features = frame.get_feature(lms.DataSource.LEFT_ORB_FEATURES)
+                    print(f"Frame {frame.frame_id}: Received {len(features.keypoints)} features")
+
+                    for kp in features.keypoints:
+                        cv2.circle(display_img, (int(kp.x), int(kp.y)), 3, (0, 255, 0), -1)
+
+                cv2.imshow("MultiSense Features", display_img)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+if __name__ == "__main__":
+    main()
+```
+
+### C++
+
+```c++
+#include <iostream>
+#include <opencv2/opencv.hpp>
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main(int argc, char** argv)
+{
+    const auto channel = lms::Channel::create(lms::Channel::Config{"10.66.171.21"});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    //
+    // Set the feature detector config to enable the feature detector
+    //
+    auto config = channel->get_config();
+    config.feature_detector_config = lms::MultiSenseConfig::FeatureDetectorConfig{number_of_features, true, 1};
+    channel->set_config(config);
+
+    // Start both the rectified image and the corresponding feature stream
+    const std::vector<lms::DataSource> sources = {
+        lms::DataSource::LEFT_MONO_RAW,
+        lms::DataSource::LEFT_ORB_FEATURES
+    };
+
+    if (const auto status = channel->start_streams(sources); status != lms::Status::OK)
+    {
+        std::cerr << "Cannot start streams: " << lms::to_string(status) << std::endl;
+        return 1;
+    }
+
+    while(true)
+    {
+        if (const auto frame = channel->get_next_image_frame(); frame)
+        {
+            if (frame->has_image(lms::DataSource::LEFT_MONO_RAW))
+            {
+                cv::Mat img = frame->get_image(lms::DataSource::LEFT_MONO_RAW).cv_mat();
+                cv::Mat display_img;
+                cv::cvtColor(img, display_img, cv::COLOR_GRAY2BGR);
+
+                if (frame->has_feature(lms::DataSource::LEFT_ORB_FEATURES))
+                {
+                    const auto& features = frame->get_feature(lms::DataSource::LEFT_ORB_FEATURES);
+
+                    // Use the native OpenCV utility to convert keypoints and draw them
+                    cv::drawKeypoints(display_img, features.cv_keypoints(), display_img, cv::Scalar(0, 255, 0));
+                }
+
+                cv::imshow("MultiSense Features", display_img);
+                if (cv::waitKey(1) == 'q') break;
             }
         }
     }

@@ -1,7 +1,7 @@
 
 find_package(Threads REQUIRED)
 list(APPEND MULTISENSE_UTILITY_LIBS
-    MultiSense
+    MultiSense::MultiSense
     Threads::Threads
     ${FILESYSTEM_LIBRARY}
 )
@@ -14,6 +14,7 @@ endif()
 
 add_subdirectory(ChangeIpUtility)
 add_subdirectory(DeviceInfoUtility)
+add_subdirectory(FeatureDetectorUtility)
 add_subdirectory(ImageCalUtility)
 add_subdirectory(MultiChannelUtility)
 add_subdirectory(PointCloudUtility)

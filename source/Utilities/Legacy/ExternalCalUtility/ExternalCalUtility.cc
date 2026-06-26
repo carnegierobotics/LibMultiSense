@@ -54,7 +54,7 @@
 #include <string.h>
 
 #include <getopt/getopt.h>
-#include <CalibrationYaml.hh>
+#include "CalibrationYaml.hh"
 #include <MultiSense/MultiSenseChannel.hh>
 
 using namespace crl::multisense;

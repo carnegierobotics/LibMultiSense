@@ -36,11 +36,11 @@
 
 #pragma once
 
-#include <utility/Exception.hh>
-#include <wire/Protocol.hh>
-#include <utility/BufferStream.hh>
+#include <MultiSense/utility/Exception.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
 
-#include <wire/SysCameraCalibrationMessage.hh>
+#include <MultiSense/wire/SysCameraCalibrationMessage.hh>
 
 #include "MultiSense/MultiSenseTypes.hh"
 

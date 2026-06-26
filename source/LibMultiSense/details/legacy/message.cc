@@ -38,10 +38,10 @@
 #include <inttypes.h>
 #include <limits>
 
-#include <utility/BufferStream.hh>
-#include <wire/Protocol.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/Protocol.hh>
 
-#include <wire/DisparityMessage.hh>
+#include <MultiSense/wire/DisparityMessage.hh>
 
 #include "details/legacy/message.hh"
 

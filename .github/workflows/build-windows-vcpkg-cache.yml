@@ -1,0 +1,47 @@
+name: Build Windows vcpkg Cache
+
+on:
+  workflow_call:
+    inputs:
+      windows_version:
+        type: string
+        default: windows-latest
+        description: A valid Windows runner name.
+
+jobs:
+  build:
+    name: install dependencies
+    runs-on: ${{ inputs.windows_version }}
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/.cache/vcpkg/archives,readwrite
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git
+          ./vcpkg/bootstrap-vcpkg.bat
+
+      - name: Cache vcpkg binary archives
+        id: vcpkg-cache
+        uses: actions/cache@v5
+        with:
+          path: ./.cache/vcpkg/archives
+
+          # The vcpkg file hash forces dependency rebuilds when the manifest or baseline changes.
+          key: ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+
+          restore-keys: |
+            ${{ runner.os }}-${{ inputs.windows_version }}-x64-windows-vcpkg-binary-
+            ${{ runner.os }}-x64-windows-vcpkg-binary-
+
+      - name: Install vcpkg dependencies
+        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          ./vcpkg/vcpkg install --triplet x64-windows

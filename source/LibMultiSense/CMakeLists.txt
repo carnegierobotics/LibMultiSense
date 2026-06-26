@@ -32,26 +32,35 @@ else()
     add_library(MultiSense STATIC ${MULTISENSE_HEADERS}
                                    ${DETAILS_SRC})
     set_target_properties(MultiSense PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    target_compile_definitions(MultiSense PUBLIC MultiSense_STATIC)
 
 endif()
 
-target_link_libraries(MultiSense MultiSenseWire ${FILESYSTEM_LIBRARY})
+# Provide a namespaced alias so that in-tree consumers can link against the same
+# target name that the installed package exports.
+add_library(MultiSense::MultiSense ALIAS MultiSense)
+
+target_link_libraries(MultiSense PRIVATE MultiSenseWire::MultiSenseWire)
+if (FILESYSTEM_LIBRARY)
+    target_link_libraries(MultiSense PUBLIC ${FILESYSTEM_LIBRARY})
+endif()
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
 
-if (BUILD_OPENCV)
-  if(OpenCV_FOUND)
-    target_compile_definitions(MultiSense PRIVATE HAVE_OPENCV)
+if (BUILD_OPENCV AND OpenCV_FOUND)
+    target_compile_definitions(MultiSense PUBLIC MULTISENSE_HAVE_OPENCV)
 
-    target_include_directories(MultiSense PUBLIC ${OpenCV_INCLUDE_DIRS})
-
-    target_link_libraries(MultiSense ${OpenCV_LIBS})
-  endif()
+    target_link_libraries(MultiSense
+        PUBLIC
+            opencv_core
+            opencv_features2d
+        PRIVATE
+            opencv_imgcodecs)
 endif()
 
-if (BUILD_JSON_SERIALIZATION)
-    target_link_libraries(MultiSense nlohmann_json::nlohmann_json)
+if (BUILD_JSON_SERIALIZATION AND nlohmann_json_FOUND)
+    target_link_libraries(MultiSense PUBLIC nlohmann_json::nlohmann_json)
 endif()
 
 set_target_properties(MultiSense PROPERTIES VERSION "${version}")
@@ -72,12 +81,12 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(HTTPLIB REQUIRED IMPORTED_TARGET cpp-httplib)
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense Threads::Threads PkgConfig::HTTPLIB OpenSSL::SSL OpenSSL::Crypto multisense-webrtc-client)
+target_link_libraries(MultiSense PUBLIC Threads::Threads PkgConfig::HTTPLIB OpenSSL::SSL OpenSSL::Crypto multisense-webrtc-client)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-    target_link_libraries(MultiSense ws2_32)
+    target_link_libraries(MultiSense PRIVATE ws2_32)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(MultiSense rt)
+    target_link_libraries(MultiSense PRIVATE rt)
 endif()
 
 if (BUILD_TESTS)
@@ -86,8 +95,9 @@ endif()
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/MultiSenseConfig.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
-  INSTALL_DESTINATION lib/cmake/MultiSense)
+  "${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake"
+  INSTALL_DESTINATION "lib/cmake/MultiSense"
+)
 
 # create install targets
 install(TARGETS MultiSense
@@ -99,6 +109,7 @@ install(TARGETS MultiSense
 )
 
 install(EXPORT MultiSenseTargets
+        NAMESPACE MultiSense::
         DESTINATION lib/cmake/MultiSense)
 
 write_basic_package_version_file(
@@ -110,6 +121,8 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_CONSTEXPR}
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_FILESYSTEM}
   DESTINATION lib/cmake/MultiSense)
 
 install(FILES ${MULTISENSE_HEADERS} DESTINATION include/MultiSense)

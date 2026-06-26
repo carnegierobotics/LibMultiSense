@@ -10,7 +10,7 @@ include_directories(shared)
 
 find_package(Threads REQUIRED)
 list(APPEND MULTISENSE_UTILITY_LIBS
-    MultiSense
+    MultiSense::MultiSense
     Threads::Threads
 )
 

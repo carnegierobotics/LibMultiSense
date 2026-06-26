@@ -42,10 +42,31 @@
 namespace multisense {
 namespace legacy {
 
+MultiSenseConfig::FeatureDetectorConfig convert(const crl::multisense::details::wire::FeatureDetectorConfigParams &params)
+{
+    MultiSenseConfig::FeatureDetectorConfig config;
+    config.number_of_features = params.numberOfFeatures;
+    config.grouping_enabled = params.grouping;
+    config.motion_octave = params.motion;
+
+    return config;
+}
+
+crl::multisense::details::wire::FeatureDetectorConfigParams convert(const MultiSenseConfig::FeatureDetectorConfig &config)
+{
+    crl::multisense::details::wire::FeatureDetectorConfigParams params{};
+    params.numberOfFeatures = config.number_of_features;
+    params.grouping = config.grouping_enabled;
+    params.motion = config.motion_octave;
+
+    return params;
+}
+
 MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config,
                          const std::optional<crl::multisense::details::wire::AuxCamConfig> &aux_config,
                          const std::optional<crl::multisense::details::wire::ImuConfig> &imu_config,
                          const std::optional<crl::multisense::details::wire::LedStatus> &led_config,
+                         const std::optional<crl::multisense::details::wire::FeatureDetectorConfigParams> &feature_config,
                          const crl::multisense::details::wire::SysPacketDelay &packet_delay,
                          bool ptp_enabled,
                          const MultiSenseInfo::DeviceInfo &info,
@@ -100,6 +121,9 @@ MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config
                                 std::nullopt,
                             (led_config && led_config->available) ?
                                 std::make_optional(convert(led_config.value(), info)) :
+                                std::nullopt,
+                            feature_config ?
+                                std::make_optional(convert(feature_config.value())) :
                                 std::nullopt};
 }
 
@@ -502,6 +526,18 @@ crl::multisense::details::wire::LedSet convert(const MultiSenseConfig::LightingC
         output.number_of_pulses = led.external->pulses_per_exposure;
         output.invert_pulse = false;
         output.led_delay_us = static_cast<uint32_t>(led.external->startup_time.count());
+    }
+
+    return output;
+}
+
+std::vector<SecondaryApplication> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps)
+{
+    std::vector<SecondaryApplication> output;
+
+    for (const auto &app: apps.apps)
+    {
+        output.emplace_back(secondary_application(app.appName));
     }
 
     return output;

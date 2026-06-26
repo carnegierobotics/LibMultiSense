@@ -26,7 +26,7 @@ extern int optind;
 extern int optopt;
 extern char* optarg;
 
-extern int getopt (int argc, char** argv, char* opts);
+extern int getopt (int argc, char** argv, const char* opts);
 
 #ifdef __cplusplus
 }

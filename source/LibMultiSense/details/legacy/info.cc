@@ -72,6 +72,8 @@ MultiSenseInfo::DeviceInfo convert(const crl::multisense::details::wire::SysDevi
             {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::ST25; break;}
         case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:
             {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i; break;}
+        case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:
+            {output.hardware_revision = MultiSenseInfo::DeviceInfo::HardwareRevision::STLC; break;}
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 
@@ -101,6 +103,8 @@ MultiSenseInfo::DeviceInfo convert(const crl::multisense::details::wire::SysDevi
             {output.imager_type = MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR; break;}
         case wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280:
             {output.imager_type = MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280; break;}
+        case wire::SysDeviceInfo::IMAGER_TYPE_TURA640:
+            {output.imager_type = MultiSenseInfo::DeviceInfo::ImagerType::TURA640; break;}
         default: {CRL_EXCEPTION("Unsupported imager type");}
     }
 
@@ -177,6 +181,8 @@ crl::multisense::details::wire::SysDeviceInfo convert(const MultiSenseInfo::Devi
             {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25; break;}
         case MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i:
             {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i; break;}
+        case MultiSenseInfo::DeviceInfo::HardwareRevision::STLC:
+            {output.hardwareRevision = wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC; break;}
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 
@@ -206,6 +212,8 @@ crl::multisense::details::wire::SysDeviceInfo convert(const MultiSenseInfo::Devi
             {output.imagerType = wire::SysDeviceInfo::IMAGER_TYPE_AR0239_COLOR; break;}
         case MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280:
             {output.imagerType = wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280; break;}
+        case MultiSenseInfo::DeviceInfo::ImagerType::TURA640:
+            {output.imagerType = wire::SysDeviceInfo::IMAGER_TYPE_TURA640; break;}
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 

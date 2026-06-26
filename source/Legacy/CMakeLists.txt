@@ -59,7 +59,11 @@ add_library(MultiSense ${MULTISENSE_HEADERS}
                        ${DETAILS_HEADERS}
                        ${DETAILS_SRC})
 
-target_link_libraries(MultiSense MultiSenseWire)
+# Provide a namespaced alias so that in-tree consumers can link against the same
+# target name that the installed package exports.
+add_library(MultiSense::MultiSense ALIAS MultiSense)
+
+target_link_libraries(MultiSense PUBLIC MultiSenseWire::MultiSenseWire)
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         PUBLIC $<INSTALL_INTERFACE:include>)
@@ -87,11 +91,11 @@ set_target_properties(MultiSense PROPERTIES PUBLIC_HEADER "${MULTISENSE_HEADERS}
 #
 
 find_package(Threads REQUIRED)
-target_link_libraries(MultiSense Threads::Threads)
+target_link_libraries(MultiSense PUBLIC Threads::Threads)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows" OR CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
-    target_link_libraries(MultiSense ws2_32)
+    target_link_libraries(MultiSense PUBLIC ws2_32)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(MultiSense rt)
+    target_link_libraries(MultiSense PUBLIC rt)
 endif()
 
 include(CMakePackageConfigHelpers)
@@ -110,6 +114,7 @@ install(TARGETS MultiSense
 )
 
 install(EXPORT MultiSenseTargets
+  NAMESPACE MultiSense::
   DESTINATION lib/cmake/MultiSense)
 
 write_basic_package_version_file(
@@ -121,6 +126,8 @@ write_basic_package_version_file(
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/MultiSenseConfigVersion.cmake
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_CONSTEXPR}
+  ${MULTISENSE_CMAKE_MODULE_CXX_CHECK_FILESYSTEM}
   DESTINATION lib/cmake/MultiSense)
 
 

@@ -1,0 +1,10 @@
+# Codecov configuration to exclude tests from coverage metrics
+ignore:
+  - "source/*/test/*"
+  - "source/LibMultiSense/test/*"
+  - "source/Wire/test/*"
+  - "source/Utilities/Legacy/*TestUtility/*"
+  - "*/test/*"
+  - "**/*_test.cc"
+  - "vcpkg_installed/*"
+  - "details/legacy/*"

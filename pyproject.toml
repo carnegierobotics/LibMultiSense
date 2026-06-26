@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "libmultisense"
-version = "7.6.0"
+version = "7.9.0"
 description="LibMultiSense python package wrapped using pybind11"
 readme = "README.md"
 authors = [
@@ -14,7 +14,7 @@ authors = [
 requires-python = ">=3.8"
 
 [tool.scikit-build.cmake]
-args = ["-DBUILD_PYTHON_BINDINGS=ON", "-DBUILD_JSON_SERIALIZATION=ON", "-DBUILD_SHARED_LIBS=OFF", "-DBUILD_LEGACY_API=OFF"]
+args = ["-DBUILD_PYTHON_BINDINGS=ON", "-DBUILD_JSON_SERIALIZATION=ON", "-DBUILD_SHARED_LIBS=OFF", "-DBUILD_LEGACY_API=OFF", "-DCMAKE_BUILD_TYPE=RELEASE"]
 
 [project.urls]
 Homepage = "https://github.com/carnegierobotics/libmultisense"
@@ -30,3 +30,4 @@ multisense_ptp_utility = "libmultisense.utilities.ptp_utility:main"
 multisense_rectified_focal_length_utility = "libmultisense.utilities.rectified_focal_length_utility:main"
 multisense_save_image_utility = "libmultisense.utilities.save_image_utility:main"
 multisense_version_info_utility = "libmultisense.utilities.version_info_utility:main"
+multisense_feature_detector_utility = "libmultisense.utilities.feature_detector_utility:main"

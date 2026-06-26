@@ -116,14 +116,14 @@ public:
         fy_(reference_cal.P[1][1]),
         cx_(reference_cal.P[0][2]),
         cy_(reference_cal.P[1][2]),
-        tx_(matching_cal.P[0][3] / matching_cal.P[0][0]),
+        tx_(static_cast<double>(matching_cal.P[0][3]) / static_cast<double>(matching_cal.P[0][0])),
         cx_prime_(matching_cal.P[0][2]),
         fytx_(fy_ * tx_),
         fxtx_(fx_ * tx_),
         fycxtx_(fy_ * cx_ * tx_),
         fxcytx_(fx_ * cy_ * tx_),
         fxfytx_(fx_ * fy_ * tx_),
-        fycxcxprime_(fy_ * (cx_ - cx_prime_))
+        fycxcxprime_(fy_ * (static_cast<double>(cx_) - static_cast<double>(cx_prime_)))
     {
     }
 
@@ -135,6 +135,18 @@ public:
         const double z = fxfytx_ * inversebeta;
 
         return Point<void>{static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)};
+    }
+
+
+    std::array<std::array<double, 4>, 4> matrix() const
+    {
+        //
+        // See https://docs.carnegierobotics.com/cookbook/overview.html#reproject-disparity-images-to-3d-point-clouds
+        //
+        return std::array<std::array<double, 4>, 4>{{{fytx_, 0.0, 0.0, -fycxtx_},
+                                                     {0.0, fxtx_, 0.0, -fxcytx_},
+                                                     {0.0, 0.0, 0.0, fxfytx_},
+                                                     {0.0, 0.0, -fy_, fycxcxprime_}}};
     }
 
 private:
@@ -228,6 +240,16 @@ MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
                                                      const DataSource &output_source);
 
 ///
+/// @brief Scale a calibration to align with a different operating resolution
+///
+/// @param calibration The input calibration to scale
+/// @param scale The scale factor to apply to the calibration
+///
+/// @return A scaled calibration
+///
+MULTISENSE_API CameraCalibration scale_calibration(CameraCalibration calibration, double scale);
+
+///
 /// @brief Create a point cloud from a image frame and a color source.
 ///
 /// @param disparity A disparity image to convert to a pointcloud
@@ -238,10 +260,10 @@ MULTISENSE_API std::optional<Image> create_bgr_image(const ImageFrame &frame,
 /// @return Return a colorized point cloud
 ///
 template<typename Color>
-MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
-                                                                        const std::optional<Image> &color,
-                                                                        double max_range,
-                                                                        const StereoCalibration &calibration)
+std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
+                                                         const std::optional<Image> &color,
+                                                         double max_range,
+                                                         const StereoCalibration &calibration)
 {
     size_t color_step = 0;
     double color_disparity_scale = 0.0;
@@ -341,10 +363,10 @@ MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const Im
 /// @return Return a colorized point cloud
 ///
 template<typename Color>
-MULTISENSE_API std::optional<PointCloud<Color>> create_color_pointcloud(const ImageFrame &frame,
-                                                                        double max_range,
-                                                                        const DataSource &color_source = DataSource::UNKNOWN,
-                                                                        const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW)
+std::optional<PointCloud<Color>> create_color_pointcloud(const ImageFrame &frame,
+                                                         double max_range,
+                                                         const DataSource &color_source = DataSource::UNKNOWN,
+                                                         const DataSource &disparity_source = DataSource::LEFT_DISPARITY_RAW)
 {
     if constexpr (std::is_same_v<Color, void>)
     {
@@ -381,7 +403,7 @@ MULTISENSE_API std::optional<PointCloud<void>> create_pointcloud(const ImageFram
 /// @return Return true if the pointcloud was written successfully
 ///
 template <typename Color>
-MULTISENSE_API bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, const std::filesystem::path &path)
+bool write_pointcloud_ply(const PointCloud<Color> &point_cloud, const std::filesystem::path &path)
 {
     std::ofstream ply(path, std::ios::binary);
     if (!ply.good())

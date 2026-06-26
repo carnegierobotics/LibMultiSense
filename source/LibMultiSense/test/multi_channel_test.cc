@@ -47,14 +47,14 @@ TEST(frames_synchronized, basic_test)
 
     EXPECT_TRUE(frames_synchronized(frames, 0ns));
 
-    frames.emplace_back(ImageFrame{1, {}, {}, TimeT{10ms}, TimeT{10ms}, {}, {}, {}, {}});
-    frames.emplace_back(ImageFrame{3, {}, {}, TimeT{30ms}, TimeT{30ms}, {}, {}, {}, {}});
+    frames.emplace_back(ImageFrame{1, {}, {}, {}, TimeT{10ms}, TimeT{10ms}, {}, {}, {}, {}});
+    frames.emplace_back(ImageFrame{3, {}, {}, {}, TimeT{30ms}, TimeT{30ms}, {}, {}, {}, {}});
 
     EXPECT_FALSE(frames_synchronized(frames, 0ns));
     EXPECT_TRUE(frames_synchronized(frames, 21ms));
 
-    frames.emplace_back(ImageFrame{37, {}, {}, TimeT{38ms}, TimeT{38ms}, {}, {}, {}, {}});
-    frames.emplace_back(ImageFrame{7, {}, {}, TimeT{31ms}, TimeT{31ms}, {}, {}, {}, {}});
+    frames.emplace_back(ImageFrame{37, {}, {}, {}, TimeT{38ms}, TimeT{38ms}, {}, {}, {}, {}});
+    frames.emplace_back(ImageFrame{7, {}, {}, {}, TimeT{31ms}, TimeT{31ms}, {}, {}, {}, {}});
 
     EXPECT_FALSE(frames_synchronized(frames, 21ms));
     EXPECT_TRUE(frames_synchronized(frames, 29ms));

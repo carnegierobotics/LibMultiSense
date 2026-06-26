@@ -53,17 +53,18 @@
 #include <iostream>
 #include <stdexcept>
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/features2d.hpp>
 #endif
 
 #include "MultiSense/MultiSenseUtilities.hh"
-#include <utility/Exception.hh>
+#include <MultiSense/utility/Exception.hh>
 
 namespace multisense {
 namespace {
 
-#ifndef HAVE_OPENCV
+#ifndef MULTISENSE_HAVE_OPENCV
 bool write_binary_image(const Image &image, const std::filesystem::path &path)
 {
     std::ofstream output(path, std::ios::binary | std::ios::out);
@@ -181,12 +182,18 @@ std::string to_string(const DataSource &source)
         case DataSource::AUX_RECTIFIED_RAW: {return "AUX_RECTIFIED";}
         case DataSource::COST_RAW: {return "COST";}
         case DataSource::IMU: {return "IMU";}
+        case DataSource::LEFT_ORB_FEATURES: {return "LEFT_ORB";}
+        case DataSource::RIGHT_ORB_FEATURES: {return "RIGHT_ORB";}
+        case DataSource::AUX_ORB_FEATURES: {return "AUX_ORB";}
+        case DataSource::LEFT_RECTIFIED_ORB_FEATURES: {return "LEFT_RECTIFIED_ORB";}
+        case DataSource::RIGHT_RECTIFIED_ORB_FEATURES: {return "RIGHT_RECTIFIED_ORB";}
+        case DataSource::AUX_RECTIFIED_ORB_FEATURES: {return "AUX_RECTIFIED_ORB";}
     }
     return "UNKNOWN";
 }
 
 
-#ifdef HAVE_OPENCV
+#ifdef MULTISENSE_HAVE_OPENCV
 cv::Mat Image::cv_mat() const
 {
     int cv_type = 0;
@@ -204,12 +211,48 @@ cv::Mat Image::cv_mat() const
                    cv_type,
                    const_cast<uint8_t*>(raw_data->data() + image_data_offset)};
 }
+
+std::vector<cv::KeyPoint> FeatureMessage::cv_keypoints() const
+{
+    std::vector<cv::KeyPoint> kp;
+    kp.reserve(keypoints.size());
+
+    for (const auto &k : keypoints)
+    {
+        kp.emplace_back(k.x, k.y, 0.0f, k.angle, k.response, k.octave, k.class_id);
+    }
+
+    return kp;
+}
+
+cv::Mat FeatureMessage::cv_descriptors() const
+{
+    if (keypoints.empty())
+    {
+        return cv::Mat{};
+    }
+
+    const int descriptor_size = descriptors.size() / keypoints.size();
+
+    return cv::Mat{static_cast<int>(keypoints.size()),
+                   descriptor_size,
+                   CV_8UC1,
+                   const_cast<uint8_t*>(descriptors.data())};
+}
 #endif
 
 bool write_image(const Image &image, const std::filesystem::path &path)
 {
-#ifdef HAVE_OPENCV
-    return cv::imwrite(path.string(), image.cv_mat());
+#ifdef MULTISENSE_HAVE_OPENCV
+    try
+    {
+        return cv::imwrite(path.string(), image.cv_mat());
+    }
+    catch (const cv::Exception &e)
+    {
+        CRL_DEBUG("Failed to write image to disk: %s", e.what());
+        return false;
+    }
 #else
     const auto extension = path.extension();
     if (extension == ".pgm" || extension == ".PGM" || extension == ".ppm" || extension == ".PPM")
@@ -494,6 +537,23 @@ std::optional<Image> create_bgr_image(const ImageFrame &frame, const DataSource 
     }
 
     return std::nullopt;
+}
+
+CameraCalibration scale_calibration(CameraCalibration calibration, double scale)
+{
+    calibration.K[0][0] *= scale;
+    calibration.K[0][2] *= scale;
+    calibration.K[1][1] *= scale;
+    calibration.K[1][2] *= scale;
+
+    calibration.P[0][0] *= scale;
+    calibration.P[0][2] *= scale;
+    calibration.P[0][3] *= scale;
+    calibration.P[1][1] *= scale;
+    calibration.P[1][2] *= scale;
+    calibration.P[1][3] *= scale;
+
+    return calibration;
 }
 
 std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,

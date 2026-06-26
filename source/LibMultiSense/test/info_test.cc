@@ -224,6 +224,8 @@ void check_equal(const crl::multisense::details::wire::SysDeviceInfo &wire,
             ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::ST25); break;
         case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i:
             ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i); break;
+        case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:
+            ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::STLC); break;
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 
@@ -254,6 +256,8 @@ void check_equal(const crl::multisense::details::wire::SysDeviceInfo &wire,
             ASSERT_EQ(info.imager_type, MultiSenseInfo::DeviceInfo::ImagerType::AR0239_COLOR); break;
         case wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280:
             ASSERT_EQ(info.imager_type, MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280); break;
+        case wire::SysDeviceInfo::IMAGER_TYPE_TURA640:
+            ASSERT_EQ(info.imager_type, MultiSenseInfo::DeviceInfo::ImagerType::TURA640); break;
         default: {CRL_EXCEPTION("Unsupported imager type");}
     }
     ASSERT_EQ(wire.imagerWidth, info.imager_width);
@@ -318,9 +322,93 @@ TEST(convert, wire_to_info)
     check_equal(info, convert(info), "key");
 }
 
+TEST(convert, wire_to_info_tenum)
+{
+    auto info = create_wire_info("test", "key");
+    info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_TENUM1280;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_tura)
+{
+    auto info = create_wire_info("test", "key");
+    info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_TURA640;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_234)
+{
+    auto info = create_wire_info("test", "key");
+    info.imagerType = crl::multisense::details::wire::SysDeviceInfo::IMAGER_TYPE_AR0234_GREY;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_ks21i)
+{
+    auto info = create_wire_info("test", "key");
+    info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_KS21i;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_stlc)
+{
+    auto info = create_wire_info("test", "key");
+    info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC;
+    check_equal(info, convert(info), "key");
+}
+
+TEST(convert, wire_to_info_st25)
+{
+    auto info = create_wire_info("test", "key");
+    info.hardwareRevision = crl::multisense::details::wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_ST25;
+    check_equal(info, convert(info), "key");
+}
+
 TEST(convert, info_to_wire)
 {
     const auto info = create_info("test");
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_ks21i)
+{
+    auto info = create_info("test");
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_stlc)
+{
+    auto info = create_info("test");
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STLC;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_st25)
+{
+    auto info = create_info("test");
+    info.hardware_revision = multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::ST25;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_234)
+{
+    auto info = create_info("test");
+    info.imager_type = multisense::MultiSenseInfo::DeviceInfo::ImagerType::AR0234_GREY;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_tura640)
+{
+    auto info = create_info("test");
+    info.imager_type = multisense::MultiSenseInfo::DeviceInfo::ImagerType::TURA640;
+    check_equal(convert(info, "key"), info, "key");
+}
+
+TEST(convert, info_to_wire_tenum1280)
+{
+    auto info = create_info("test");
+    info.imager_type = multisense::MultiSenseInfo::DeviceInfo::ImagerType::TENUM1280;
     check_equal(convert(info, "key"), info, "key");
 }
 

@@ -13,8 +13,9 @@ if(WIN32 AND DEFINED ENV{VCPKG_ROOT})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain file")
 endif()
 
-set(version "7.6.0")
+set(version "7.9.0")
 set(CPACK_PACKAGE_VERSION ${version})
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 project(LibMultiSense
   LANGUAGES C CXX
@@ -24,7 +25,7 @@ project(LibMultiSense
 
 include (CheckCXXSourceCompiles)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if(MSVC)
     string (REGEX REPLACE "/W3" "/W4" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
     string (REGEX REPLACE "/W3" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     add_compile_options(/WX)
@@ -34,7 +35,7 @@ else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NOT MSVC)
     #
     # Fix warnings with __VA__OPT__ when we port to c++2a
     # https://gcc.gnu.org/onlinedocs/cpp/Variadic-Macros.html
@@ -50,15 +51,26 @@ option(BUILD_OPENCV "Use OpenCV if found on the host system" OFF)
 option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
 option(BUILD_JSON_SERIALIZATION "Build json type serialization with nlohmann json." OFF)
 option(ENABLE_ASAN "Build with AddressSanitizer instrumentation." OFF)
+option(ENABLE_COVERAGE "Build with code coverage instrumentation." OFF)
 
 if (BUILD_TESTS)
     enable_testing()
 endif()
 
+if (ENABLE_COVERAGE)
+    if (MSVC)
+        message(FATAL_ERROR "ENABLE_COVERAGE is only supported with Clang or GCC toolchains.")
+    endif()
+
+    add_compile_options(--coverage -O0 -g)
+    add_link_options(--coverage)
+
+    include(MultiSenseCoverage)
+endif()
+
 #
 # We want to build "Release" by default
 #
-
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message(STATUS "Selecting default build type: Release")
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type (default: Release)" FORCE)
@@ -74,35 +86,7 @@ if (NOT BUILD_LEGACY_API)
     #
     # Ensure compiler support for std::filesystem
     #
-
-    set(FILESYSTEM_CODE "
-        #include <filesystem>
-        int main() {
-            std::filesystem::path p(\"/\");
-            return std::filesystem::exists(p) ? 0 : 1;
-        }
-    ")
-
-    check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM)
-
-    if (NOT HAVE_STD_FILESYSTEM)
-        # Try linking with stdc++fs (GCC < 9, Clang < 9)
-        set(CMAKE_REQUIRED_LIBRARIES stdc++fs)
-        check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_STDCXXFS)
-        if (HAVE_STD_FILESYSTEM_STDCXXFS)
-            set(FILESYSTEM_LIBRARY stdc++fs)
-            set(HAVE_STD_FILESYSTEM TRUE)
-        else()
-            # Try linking with c++fs (older Clang/libc++)
-            set(CMAKE_REQUIRED_LIBRARIES c++fs)
-            check_cxx_source_compiles("${FILESYSTEM_CODE}" HAVE_STD_FILESYSTEM_CXXFS)
-            if (HAVE_STD_FILESYSTEM_CXXFS)
-                set(FILESYSTEM_LIBRARY c++fs)
-                set(HAVE_STD_FILESYSTEM TRUE)
-            endif()
-        endif()
-        unset(CMAKE_REQUIRED_LIBRARIES)
-    endif()
+    include(MultiSenseCxxCheckFilesystem RESULT_VARIABLE MULTISENSE_CMAKE_MODULE_CXX_CHECK_FILESYSTEM)
 
     if (NOT HAVE_STD_FILESYSTEM)
         message(FATAL_ERROR "The new MultiSense API requires a compiler with std::filesystem support (C++17).")
@@ -112,13 +96,7 @@ endif()
 #
 # Check if the compiler supports constexpr
 #
-check_cxx_source_compiles (
-    "int main() { constexpr int x = 0; }"
-    HAVE_CONSTEXPR
-)
-if (HAVE_CONSTEXPR)
-    add_definitions(-DCRL_HAVE_CONSTEXPR)
-endif ()
+include(MultiSenseCxxCheckConstexpr RESULT_VARIABLE MULTISENSE_CMAKE_MODULE_CXX_CHECK_CONSTEXPR)
 
 #
 # For Backwards compatibility with other ROS builds
@@ -130,18 +108,30 @@ else()
 endif()
 
 #
-# Use full RPATH
+# Specify a relative RPATH to support both configure-time and install-time prefixes.
 #
 set (CMAKE_SKIP_BUILD_RPATH FALSE)
 set (CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set (CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@loader_path/../lib")
+elseif(UNIX)
+    # [[ ]] keeps $ORIGIN literal for the linker instead of letting CMake expand it.
+    set(CMAKE_INSTALL_RPATH [[$ORIGIN/../lib]])
+else()
+    # RPATH is not supported for non-ELF platforms. Keep the configure-time default.
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+endif()
 set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 #
 # Setup optional dependencies
 #
 if (BUILD_OPENCV)
-   find_package(OpenCV QUIET)
+   set(OPENCV_COMPONENTS core features2d imgcodecs)
+   if (MULTISENSE_BUILD_UTILITIES)
+      list(APPEND OPENCV_COMPONENTS highgui imgproc)
+   endif()
+   find_package(OpenCV QUIET COMPONENTS ${OPENCV_COMPONENTS})
 
   if(OpenCV_FOUND)
     message(STATUS "OpenCV found. Enabling OpenCV-specific code.")
@@ -206,5 +196,5 @@ endif ()
 #
 
 if(CMAKE_ENABLE_CPACK)
-    include(${CMAKE_CURRENT_LIST_DIR}/cmake/cpack.cmake)
+    include(MultiSenseCPack)
 endif()
