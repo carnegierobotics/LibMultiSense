@@ -423,7 +423,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
 
     constexpr double scale = 1.0 / 16.0;
 
-    const QMatrix Q{disparity.calibration, frame.calibration.right};
+    const QMatrix Q(disparity.calibration, frame.calibration.right.rectified_translation()[0], frame.calibration.right.P[0][2]);
 
     //
     // Search through our configured pixel window testing to see if the disparity value projected into the aux
@@ -658,6 +658,38 @@ std::map<std::string, std::vector<float>> parse_yaml(std::istream& stream)
     }
 
     return data;
+}
+
+CameraCalibration scale_calibration(const CameraCalibration &input, double x_scale, double y_scale)
+{
+    auto output = input;
+
+    output.K[0][0] = static_cast<float>(static_cast<double>(output.K[0][0]) * x_scale); // fx
+    output.K[0][2] = static_cast<float>(static_cast<double>(output.K[0][2]) * x_scale); // cx
+    output.K[1][1] = static_cast<float>(static_cast<double>(output.K[1][1]) * y_scale); // fy
+    output.K[1][2] = static_cast<float>(static_cast<double>(output.K[1][2]) * y_scale); // cy
+
+    output.P[0][0] = static_cast<float>(static_cast<double>(output.P[0][0]) * x_scale); // fx
+    output.P[0][2] = static_cast<float>(static_cast<double>(output.P[0][2]) * x_scale); // cx
+    output.P[0][3] = static_cast<float>(static_cast<double>(output.P[0][3]) * x_scale); // fx * tx
+    output.P[1][1] = static_cast<float>(static_cast<double>(output.P[1][1]) * y_scale); // fy
+    output.P[1][2] = static_cast<float>(static_cast<double>(output.P[1][2]) * y_scale); // cy
+
+    return output;
+}
+
+StereoCalibration scale_calibration(const StereoCalibration &input, double x_scale, double y_scale)
+{
+    auto output = input;
+
+    output.left = scale_calibration(input.left, x_scale, y_scale);
+    output.right = scale_calibration(input.right, x_scale, y_scale);
+    if (input.aux)
+    {
+        output.aux = scale_calibration(input.aux.value(), x_scale, y_scale);
+    }
+
+    return output;
 }
 
 }

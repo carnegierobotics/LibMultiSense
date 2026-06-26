@@ -40,6 +40,8 @@
 #include <condition_variable>
 #include <optional>
 
+#include "MultiSense/MultiSenseTypes.hh"
+
 namespace multisense{
 
 template <typename T>
@@ -106,5 +108,15 @@ private:
     std::condition_variable m_cv;
     std::optional<T> m_frame;
 };
+
+///
+/// @brief Scale a calibration used to update a full-res calibration based on the current operating resolution
+///
+CameraCalibration scale_calibration(const CameraCalibration &input, double x_scale, double y_scale);
+
+///
+/// @brief Scale a calibration used to update a full-res calibration based on the current operating resolution
+///
+StereoCalibration scale_calibration(const StereoCalibration &input, double x_scale, double y_scale);
 
 }

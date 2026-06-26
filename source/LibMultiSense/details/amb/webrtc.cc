@@ -34,6 +34,7 @@
  *   2026-04-17, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include "details/utilities.hh"
 #include "details/amb/webrtc.hh"
 
 #include <cstring>
@@ -47,8 +48,9 @@ extern "C"
 namespace multisense {
 namespace amb {
 
-WebRtcClient::WebRtcClient(const std::string& host)
-    : m_impl(nullptr)
+WebRtcClient::WebRtcClient(const std::string& host, const StereoCalibration &calibration)
+    : m_impl(nullptr),
+      m_calibration(calibration)
 {
     m_impl = create_mswebrtc_impl(host.c_str());
 }
@@ -115,25 +117,13 @@ void WebRtcClient::c_frame_callback(struct ImageData* left,
 
     ImageFrame frame;
 
-    auto get_pixel_format = [](struct ImageData* data) -> Image::PixelFormat
-    {
-        if (data->channels == 1 && data->bytewidth == 1)
-        {
-            return Image::PixelFormat::MONO8;
-        }
-        else if (data->channels == 1 && data->bytewidth == 2)
-        {
-            return Image::PixelFormat::MONO16;
-        }
-        else if (data->channels == 3 && data->bytewidth == 1)
-        {
-            return Image::PixelFormat::BGR8;
-        }
+    static size_t frame_id = 0;
+    frame.frame_id = ++frame_id;
+    const auto now = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now());
+    frame.frame_time = now;
+    frame.ptp_frame_time = now;
 
-        return Image::PixelFormat::UNKNOWN;
-    };
-
-    auto create_image = [get_pixel_format](struct ImageData* data, DataSource source) -> std::optional<Image>
+    auto create_image = [](struct ImageData* data, const CameraCalibration &calibration, DataSource source) -> std::optional<Image>
     {
         if (data == nullptr || data->size <= 0 || data->data == nullptr)
         {
@@ -149,25 +139,47 @@ void WebRtcClient::c_frame_callback(struct ImageData* left,
         image.image_data_length = data->size;
         image.source = source;
 
-        image.format = get_pixel_format(data);
+        if (data->channels == 1 && data->bytewidth == 1)
+        {
+            image.format = Image::PixelFormat::MONO8;
+        }
+        else if (data->channels == 1 && data->bytewidth == 2)
+        {
+            image.format = Image::PixelFormat::MONO16;
+        }
+        else if (data->channels == 3 && data->bytewidth == 1)
+        {
+            image.format = Image::PixelFormat::BGR8;
+        }
+        else
+        {
+            image.format = Image::PixelFormat::UNKNOWN;
+        }
 
         image.width = data->width;
         image.height = data->height;
+        image.calibration = calibration;
 
         return image;
     };
 
-    if (auto left_image = create_image(left, DataSource::LEFT_RECTIFIED_RAW); left_image)
+    if (auto left_image = create_image(left,
+                                       client->m_calibration.left,
+                                       DataSource::LEFT_RECTIFIED_RAW); left_image)
     {
         frame.add_image(left_image.value());
     }
 
-    if (auto right_image = create_image(right, DataSource::RIGHT_RECTIFIED_RAW); right_image)
+    if (auto right_image = create_image(right,
+                                        client->m_calibration.right,
+                                        DataSource::RIGHT_RECTIFIED_RAW); right_image)
     {
         frame.add_image(right_image.value());
     }
 
-    if (auto disparity_image = create_image(disparity, DataSource::LEFT_DISPARITY_RAW); disparity_image)
+    if (auto disparity_image = create_image(disparity,
+                                            scale_calibration(client->m_calibration.left, 0.5, 0.5),
+                                            DataSource::LEFT_DISPARITY_RAW); disparity_image)
     {
         frame.add_image(disparity_image.value());
     }
