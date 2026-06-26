@@ -157,7 +157,6 @@ Status AmbChannel::connect(const Config &config)
 
     m_webtrc->set_frame_callback([this](ImageFrame& frame)
                                  {
-                                     std::cout << "got new frame" << std::endl;
                                      frame.calibration = m_calibration;
                                      if (m_user_image_frame_callback)
                                      {

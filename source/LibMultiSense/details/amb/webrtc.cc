@@ -132,7 +132,7 @@ void WebRtcClient::c_frame_callback(struct ImageData* left,
 
         Image image;
         auto buffer = std::make_shared<std::vector<uint8_t>>(data->size, 0);
-        std::memcpy(buffer->data(), data->data, 0);
+        std::memcpy(buffer->data(), data->data, data->size);
 
         image.raw_data = buffer;
         image.image_data_offset = 0;
