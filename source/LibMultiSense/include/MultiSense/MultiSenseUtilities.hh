@@ -313,8 +313,7 @@ std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
     {
         for (size_t w = 0 ; w < static_cast<size_t>(disparity.width) ; ++w)
         {
-            const size_t index = disparity.image_data_offset +
-                                 (h * disparity.width * sizeof(uint16_t)) +
+            const size_t index = (h * disparity.width * sizeof(uint16_t)) +
                                  (w * sizeof(uint16_t));
 
             const double d =
@@ -345,9 +344,7 @@ std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
 
                 if (color_u >= 0 && color_u < color->width && color_v >= 0 && color_v < color->height)
                 {
-                    const size_t color_index = color->image_data_offset +
-                                               (color_v * color->width * color_step) +
-                                               (color_u * color_step);
+                    const size_t color_index = (color_v * color->width * color_step) + (color_u * color_step);
 
                     color_pixel = *reinterpret_cast<const Color*>(color->raw_data->data() + color_index);
                 }

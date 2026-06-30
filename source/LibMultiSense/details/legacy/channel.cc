@@ -1464,9 +1464,8 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
     const auto cal_x_scale = static_cast<double>(wire_image.width) / static_cast<double>(info.imager_width);
     const auto cal_y_scale = static_cast<double>(wire_image.height) / static_cast<double>(info.imager_height);
 
-    Image image{data,
-                static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
-                ((wire_image.bitsPerPixel / 8) * wire_image.width * wire_image.height),
+    const size_t offset = static_cast<const uint8_t*>(wire_image.dataP) - data->data();
+    Image image{std::make_shared<BufferWrapper>(std::move(data), offset),
                 pixel_format,
                 wire_image.width,
                 wire_image.height,
@@ -1533,9 +1532,9 @@ void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<
     const auto cal_x_scale = static_cast<double>(wire_image.width) / static_cast<double>(info.imager_width);
     const auto cal_y_scale = static_cast<double>(wire_image.height) / static_cast<double>(info.imager_height);
 
-    Image image{data,
-                static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
-                ((wire_image.bitsPerPixel / 8) * wire_image.width * wire_image.height),
+
+    const size_t offset = static_cast<const uint8_t*>(wire_image.dataP) - data->data();
+    Image image{std::make_shared<BufferWrapper>(std::move(data), offset),
                 pixel_format,
                 wire_image.width,
                 wire_image.height,
@@ -1583,11 +1582,6 @@ void LegacyChannel::disparity_callback(std::shared_ptr<const std::vector<uint8_t
 
     const auto source = DataSource::LEFT_DISPARITY_RAW;
 
-    const auto disparity_length =
-        static_cast<size_t>(((static_cast<double>(wire::Disparity::API_BITS_PER_PIXEL) / 8.0) *
-                            wire_image.width *
-                            wire_image.height));
-
     //
     // Copy our calibration and device info locally to make this thread safe
     //
@@ -1602,9 +1596,8 @@ void LegacyChannel::disparity_callback(std::shared_ptr<const std::vector<uint8_t
     const auto cal_x_scale = static_cast<double>(wire_image.width) / static_cast<double>(info.imager_width);
     const auto cal_y_scale = static_cast<double>(wire_image.height) / static_cast<double>(info.imager_height);
 
-    Image image{data,
-                static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
-                disparity_length,
+    const size_t offset = static_cast<const uint8_t*>(wire_image.dataP) - data->data();
+    Image image{std::make_shared<BufferWrapper>(std::move(data), offset),
                 pixel_format,
                 wire_image.width,
                 wire_image.height,

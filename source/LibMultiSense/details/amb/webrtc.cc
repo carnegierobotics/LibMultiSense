@@ -99,11 +99,15 @@ void WebRtcClient::set_frame_callback(std::function<void(ImageFrame&)> callback)
     }
 }
 
-void WebRtcClient::c_frame_callback(struct ImageData* left,
-                                    struct ImageData* right,
-                                    struct ImageData* disparity,
+void WebRtcClient::c_frame_callback(uint64_t timestamp,
+                                    uint32_t frame_id,
+                                    const struct ImageData* left,
+                                    const struct ImageData* right,
+                                    const struct ImageData* disparity,
+                                    const struct ImageData* nndata,
                                     void* user_data)
 {
+    (void) nndata;
     if (!user_data)
     {
         return;
@@ -117,69 +121,84 @@ void WebRtcClient::c_frame_callback(struct ImageData* left,
 
     ImageFrame frame;
 
-    static size_t frame_id = 0;
-    frame.frame_id = ++frame_id;
-    const auto now = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now());
-    frame.frame_time = now;
-    frame.ptp_frame_time = now;
+    frame.frame_id = frame_id;
+    const std::chrono::nanoseconds timestamp_ns(timestamp);
+    const TimeT image_time{timestamp_ns};
+    frame.frame_time = image_time;
+    frame.ptp_frame_time = image_time;
 
-    auto create_image = [](struct ImageData* data, const CameraCalibration &calibration, DataSource source) -> std::optional<Image>
+    auto create_image = [](const struct ImageData* data,
+                           const CameraCalibration &calibration,
+                           DataSource source,
+                           const TimeT &image_timestamp) -> std::optional<Image>
     {
         if (data == nullptr || data->size <= 0 || data->data == nullptr)
         {
             return std::nullopt;
         }
 
-        Image image;
-        auto buffer = std::make_shared<std::vector<uint8_t>>(data->size, 0);
-        std::memcpy(buffer->data(), data->data, data->size);
+        //
+        // Increment our reference count, and convert the raw data ptr into a shared_ptr which will
+        // decrement the reference count once destructed
+        //
+        incref_imagedata(const_cast<struct ImageData*>(data));
+        auto data_p = static_cast<const uint8_t*>(data->data);
+        std::shared_ptr<BufferWrapper> buffer(new BufferWrapper(data_p, static_cast<size_t>(data->size)),
+                                              [data](const BufferWrapper*)
+                                              {
+                                                  decref_imagedata(const_cast<struct ImageData*>(data));
+                                              });
 
-        image.raw_data = buffer;
-        image.image_data_offset = 0;
-        image.image_data_length = data->size;
-        image.source = source;
 
+        Image::PixelFormat format = Image::PixelFormat::UNKNOWN;
         if (data->channels == 1 && data->bytewidth == 1)
         {
-            image.format = Image::PixelFormat::MONO8;
+            format = Image::PixelFormat::MONO8;
         }
         else if (data->channels == 1 && data->bytewidth == 2)
         {
-            image.format = Image::PixelFormat::MONO16;
+            format = Image::PixelFormat::MONO16;
         }
         else if (data->channels == 3 && data->bytewidth == 1)
         {
-            image.format = Image::PixelFormat::BGR8;
+            format = Image::PixelFormat::BGR8;
         }
         else
         {
-            image.format = Image::PixelFormat::UNKNOWN;
+            format = Image::PixelFormat::UNKNOWN;
         }
 
-        image.width = data->width;
-        image.height = data->height;
-        image.calibration = calibration;
-
-        return image;
+        return Image{std::move(buffer),
+                     format,
+                     data->width,
+                     data->height,
+                     image_timestamp,
+                     image_timestamp,
+                     source,
+                     calibration};
     };
 
     if (auto left_image = create_image(left,
                                        client->m_calibration.left,
-                                       DataSource::LEFT_RECTIFIED_RAW); left_image)
+                                       DataSource::LEFT_RECTIFIED_RAW,
+                                       image_time); left_image)
     {
         frame.add_image(left_image.value());
     }
 
     if (auto right_image = create_image(right,
                                         client->m_calibration.right,
-                                        DataSource::RIGHT_RECTIFIED_RAW); right_image)
+                                        DataSource::RIGHT_RECTIFIED_RAW,
+                                        image_time); right_image)
     {
         frame.add_image(right_image.value());
     }
 
+    // TODO (malvarado): Scale this calibration
     if (auto disparity_image = create_image(disparity,
-                                            scale_calibration(client->m_calibration.left, 0.5, 0.5),
-                                            DataSource::LEFT_DISPARITY_RAW); disparity_image)
+                                            client->m_calibration.left,
+                                            DataSource::LEFT_DISPARITY_RAW,
+                                            image_time); disparity_image)
     {
         frame.add_image(disparity_image.value());
     }

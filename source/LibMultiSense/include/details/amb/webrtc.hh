@@ -87,9 +87,12 @@ private:
     ///
     /// @brief Private callback signature which the c client WebRTC uses to return images
     ///
-    static void c_frame_callback(struct ImageData* left,
-                                 struct ImageData* right,
-                                 struct ImageData* disparity,
+    static void c_frame_callback(uint64_t timestamp,
+                                 uint32_t frame_id,
+                                 const struct ImageData* left,
+                                 const struct ImageData* right,
+                                 const struct ImageData* disparity,
+                                 const struct ImageData* nndata,
                                  void* user_data);
 
     ///

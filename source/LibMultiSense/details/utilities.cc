@@ -84,8 +84,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
                    << image.width << " " << image.height << "\n"
                    << 0xFF << "\n";
 
-            output.write(reinterpret_cast<const char*>(image.raw_data->data()) + image.image_data_offset,
-                         image.image_data_length);
+            output.write(reinterpret_cast<const char*>(image.raw_data->data()), image.raw_data->size());
             break;
         }
         case Image::PixelFormat::MONO16:
@@ -97,7 +96,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
             //
             // Make sure we swap our byte order if needed
             //
-            const uint16_t* raw_data = reinterpret_cast<const uint16_t*>(image.raw_data->data() + image.image_data_offset);
+            const uint16_t* raw_data = reinterpret_cast<const uint16_t*>(image.raw_data->data());
             for (int i = 0 ; i < (image.width * image.height) ; ++i)
             {
                 const uint16_t o = htons(raw_data[i]);
@@ -117,7 +116,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
             //
             for (int i = 0 ; i < (image.width * image.height) ; ++i)
             {
-                const auto bgr = reinterpret_cast<const std::array<uint8_t, 3>*>(image.raw_data->data() + image.image_data_offset + (i * 3));
+                const auto bgr = reinterpret_cast<const std::array<uint8_t, 3>*>(image.raw_data->data() + (i * 3));
                 const std::array<uint8_t, 3> rgb{bgr->at(2), bgr->at(1), bgr->at(0)};
                 output.write(reinterpret_cast<const char*>(rgb.data()), sizeof(rgb));
             }
@@ -209,7 +208,7 @@ cv::Mat Image::cv_mat() const
     return cv::Mat{height,
                    width,
                    cv_type,
-                   const_cast<uint8_t*>(raw_data->data() + image_data_offset)};
+                   const_cast<uint8_t*>(raw_data->data())};
 }
 
 std::vector<cv::KeyPoint> FeatureMessage::cv_keypoints() const
@@ -330,7 +329,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
 
     for (size_t i = 0 ; i < static_cast<size_t>(disparity.width * disparity.height) ; ++i)
     {
-        const size_t index = disparity.image_data_offset + (i * sizeof(uint16_t));
+        const size_t index = (i * sizeof(uint16_t));
 
         const size_t u = i % disparity.width;
         const size_t v = i / disparity.width;
@@ -377,9 +376,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         }
     }
 
-    return Image{data,
-                 0,
-                 data->size(),
+    return Image{std::make_shared<BufferWrapper>(std::move(data), 0),
                  depth_format,
                  disparity.width,
                  disparity.height,
@@ -439,7 +436,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
             break;
         }
 
-        const size_t index = disparity.image_data_offset + ((search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t));
+        const size_t index = (search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t);
 
         const double d =
             static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
@@ -466,7 +463,7 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
         return std::nullopt;
     }
 
-    const size_t color_length = luma.image_data_length * 3;
+    const size_t color_length = luma.raw_data->size() * 3;
 
     std::vector<uint8_t> raw_data(color_length, static_cast<uint8_t>(0));
 
@@ -479,9 +476,9 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
             const size_t luma_offset = (h * luma.width) + w;
             const size_t chroma_offset = 2 * (((h / 2) * (luma.width / 2)) + (w / 2));
 
-            const float px_y = static_cast<float>(*(luma.raw_data->data() + luma.image_data_offset + luma_offset));
-            const float px_cb = static_cast<float>(*(chroma.raw_data->data() + chroma.image_data_offset + chroma_offset)) - 128.0f;
-            const float px_cr = static_cast<float>(*(chroma.raw_data->data() + chroma.image_data_offset + chroma_offset + 1)) - 128.0f;
+            const float px_y = static_cast<float>(*(luma.raw_data->data() + luma_offset));
+            const float px_cb = static_cast<float>(*(chroma.raw_data->data() + chroma_offset)) - 128.0f;
+            const float px_cr = static_cast<float>(*(chroma.raw_data->data() + chroma_offset + 1)) - 128.0f;
 
             const float px_r = std::clamp(px_y + 1.13983f * px_cr, 0.0f, 255.0f);
             const float px_g = std::clamp(px_y - 0.39465f * px_cb - 0.58060f * px_cr, 0.0f, 255.0f);
@@ -495,9 +492,7 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
         }
     }
 
-    return Image{std::make_shared<std::vector<uint8_t>>(std::move(raw_data)),
-                 0,
-                 color_length,
+    return Image{std::make_shared<BufferWrapper>(std::make_shared<std::vector<uint8_t>>(std::move(raw_data)), 0),
                  Image::PixelFormat::BGR8,
                  luma.width,
                  luma.height,
