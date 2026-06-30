@@ -288,7 +288,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("camera_timestamp", &multisense::Image::camera_timestamp)
         .def_readonly("ptp_timestamp", &multisense::Image::ptp_timestamp)
         .def_readonly("source", &multisense::Image::source)
-        .def_readonly("calibration", &multisense::Image::calibration);
+        .def_readonly("calibration", &multisense::Image::calibration)
+        .def_readonly("pixel_scale", &multisense::Image::pixel_scale);
 
     // ImageHistogram
     py::class_<multisense::ImageHistogram>(m, "ImageHistogram")

@@ -1472,7 +1472,8 @@ void LegacyChannel::image_callback(std::shared_ptr<const std::vector<uint8_t>> d
                 capture_time_point,
                 ptp_capture_time_point,
                 source.front(),
-                scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale)};
+                scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale),
+                1.0};
 
     handle_and_dispatch(std::move(image),
                         meta->second,
@@ -1541,7 +1542,8 @@ void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<
                 capture_time_point,
                 ptp_capture_time_point,
                 source.front(),
-                scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale)};
+                scale_calibration(select_calibration(cal, source.front()), cal_x_scale, cal_y_scale),
+                1.0};
 
     handle_and_dispatch(std::move(image),
                         meta->second,
@@ -1604,7 +1606,8 @@ void LegacyChannel::disparity_callback(std::shared_ptr<const std::vector<uint8_t
                 capture_time_point,
                 ptp_capture_time_point,
                 source,
-                scale_calibration(select_calibration(cal, source), cal_x_scale, cal_y_scale)};
+                scale_calibration(select_calibration(cal, source), cal_x_scale, cal_y_scale),
+                1.0/16.0};
 
     handle_and_dispatch(std::move(image),
                         meta->second,

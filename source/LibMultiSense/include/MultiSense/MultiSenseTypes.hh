@@ -168,11 +168,11 @@ struct CameraCalibration
     /// @brief Get the translation vector in meters which translates points in the current CameraCalibration frame
     ///        to the origin left camera frame
     ///
-    std::array<float, 3> rectified_translation() const
+    std::array<double, 3> rectified_translation() const
     {
-        return std::array<float, 3>{(P[0][0] == 0.0f ? 0.0f : P[0][3] / P[0][0]),
-                                    (P[1][1] == 0.0f ? 0.0f : P[1][3] / P[1][1]),
-                                    P[2][3]};
+        return std::array<double, 3>{(P[0][0] == 0.0f ? 0.0f : static_cast<double>(P[0][3]) / static_cast<double>(P[0][0])),
+                                     (P[1][1] == 0.0f ? 0.0f : static_cast<double>(P[1][3]) / static_cast<double>(P[1][1])),
+                                     static_cast<double>(P[2][3])};
     }
 };
 
@@ -325,6 +325,12 @@ struct Image
     /// @brief The scaled calibration associated with the image
     ///
     CameraCalibration calibration{};
+
+    ///
+    /// @brief A scale we should optionally apply to each pixel. This is used to handle quantization for data
+    ///        sources like disparity
+    ///
+    std::optional<double> pixel_scale = std::nullopt;
 
     ///
     /// @brief Get a pixel at a certain width/height location in the image.

@@ -322,11 +322,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         }
     }
 
-    //
-    // MONO16 disparity images are quantized to 1/16th of a pixel
-    //
-    constexpr double scale = 1.0 / 16.0;
-
+    const auto pixel_scale = disparity.pixel_scale ? disparity.pixel_scale.value() : 1.0;
     for (size_t i = 0 ; i < static_cast<size_t>(disparity.width * disparity.height) ; ++i)
     {
         const size_t index = (i * sizeof(uint16_t));
@@ -336,7 +332,7 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
 
 
         const double d =
-            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * pixel_scale;
 
         const double scaled_u = std::round(u - (baseline_ratio * d));
 
@@ -383,7 +379,8 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
                  disparity.camera_timestamp,
                  disparity.ptp_timestamp,
                  disparity.source,
-                 disparity.calibration};
+                 disparity.calibration,
+                 depth_format == Image::PixelFormat::MONO16 ? 1.0/1000.0 : 1.0};
 }
 
 std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
@@ -418,8 +415,6 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
     const double tx_aux = frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0];
     const double baseline_ratio = tx_aux / tx;
 
-    constexpr double scale = 1.0 / 16.0;
-
     const QMatrix Q(disparity.calibration, frame.calibration.right.rectified_translation()[0], frame.calibration.right.P[0][2]);
 
     //
@@ -427,6 +422,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
     // image aligns with our query pixel. See:
     // https://docs.carnegierobotics.com/cookbook/overview.html#approximation-for-execution-speed
     //
+    const auto pixel_scale = disparity.pixel_scale ? disparity.pixel_scale.value() : 1.0;
     for (size_t i = 0 ; i < max_pixel_search_window ; ++i)
     {
         const size_t search_u = rectified_aux_pixel.u + i;
@@ -439,7 +435,7 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
         const size_t index = (search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t);
 
         const double d =
-            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * pixel_scale;
 
         if (d == 0)
         {

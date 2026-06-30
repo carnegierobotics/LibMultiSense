@@ -302,13 +302,13 @@ std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
         scale_y = static_cast<double>(color->height) / static_cast<double>(disparity.height);
     }
 
-    constexpr double scale = 1.0 / 16.0;
     const double squared_range = max_range * max_range;
     const QMatrix Q(disparity.calibration, calibration.right.rectified_translation()[0], calibration.right.P[0][2] / scale_x);
 
     PointCloud<Color> output;
     output.cloud.reserve(disparity.width * disparity.height);
 
+    const auto pixel_scale = disparity.pixel_scale ? disparity.pixel_scale.value() : 1.0;
     for (size_t h = 0 ; h < static_cast<size_t>(disparity.height) ; ++h)
     {
         for (size_t w = 0 ; w < static_cast<size_t>(disparity.width) ; ++w)
@@ -317,7 +317,7 @@ std::optional<PointCloud<Color>> create_color_pointcloud(const Image &disparity,
                                  (w * sizeof(uint16_t));
 
             const double d =
-                static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+                static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * pixel_scale;
 
             if (d == 0.0 || d >= 255)
             {

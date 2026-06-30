@@ -175,7 +175,8 @@ void WebRtcClient::c_frame_callback(uint64_t timestamp,
                      image_timestamp,
                      image_timestamp,
                      source,
-                     calibration};
+                     calibration,
+                     1.0/static_cast<double>(1 << data->precision)};
     };
 
     if (auto left_image = create_image(left,
@@ -196,7 +197,7 @@ void WebRtcClient::c_frame_callback(uint64_t timestamp,
 
     // TODO (malvarado): Scale this calibration
     if (auto disparity_image = create_image(disparity,
-                                            client->m_calibration.left,
+                                            scale_calibration(client->m_calibration.left, 0.5, 0.5),
                                             DataSource::LEFT_DISPARITY_RAW,
                                             image_time); disparity_image)
     {
