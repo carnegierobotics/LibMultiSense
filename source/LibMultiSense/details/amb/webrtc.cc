@@ -122,7 +122,10 @@ void WebRtcClient::c_frame_callback(uint64_t timestamp,
     ImageFrame frame;
 
     frame.frame_id = frame_id;
-    const std::chrono::nanoseconds timestamp_ns(timestamp);
+    //
+    // 90Khz clock
+    //
+    const auto timestamp_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<uint64_t, std::ratio<1, 90000>>(timestamp));
     const TimeT image_time{timestamp_ns};
     frame.frame_time = image_time;
     frame.ptp_frame_time = image_time;
