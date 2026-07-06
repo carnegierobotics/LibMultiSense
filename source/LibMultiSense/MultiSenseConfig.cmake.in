@@ -27,6 +27,12 @@ if (MULTISENSE_COMPILER_CHECKS_VIOLATED)
     message(FATAL_ERROR "The new MultiSense API requires at minimum a C++17 standard")
 endif()
 
+# TODO (malvarado): Make this conditional
+find_dependency(multisense-webrtc-client)
+find_dependency(OpenSSL)
+find_dependency(PkgConfig)
+pkg_check_modules(HTTPLIB REQUIRED IMPORTED_TARGET cpp-httplib)
+
 include("${CMAKE_CURRENT_LIST_DIR}/MultiSenseTargets.cmake")
 
 # The exported target is namespaced as `MultiSense::MultiSense`.  Historically,

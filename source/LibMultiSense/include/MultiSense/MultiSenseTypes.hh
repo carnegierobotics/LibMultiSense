@@ -168,11 +168,11 @@ struct CameraCalibration
     /// @brief Get the translation vector in meters which translates points in the current CameraCalibration frame
     ///        to the origin left camera frame
     ///
-    std::array<float, 3> rectified_translation() const
+    std::array<double, 3> rectified_translation() const
     {
-        return std::array<float, 3>{(P[0][0] == 0.0f ? 0.0f : P[0][3] / P[0][0]),
-                                    (P[1][1] == 0.0f ? 0.0f : P[1][3] / P[1][1]),
-                                    P[2][3]};
+        return std::array<double, 3>{(P[0][0] == 0.0f ? 0.0f : static_cast<double>(P[0][3]) / static_cast<double>(P[0][0])),
+                                     (P[1][1] == 0.0f ? 0.0f : static_cast<double>(P[1][3]) / static_cast<double>(P[1][1])),
+                                     static_cast<double>(P[2][3])};
     }
 };
 
@@ -192,6 +192,77 @@ struct StereoCalibration
     /// @brief Calibration information for the aux camera (optional 3rd center camera)
     ///
     std::optional<CameraCalibration> aux = std::nullopt;
+};
+
+///
+/// @brief Helper class for handling shared_ptrs to vectors or raw data. This allows us
+///        to wrap arbitrary incoming data to avoid memcpy.
+///
+///        Note when interfacing with raw data the user is responsable for cleaning up the memory
+///        outside the scope of this class
+///
+class BufferWrapper
+{
+public:
+
+    ///
+    /// @brief Construct from a shared_ptr. Keep the shared ptr valid throughout the duration of this
+    ///        object lifetime
+    ///
+    BufferWrapper(std::shared_ptr<const std::vector<uint8_t>> data, size_t offset):
+        m_data(std::move(data)),
+        m_raw_data(m_data->data() + offset),
+        m_size(m_data->size() - offset)
+    {
+        if (offset >= m_data->size())
+        {
+            throw std::runtime_error("Invalid pointer offset");
+        }
+    }
+
+    ///
+    /// @brief Wrap a raw buffer with no associated shared_ptr. The user is responsible for freeing this memory once
+    ///        this BufferWrapper object goes out of scope
+    ///
+    BufferWrapper(const uint8_t* data, size_t size):
+        m_data(nullptr),
+        m_raw_data(data),
+        m_size(size)
+    {
+    }
+
+    ///
+    /// @brief Access the size of the raw data buffer in bytes
+    ///
+    size_t size() const
+    {
+        return m_size;
+    }
+
+    ///
+    /// @brief Access the raw data buffer
+    ///
+    const uint8_t* data() const
+    {
+        return m_raw_data;
+    };
+
+private:
+
+    ///
+    /// @brief Keep a local copy of a shared pointer to ensure the associated raw ptr memory stays valid
+    ///
+    const std::shared_ptr<const std::vector<uint8_t>> m_data{nullptr};
+
+    ///
+    /// @brief Raw buffer wrapped
+    ///
+    const uint8_t* m_raw_data{nullptr};
+
+    ///
+    /// @brief Size of the raw buffer in bytes
+    ///
+    const size_t m_size{0};
 };
 
 ///
@@ -216,17 +287,7 @@ struct Image
     ///
     /// @brief A pointer to the raw image data sent from the camera
     ///
-    std::shared_ptr<const std::vector<uint8_t>> raw_data = nullptr;
-
-    ///
-    /// @brief An offset into the raw_data pointer where the image data starts
-    ///
-    int64_t image_data_offset = 0;
-
-    ///
-    /// @brief The length of the image data after the image_data_offset has been applied
-    ///
-    size_t image_data_length = 0;
+    std::shared_ptr<const BufferWrapper> raw_data = nullptr;
 
     ///
     /// @brief The format of the image data stored in the raw_data stored in the raw_data buffer
@@ -266,6 +327,12 @@ struct Image
     CameraCalibration calibration{};
 
     ///
+    /// @brief A scale we should optionally apply to each pixel. This is used to handle quantization for data
+    ///        sources like disparity
+    ///
+    std::optional<double> pixel_scale = std::nullopt;
+
+    ///
     /// @brief Get a pixel at a certain width/height location in the image.
     ///        NOTE: This check is slower since it checks to make sure the request is safe. It
     ///        should not be called repeatedly at high frequency
@@ -289,7 +356,7 @@ struct Image
         {
             const size_t offset = sizeof(T) * ((width * h) + w);
 
-            return *reinterpret_cast<const T*>(raw_data->data() + image_data_offset + offset);
+            return *reinterpret_cast<const T*>(raw_data->data() + offset);
         }
 
         return std::nullopt;
@@ -1540,7 +1607,8 @@ struct MultiSenseInfo
             KS21_SILVER,
             ST25,
             KS21i,
-            STLC
+            STLC,
+            AMB
         };
 
         ///

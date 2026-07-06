@@ -84,8 +84,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
                    << image.width << " " << image.height << "\n"
                    << 0xFF << "\n";
 
-            output.write(reinterpret_cast<const char*>(image.raw_data->data()) + image.image_data_offset,
-                         image.image_data_length);
+            output.write(reinterpret_cast<const char*>(image.raw_data->data()), image.raw_data->size());
             break;
         }
         case Image::PixelFormat::MONO16:
@@ -97,7 +96,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
             //
             // Make sure we swap our byte order if needed
             //
-            const uint16_t* raw_data = reinterpret_cast<const uint16_t*>(image.raw_data->data() + image.image_data_offset);
+            const uint16_t* raw_data = reinterpret_cast<const uint16_t*>(image.raw_data->data());
             for (int i = 0 ; i < (image.width * image.height) ; ++i)
             {
                 const uint16_t o = htons(raw_data[i]);
@@ -117,7 +116,7 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
             //
             for (int i = 0 ; i < (image.width * image.height) ; ++i)
             {
-                const auto bgr = reinterpret_cast<const std::array<uint8_t, 3>*>(image.raw_data->data() + image.image_data_offset + (i * 3));
+                const auto bgr = reinterpret_cast<const std::array<uint8_t, 3>*>(image.raw_data->data() + (i * 3));
                 const std::array<uint8_t, 3> rgb{bgr->at(2), bgr->at(1), bgr->at(0)};
                 output.write(reinterpret_cast<const char*>(rgb.data()), sizeof(rgb));
             }
@@ -209,7 +208,7 @@ cv::Mat Image::cv_mat() const
     return cv::Mat{height,
                    width,
                    cv_type,
-                   const_cast<uint8_t*>(raw_data->data() + image_data_offset)};
+                   const_cast<uint8_t*>(raw_data->data())};
 }
 
 std::vector<cv::KeyPoint> FeatureMessage::cv_keypoints() const
@@ -323,21 +322,17 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         }
     }
 
-    //
-    // MONO16 disparity images are quantized to 1/16th of a pixel
-    //
-    constexpr double scale = 1.0 / 16.0;
-
+    const auto pixel_scale = disparity.pixel_scale ? disparity.pixel_scale.value() : 1.0;
     for (size_t i = 0 ; i < static_cast<size_t>(disparity.width * disparity.height) ; ++i)
     {
-        const size_t index = disparity.image_data_offset + (i * sizeof(uint16_t));
+        const size_t index = (i * sizeof(uint16_t));
 
         const size_t u = i % disparity.width;
         const size_t v = i / disparity.width;
 
 
         const double d =
-            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * pixel_scale;
 
         const double scaled_u = std::round(u - (baseline_ratio * d));
 
@@ -377,16 +372,15 @@ std::optional<Image> create_depth_image(const ImageFrame &frame,
         }
     }
 
-    return Image{data,
-                 0,
-                 data->size(),
+    return Image{std::make_shared<BufferWrapper>(std::move(data), 0),
                  depth_format,
                  disparity.width,
                  disparity.height,
                  disparity.camera_timestamp,
                  disparity.ptp_timestamp,
                  disparity.source,
-                 disparity.calibration};
+                 disparity.calibration,
+                 depth_format == Image::PixelFormat::MONO16 ? 1.0/1000.0 : 1.0};
 }
 
 std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
@@ -421,15 +415,14 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
     const double tx_aux = frame.calibration.aux->P[0][3] / frame.calibration.aux->P[0][0];
     const double baseline_ratio = tx_aux / tx;
 
-    constexpr double scale = 1.0 / 16.0;
-
-    const QMatrix Q{disparity.calibration, frame.calibration.right};
+    const QMatrix Q(disparity.calibration, frame.calibration.right.rectified_translation()[0], frame.calibration.right.P[0][2]);
 
     //
     // Search through our configured pixel window testing to see if the disparity value projected into the aux
     // image aligns with our query pixel. See:
     // https://docs.carnegierobotics.com/cookbook/overview.html#approximation-for-execution-speed
     //
+    const auto pixel_scale = disparity.pixel_scale ? disparity.pixel_scale.value() : 1.0;
     for (size_t i = 0 ; i < max_pixel_search_window ; ++i)
     {
         const size_t search_u = rectified_aux_pixel.u + i;
@@ -439,10 +432,10 @@ std::optional<Point<void>> get_aux_3d_point(const ImageFrame &frame,
             break;
         }
 
-        const size_t index = disparity.image_data_offset + ((search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t));
+        const size_t index = (search_u + (rectified_aux_pixel.v * disparity.width)) * sizeof(uint16_t);
 
         const double d =
-            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * scale;
+            static_cast<double>(*reinterpret_cast<const uint16_t*>(disparity.raw_data->data() + index)) * pixel_scale;
 
         if (d == 0)
         {
@@ -466,7 +459,7 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
         return std::nullopt;
     }
 
-    const size_t color_length = luma.image_data_length * 3;
+    const size_t color_length = luma.raw_data->size() * 3;
 
     std::vector<uint8_t> raw_data(color_length, static_cast<uint8_t>(0));
 
@@ -479,9 +472,9 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
             const size_t luma_offset = (h * luma.width) + w;
             const size_t chroma_offset = 2 * (((h / 2) * (luma.width / 2)) + (w / 2));
 
-            const float px_y = static_cast<float>(*(luma.raw_data->data() + luma.image_data_offset + luma_offset));
-            const float px_cb = static_cast<float>(*(chroma.raw_data->data() + chroma.image_data_offset + chroma_offset)) - 128.0f;
-            const float px_cr = static_cast<float>(*(chroma.raw_data->data() + chroma.image_data_offset + chroma_offset + 1)) - 128.0f;
+            const float px_y = static_cast<float>(*(luma.raw_data->data() + luma_offset));
+            const float px_cb = static_cast<float>(*(chroma.raw_data->data() + chroma_offset)) - 128.0f;
+            const float px_cr = static_cast<float>(*(chroma.raw_data->data() + chroma_offset + 1)) - 128.0f;
 
             const float px_r = std::clamp(px_y + 1.13983f * px_cr, 0.0f, 255.0f);
             const float px_g = std::clamp(px_y - 0.39465f * px_cb - 0.58060f * px_cr, 0.0f, 255.0f);
@@ -495,9 +488,7 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
         }
     }
 
-    return Image{std::make_shared<std::vector<uint8_t>>(std::move(raw_data)),
-                 0,
-                 color_length,
+    return Image{std::make_shared<BufferWrapper>(std::make_shared<std::vector<uint8_t>>(std::move(raw_data)), 0),
                  Image::PixelFormat::BGR8,
                  luma.width,
                  luma.height,
@@ -561,6 +552,135 @@ std::optional<PointCloud<void>> create_pointcloud(const ImageFrame &frame,
                                                   const DataSource &disparity_source)
 {
     return create_color_pointcloud<void>(frame, max_range, DataSource::UNKNOWN, disparity_source);
+}
+
+std::map<std::string, std::vector<float>> parse_yaml(std::istream& stream)
+{
+    std::map<std::string, std::vector<float>> data;
+    std::string token;
+    while (stream >> token)
+    {
+        //
+        // Skip comments or YAML headers
+        //
+        if (token.front() == '%' || token.front() == '-')
+        {
+            stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
+
+        //
+        // We expect "key:"
+        //
+        size_t colon_pos = token.find(':');
+        if (colon_pos == std::string::npos)
+        {
+            continue;
+        }
+
+        std::string key = token.substr(0, colon_pos);
+        std::vector<float> values;
+
+        //
+        // If there was something after the colon in the same token, we don't handle it here
+        // for simplicity, we assume standard YAML spacing for keys.
+        //
+        stream >> std::ws;
+        int next_char = stream.peek();
+
+        if (next_char == '[')
+        {
+            stream.ignore(); // skip '['
+            stream >> values;
+        }
+        else
+        {
+            std::string value_indicator;
+            if (stream >> value_indicator)
+            {
+                if (value_indicator == "!!opencv-matrix")
+                {
+                    //
+                    // For an OpenCV matrix, we look for the "data:" key and its associated array
+                    //
+                    while (stream >> token)
+                    {
+                        if (token == "data:")
+                        {
+                            stream >> std::ws;
+                            if (stream.peek() == '[')
+                            {
+                                stream.ignore();
+                                stream >> values;
+                            }
+                            break;
+                        }
+                        else if (token.back() == ':')
+                        {
+                            //
+                            // Some other sub-key (rows, cols, dt), skip its value
+                            //
+                            std::string dummy;
+                            stream >> dummy;
+                        }
+                    }
+                }
+                else
+                {
+                    //
+                    // Try to parse as a single scalar value
+                    //
+                    try
+                    {
+                        values.push_back(std::stof(value_indicator));
+                    }
+                    catch (...)
+                    {
+                        // Not a scalar, ignore
+                    }
+                }
+            }
+        }
+
+        if (!key.empty() && !values.empty())
+        {
+            data[key] = values;
+        }
+    }
+
+    return data;
+}
+
+CameraCalibration scale_calibration(const CameraCalibration &input, double x_scale, double y_scale)
+{
+    auto output = input;
+
+    output.K[0][0] = static_cast<float>(static_cast<double>(output.K[0][0]) * x_scale); // fx
+    output.K[0][2] = static_cast<float>(static_cast<double>(output.K[0][2]) * x_scale); // cx
+    output.K[1][1] = static_cast<float>(static_cast<double>(output.K[1][1]) * y_scale); // fy
+    output.K[1][2] = static_cast<float>(static_cast<double>(output.K[1][2]) * y_scale); // cy
+
+    output.P[0][0] = static_cast<float>(static_cast<double>(output.P[0][0]) * x_scale); // fx
+    output.P[0][2] = static_cast<float>(static_cast<double>(output.P[0][2]) * x_scale); // cx
+    output.P[0][3] = static_cast<float>(static_cast<double>(output.P[0][3]) * x_scale); // fx * tx
+    output.P[1][1] = static_cast<float>(static_cast<double>(output.P[1][1]) * y_scale); // fy
+    output.P[1][2] = static_cast<float>(static_cast<double>(output.P[1][2]) * y_scale); // cy
+
+    return output;
+}
+
+StereoCalibration scale_calibration(const StereoCalibration &input, double x_scale, double y_scale)
+{
+    auto output = input;
+
+    output.left = scale_calibration(input.left, x_scale, y_scale);
+    output.right = scale_calibration(input.right, x_scale, y_scale);
+    if (input.aux)
+    {
+        output.aux = scale_calibration(input.aux.value(), x_scale, y_scale);
+    }
+
+    return output;
 }
 
 }

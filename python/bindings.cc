@@ -202,6 +202,13 @@ PYBIND11_MODULE(_libmultisense, m) {
                              strides));
         });
 
+    // BufferWrapper
+    py::class_<multisense::BufferWrapper>(m, "BufferWrapper")
+        .def(py::init<std::shared_ptr<const std::vector<uint8_t>> , size_t>())
+        .def(py::init<const uint8_t* , size_t>())
+        .def("data", &multisense::BufferWrapper::data)
+        .def("size", &multisense::BufferWrapper::data);
+
     // Image
     py::class_<multisense::Image>(m, "Image")
         .def(py::init<>())
@@ -211,12 +218,10 @@ PYBIND11_MODULE(_libmultisense, m) {
             if (image.format == multisense::Image::PixelFormat::H264 ||
                 image.format == multisense::Image::PixelFormat::JPEG)
             {
-                const SSizeVector shape = {
-                    static_cast<py::ssize_t>(image.raw_data->size() - image.image_data_offset)
-                };
+                const SSizeVector shape = { static_cast<py::ssize_t>(image.raw_data->size()) };
                 const SSizeVector strides = {static_cast<py::ssize_t>(sizeof(uint8_t))};
                 return py::array(py::buffer_info(
-                                 const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
+                                 const_cast<uint8_t*>(image.raw_data->data()),
                                  static_cast<py::ssize_t>(sizeof(uint8_t)),
                                  py::format_descriptor<uint8_t>::format(),
                                  1,
@@ -270,7 +275,7 @@ PYBIND11_MODULE(_libmultisense, m) {
 
             // Map the cv::Mat to a NumPy array without copying the data
             return py::array(py::buffer_info(
-                             const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
+                             const_cast<uint8_t*>(image.raw_data->data()),
                              element_size,
                              format,
                              static_cast<py::ssize_t>(shape.size()),
@@ -283,7 +288,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("camera_timestamp", &multisense::Image::camera_timestamp)
         .def_readonly("ptp_timestamp", &multisense::Image::ptp_timestamp)
         .def_readonly("source", &multisense::Image::source)
-        .def_readonly("calibration", &multisense::Image::calibration);
+        .def_readonly("calibration", &multisense::Image::calibration)
+        .def_readonly("pixel_scale", &multisense::Image::pixel_scale);
 
     // ImageHistogram
     py::class_<multisense::ImageHistogram>(m, "ImageHistogram")
@@ -830,7 +836,7 @@ PYBIND11_MODULE(_libmultisense, m) {
 
     // Utilities
     py::class_<multisense::QMatrix>(m, "QMatrix")
-        .def(py::init<const multisense::CameraCalibration &, const multisense::CameraCalibration &>())
+        .def(py::init<const multisense::CameraCalibration &, double, double>())
         .def("reproject", &multisense::QMatrix::reproject)
         .def("matrix", &multisense::QMatrix::matrix);
 

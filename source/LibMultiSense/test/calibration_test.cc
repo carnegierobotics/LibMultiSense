@@ -37,6 +37,7 @@
 #include <gtest/gtest.h>
 
 #include <details/legacy/calibration.hh>
+#include <details/utilities.hh>
 
 using namespace multisense::legacy;
 

@@ -90,16 +90,15 @@ Image create_example_disparity_image(const CameraCalibration &left_calibration,
         }
     }
 
-    return Image{std::make_shared<const std::vector<uint8_t>>(data),
-                 0,
-                 width * height * sizeof(uint16_t),
+    return Image{std::make_shared<BufferWrapper>(std::make_shared<const std::vector<uint8_t>>(std::move(data)), 0),
                  Image::PixelFormat::MONO16,
                  static_cast<int>(width),
                  static_cast<int>(height),
                  {},
                  {},
                  DataSource::LEFT_DISPARITY_RAW,
-                 left_calibration};
+                 left_calibration,
+                 1.0/16.0};
 }
 
 TEST(QMatrix, reproject)
@@ -124,7 +123,7 @@ TEST(QMatrix, reproject)
         CameraCalibration::DistortionType::NONE,
         {}};
 
-    QMatrix q{left_calibration, right_calibration};
+    QMatrix q{left_calibration, right_calibration.rectified_translation()[0], right_calibration.P[0][2]};
 
     // Project a dummy point into the left/right camera
     const double x = 0.5;
@@ -173,7 +172,7 @@ TEST(QMatrix, matrix)
         CameraCalibration::DistortionType::NONE,
         {}};
 
-    QMatrix q{left_calibration, right_calibration};
+    QMatrix q{left_calibration, right_calibration.rectified_translation()[0], right_calibration.P[0][2]};
 
     const auto matrix = q.matrix();
 
@@ -402,27 +401,25 @@ TEST(create_bgr_from_ycbcr420, gray_image)
     // Values of 128 for cb/cr result in 0 values for the corresponding color pixels
     std::vector<uint8_t> cbcr_data(width * height/2, 128);
 
-    const Image y{std::make_shared<const std::vector<uint8_t>>(std::move(y_data)),
-                  0,
-                  width * height,
+    const Image y{std::make_shared<BufferWrapper>(y_data.data(), y_data.size()),
                   Image::PixelFormat::MONO8,
                   static_cast<int>(width),
                   static_cast<int>(height),
                   {},
                   {},
                   DataSource::AUX_LUMA_RAW,
-                  aux_calibration};
+                  aux_calibration,
+                  std::nullopt};
 
-    const Image cbcr{std::make_shared<const std::vector<uint8_t>>(std::move(cbcr_data)),
-                     0,
-                     width / 2 * height / 2,
+    const Image cbcr{std::make_shared<BufferWrapper>(cbcr_data.data(), cbcr_data.size()),
                      Image::PixelFormat::MONO16,
                      static_cast<int>(width/2),
                      static_cast<int>(height/2),
                      {},
                      {},
                      DataSource::AUX_CHROMA_RAW,
-                     aux_calibration};
+                     aux_calibration,
+                     std::nullopt};
 
     const auto bgr_image = create_bgr_from_ycbcr420(y, cbcr, DataSource::AUX_RAW);
 
@@ -488,6 +485,56 @@ TEST(create_pointcloud, basic_tests)
     ASSERT_TRUE(point_cloud_empty->cloud.empty());
 }
 
+TEST(YAML, write_yaml_and_parse)
+{
+    const float data[] = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+    const uint32_t rows = 2;
+    const uint32_t cols = 3;
+
+    std::stringstream ss;
+    write_yaml_matrix(ss, "test_matrix", rows, cols, data);
+
+    const auto parsed_data = parse_yaml(ss);
+
+    ASSERT_EQ(parsed_data.count("test_matrix"), 1);
+    ASSERT_EQ(parsed_data.at("test_matrix").size(), rows * cols);
+    for (size_t i = 0 ; i < rows * cols ; ++i)
+    {
+        EXPECT_FLOAT_EQ(parsed_data.at("test_matrix").at(i), data[i]);
+    }
+}
+
+TEST(YAML, robustness)
+{
+    std::stringstream ss;
+    ss << "%YAML:1.0\n";
+    ss << "scalar_val: 42.5\n";
+    ss << "list_val: [10, invalid_float, 30]\n";
+    ss << "matrix_val: !!opencv-matrix\n";
+    ss << "  rows: 1\n";
+    ss << "  cols: 2\n";
+    ss << "  dt: d\n";
+    ss << "  data: [1.1, 2.2]\n";
+    ss << "another_scalar: 100\n";
+
+    const auto parsed_data = parse_yaml(ss);
+
+    ASSERT_EQ(parsed_data.count("scalar_val"), 1);
+    EXPECT_FLOAT_EQ(parsed_data.at("scalar_val").at(0), 42.5);
+
+    ASSERT_EQ(parsed_data.count("list_val"), 1);
+    ASSERT_EQ(parsed_data.at("list_val").size(), 2);
+    EXPECT_FLOAT_EQ(parsed_data.at("list_val")[0], 10.0);
+    EXPECT_FLOAT_EQ(parsed_data.at("list_val")[1], 30.0);
+
+    ASSERT_EQ(parsed_data.count("matrix_val"), 1);
+    ASSERT_EQ(parsed_data.at("matrix_val").size(), 2);
+    EXPECT_FLOAT_EQ(parsed_data.at("matrix_val")[0], 1.1);
+
+    ASSERT_EQ(parsed_data.count("another_scalar"), 1);
+    EXPECT_FLOAT_EQ(parsed_data.at("another_scalar")[0], 100.0);
+}
+
 TEST(to_string, status)
 {
     EXPECT_EQ(to_string(Status::OK), "OK");
@@ -550,16 +597,15 @@ TEST(write_image, unsupported_extension)
         {}};
 
     std::vector<uint8_t> data(10 * 10, 0);
-    Image img{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              100,
+    Image img{std::make_shared<BufferWrapper>(data.data(), data.size()),
               Image::PixelFormat::MONO8,
               10,
               10,
               {},
               {},
               DataSource::LEFT_MONO_RAW,
-              aux_calibration};
+              aux_calibration,
+              std::nullopt};
 
     const auto path = std::filesystem::temp_directory_path() / "test.unsupported";
     EXPECT_FALSE(write_image(img, path));
@@ -580,9 +626,7 @@ TEST(write_image, pgm_mono8)
         {}};
 
     std::vector<uint8_t> data(10 * 10, 128);
-    Image img{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              100,
+    Image img{std::make_shared<BufferWrapper>(data.data(), data.size()),
               Image::PixelFormat::MONO8,
               10,
               10,
@@ -611,16 +655,15 @@ TEST(write_image, pgm_mono16)
         {}};
 
     std::vector<uint8_t> data(10 * 10 * 2, 128);
-    Image img{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              200,
+    Image img{std::make_shared<BufferWrapper>(data.data(), data.size()),
               Image::PixelFormat::MONO16,
               10,
               10,
               {},
               {},
               DataSource::LEFT_DISPARITY_RAW,
-              aux_calibration};
+              aux_calibration,
+              std::nullopt};
 
     const auto path = std::filesystem::temp_directory_path() / "test.pgm";
     EXPECT_TRUE(write_image(img, path));
@@ -642,16 +685,15 @@ TEST(write_image, ppm_bgr8)
         {}};
 
     std::vector<uint8_t> data(10 * 10 * 3, 128);
-    Image img{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              300,
+    Image img{std::make_shared<BufferWrapper>(data.data(), data.size()),
               Image::PixelFormat::BGR8,
               10,
               10,
               {},
               {},
               DataSource::LEFT_MONO_RAW,
-              aux_calibration};
+              aux_calibration,
+              std::nullopt};
 
     const auto path = std::filesystem::temp_directory_path() / "test.ppm";
     EXPECT_TRUE(write_image(img, path));
@@ -673,16 +715,15 @@ TEST(write_image, unhandled_format)
         {}};
 
     std::vector<uint8_t> data(10 * 10 * 4, 128);
-    Image img{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              400,
+    Image img{std::make_shared<BufferWrapper>(data.data(), data.size()),
               Image::PixelFormat::FLOAT32,
               10,
               10,
               {},
               {},
               DataSource::LEFT_MONO_RAW,
-              aux_calibration};
+              aux_calibration,
+              std::nullopt};
 
     const auto path = std::filesystem::temp_directory_path() / "test.ppm";
     EXPECT_FALSE(write_image(img, path));
@@ -704,16 +745,15 @@ TEST(write_image, invalid_file_path)
         {}};
 
     std::vector<uint8_t> data(10 * 10, 128);
-    Image img{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              100,
+    Image img{std::make_shared<BufferWrapper>(data.data(), data.size()),
               Image::PixelFormat::MONO8,
               10,
               10,
               {},
               {},
               DataSource::LEFT_MONO_RAW,
-              aux_calibration};
+              aux_calibration,
+              std::nullopt};
 
     EXPECT_FALSE(write_image(img, "/invalid_path_that_does_not_exist/test.pgm"));
 }
@@ -739,16 +779,15 @@ TEST(create_depth_image, invalid_disparity_format)
         {}};
 
     std::vector<uint8_t> data(10 * 10, 0);
-    Image disparity{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              100,
-              Image::PixelFormat::MONO8, // Should be MONO16
-              10,
-              10,
-              {},
-              {},
-              DataSource::LEFT_DISPARITY_RAW,
-              cal};
+    Image disparity{std::make_shared<BufferWrapper>(data.data(), data.size()),
+                    Image::PixelFormat::MONO8, // Should be MONO16
+                    10,
+                    10,
+                    {},
+                    {},
+                    DataSource::LEFT_DISPARITY_RAW,
+                    cal,
+                    1.0/16.0};
 
     ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, std::nullopt}, {}, {}, {}, {}, {}, {}};
     frame.add_image(disparity);
@@ -819,16 +858,15 @@ TEST(get_aux_3d_point, invalid_disparity_format)
         {}};
 
     std::vector<uint8_t> data(10 * 10, 0);
-    Image disparity{std::make_shared<const std::vector<uint8_t>>(data),
-              0,
-              100,
-              Image::PixelFormat::MONO8, // Should be MONO16
-              10,
-              10,
-              {},
-              {},
-              DataSource::LEFT_DISPARITY_RAW,
-              cal};
+    Image disparity{std::make_shared<BufferWrapper>(data.data(), data.size()),
+                    Image::PixelFormat::MONO8, // Should be MONO16
+                    10,
+                    10,
+                    {},
+                    {},
+                    DataSource::LEFT_DISPARITY_RAW,
+                    cal,
+                    1.0/16.0};
 
     ImageFrame frame{0, {}, {}, StereoCalibration{cal, cal, cal}, {}, {}, {}, {}, {}, {}};
     frame.add_image(disparity);
@@ -877,19 +915,44 @@ TEST(create_bgr_from_ycbcr420, invalid_formats)
     std::vector<uint8_t> y_data(width * height, 42);
     std::vector<uint8_t> cbcr_data(width * height/2, 128);
 
-    Image y_valid{std::make_shared<const std::vector<uint8_t>>(y_data),
-                  0, width * height, Image::PixelFormat::MONO8,
-                  static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RAW, aux_calibration};
-    Image y_invalid{std::make_shared<const std::vector<uint8_t>>(y_data),
-                  0, width * height, Image::PixelFormat::MONO16, // INVALID
-                  static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RAW, aux_calibration};
+    Image y_valid{std::make_shared<BufferWrapper>(y_data.data(), y_data.size()),
+                  Image::PixelFormat::MONO8,
+                  static_cast<int>(width),
+                  static_cast<int>(height),
+                  {},
+                  {},
+                  DataSource::AUX_LUMA_RAW,
+                  aux_calibration,
+                  std::nullopt};
 
-    Image cbcr_valid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
-                     0, width / 2 * height / 2, Image::PixelFormat::MONO16,
-                     static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RAW, aux_calibration};
-    Image cbcr_invalid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
-                     0, width / 2 * height / 2, Image::PixelFormat::MONO8, // INVALID
-                     static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RAW, aux_calibration};
+    Image y_invalid{std::make_shared<BufferWrapper>(y_data.data(), y_data.size()),
+                    Image::PixelFormat::MONO16, //INVALID
+                    static_cast<int>(width),
+                    static_cast<int>(height),
+                    {},
+                    {},
+                    DataSource::AUX_LUMA_RAW,
+                    aux_calibration,
+                    std::nullopt};
+
+    Image cbcr_valid{std::make_shared<BufferWrapper>(cbcr_data.data(), cbcr_data.size()),
+                     Image::PixelFormat::MONO16,
+                     static_cast<int>(width/2),
+                     static_cast<int>(height/2),
+                     {}, {},
+                     DataSource::AUX_CHROMA_RAW,
+                     aux_calibration,
+                     std::nullopt};
+
+    Image cbcr_invalid{std::make_shared<BufferWrapper>(cbcr_data.data(), cbcr_data.size()),
+                       Image::PixelFormat::MONO8, //INVALID
+                       static_cast<int>(width/2),
+                       static_cast<int>(height/2),
+                       {},
+                       {},
+                       DataSource::AUX_CHROMA_RAW,
+                       aux_calibration,
+                       std::nullopt};
 
     EXPECT_FALSE(create_bgr_from_ycbcr420(y_invalid, cbcr_valid, DataSource::AUX_RAW));
     EXPECT_FALSE(create_bgr_from_ycbcr420(y_valid, cbcr_invalid, DataSource::AUX_RAW));
@@ -937,13 +1000,24 @@ TEST(create_bgr_image, valid_images)
     std::vector<uint8_t> y_data(width * height, 42);
     std::vector<uint8_t> cbcr_data(width * height/2, 128);
 
-    Image y_valid{std::make_shared<const std::vector<uint8_t>>(y_data),
-                  0, width * height, Image::PixelFormat::MONO8,
-                  static_cast<int>(width), static_cast<int>(height), {}, {}, DataSource::AUX_LUMA_RECTIFIED_RAW, aux_calibration};
+    Image y_valid{std::make_shared<BufferWrapper>(y_data.data(), y_data.size()),
+                  Image::PixelFormat::MONO8,
+                  static_cast<int>(width),
+                  static_cast<int>(height),
+                  {},
+                  {},
+                  DataSource::AUX_LUMA_RECTIFIED_RAW,
+                  aux_calibration,
+                  std::nullopt};
 
-    Image cbcr_valid{std::make_shared<const std::vector<uint8_t>>(cbcr_data),
-                     0, width / 2 * height / 2, Image::PixelFormat::MONO16,
-                     static_cast<int>(width/2), static_cast<int>(height/2), {}, {}, DataSource::AUX_CHROMA_RECTIFIED_RAW, aux_calibration};
+    Image cbcr_valid{std::make_shared<BufferWrapper>(cbcr_data.data(), cbcr_data.size()),
+                     Image::PixelFormat::MONO16,
+                     static_cast<int>(width/2),
+                     static_cast<int>(height/2),
+                     {},
+                     {},
+                     DataSource::AUX_CHROMA_RECTIFIED_RAW,
+                     aux_calibration};
 
     ImageFrame frame{0, {}, {}, StereoCalibration{aux_calibration, aux_calibration, aux_calibration}, {}, {}, {}, {}, {}, {}};
     frame.aux_color_encoding = ColorImageEncoding::YCBCR420;
@@ -952,4 +1026,3 @@ TEST(create_bgr_image, valid_images)
 
     EXPECT_TRUE(create_bgr_image(frame, DataSource::AUX_RECTIFIED_RAW));
 }
-

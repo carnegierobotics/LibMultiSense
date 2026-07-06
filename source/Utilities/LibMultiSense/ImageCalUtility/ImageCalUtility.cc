@@ -53,8 +53,8 @@
 #include <string.h>
 
 #include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
 
-#include "CalibrationYaml.hh"
 #include "getopt/getopt.h"
 
 namespace lms = multisense;
@@ -120,10 +120,10 @@ lms::CameraCalibration read_cal(const std::map<std::string, std::vector<float>> 
 
 void write_cal(std::ofstream &intrinsics, std::ofstream &extrinsics, const lms::CameraCalibration &cal, size_t index)
 {
-    writeMatrix(intrinsics, "M" + std::to_string(index), 3, 3, &cal.K[0][0]);
-    writeMatrix(intrinsics, "D" + std::to_string(index), 1, cal.D.size(), cal.D.data());
-    writeMatrix(extrinsics, "P" + std::to_string(index), 3, 4, &cal.P[0][0]);
-    writeMatrix(extrinsics, "R" + std::to_string(index), 3, 3, &cal.R[0][0]);
+    lms::write_yaml_matrix(intrinsics, "M" + std::to_string(index), 3, 3, &cal.K[0][0]);
+    lms::write_yaml_matrix(intrinsics, "D" + std::to_string(index), 1, cal.D.size(), cal.D.data());
+    lms::write_yaml_matrix(extrinsics, "P" + std::to_string(index), 3, 4, &cal.P[0][0]);
+    lms::write_yaml_matrix(extrinsics, "R" + std::to_string(index), 3, 3, &cal.R[0][0]);
 }
 
 }
@@ -197,11 +197,9 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        std::map<std::string, std::vector<float>> intrinsics_data{};
-        parseYaml(intrinsics, intrinsics_data);
+        const auto intrinsics_data = lms::parse_yaml(intrinsics);
 
-        std::map<std::string, std::vector<float>> extrinsics_data{};
-        parseYaml(extrinsics, extrinsics_data);
+        const auto extrinsics_data = lms::parse_yaml(extrinsics);
 
         calibration.left = read_cal(intrinsics_data, extrinsics_data, 1);
         calibration.right = read_cal(intrinsics_data, extrinsics_data, 2);
