@@ -144,9 +144,10 @@ void WebRtcClient::c_frame_callback(uint64_t timestamp,
         incref_imagedata(const_cast<struct ImageData*>(data));
         auto data_p = static_cast<const uint8_t*>(data->data);
         std::shared_ptr<BufferWrapper> buffer(new BufferWrapper(data_p, static_cast<size_t>(data->size)),
-                                              [data](const BufferWrapper*)
+                                              [data](const BufferWrapper* wrapper)
                                               {
                                                   decref_imagedata(const_cast<struct ImageData*>(data));
+                                                  delete wrapper;
                                               });
 
 
