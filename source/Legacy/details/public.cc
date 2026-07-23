@@ -1773,13 +1773,6 @@ Status impl::getSecondaryAppConfig(system::SecondaryAppConfig& config)
     return Status_Ok;
 }
 
-
-//
-// Set camera configuration
-//
-// Currently several sensor messages are combined and presented
-// to the user as one.
-
 Status impl::setSecondaryAppConfig(system::SecondaryAppConfig& c)
 {
     wire::SecondaryAppControl cmd;
@@ -1818,13 +1811,6 @@ Status impl::getRegisteredApps(system::SecondaryAppRegisteredApps& registeredApp
 
     return Status_Ok;
 }
-
-
-//
-// Set camera configuration
-//
-// Currently several sensor messages are combined and presented
-// to the user as one.
 
 Status impl::secondaryAppActivate(const std::string &_name)
 {
