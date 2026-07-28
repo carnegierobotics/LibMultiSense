@@ -368,7 +368,6 @@ int main(int argc, char **argvPP)
     bool     configOnly   = false;
     int      setRectified = -1;
     int      setBpp       = -1;
-    int64_t  setEnables   = -1;
     UserData userData;
     crl::multisense::image::Config lms_cfg;
 
@@ -386,7 +385,6 @@ int main(int argc, char **argvPP)
         case 'c': configOnly     = true;                                   break;
         case 'r': setRectified   = atoi(optarg) ? 1 : 0;                   break;
         case 'b': setBpp         = atoi(optarg);                           break;
-        case 'e': setEnables     = strtoll(optarg, NULL, 0);               break;
         case 'n': userData.framesToCapture = strtoull(optarg, NULL, 0);    break;
         case 's': userData.savePgms = true; userData.saveDir = optarg;     break;
         case 'q': userData.verbose = false;                                break;
@@ -485,11 +483,6 @@ int main(int argc, char **argvPP)
 
     if (setBpp >= 0 &&
         Status_Ok != sendControl(channelP, thermal_wire::CTRL_SET_BITS_PER_PIXEL, setBpp, "bpp"))
-        std::cout << "  (error expected until tura_cmd plumbing lands)" << std::endl;
-
-    if (setEnables >= 0 &&
-        Status_Ok != sendControl(channelP, thermal_wire::CTRL_SET_IMAGER_ENABLES,
-                                 (uint32_t)setEnables, "enables"))
         std::cout << "  (error expected until tura_cmd plumbing lands)" << std::endl;
 
     //
