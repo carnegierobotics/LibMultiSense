@@ -11,7 +11,6 @@
 #endif
 
 #include <atomic>
-#include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -26,10 +25,10 @@
 
 #include <MultiSense/details/utility/Portability.hh>
 #include <MultiSense/MultiSenseChannel.hh>
-
-#include "thermal_wire.h"
+#include <MultiSense/wire/ThermalMessage.hh>
 
 using namespace crl::multisense;
+namespace thermal_wire = crl::multisense::details::wire;
 
 namespace {  // anonymous
 
@@ -41,12 +40,6 @@ class RawAppConfig : public system::SecondaryAppConfig
 {
 public:
     RawAppConfig() {}
-
-    RawAppConfig(const void *d, uint32_t len)
-    {
-        dataLength = len;
-        memcpy(data, d, len);
-    }
 
     virtual void serialize() {}
 };
@@ -148,16 +141,16 @@ bool savePgm(const std::string &fileName,
     return true;
 }
 
-void printConfig(const thermal_wire::config_t &cfg)
+void printConfig(const thermal_wire::ThermalConfig &cfg)
 {
     std::cout << "Thermal config:" << std::endl;
     std::cout << "  magic              : 0x" << std::hex << cfg.magic << std::dec
-              << (cfg.magic == thermal_wire::GROUP_MAGIC ? " (ok)" : " (BAD)") << std::endl;
+              << (cfg.magic == thermal_wire::THERMAL_GROUP_MAGIC ? " (ok)" : " (BAD)") << std::endl;
     std::cout << "  version            : " << cfg.version << std::endl;
     std::cout << "  rectified          : " << (unsigned)cfg.rectified << std::endl;
-    std::cout << "  bits_per_pixel     : " << (unsigned)cfg.bits_per_pixel << std::endl;
-    std::cout << "  num_imagers_max    : " << (unsigned)cfg.num_imagers_max << std::endl;
-    std::cout << "  imager_enable_mask : 0x" << std::hex << cfg.imager_enable_mask << std::dec << std::endl;
+    std::cout << "  bits_per_pixel     : " << (unsigned)cfg.bitsPerPixel << std::endl;
+    std::cout << "  num_imagers_max    : " << (unsigned)cfg.maxImagers << std::endl;
+    std::cout << "  imager_enable_mask : 0x" << std::hex << cfg.imagerEnableMask << std::dec << std::endl;
     std::cout << "  width x height     : " << cfg.width << " x " << cfg.height
               << (cfg.width == 0 ? "  (0 until first frame flows -- expected pre-stream)" : "")
               << std::endl;
@@ -177,55 +170,55 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
     bool ok = true;
 
     //
-    // Group header (memcpy: payload alignment is not guaranteed)
+    // Group header
 
-    if (length < sizeof(thermal_wire::group_header_t)) {
+    if (length < thermal_wire::ThermalGroupHeader::WIRE_SIZE) {
         std::cerr << "frame " << header.frameId << ": payload too short for group header ("
                   << length << "b)" << std::endl;
         ud->stats.groupsBad++;
         return;
     }
 
-    thermal_wire::group_header_t gh;
-    memcpy(&gh, payload, sizeof(gh));
+    details::utility::BufferStreamReader payloadStream(payload, length);
+    thermal_wire::ThermalGroupHeader gh(payloadStream);
 
-    if (gh.magic != thermal_wire::GROUP_MAGIC) {
+    if (gh.magic != thermal_wire::THERMAL_GROUP_MAGIC) {
         std::cerr << "frame " << header.frameId << ": bad magic 0x" << std::hex << gh.magic
                   << std::dec << " (want 'T6RG' = 54 36 52 47 on the wire)" << std::endl;
         ud->stats.groupsBad++;
         return;   // nothing downstream is trustworthy
     }
 
-    if (gh.version != thermal_wire::GROUP_VERSION) {
+    if (gh.version != thermal_wire::THERMAL_GROUP_VERSION) {
         std::cerr << "frame " << header.frameId << ": version " << gh.version
-                  << " != " << thermal_wire::GROUP_VERSION << std::endl;
+                  << " != " << thermal_wire::THERMAL_GROUP_VERSION << std::endl;
         ok = false;
     }
 
-    if (gh.payload_type != thermal_wire::PAYLOAD_FRAME_GROUP) {
+    if (gh.payloadType != thermal_wire::THERMAL_PAYLOAD_FRAME_GROUP) {
         std::cerr << "frame " << header.frameId << ": unexpected payload_type "
-                  << gh.payload_type << std::endl;
+                  << gh.payloadType << std::endl;
         ok = false;
     }
 
-    if (gh.frame_id != header.frameId) {
-        std::cerr << "frame " << header.frameId << ": group frame_id " << gh.frame_id
+    if (gh.frameId != header.frameId) {
+        std::cerr << "frame " << header.frameId << ": group frame_id " << gh.frameId
                   << " disagrees with SecondaryAppHeader" << std::endl;
         ok = false;
     }
 
-    const uint32_t expect_hdr_len = (uint32_t)(sizeof(thermal_wire::group_header_t) +
-                                    gh.num_images * sizeof(thermal_wire::image_desc_t));
+    const uint32_t expect_hdr_len = thermal_wire::ThermalGroupHeader::WIRE_SIZE +
+                                    gh.numImages * thermal_wire::ThermalImageDescriptor::WIRE_SIZE;
 
-    if (gh.num_images == 0 || gh.num_images > thermal_wire::MAX_IMAGERS) {
+    if (gh.numImages == 0 || gh.numImages > thermal_wire::THERMAL_MAX_IMAGERS) {
         std::cerr << "frame " << header.frameId << ": bad num_images "
-                  << (unsigned)gh.num_images << std::endl;
+                  << (unsigned)gh.numImages << std::endl;
         ud->stats.groupsBad++;
         return;
     }
 
-    if (gh.header_length != expect_hdr_len || gh.header_length > length) {
-        std::cerr << "frame " << header.frameId << ": header_length " << gh.header_length
+    if (gh.headerLength != expect_hdr_len || gh.headerLength > length) {
+        std::cerr << "frame " << header.frameId << ": header_length " << gh.headerLength
                   << " (expected " << expect_hdr_len << ", payload " << length << "b)" << std::endl;
         ud->stats.groupsBad++;
         return;
@@ -235,16 +228,19 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
     // Metadata cross-check: the firmware sends the same group header as the
     // per-frame SecondaryAppMetadata payload.
 
-    if (header.secondaryAppMetadataLength != sizeof(thermal_wire::group_header_t)) {
+    if (header.secondaryAppMetadataLength != thermal_wire::ThermalGroupHeader::WIRE_SIZE) {
         std::cerr << "frame " << header.frameId << ": metadata length "
-                  << header.secondaryAppMetadataLength << " != " << sizeof(thermal_wire::group_header_t)
+                  << header.secondaryAppMetadataLength << " != "
+                  << thermal_wire::ThermalGroupHeader::WIRE_SIZE
                   << std::endl;
         ud->stats.metaMismatch++;
         ok = false;
     } else {
-        thermal_wire::group_header_t mh;
-        memcpy(&mh, header.secondaryAppMetadataP, sizeof(mh));
-        if (mh.magic != thermal_wire::GROUP_MAGIC || mh.frame_id != gh.frame_id) {
+        details::utility::BufferStreamReader metadataStream(
+            reinterpret_cast<const uint8_t*>(header.secondaryAppMetadataP),
+            header.secondaryAppMetadataLength);
+        thermal_wire::ThermalGroupHeader mh(metadataStream);
+        if (mh.magic != thermal_wire::THERMAL_GROUP_MAGIC || mh.frameId != gh.frameId) {
             std::cerr << "frame " << header.frameId << ": metadata magic/frame_id mismatch"
                       << std::endl;
             ud->stats.metaMismatch++;
@@ -255,18 +251,17 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
     //
     // Descriptor walk: contiguous tiling, in-bounds, geometry-consistent
 
-    uint32_t expect_offset = gh.header_length;
+    uint32_t expect_offset = gh.headerLength;
 
-    for (unsigned i = 0; i < gh.num_images; ++i) {
+    for (unsigned i = 0; i < gh.numImages; ++i) {
 
-        thermal_wire::image_desc_t d;
-        memcpy(&d, payload + sizeof(gh) + i * sizeof(d), sizeof(d));
+        thermal_wire::ThermalImageDescriptor d(payloadStream);
 
-        const uint32_t geom_len = (uint32_t)d.width * d.height * (d.bits_per_pixel / 8);
+        const uint32_t geom_len = (uint32_t)d.width * d.height * (d.bitsPerPixel / 8);
 
-        if (d.bits_per_pixel != 8 && d.bits_per_pixel != 16) {
+        if (d.bitsPerPixel != 8 && d.bitsPerPixel != 16) {
             std::cerr << "frame " << header.frameId << " img " << i << ": bpp "
-                      << (unsigned)d.bits_per_pixel << std::endl;
+                      << (unsigned)d.bitsPerPixel << std::endl;
             ok = false;
         }
         if (d.offset != expect_offset) {
@@ -291,10 +286,10 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
         if (ok && ud->savePgms) {
             std::stringstream name;
             name << ud->saveDir << "/thermal_f" << std::setw(8) << std::setfill('0')
-                 << gh.frame_id << "_i" << (unsigned)d.imager_id
-                 << ((d.flags & thermal_wire::IMG_FLAG_RECTIFIED) ? "_rect" : "")
+                 << gh.frameId << "_i" << (unsigned)d.imagerId
+                 << ((d.flags & thermal_wire::THERMAL_IMAGE_FLAG_RECTIFIED) ? "_rect" : "")
                  << ".pgm";
-            if (savePgm(name.str(), d.width, d.height, d.bits_per_pixel, payload + d.offset))
+            if (savePgm(name.str(), d.width, d.height, d.bitsPerPixel, payload + d.offset))
                 ud->stats.pgmsSaved++;
         }
     }
@@ -306,9 +301,9 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
     }
 
 
-    if (ud->lastFrameId >= 0 && gh.frame_id > ud->lastFrameId + 1)
-        ud->stats.framesSkipped += (gh.frame_id - ud->lastFrameId - 1);
-    ud->lastFrameId = gh.frame_id;
+    if (ud->lastFrameId >= 0 && gh.frameId > ud->lastFrameId + 1)
+        ud->stats.framesSkipped += (gh.frameId - ud->lastFrameId - 1);
+    ud->lastFrameId = gh.frameId;
 
     if (!ok) {
         ud->stats.groupsBad++;
@@ -316,24 +311,24 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
     }
 
     ud->stats.groupsOk++;
-    ud->stats.imagesOk += gh.num_images;
+    ud->stats.imagesOk += gh.numImages;
     ud->stats.bytesOk  += length;
 
     if (!ud->printedFirst) {
         ud->printedFirst = true;
-        std::cout << "First valid group: frame " << gh.frame_id
-                  << ", " << (unsigned)gh.num_images << " images, "
-                  << length << "b, enables 0x" << std::hex << gh.imager_enable_mask << std::dec
-                  << ", ptp_locked " << (unsigned)gh.ptp_locked << std::endl;
+        std::cout << "First valid group: frame " << gh.frameId
+                  << ", " << (unsigned)gh.numImages << " images, "
+                  << length << "b, enables 0x" << std::hex << gh.imagerEnableMask << std::dec
+                  << ", ptp_locked " << (unsigned)gh.ptpLocked << std::endl;
     }
 
     if (ud->verbose) {
-        std::cout << "frame " << gh.frame_id
-                  << "  imgs " << (unsigned)gh.num_images
+        std::cout << "frame " << gh.frameId
+                  << "  imgs " << (unsigned)gh.numImages
                   << "  " << length << "b"
-                  << "  t " << gh.time_seconds << "." << std::setw(6) << std::setfill('0')
-                  << gh.time_microseconds << std::setfill(' ')
-                  << (gh.ptp_locked ? " (ptp)" : "")
+                  << "  t " << gh.timeSeconds << "." << std::setw(6) << std::setfill('0')
+                  << gh.timeMicroseconds << std::setfill(' ')
+                  << (gh.ptpLocked ? " (ptp)" : "")
                   << std::endl;
     }
 
@@ -342,16 +337,17 @@ void secondaryAppCallback(const secondary_app::Header &header, void *userDataP)
 }
 
 //
-// Send one thermal_wire control_t; report the ACK
+// Send one thermal control message; report the ACK
 Status sendControl(Channel *channelP, uint16_t cmd, uint32_t value, const char *what)
 {
-    thermal_wire::control_t c = {};
-    c.magic   = thermal_wire::GROUP_MAGIC;
-    c.version = thermal_wire::GROUP_VERSION;
-    c.cmd     = cmd;
-    c.value   = value;
+    thermal_wire::ThermalControl control;
+    control.command = cmd;
+    control.value = value;
 
-    RawAppConfig cfg(&c, sizeof(c));
+    RawAppConfig cfg;
+    details::utility::BufferStreamWriter stream(cfg.data, sizeof(cfg.data));
+    control.serialize(stream);
+    cfg.dataLength = static_cast<uint32_t>(stream.tell());
 
     const Status status = channelP->setSecondaryAppConfig(cfg);
     std::cout << "control " << what << " = " << value << " : "
@@ -462,15 +458,15 @@ int main(int argc, char **argvPP)
     {
         RawAppConfig cfg;
         status = channelP->getSecondaryAppConfig(cfg);
-        if (Status_Ok != status || cfg.dataLength < sizeof(thermal_wire::config_t)) {
+        if (Status_Ok != status || cfg.dataLength < thermal_wire::ThermalConfig::WIRE_SIZE) {
             std::cerr << "getSecondaryAppConfig failed: " << Channel::statusString(status)
                       << " (dataLength " << cfg.dataLength << ")" << std::endl;
             ret = -3;
             goto clean_out;
         }
 
-        thermal_wire::config_t tcfg;
-        memcpy(&tcfg, cfg.data, sizeof(tcfg));
+        details::utility::BufferStreamReader stream(cfg.data, cfg.dataLength);
+        thermal_wire::ThermalConfig tcfg(stream);
         printConfig(tcfg);
     }
 
@@ -479,10 +475,12 @@ int main(int argc, char **argvPP)
 
 
     if (setRectified >= 0)
-        sendControl(channelP, thermal_wire::CTRL_SET_RECTIFIED, setRectified, "rectified");
+        sendControl(channelP, thermal_wire::THERMAL_CONTROL_SET_RECTIFIED,
+                    setRectified, "rectified");
 
     if (setBpp >= 0 &&
-        Status_Ok != sendControl(channelP, thermal_wire::CTRL_SET_BITS_PER_PIXEL, setBpp, "bpp"))
+        Status_Ok != sendControl(channelP, thermal_wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL,
+                                 setBpp, "bpp"))
         std::cout << "  (error expected until tura_cmd plumbing lands)" << std::endl;
 
     //
