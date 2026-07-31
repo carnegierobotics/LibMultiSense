@@ -40,10 +40,8 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
-#include <utility>
 #include <vector>
 
-#include "MultiSenseChannel.hh"
 #include "MultiSenseTypes.hh"
 
 namespace multisense

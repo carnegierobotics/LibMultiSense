@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# @file secondary_app_utility.py
+# @file thermal_utility.py
 #
 # Copyright 2026
 # Carnegie Robotics, LLC
@@ -33,14 +33,12 @@
 
 import argparse
 
-import numpy as np
-
 import libmultisense as lms
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Read thermal images through the generic secondary-application API"
+        description="Read thermal images through the secondary-application API"
     )
     parser.add_argument(
         "-a", "--ip-address", default="10.66.171.21",

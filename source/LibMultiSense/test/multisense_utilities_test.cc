@@ -86,6 +86,15 @@ TEST(secondary_application_payload, thermal_public_types)
     EXPECT_EQ(decoded_control->value, control.value);
 }
 
+TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)
+{
+    EXPECT_THROW(
+        BufferWrapper(static_cast<const uint8_t *>(nullptr), 1),
+        std::runtime_error);
+    EXPECT_NO_THROW(
+        BufferWrapper(static_cast<const uint8_t *>(nullptr), 0));
+}
+
 TEST(secondary_application_payload, thermal_frame_group_uses_image_views)
 {
     namespace thermal = multisense::secondary_application::thermal;

@@ -724,6 +724,10 @@ public:
     BufferWrapper(const uint8_t *data, size_t size)
         : m_raw_data(data), m_size(size)
     {
+        if (data == nullptr && size != 0)
+        {
+            throw std::runtime_error("Non-empty buffer view requires valid data");
+        }
     }
 
     ///

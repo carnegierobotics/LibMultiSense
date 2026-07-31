@@ -107,7 +107,8 @@ std::vector<uint8_t> serialize_secondary_application_payload(thermal::Control co
 std::optional<thermal::FrameGroup> deserialize_thermal_frame_group(
     const BufferWrapper &payload)
 {
-    if (payload.size() < thermal_wire::ThermalFrameGroup::WIRE_SIZE)
+    if (payload.data() == nullptr ||
+        payload.size() < thermal_wire::ThermalFrameGroup::WIRE_SIZE)
     {
         return std::nullopt;
     }

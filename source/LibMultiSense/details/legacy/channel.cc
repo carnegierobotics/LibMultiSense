@@ -381,8 +381,6 @@ Status LegacyChannel::connect(const Config &config)
         return Status::FAILED;
     }
 
-    std::lock_guard<std::mutex> lock(m_mutex);
-
     disconnect_internal();
 
     //
@@ -444,12 +442,12 @@ Status LegacyChannel::connect(const Config &config)
     //
     // Disable all streams prior to requesting the MTU
     //
-    //if (const auto status = stop_streams_internal({DataSource::ALL}); status != Status::OK)
-    //{
-    //    CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
-    //    disconnect_internal();
-    //    return status;
-    //}
+    if (const auto status = stop_streams_internal({DataSource::ALL}); status != Status::OK)
+    {
+        CRL_DEBUG("Unable to stop streams: %s\n", to_string(status).c_str());
+        disconnect_internal();
+        return status;
+    }
 
     //
     // Set the user requested MTU
@@ -466,6 +464,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (auto calibration = query_calibration(); calibration)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_calibration = std::move(calibration.value());
     }
     else
@@ -480,6 +479,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (auto info = query_info(); info)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_info = std::move(info.value());
     }
     else
@@ -509,6 +509,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (auto cam_config = query_configuration(m_info.device.has_aux_camera(), m_info.imu.has_value(), false); cam_config)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_multisense_config = std::move(cam_config.value());
     }
     else
@@ -520,9 +521,12 @@ Status LegacyChannel::connect(const Config &config)
 
     // Cache secondary applications during connection so stream lifecycle
     // operations only need to select and activate the required application.
-    m_available_secondary_applications = query_available_secondary_applications();
-
-    m_connected = true;
+    auto available_secondary_applications = query_available_secondary_applications();
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_available_secondary_applications = std::move(available_secondary_applications);
+        m_connected = true;
+    }
 
     return Status::OK;
 }
@@ -1616,8 +1620,8 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
     if (application_data.application.name != wire::SECONDARY_APP_FEATURE_DETECTOR ||
         source.size() != 1 || !is_feature_source(source.front()) || !metadata)
     {
-        m_secondary_app_meta_cache.erase(m_secondary_app_meta_cache.begin(),
-                                         m_secondary_app_meta_cache.upper_bound(wire_data.frameId));
+        // Secondary-application metadata is frame-scoped and may be shared by
+        // multiple output slots. Keep it until the bounded cache evicts it.
         return;
     }
 

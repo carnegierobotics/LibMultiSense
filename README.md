@@ -74,9 +74,12 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Query Camera Calibration](#query-camera-calibration)
   - [Python](#python-10)
   - [C++](#c-10)
-- [Feature Rendering](#feature-rendering)
+- [Secondary Applications](#secondary-applications)
   - [Python](#python-11)
   - [C++](#c-11)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-12)
+  - [C++](#c-12)
 
 ## Client Networking Prerequisite
 
@@ -107,6 +110,7 @@ several command-line utilities are automatically installed and can be run direct
 - `multisense_ptp_utility`: Check the current PTP sync of the MultiSense device.
 - `multisense_rectified_focal_length_utility`: Update the focal length of the rectified image used to compute disparity.
 - `multisense_feature_detector_utility`: Display a live feed of detected features on the left rectified image.
+- `multisense_thermal_utility`: Read thermal frame groups from the thermal secondary application.
 
 Example usage:
 ```bash
@@ -1209,7 +1213,6 @@ mappings for the feature-detector application.
 
 ```python
 import libmultisense as lms
-import numpy as np
 
 with lms.Channel.create(lms.ChannelConfig()) as channel:
     # start_streams discovers and activates the thermal application.
@@ -1279,12 +1282,12 @@ Generic application packages remain responsible for their own payload protocols.
 secondary-application helper whose entries reuse the standard `multisense::Image` type; the transport remains generic
 secondary-application data rather than becoming a native camera output in the Channel API.
 
-Complete C++ and Python examples are also available as `SecondaryAppUtility` and
-`multisense_secondary_app_utility`:
+Complete C++ and Python examples are also available as `ThermalUtility` and
+`multisense_thermal_utility`:
 
 ```bash
-SecondaryAppUtility -a 10.66.171.21 -n 1 -o thermal_output
-multisense_secondary_app_utility --ip-address 10.66.171.21 --frame-groups 1
+ThermalUtility -a 10.66.171.21 -n 1 -o thermal_output
+multisense_thermal_utility --ip-address 10.66.171.21 --frame-groups 1
 ```
 
 ---

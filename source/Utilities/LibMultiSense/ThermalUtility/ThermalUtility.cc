@@ -1,5 +1,5 @@
 /**
- * @file SecondaryAppUtility.cc
+ * @file ThermalUtility.cc
  *
  * Copyright 2026
  * Carnegie Robotics, LLC
