@@ -156,10 +156,19 @@ public:
     ///
     void add_imu_frame_callback(std::function<void(const ImuFrame&)> callback) final override;
 
+    ///
+    /// @brief Retrieve the active secondary application's opaque configuration payload
+    ///
     std::optional<std::vector<uint8_t>> get_secondary_application_config() final override;
 
+    ///
+    /// @brief Send an opaque control payload to the active secondary application
+    ///
     Status send_secondary_application_control(const std::vector<uint8_t> &control) final override;
 
+    ///
+    /// @brief Set the callback invoked when secondary-application output is received
+    ///
     void add_secondary_application_callback(
         std::function<void(const SecondaryApplicationData&)> callback) final override;
 
@@ -193,6 +202,9 @@ public:
     ///
     std::optional<ImuFrame> get_next_imu_frame() final override;
 
+    ///
+    /// @brief Wait for one secondary-application output packet
+    ///
     std::optional<SecondaryApplicationData> get_next_secondary_application_data() final override;
 
     ///
@@ -282,8 +294,10 @@ private:
     ///
     Status stop_streams_internal(const std::vector<DataSource> &sources);
 
+    ///
     /// @brief Select and activate the secondary application required by a set of streams.
     ///        The secondary-application command mutex must be held by the caller.
+    ///
     Status activate_secondary_application_for_streams(const std::vector<DataSource> &sources);
 
     ///
@@ -368,10 +382,14 @@ private:
     ///
     std::mutex m_imu_callback_mutex{};
 
-    /// @brief Internal mutex used to handle secondary-application callbacks.
+    ///
+    /// @brief Internal mutex used to handle secondary-application callbacks
+    ///
     std::mutex m_secondary_application_callback_mutex{};
 
-    /// @brief Serialize secondary-application commands without blocking receive callbacks from reading state.
+    ///
+    /// @brief Serialize secondary-application commands without blocking receive callbacks from reading state
+    ///
     std::mutex m_secondary_application_command_mutex{};
 
     ///
@@ -429,7 +447,9 @@ private:
     ///
     std::optional<std::vector<SecondaryApplicationInfo>> m_available_secondary_applications{};
 
-    /// @brief Active opaque output slots for the current secondary application.
+    ///
+    /// @brief Active opaque output slots for the current secondary application
+    ///
     std::set<uint8_t> m_active_secondary_application_streams{};
 
     ///
@@ -442,7 +462,9 @@ private:
     ///
     std::function<void(const ImuFrame&)> m_user_imu_frame_callback{};
 
-    /// @brief The currently active opaque secondary-application callback.
+    ///
+    /// @brief The currently active opaque secondary-application callback
+    ///
     std::function<void(const SecondaryApplicationData&)> m_user_secondary_application_callback{};
 
     ///
@@ -455,7 +477,9 @@ private:
     ///
     FrameNotifier<ImuFrame> m_imu_frame_notifier{};
 
-    /// @brief Notifier used by get_next_secondary_application_data.
+    ///
+    /// @brief Notifier used by get_next_secondary_application_data
+    ///
     FrameNotifier<SecondaryApplicationData> m_secondary_application_notifier{};
 
     ///

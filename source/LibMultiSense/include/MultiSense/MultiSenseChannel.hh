@@ -174,13 +174,26 @@ public:
     ///
     virtual void add_imu_frame_callback(std::function<void(const ImuFrame&)> callback) = 0;
 
-    /// @brief Retrieve the active application's opaque configuration payload.
+    ///
+    /// @brief Retrieve the active secondary application's opaque configuration payload
+    ///
+    /// @return The configuration payload, or std::nullopt when it could not be retrieved
+    ///
     virtual std::optional<std::vector<uint8_t>> get_secondary_application_config() = 0;
 
-    /// @brief Send an opaque control payload to the active application.
+    ///
+    /// @brief Send an opaque control payload to the active secondary application
+    ///
+    /// @param control The application-specific control payload
+    /// @return The status of the control request
+    ///
     virtual Status send_secondary_application_control(const std::vector<uint8_t> &control) = 0;
 
-    /// @brief Set the callback invoked for opaque secondary-application output.
+    ///
+    /// @brief Set the callback invoked when secondary-application output is received
+    ///
+    /// @param callback The callback invoked for each output packet
+    ///
     virtual void add_secondary_application_callback(
         std::function<void(const SecondaryApplicationData&)> callback) = 0;
 
@@ -214,7 +227,14 @@ public:
     ///
     virtual std::optional<ImuFrame> get_next_imu_frame() = 0;
 
-    /// @brief Wait for one opaque secondary-application output packet.
+    ///
+    /// @brief A blocking call that waits for one secondary-application output packet
+    ///
+    /// If a receive timeout is configured, this call blocks until the timeout expires.
+    /// Otherwise, it blocks indefinitely until data arrives.
+    ///
+    /// @return The received packet, or std::nullopt when the configured timeout expires
+    ///
     virtual std::optional<SecondaryApplicationData> get_next_secondary_application_data() = 0;
 
     ///

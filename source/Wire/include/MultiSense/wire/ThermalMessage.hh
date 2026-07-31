@@ -143,7 +143,9 @@ public:
     }
 };
 
-/// A validated, non-owning view of one image in a thermal frame group.
+///
+/// @brief A validated, non-owning view of one image in a thermal frame group
+///
 class ThermalImage {
 public:
     const ThermalImageDescriptor& descriptor() const { return m_descriptor; }
@@ -160,8 +162,11 @@ private:
     const uint8_t *m_data;
 };
 
-/// A validated, non-owning view of a complete thermal frame-group payload.
+///
+/// @brief A validated, non-owning view of a complete thermal frame-group payload
+///
 /// The buffer used to construct this object must outlive the view.
+///
 class ThermalFrameGroup {
 public:
     static CRL_CONSTEXPR uint32_t WIRE_SIZE = ThermalGroupHeader::WIRE_SIZE;

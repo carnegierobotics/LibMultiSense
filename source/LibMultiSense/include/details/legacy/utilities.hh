@@ -143,18 +143,26 @@ crl::multisense::details::wire::SourceType convert_sources(const std::vector<Dat
 ///
 std::vector<DataSource> expand_source(const DataSource &source);
 
-/// @brief Convert an opaque secondary-application output index to its reserved wire source.
+///
+/// @brief Convert an opaque secondary-application output index to its reserved wire source
+///
 std::optional<crl::multisense::details::wire::SourceType>
 secondary_application_source(uint8_t output_index);
 
-/// @brief Convert a single reserved secondary-application wire source to its opaque output index.
+///
+/// @brief Convert a single reserved secondary-application wire source to its opaque output index
+///
 std::optional<uint8_t>
 secondary_application_output_index(crl::multisense::details::wire::SourceType source);
 
-/// @brief Return the opaque output index represented by a generic secondary-application DataSource.
+///
+/// @brief Return the opaque output index represented by a generic secondary-application DataSource
+///
 std::optional<uint8_t> secondary_application_output_index(const DataSource &source);
 
-/// @brief Return the application required by a semantic secondary-application DataSource.
+///
+/// @brief Return the application required by a semantic secondary-application DataSource
+///
 std::optional<std::string> secondary_application_name(const DataSource &source);
 
 ///
