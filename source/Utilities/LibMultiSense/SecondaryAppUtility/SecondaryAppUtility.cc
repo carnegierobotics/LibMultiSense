@@ -40,6 +40,8 @@
 #include <unistd.h>
 #endif
 
+#include <algorithm>
+#include <chrono>
 #include <csignal>
 #include <cstdint>
 #include <cstring>
@@ -49,14 +51,13 @@
 #include <utility>
 
 #include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
-#include <MultiSense/wire/ThermalMessage.hh>
 
 #include "getopt/getopt.h"
 
 namespace lms = multisense;
-namespace thermal_wire = crl::multisense::details::wire;
-namespace wire_utility = crl::multisense::details::utility;
+namespace thermal = multisense::secondary_application::thermal;
 
 namespace
 {
@@ -89,20 +90,21 @@ void signal_handler(int signal)
 }
 #endif
 
-std::pair<uint16_t, uint16_t> pixel_range(const thermal_wire::ThermalImage &image)
+std::pair<uint16_t, uint16_t> pixel_range(const lms::Image &image)
 {
-    if (image.descriptor().bitsPerPixel == 8)
+    const uint8_t *data = image.raw_data->data() + image.image_data_offset;
+    if (image.format == lms::Image::PixelFormat::MONO8)
     {
-        const auto result = std::minmax_element(image.data(), image.data() + image.size());
+        const auto result = std::minmax_element(data, data + image.image_data_length);
         return {static_cast<uint16_t>(*result.first), static_cast<uint16_t>(*result.second)};
     }
 
     uint16_t minimum = std::numeric_limits<uint16_t>::max();
     uint16_t maximum = std::numeric_limits<uint16_t>::min();
-    for (uint32_t offset = 0; offset < image.size(); offset += sizeof(uint16_t))
+    for (size_t offset = 0; offset < image.image_data_length; offset += sizeof(uint16_t))
     {
         uint16_t pixel = 0;
-        std::memcpy(&pixel, image.data() + offset, sizeof(pixel));
+        std::memcpy(&pixel, data + offset, sizeof(pixel));
         minimum = std::min(minimum, pixel);
         maximum = std::max(maximum, pixel);
     }
@@ -157,8 +159,8 @@ int main(int argc, char **argv)
         {
             usage(*argv);
         }
-        thermal_wire::ThermalControl control;
-        control.command = thermal_wire::THERMAL_CONTROL_SET_RECTIFIED;
+        thermal::Control control;
+        control.command = thermal::ControlCommand::SET_RECTIFIED;
         control.value = static_cast<uint32_t>(rectified);
         if (const auto status = lms::send_secondary_application_control(*channel, control);
             status != lms::Status::OK)
@@ -170,12 +172,12 @@ int main(int argc, char **argv)
     }
 
     if (const auto config =
-            lms::get_secondary_application_config<thermal_wire::ThermalConfig>(*channel); config)
+            lms::get_secondary_application_config<thermal::Config>(*channel); config)
     {
         std::cout << "thermal config: " << config->width << "x" << config->height
-                  << " mono" << static_cast<unsigned>(config->bitsPerPixel)
+                  << " mono" << static_cast<unsigned>(config->bits_per_pixel)
                   << (config->rectified ? " rectified" : " raw")
-                  << ", enables=0x" << std::hex << config->imagerEnableMask << std::dec
+                  << ", enables=0x" << std::hex << config->imager_enable_mask << std::dec
                   << std::endl;
     }
 
@@ -188,24 +190,29 @@ int main(int argc, char **argv)
 
         try
         {
-            wire_utility::BufferStreamReader reader(packet->payload->data(), packet->payload->size());
-            const thermal_wire::ThermalFrameGroup group(reader);
-            const auto &header = group.header();
-            std::cout << "frame " << header.frameId << ": " << group.size()
-                      << " images, timestamp " << header.timeSeconds << "."
-                      << header.timeMicroseconds << (header.ptpLocked ? " (PTP)" : "")
+            const auto group = lms::deserialize_thermal_frame_group(packet->payload);
+            if (!group)
+            {
+                throw std::runtime_error("Payload is shorter than a thermal frame-group header");
+            }
+            const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+                group->camera_timestamp.time_since_epoch());
+            const auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
+                group->camera_timestamp.time_since_epoch() - seconds);
+            std::cout << "frame " << group->frame_id << ": " << group->images.size()
+                      << " images, timestamp " << seconds.count() << "."
+                      << microseconds.count() << (group->ptp_locked ? " (PTP)" : "")
                       << std::endl;
 
-            for (std::size_t index = 0; index < group.size(); ++index)
+            for (const auto &thermal_image : group->images)
             {
-                const auto &image = group.at(index);
-                const auto &descriptor = image.descriptor();
-                const auto range = pixel_range(image);
-                std::cout << "  imager " << static_cast<unsigned>(descriptor.imagerId)
-                          << ": " << descriptor.width << "x" << descriptor.height
-                          << " mono" << static_cast<unsigned>(descriptor.bitsPerPixel)
-                          << ((descriptor.flags & thermal_wire::THERMAL_IMAGE_FLAG_RECTIFIED)
-                                  ? " rectified" : " raw")
+                const auto range = pixel_range(thermal_image.image);
+                const auto bits_per_pixel =
+                    thermal_image.image.format == lms::Image::PixelFormat::MONO8 ? 8 : 16;
+                std::cout << "  imager " << static_cast<unsigned>(thermal_image.imager_id)
+                          << ": " << thermal_image.image.width << "x" << thermal_image.image.height
+                          << " mono" << bits_per_pixel
+                          << (thermal_image.rectified ? " rectified" : " raw")
                           << ", min=" << range.first << ", max=" << range.second
                           << std::endl;
             }

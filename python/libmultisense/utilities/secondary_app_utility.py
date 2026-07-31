@@ -71,14 +71,16 @@ def main():
                 raise RuntimeError(f"failed to start thermal stream: {status}")
 
             if args.rectified is not None:
-                control = lms.wire.ThermalControl()
-                control.command = lms.wire.THERMAL_CONTROL_SET_RECTIFIED
+                control = lms.secondary_application.thermal.Control()
+                control.command = (
+                    lms.secondary_application.thermal.ControlCommand.SET_RECTIFIED
+                )
                 control.value = args.rectified
                 status = control.send(channel)
                 if status != lms.Status.OK:
                     raise RuntimeError(f"failed to configure rectification: {status}")
 
-            config = lms.wire.ThermalConfig.get(channel)
+            config = lms.secondary_application.thermal.Config.get(channel)
             if config is not None:
                 image_kind = "rectified" if config.rectified else "raw"
                 print(
@@ -93,18 +95,17 @@ def main():
                 if packet is None:
                     continue
 
-                # MultiSenseWire validates the entire payload in C++.
-                group = lms.wire.ThermalFrameGroup.from_buffer(packet.payload)
-                header = group.header
+                # C++ validates the entire payload and constructs Image views.
+                group = lms.secondary_application.thermal.FrameGroup.from_buffer(packet.payload)
                 print(
-                    f"frame {header.frame_id}: {len(group)} images, "
-                    f"timestamp {header.time_seconds}.{header.time_microseconds:06d}"
-                    f"{' (PTP)' if header.ptp_locked else ''}"
+                    f"frame {group.frame_id}: {len(group)} images, "
+                    f"timestamp {group.camera_timestamp}"
+                    f"{' (PTP)' if group.ptp_locked else ''}"
                 )
 
                 for thermal_image in group:
                     # This is a read-only, zero-copy uint8 or uint16 NumPy view.
-                    image = np.asarray(thermal_image)
+                    image = thermal_image.image.as_array
                     image_kind = "rectified" if thermal_image.rectified else "raw"
                     print(
                         f"  imager {thermal_image.imager_id}: "

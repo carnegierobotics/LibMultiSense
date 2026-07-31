@@ -45,6 +45,7 @@
 
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseMultiChannel.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 #include <MultiSense/wire/Protocol.hh>
 #include <MultiSense/wire/ThermalMessage.hh>
@@ -81,6 +82,7 @@ namespace {
 using SSizeVector = std::vector<py::ssize_t>;
 
 namespace thermal_wire = crl::multisense::details::wire;
+namespace public_thermal = multisense::secondary_application::thermal;
 
 template <typename T>
 T parse_wire_message(const py::buffer &buffer, size_t offset)
@@ -273,6 +275,41 @@ PYBIND11_MODULE(_libmultisense, m) {
         {
             return group.at(index);
         }, py::return_value_policy::reference_internal);
+
+    auto secondary_application =
+        m.def_submodule("secondary_application", "Secondary-application protocol types");
+    auto thermal = secondary_application.def_submodule("thermal", "Thermal application types");
+    thermal.attr("APPLICATION_NAME") = public_thermal::APPLICATION_NAME;
+
+    py::enum_<public_thermal::ControlCommand>(thermal, "ControlCommand")
+        .value("SET_RECTIFIED", public_thermal::ControlCommand::SET_RECTIFIED)
+        .value("SET_BITS_PER_PIXEL", public_thermal::ControlCommand::SET_BITS_PER_PIXEL)
+        .value("SET_POST_PROCESSING", public_thermal::ControlCommand::SET_POST_PROCESSING);
+
+    py::class_<public_thermal::Config>(thermal, "Config")
+        .def(py::init<>())
+        .def_static("get", [](multisense::Channel &channel)
+        {
+            py::gil_scoped_release release;
+            return multisense::get_secondary_application_config<public_thermal::Config>(channel);
+        })
+        .def_readwrite("rectified", &public_thermal::Config::rectified)
+        .def_readwrite("bits_per_pixel", &public_thermal::Config::bits_per_pixel)
+        .def_readwrite("max_imagers", &public_thermal::Config::max_imagers)
+        .def_readwrite("imager_enable_mask", &public_thermal::Config::imager_enable_mask)
+        .def_readwrite("width", &public_thermal::Config::width)
+        .def_readwrite("height", &public_thermal::Config::height);
+
+    py::class_<public_thermal::Control>(thermal, "Control")
+        .def(py::init<>())
+        .def_readwrite("command", &public_thermal::Control::command)
+        .def_readwrite("value", &public_thermal::Control::value)
+        .def("send", [](const public_thermal::Control &control,
+                        multisense::Channel &channel)
+        {
+            py::gil_scoped_release release;
+            return multisense::send_secondary_application_control(channel, control);
+        });
 
     py::class_<multisense::SecondaryApplicationData>(m, "SecondaryApplicationData")
         .def_readonly("application", &multisense::SecondaryApplicationData::application)
@@ -477,6 +514,36 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("ptp_timestamp", &multisense::Image::ptp_timestamp)
         .def_readonly("source", &multisense::Image::source)
         .def_readonly("calibration", &multisense::Image::calibration);
+
+    py::class_<public_thermal::ThermalImage>(thermal, "ThermalImage")
+        .def_readonly("imager_id", &public_thermal::ThermalImage::imager_id)
+        .def_readonly("rectified", &public_thermal::ThermalImage::rectified)
+        .def_readonly("image", &public_thermal::ThermalImage::image);
+
+    py::class_<public_thermal::FrameGroup>(thermal, "FrameGroup")
+        .def_static("from_buffer", [](const multisense::BufferWrapper &payload)
+        {
+            auto group = multisense::deserialize_thermal_frame_group(payload);
+            if (!group)
+            {
+                throw py::value_error("Buffer is too short for a thermal frame group");
+            }
+            return std::move(*group);
+        })
+        .def_readonly("frame_id", &public_thermal::FrameGroup::frame_id)
+        .def_readonly("camera_timestamp", &public_thermal::FrameGroup::camera_timestamp)
+        .def_readonly("ptp_locked", &public_thermal::FrameGroup::ptp_locked)
+        .def_readonly("imager_enable_mask", &public_thermal::FrameGroup::imager_enable_mask)
+        .def_readonly("images", &public_thermal::FrameGroup::images)
+        .def("__len__", [](const public_thermal::FrameGroup &group)
+        {
+            return group.images.size();
+        })
+        .def("__getitem__", [](const public_thermal::FrameGroup &group,
+                               std::size_t index) -> const public_thermal::ThermalImage &
+        {
+            return group.images.at(index);
+        }, py::return_value_policy::reference_internal);
 
     // ImageHistogram
     py::class_<multisense::ImageHistogram>(m, "ImageHistogram")

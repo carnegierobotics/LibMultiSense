@@ -704,6 +704,22 @@ public:
         return m_raw_data;
     }
 
+    /// @brief Shared storage backing this view, when available.
+    std::shared_ptr<const std::vector<uint8_t>> shared_data() const
+    {
+        return m_data;
+    }
+
+    /// @brief Offset of this view within shared_data().
+    size_t shared_data_offset() const
+    {
+        if (!m_data || !m_raw_data)
+        {
+            return 0;
+        }
+        return static_cast<size_t>(m_raw_data - m_data->data());
+    }
+
 private:
     std::shared_ptr<const std::vector<uint8_t>> m_data = nullptr;
     const uint8_t *m_raw_data = nullptr;

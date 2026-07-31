@@ -1,4 +1,5 @@
 set(MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseChannel.hh
+                       ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseSecondaryApplication.hh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseTypes.hh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseUtilities.hh)
 

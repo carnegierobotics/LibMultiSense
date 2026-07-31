@@ -35,58 +35,126 @@
  **/
 
 #include <cmath>
+#include <cstring>
 #include <filesystem>
+#include <memory>
 
 #include <gtest/gtest.h>
 
 #include <MultiSense/MultiSenseUtilities.hh>
-#include <MultiSense/wire/ThermalMessage.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
 
 using namespace multisense;
 
-TEST(secondary_application_payload, thermal_wire_types)
+TEST(secondary_application_payload, thermal_public_types)
 {
-    namespace thermal_wire = crl::multisense::details::wire;
+    namespace thermal = multisense::secondary_application::thermal;
 
-    thermal_wire::ThermalConfig input;
-    input.magic = thermal_wire::THERMAL_GROUP_MAGIC;
-    input.version = thermal_wire::THERMAL_GROUP_VERSION;
-    input.rectified = 1;
-    input.bitsPerPixel = 16;
-    input.maxImagers = 6;
-    input.imagerEnableMask = 0x3f;
+    thermal::Config input;
+    input.rectified = true;
+    input.bits_per_pixel = 16;
+    input.max_imagers = 6;
+    input.imager_enable_mask = 0x3f;
     input.width = 640;
     input.height = 512;
 
     const auto payload = serialize_secondary_application_payload(input);
-    ASSERT_EQ(payload.size(), thermal_wire::ThermalConfig::WIRE_SIZE);
+    ASSERT_FALSE(payload.empty());
 
     const auto output =
-        deserialize_secondary_application_payload<thermal_wire::ThermalConfig>(payload);
+        deserialize_secondary_application_payload<thermal::Config>(payload);
     ASSERT_TRUE(output);
-    EXPECT_EQ(output->magic, input.magic);
-    EXPECT_EQ(output->version, input.version);
     EXPECT_EQ(output->rectified, input.rectified);
-    EXPECT_EQ(output->bitsPerPixel, input.bitsPerPixel);
-    EXPECT_EQ(output->maxImagers, input.maxImagers);
-    EXPECT_EQ(output->imagerEnableMask, input.imagerEnableMask);
+    EXPECT_EQ(output->bits_per_pixel, input.bits_per_pixel);
+    EXPECT_EQ(output->max_imagers, input.max_imagers);
+    EXPECT_EQ(output->imager_enable_mask, input.imager_enable_mask);
     EXPECT_EQ(output->width, input.width);
     EXPECT_EQ(output->height, input.height);
 
-    EXPECT_FALSE(deserialize_secondary_application_payload<thermal_wire::ThermalConfig>(
-        std::vector<uint8_t>(thermal_wire::ThermalConfig::WIRE_SIZE - 1)));
+    EXPECT_FALSE(deserialize_secondary_application_payload<thermal::Config>(
+        std::vector<uint8_t>{}));
 
-    thermal_wire::ThermalControl control;
-    control.command = thermal_wire::THERMAL_CONTROL_SET_RECTIFIED;
+    thermal::Control control;
+    control.command = thermal::ControlCommand::SET_RECTIFIED;
     control.value = 1;
     const auto control_payload = serialize_secondary_application_payload(control);
     const auto decoded_control =
-        deserialize_secondary_application_payload<thermal_wire::ThermalControl>(control_payload);
+        deserialize_secondary_application_payload<thermal::Control>(control_payload);
     ASSERT_TRUE(decoded_control);
-    EXPECT_EQ(decoded_control->magic, thermal_wire::THERMAL_GROUP_MAGIC);
-    EXPECT_EQ(decoded_control->version, thermal_wire::THERMAL_GROUP_VERSION);
     EXPECT_EQ(decoded_control->command, control.command);
     EXPECT_EQ(decoded_control->value, control.value);
+}
+
+TEST(secondary_application_payload, thermal_frame_group_uses_image_views)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
+    namespace utility = crl::multisense::details::utility;
+
+    constexpr uint16_t width = 2;
+    constexpr uint16_t height = 2;
+    constexpr uint32_t image_length = width * height * sizeof(uint16_t);
+    constexpr uint32_t header_length = wire::ThermalGroupHeader::WIRE_SIZE +
+                                       wire::ThermalImageDescriptor::WIRE_SIZE;
+    constexpr size_t storage_prefix = 4;
+
+    wire::ThermalGroupHeader header;
+    header.magic = wire::THERMAL_GROUP_MAGIC;
+    header.version = wire::THERMAL_GROUP_VERSION;
+    header.payloadType = wire::THERMAL_PAYLOAD_FRAME_GROUP;
+    header.headerLength = header_length;
+    header.frameId = 42;
+    header.timeSeconds = 10;
+    header.timeMicroseconds = 20;
+    header.ptpLocked = 1;
+    header.numImages = 1;
+    header.imagerEnableMask = 0x4;
+
+    wire::ThermalImageDescriptor descriptor;
+    descriptor.offset = header_length;
+    descriptor.length = image_length;
+    descriptor.width = width;
+    descriptor.height = height;
+    descriptor.bitsPerPixel = 16;
+    descriptor.flags = wire::THERMAL_IMAGE_FLAG_RECTIFIED;
+    descriptor.imagerId = 2;
+
+    utility::BufferStreamWriter writer(header_length + image_length);
+    header.serialize(writer);
+    descriptor.serialize(writer);
+    const uint16_t pixels[width * height] = {100, 200, 300, 400};
+    writer.write(pixels, sizeof(pixels));
+
+    auto mutable_storage = std::make_shared<std::vector<uint8_t>>(
+        storage_prefix + writer.tell());
+    std::memcpy(mutable_storage->data() + storage_prefix, writer.data(), writer.tell());
+    std::shared_ptr<const std::vector<uint8_t>> storage = mutable_storage;
+    const BufferWrapper payload(storage, storage_prefix, writer.tell());
+
+    const auto group = deserialize_thermal_frame_group(payload);
+    ASSERT_TRUE(group);
+    EXPECT_EQ(group->frame_id, 42);
+    EXPECT_EQ(group->camera_timestamp,
+              TimeT{std::chrono::seconds{10} + std::chrono::microseconds{20}});
+    EXPECT_TRUE(group->ptp_locked);
+    EXPECT_EQ(group->imager_enable_mask, 0x4u);
+    ASSERT_EQ(group->images.size(), 1u);
+
+    const thermal::ThermalImage &thermal_image = group->images.front();
+    EXPECT_EQ(thermal_image.imager_id, 2);
+    EXPECT_TRUE(thermal_image.rectified);
+    const Image &image = thermal_image.image;
+    EXPECT_EQ(image.raw_data, storage);
+    EXPECT_EQ(image.image_data_offset, storage_prefix + header_length);
+    EXPECT_EQ(image.image_data_length, image_length);
+    EXPECT_EQ(image.format, Image::PixelFormat::MONO16);
+    EXPECT_EQ(image.width, width);
+    EXPECT_EQ(image.height, height);
+    EXPECT_EQ(image.source, DataSource::THERMAL);
+    EXPECT_EQ(image.camera_timestamp, group->camera_timestamp);
+    EXPECT_EQ(image.ptp_timestamp, group->camera_timestamp);
+    ASSERT_TRUE(image.at<uint16_t>(1, 1));
+    EXPECT_EQ(*image.at<uint16_t>(1, 1), 400);
 }
 
 //

@@ -1217,10 +1217,10 @@ with lms.Channel.create(lms.ChannelConfig()) as channel:
     packet = channel.get_next_secondary_application_data()
     if packet is not None:
         # C++ validates the complete group and every image descriptor.
-        group = lms.wire.ThermalFrameGroup.from_buffer(packet.payload)
+        group = lms.secondary_application.thermal.FrameGroup.from_buffer(packet.payload)
         for thermal_image in group:
             # Zero-copy view with the correct shape and uint8/uint16 dtype.
-            image = np.asarray(thermal_image)
+            image = thermal_image.image.as_array
             print(
                 f"imager {thermal_image.imager_id}: "
                 f"{image.shape}, {image.dtype}"
@@ -1235,11 +1235,10 @@ with lms.Channel.create(lms.ChannelConfig()) as channel:
 #include <iostream>
 
 #include <MultiSense/MultiSenseChannel.hh>
-#include <MultiSense/utility/BufferStream.hh>
-#include <MultiSense/wire/ThermalMessage.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
 
-namespace thermal = crl::multisense::details::wire;
-namespace wire_utility = crl::multisense::details::utility;
+namespace thermal = multisense::secondary_application::thermal;
 
 int main()
 {
@@ -1250,26 +1249,24 @@ int main()
         return 1;
 
     if (const auto config =
-            multisense::get_secondary_application_config<thermal::ThermalConfig>(*channel))
-        std::cout << "thermal depth: " << static_cast<unsigned>(config->bitsPerPixel)
+            multisense::get_secondary_application_config<thermal::Config>(*channel))
+        std::cout << "thermal depth: " << static_cast<unsigned>(config->bits_per_pixel)
                   << " bits\n";
 
     if (const auto packet = channel->get_next_secondary_application_data();
         packet && packet->payload)
     {
-        wire_utility::BufferStreamReader reader(packet->payload->data(),
-                                                packet->payload->size());
-        const thermal::ThermalFrameGroup group(reader);
+        const auto group = multisense::deserialize_thermal_frame_group(packet->payload);
+        if (!group)
+            return 1;
 
-        for (std::size_t index = 0; index < group.size(); ++index)
+        for (const auto &thermal_image : group->images)
         {
-            const auto &image = group.at(index);
-            const auto &description = image.descriptor();
-            const uint8_t *pixels = image.data();
+            const auto &image = thermal_image.image;
+            const uint8_t *pixels = image.raw_data->data() + image.image_data_offset;
 
-            std::cout << "imager " << static_cast<unsigned>(description.imagerId)
-                      << ": " << description.width << "x" << description.height
-                      << " mono" << static_cast<unsigned>(description.bitsPerPixel)
+            std::cout << "imager " << static_cast<unsigned>(thermal_image.imager_id)
+                      << ": " << image.width << "x" << image.height
                       << ", first byte=" << static_cast<unsigned>(pixels[0]) << '\n';
         }
     }
@@ -1279,9 +1276,9 @@ int main()
 }
 ```
 
-Control messages accept any Python buffer object. Generic application packages remain responsible for their own
-payload protocols. `ThermalFrameGroup` is a MultiSenseWire protocol helper; thermal images remain opaque secondary
-application data rather than a native camera output type in the Channel API.
+Generic application packages remain responsible for their own payload protocols. `thermal.FrameGroup` is a
+secondary-application helper whose entries reuse the standard `multisense::Image` type; the transport remains generic
+secondary-application data rather than becoming a native camera output in the Channel API.
 
 Complete C++ and Python examples are also available as `SecondaryAppUtility` and
 `multisense_secondary_app_utility`:
