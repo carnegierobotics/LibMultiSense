@@ -43,6 +43,7 @@
 
 #include <MultiSense/MultiSenseUtilities.hh>
 #include <MultiSense/MultiSenseSecondaryApplication.hh>
+#include <MultiSense/wire/ThermalMessage.hh>
 
 using namespace multisense;
 

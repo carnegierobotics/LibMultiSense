@@ -47,6 +47,7 @@
 #include <cstring>
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -62,31 +63,60 @@ namespace thermal = multisense::secondary_application::thermal;
 namespace
 {
 
-volatile bool done = false;
+struct Options
+{
+    std::string ip_address = "10.66.171.21";
+    uint16_t mtu = 1500;
+    std::size_t frame_groups = 1;
+    bool rectified = false;
+};
+
+volatile std::sig_atomic_t stop_requested = 0;
 
 void usage(const char *name)
 {
-    std::cerr << "USAGE: " << name << " [<options>]" << std::endl;
-    std::cerr << "Where <options> are:" << std::endl;
-    std::cerr << "\t-a <current-address> : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
-    std::cerr << "\t-m <mtu>             : MTU to use to communicate with the camera (default=1500)" << std::endl;
-    std::cerr << "\t-n <frame-groups>    : Number of groups to read; 0 runs until Ctrl+C (default=1)" << std::endl;
-    std::cerr << "\t-r <0|1>             : Request raw or rectified thermal images" << std::endl;
-    exit(1);
+    std::cerr << "USAGE: " << name << " [<options>]\n"
+              << "Where <options> are:\n"
+              << "\t-a <current-address> : CURRENT IPV4 address (default=10.66.171.21)\n"
+              << "\t-m <mtu>             : MTU to use to communicate with the camera (default=1500)\n"
+              << "\t-n <frame-groups>    : Number of groups to read; 0 runs until Ctrl+C (default=1)\n"
+              << "\t-r                   : Request rectified thermal images\n";
+}
+
+std::optional<Options> parse_options(int argc, char **argv)
+{
+    Options options;
+    int option = 0;
+    while (-1 != (option = getopt(argc, argv, "a:m:n:rh")))
+    {
+        switch (option)
+        {
+            case 'a': options.ip_address = optarg; break;
+            case 'm': options.mtu = static_cast<uint16_t>(std::stoul(optarg)); break;
+            case 'n': options.frame_groups = std::stoul(optarg); break;
+            case 'r': options.rectified = true; break;
+            default:
+            {
+                usage(*argv);
+                return std::nullopt;
+            }
+        }
+    }
+    return options;
 }
 
 #ifdef WIN32
 BOOL WINAPI signal_handler(DWORD control_type)
 {
     (void) control_type;
-    done = true;
+    stop_requested = 1;
     return TRUE;
 }
 #else
 void signal_handler(int signal)
 {
     (void) signal;
-    done = true;
+    stop_requested = 1;
 }
 #endif
 
@@ -111,6 +141,105 @@ std::pair<uint16_t, uint16_t> pixel_range(const lms::Image &image)
     return {minimum, maximum};
 }
 
+void print_config(lms::Channel &channel)
+{
+    const auto config = lms::get_secondary_application_config<thermal::Config>(channel);
+    if (!config)
+    {
+        return;
+    }
+
+    std::cout << "thermal config: " << config->width << "x" << config->height
+              << " mono" << static_cast<unsigned>(config->bits_per_pixel)
+              << (config->rectified ? " rectified" : " raw")
+              << ", enables=0x" << std::hex << config->imager_enable_mask << std::dec
+              << '\n';
+}
+
+bool configure_rectification(lms::Channel &channel, const bool rectified)
+{
+    if (!rectified)
+    {
+        return true;
+    }
+
+    const thermal::Control control{
+        thermal::ControlCommand::SET_RECTIFIED,
+        1u};
+    const auto status = lms::send_secondary_application_control(channel, control);
+    if (status != lms::Status::OK)
+    {
+        std::cerr << "Failed to configure rectification: " << lms::to_string(status) << '\n';
+        return false;
+    }
+    return true;
+}
+
+void print_frame_group(const thermal::FrameGroup &group)
+{
+    const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+        group.camera_timestamp.time_since_epoch());
+    const auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
+        group.camera_timestamp.time_since_epoch() - seconds);
+
+    std::cout << "frame " << group.frame_id << ": " << group.images.size()
+              << " images, timestamp " << seconds.count() << "."
+              << microseconds.count() << (group.ptp_locked ? " (PTP)" : "") << '\n';
+
+    for (const auto &thermal_image : group.images)
+    {
+        const auto &image = thermal_image.image;
+        const auto range = pixel_range(image);
+        const auto bits_per_pixel = image.format == lms::Image::PixelFormat::MONO8 ? 8 : 16;
+        std::cout << "  imager " << static_cast<unsigned>(thermal_image.imager_id)
+                  << ": " << image.width << "x" << image.height
+                  << " mono" << bits_per_pixel
+                  << (thermal_image.rectified ? " rectified" : " raw")
+                  << ", min=" << range.first << ", max=" << range.second << '\n';
+    }
+}
+
+void read_frame_groups(lms::Channel &channel, const std::size_t requested_groups)
+{
+    std::size_t received_groups = 0;
+    while (!stop_requested &&
+           (requested_groups == 0 || received_groups < requested_groups))
+    {
+        const auto packet = channel.get_next_secondary_application_data();
+        if (!packet || !packet->payload)
+        {
+            continue;
+        }
+
+        try
+        {
+            const auto group = lms::deserialize_thermal_frame_group(packet->payload);
+            if (!group)
+            {
+                throw std::runtime_error("Payload is shorter than a thermal frame-group header");
+            }
+            print_frame_group(*group);
+            ++received_groups;
+        }
+        catch (const std::exception &error)
+        {
+            std::cerr << "Invalid thermal frame group: " << error.what() << '\n';
+        }
+    }
+}
+
+int run_thermal_stream(lms::Channel &channel, const Options &options)
+{
+    if (!configure_rectification(channel, options.rectified))
+    {
+        return 1;
+    }
+
+    print_config(channel);
+    read_frame_groups(channel, options.frame_groups);
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char **argv)
@@ -121,109 +250,29 @@ int main(int argc, char **argv)
     signal(SIGINT, signal_handler);
 #endif
 
-    std::string ip_address = "10.66.171.21";
-    uint16_t mtu = 1500;
-    std::size_t requested_groups = 1;
-    int rectified = -1;
-
-    int option;
-    while (-1 != (option = getopt(argc, argv, "a:m:n:r:h")))
+    const auto options = parse_options(argc, argv);
+    if (!options)
     {
-        switch (option)
-        {
-            case 'a': ip_address = optarg; break;
-            case 'm': mtu = static_cast<uint16_t>(std::stoul(optarg)); break;
-            case 'n': requested_groups = std::stoul(optarg); break;
-            case 'r': rectified = std::stoi(optarg); break;
-            default: usage(*argv); break;
-        }
+        return 1;
     }
 
-    const auto channel = lms::Channel::create(lms::Channel::Config{ip_address, mtu});
+    const auto channel = lms::Channel::create(
+        lms::Channel::Config{options->ip_address, options->mtu});
     if (!channel)
     {
-        std::cerr << "Failed to create channel" << std::endl;
+        std::cerr << "Failed to create channel\n";
         return 1;
     }
 
-    if (const auto status = channel->start_streams({lms::DataSource::THERMAL});
-        status != lms::Status::OK)
+    const auto start_status = channel->start_streams({lms::DataSource::THERMAL});
+    if (start_status != lms::Status::OK)
     {
-        std::cerr << "Failed to start thermal stream: " << lms::to_string(status) << std::endl;
+        std::cerr << "Failed to start thermal stream: "
+                  << lms::to_string(start_status) << '\n';
         return 1;
     }
 
-    if (rectified != -1)
-    {
-        if (rectified != 0 && rectified != 1)
-        {
-            usage(*argv);
-        }
-        thermal::Control control;
-        control.command = thermal::ControlCommand::SET_RECTIFIED;
-        control.value = static_cast<uint32_t>(rectified);
-        if (const auto status = lms::send_secondary_application_control(*channel, control);
-            status != lms::Status::OK)
-        {
-            std::cerr << "Failed to configure rectification: " << lms::to_string(status) << std::endl;
-            channel->stop_streams({lms::DataSource::THERMAL});
-            return 1;
-        }
-    }
-
-    if (const auto config =
-            lms::get_secondary_application_config<thermal::Config>(*channel); config)
-    {
-        std::cout << "thermal config: " << config->width << "x" << config->height
-                  << " mono" << static_cast<unsigned>(config->bits_per_pixel)
-                  << (config->rectified ? " rectified" : " raw")
-                  << ", enables=0x" << std::hex << config->imager_enable_mask << std::dec
-                  << std::endl;
-    }
-
-    std::size_t received_groups = 0;
-    while (!done && (requested_groups == 0 || received_groups < requested_groups))
-    {
-        const auto packet = channel->get_next_secondary_application_data();
-        if (!packet || !packet->payload)
-            continue;
-
-        try
-        {
-            const auto group = lms::deserialize_thermal_frame_group(packet->payload);
-            if (!group)
-            {
-                throw std::runtime_error("Payload is shorter than a thermal frame-group header");
-            }
-            const auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
-                group->camera_timestamp.time_since_epoch());
-            const auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(
-                group->camera_timestamp.time_since_epoch() - seconds);
-            std::cout << "frame " << group->frame_id << ": " << group->images.size()
-                      << " images, timestamp " << seconds.count() << "."
-                      << microseconds.count() << (group->ptp_locked ? " (PTP)" : "")
-                      << std::endl;
-
-            for (const auto &thermal_image : group->images)
-            {
-                const auto range = pixel_range(thermal_image.image);
-                const auto bits_per_pixel =
-                    thermal_image.image.format == lms::Image::PixelFormat::MONO8 ? 8 : 16;
-                std::cout << "  imager " << static_cast<unsigned>(thermal_image.imager_id)
-                          << ": " << thermal_image.image.width << "x" << thermal_image.image.height
-                          << " mono" << bits_per_pixel
-                          << (thermal_image.rectified ? " rectified" : " raw")
-                          << ", min=" << range.first << ", max=" << range.second
-                          << std::endl;
-            }
-            ++received_groups;
-        }
-        catch (const std::exception &error)
-        {
-            std::cerr << "Invalid thermal frame group: " << error.what() << std::endl;
-        }
-    }
-
+    const int result = run_thermal_stream(*channel, *options);
     channel->stop_streams({lms::DataSource::THERMAL});
-    return 0;
+    return result;
 }

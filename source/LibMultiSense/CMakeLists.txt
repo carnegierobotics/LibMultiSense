@@ -9,6 +9,7 @@ endif()
 
 set(DETAILS_SRC details/factory.cc
                 details/multi_channel.cc
+                details/secondary_application.cc
                 details/utilities.cc
                 details/legacy/calibration.cc
                 details/legacy/channel.cc

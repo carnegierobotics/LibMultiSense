@@ -55,8 +55,8 @@ def main():
         help="Number of groups to read; 0 runs until Ctrl+C",
     )
     parser.add_argument(
-        "-r", "--rectified", type=int, choices=(0, 1),
-        help="Request raw (0) or rectified (1) thermal images",
+        "-r", "--rectified", action="store_true",
+        help="Request rectified thermal images",
     )
     args = parser.parse_args()
 
@@ -70,12 +70,12 @@ def main():
             if status != lms.Status.OK:
                 raise RuntimeError(f"failed to start thermal stream: {status}")
 
-            if args.rectified is not None:
+            if args.rectified:
                 control = lms.secondary_application.thermal.Control()
                 control.command = (
                     lms.secondary_application.thermal.ControlCommand.SET_RECTIFIED
                 )
-                control.value = args.rectified
+                control.value = 1
                 status = control.send(channel)
                 if status != lms.Status.OK:
                     raise RuntimeError(f"failed to configure rectification: {status}")
