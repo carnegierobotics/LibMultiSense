@@ -131,7 +131,7 @@ crl::multisense::details::wire::LedSet convert (const MultiSenseConfig::Lighting
 ///
 /// @brief Convert a wire secondary application configuration to a vector of applications
 ///
-std::vector<SecondaryApplication> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps);
+std::vector<SecondaryApplicationInfo> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps);
 
 ///
 /// @brief Create a API transmission config object from wire types

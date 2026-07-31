@@ -40,8 +40,54 @@
 #include <gtest/gtest.h>
 
 #include <MultiSense/MultiSenseUtilities.hh>
+#include <MultiSense/wire/ThermalMessage.hh>
 
 using namespace multisense;
+
+TEST(secondary_application_payload, thermal_wire_types)
+{
+    namespace thermal_wire = crl::multisense::details::wire;
+
+    thermal_wire::ThermalConfig input;
+    input.magic = thermal_wire::THERMAL_GROUP_MAGIC;
+    input.version = thermal_wire::THERMAL_GROUP_VERSION;
+    input.rectified = 1;
+    input.bitsPerPixel = 16;
+    input.maxImagers = 6;
+    input.imagerEnableMask = 0x3f;
+    input.width = 640;
+    input.height = 512;
+
+    const auto payload = serialize_secondary_application_payload(input);
+    ASSERT_EQ(payload.size(), thermal_wire::ThermalConfig::WIRE_SIZE);
+
+    const auto output =
+        deserialize_secondary_application_payload<thermal_wire::ThermalConfig>(payload);
+    ASSERT_TRUE(output);
+    EXPECT_EQ(output->magic, input.magic);
+    EXPECT_EQ(output->version, input.version);
+    EXPECT_EQ(output->rectified, input.rectified);
+    EXPECT_EQ(output->bitsPerPixel, input.bitsPerPixel);
+    EXPECT_EQ(output->maxImagers, input.maxImagers);
+    EXPECT_EQ(output->imagerEnableMask, input.imagerEnableMask);
+    EXPECT_EQ(output->width, input.width);
+    EXPECT_EQ(output->height, input.height);
+
+    EXPECT_FALSE(deserialize_secondary_application_payload<thermal_wire::ThermalConfig>(
+        std::vector<uint8_t>(thermal_wire::ThermalConfig::WIRE_SIZE - 1)));
+
+    thermal_wire::ThermalControl control;
+    control.command = thermal_wire::THERMAL_CONTROL_SET_RECTIFIED;
+    control.value = 1;
+    const auto control_payload = serialize_secondary_application_payload(control);
+    const auto decoded_control =
+        deserialize_secondary_application_payload<thermal_wire::ThermalControl>(control_payload);
+    ASSERT_TRUE(decoded_control);
+    EXPECT_EQ(decoded_control->magic, thermal_wire::THERMAL_GROUP_MAGIC);
+    EXPECT_EQ(decoded_control->version, thermal_wire::THERMAL_GROUP_VERSION);
+    EXPECT_EQ(decoded_control->command, control.command);
+    EXPECT_EQ(decoded_control->value, control.value);
+}
 
 //
 // Create a disparity image of a circular disk centered in the image
@@ -499,6 +545,7 @@ TEST(to_string, status)
     EXPECT_EQ(to_string(Status::EXCEPTION), "EXCEPTION");
     EXPECT_EQ(to_string(Status::UNINITIALIZED), "UNINITIALIZED");
     EXPECT_EQ(to_string(Status::INCOMPLETE_APPLICATION), "INCOMPLETE_APPLICATION");
+    EXPECT_EQ(to_string(Status::BUSY), "BUSY");
     EXPECT_EQ(to_string(static_cast<Status>(999)), "UNKNOWN");
 }
 
@@ -510,6 +557,9 @@ TEST(to_string, data_source)
     EXPECT_EQ(to_string(DataSource::RIGHT_MONO_RAW), "RIGHT");
     EXPECT_EQ(to_string(DataSource::LEFT_MONO_COMPRESSED), "LEFT_COMPRESSED");
     EXPECT_EQ(to_string(DataSource::RIGHT_MONO_COMPRESSED), "RIGHT_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::SECONDARY_APPLICATION_0), "SECONDARY_APPLICATION_0");
+    EXPECT_EQ(to_string(DataSource::SECONDARY_APPLICATION_5), "SECONDARY_APPLICATION_5");
+    EXPECT_EQ(to_string(DataSource::THERMAL), "THERMAL");
     EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_RAW), "LEFT_RECTIFIED");
     EXPECT_EQ(to_string(DataSource::RIGHT_RECTIFIED_RAW), "RIGHT_RECTIFIED");
     EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_COMPRESSED), "LEFT_RECTIFIED_COMPRESSED");
@@ -952,4 +1002,3 @@ TEST(create_bgr_image, valid_images)
 
     EXPECT_TRUE(create_bgr_image(frame, DataSource::AUX_RECTIFIED_RAW));
 }
-

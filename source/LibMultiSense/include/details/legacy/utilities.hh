@@ -143,20 +143,19 @@ crl::multisense::details::wire::SourceType convert_sources(const std::vector<Dat
 ///
 std::vector<DataSource> expand_source(const DataSource &source);
 
-///
-/// @brief Convert a secondary application to a string
-///
-std::string application_string(const SecondaryApplication &app);
+/// @brief Convert an opaque secondary-application output index to its reserved wire source.
+std::optional<crl::multisense::details::wire::SourceType>
+secondary_application_source(uint8_t output_index);
 
-///
-/// @brief Convert a string to a secondary application
-///
-SecondaryApplication secondary_application(const std::string &app);
+/// @brief Convert a single reserved secondary-application wire source to its opaque output index.
+std::optional<uint8_t>
+secondary_application_output_index(crl::multisense::details::wire::SourceType source);
 
-///
-/// @brief Check if an application is supported
-///
-bool supported_application(const std::vector<SecondaryApplication> &available_apps, const SecondaryApplication &target_app);
+/// @brief Return the opaque output index represented by a generic secondary-application DataSource.
+std::optional<uint8_t> secondary_application_output_index(const DataSource &source);
+
+/// @brief Return the application required by a semantic secondary-application DataSource.
+std::optional<std::string> secondary_application_name(const DataSource &source);
 
 ///
 /// @brief Add a wire sample to a ImuSample

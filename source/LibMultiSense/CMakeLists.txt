@@ -35,7 +35,7 @@ endif()
 # target name that the installed package exports.
 add_library(MultiSense::MultiSense ALIAS MultiSense)
 
-target_link_libraries(MultiSense PRIVATE MultiSenseWire::MultiSenseWire)
+target_link_libraries(MultiSense PUBLIC MultiSenseWire::MultiSenseWire)
 if (FILESYSTEM_LIBRARY)
     target_link_libraries(MultiSense PUBLIC ${FILESYSTEM_LIBRARY})
 endif()

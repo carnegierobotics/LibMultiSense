@@ -40,8 +40,12 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <utility>
 #include <vector>
 
+#include <MultiSense/utility/BufferStream.hh>
+
+#include "MultiSenseChannel.hh"
 #include "MultiSenseTypes.hh"
 
 namespace multisense
@@ -171,6 +175,57 @@ MULTISENSE_API std::string to_string(const Status &status);
 /// @brief Convert a DataSource object to a user readable string
 ///
 MULTISENSE_API std::string to_string(const DataSource &source);
+
+/// @brief Deserialize an opaque secondary-application payload as a MultiSenseWire type.
+///
+/// WireType must provide a default constructor, a static WIRE_SIZE member, and
+/// serialize(BufferStreamReader&).
+template<typename WireType>
+std::optional<WireType> deserialize_secondary_application_payload(
+    const std::vector<uint8_t> &payload)
+{
+    if (payload.size() < WireType::WIRE_SIZE)
+    {
+        return std::nullopt;
+    }
+
+    crl::multisense::details::utility::BufferStreamReader reader(payload.data(), payload.size());
+    WireType output;
+    output.serialize(reader);
+    return output;
+}
+
+/// @brief Serialize a MultiSenseWire type as an opaque secondary-application payload.
+///
+/// WireType must provide a static WIRE_SIZE member and serialize(BufferStreamWriter&).
+template<typename WireType>
+std::vector<uint8_t> serialize_secondary_application_payload(WireType message)
+{
+    crl::multisense::details::utility::BufferStreamWriter writer(WireType::WIRE_SIZE);
+    message.serialize(writer);
+    const auto *data = static_cast<const uint8_t *>(writer.data());
+    return std::vector<uint8_t>(data, data + writer.tell());
+}
+
+/// @brief Retrieve and deserialize the active secondary application's configuration.
+template<typename WireConfig>
+std::optional<WireConfig> get_secondary_application_config(Channel &channel)
+{
+    const auto payload = channel.get_secondary_application_config();
+    if (!payload)
+    {
+        return std::nullopt;
+    }
+    return deserialize_secondary_application_payload<WireConfig>(*payload);
+}
+
+/// @brief Serialize and send a MultiSenseWire control type to the active application.
+template<typename WireControl>
+Status send_secondary_application_control(Channel &channel, WireControl control)
+{
+    return channel.send_secondary_application_control(
+        serialize_secondary_application_payload(std::move(control)));
+}
 
 ///
 /// @brief Write a image to a specific path on disk. The type of serialization is determined by the

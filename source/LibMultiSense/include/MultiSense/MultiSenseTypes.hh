@@ -81,7 +81,8 @@ enum class Status : uint8_t
     UNSUPPORTED,
     EXCEPTION,
     UNINITIALIZED,
-    INCOMPLETE_APPLICATION
+    INCOMPLETE_APPLICATION,
+    BUSY
 };
 
 ///
@@ -116,7 +117,14 @@ enum class DataSource : uint16_t
     AUX_ORB_FEATURES,
     LEFT_RECTIFIED_ORB_FEATURES,
     RIGHT_RECTIFIED_ORB_FEATURES,
-    AUX_RECTIFIED_ORB_FEATURES
+    AUX_RECTIFIED_ORB_FEATURES,
+    SECONDARY_APPLICATION_0,
+    SECONDARY_APPLICATION_1,
+    SECONDARY_APPLICATION_2,
+    SECONDARY_APPLICATION_3,
+    SECONDARY_APPLICATION_4,
+    SECONDARY_APPLICATION_5,
+    THERMAL
 };
 
 enum class ColorImageEncoding : uint16_t
@@ -644,10 +652,75 @@ struct ImuRange
 ///
 /// @brief supported secondary applications
 ///
-enum class SecondaryApplication : uint8_t
+struct SecondaryApplicationInfo
 {
-    NONE,
-    FEATURE_DETECTOR
+    std::string name{};
+    uint32_t version = 0;
+
+    bool operator==(const SecondaryApplicationInfo &rhs) const
+    {
+        return name == rhs.name && version == rhs.version;
+    }
+};
+
+///
+/// @brief Wrap shared or externally owned byte buffers without copying
+///
+class BufferWrapper
+{
+public:
+    BufferWrapper(std::shared_ptr<const std::vector<uint8_t>> data, size_t offset)
+        : m_data(std::move(data))
+    {
+        if (!m_data || offset > m_data->size())
+        {
+            throw std::runtime_error("Invalid buffer offset");
+        }
+        m_raw_data = m_data->data() + offset;
+        m_size = m_data->size() - offset;
+    }
+
+    BufferWrapper(std::shared_ptr<const std::vector<uint8_t>> data, size_t offset, size_t length)
+        : m_data(std::move(data)),
+          m_raw_data(nullptr),
+          m_size(length)
+    {
+        if (!m_data || offset > m_data->size() || length > m_data->size() - offset)
+        {
+            throw std::runtime_error("Invalid buffer range");
+        }
+        m_raw_data = m_data->data() + offset;
+    }
+
+    BufferWrapper(const uint8_t *data, size_t size)
+        : m_raw_data(data), m_size(size)
+    {
+    }
+
+    size_t size() const { return m_size; }
+
+    const uint8_t *data() const
+    {
+        return m_raw_data;
+    }
+
+private:
+    std::shared_ptr<const std::vector<uint8_t>> m_data = nullptr;
+    const uint8_t *m_raw_data = nullptr;
+    size_t m_size = 0;
+};
+
+///
+/// @brief Opaque output produced by a secondary application
+///
+struct SecondaryApplicationData
+{
+    SecondaryApplicationInfo application{};
+    uint8_t output_index = 0;
+    int64_t frame_id = 0;
+    TimeT camera_timestamp{};
+    std::shared_ptr<const BufferWrapper> payload = nullptr;
+    std::shared_ptr<const BufferWrapper> metadata = nullptr;
 };
 
 

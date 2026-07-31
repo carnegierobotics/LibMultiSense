@@ -46,6 +46,8 @@
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseMultiChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
+#include <MultiSense/wire/Protocol.hh>
+#include <MultiSense/wire/ThermalMessage.hh>
 
 #ifdef BUILD_JSON
 #include <MultiSense/MultiSenseSerialization.hh>
@@ -77,6 +79,34 @@ namespace py = pybind11;
 
 namespace {
 using SSizeVector = std::vector<py::ssize_t>;
+
+namespace thermal_wire = crl::multisense::details::wire;
+
+template <typename T>
+T parse_wire_message(const py::buffer &buffer, size_t offset)
+{
+    const auto info = buffer.request();
+    if (info.ndim != 1 || info.itemsize <= 0 || info.size < 0 ||
+        (info.size != 0 && info.strides[0] != info.itemsize))
+    {
+        throw py::value_error("Wire message buffer must be one-dimensional and contiguous");
+    }
+
+    const auto buffer_size = static_cast<size_t>(info.size) *
+                             static_cast<size_t>(info.itemsize);
+    if (offset > buffer_size || T::WIRE_SIZE > buffer_size - offset)
+    {
+        throw py::value_error("Buffer is too short for the wire message");
+    }
+    if (info.ptr == nullptr)
+    {
+        throw py::value_error("Invalid buffer");
+    }
+
+    crl::multisense::details::utility::BufferStreamReader reader(
+        static_cast<const uint8_t *>(info.ptr) + offset, buffer_size - offset);
+    return T(reader);
+}
 }
 
 PYBIND11_MODULE(_libmultisense, m) {
@@ -93,8 +123,164 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("EXCEPTION", multisense::Status::EXCEPTION)
         .value("UNINITIALIZED", multisense::Status::UNINITIALIZED)
         .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION)
+        .value("BUSY", multisense::Status::BUSY)
         .def("__str__", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::prepend())
         .def("__repr__", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::prepend());
+
+    py::class_<multisense::SecondaryApplicationInfo>(m, "SecondaryApplicationInfo")
+        .def_readonly("name", &multisense::SecondaryApplicationInfo::name)
+        .def_readonly("version", &multisense::SecondaryApplicationInfo::version)
+        .def(py::self == py::self);
+
+    py::class_<multisense::BufferWrapper>(m, "BufferWrapper", py::buffer_protocol())
+        .def_buffer([](const multisense::BufferWrapper &buffer)
+        {
+            if (buffer.size() != 0 && buffer.data() == nullptr)
+            {
+                throw std::runtime_error("Invalid buffer");
+            }
+            return py::buffer_info(buffer.data(), static_cast<py::ssize_t>(buffer.size()));
+        })
+        .def("__len__", &multisense::BufferWrapper::size);
+
+    auto wire = m.def_submodule("wire", "MultiSenseWire message definitions");
+    wire.attr("SECONDARY_APP_THERMAL") = thermal_wire::SECONDARY_APP_THERMAL;
+    wire.attr("THERMAL_GROUP_MAGIC") = thermal_wire::THERMAL_GROUP_MAGIC;
+    wire.attr("THERMAL_GROUP_VERSION") = thermal_wire::THERMAL_GROUP_VERSION;
+    wire.attr("THERMAL_MAX_IMAGERS") = thermal_wire::THERMAL_MAX_IMAGERS;
+    wire.attr("THERMAL_PAYLOAD_FRAME_GROUP") =
+        static_cast<uint16_t>(thermal_wire::THERMAL_PAYLOAD_FRAME_GROUP);
+    wire.attr("THERMAL_PAYLOAD_CALIBRATION") =
+        static_cast<uint16_t>(thermal_wire::THERMAL_PAYLOAD_CALIBRATION);
+    wire.attr("THERMAL_IMAGE_FLAG_RECTIFIED") =
+        static_cast<uint8_t>(thermal_wire::THERMAL_IMAGE_FLAG_RECTIFIED);
+    wire.attr("THERMAL_CONTROL_SET_RECTIFIED") =
+        static_cast<uint16_t>(thermal_wire::THERMAL_CONTROL_SET_RECTIFIED);
+    wire.attr("THERMAL_CONTROL_SET_BITS_PER_PIXEL") =
+        static_cast<uint16_t>(thermal_wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL);
+    wire.attr("THERMAL_CONTROL_SET_POST_PROCESSING") =
+        static_cast<uint16_t>(thermal_wire::THERMAL_CONTROL_SET_POST_PROCESSING);
+
+    py::class_<thermal_wire::ThermalConfig>(wire, "ThermalConfig")
+        .def_static("get", [](multisense::Channel &channel)
+        {
+            py::gil_scoped_release release;
+            return multisense::get_secondary_application_config<thermal_wire::ThermalConfig>(channel);
+        })
+        .def_readonly("magic", &thermal_wire::ThermalConfig::magic)
+        .def_readonly("version", &thermal_wire::ThermalConfig::version)
+        .def_readonly("rectified", &thermal_wire::ThermalConfig::rectified)
+        .def_readonly("bits_per_pixel", &thermal_wire::ThermalConfig::bitsPerPixel)
+        .def_readonly("max_imagers", &thermal_wire::ThermalConfig::maxImagers)
+        .def_readonly("imager_enable_mask", &thermal_wire::ThermalConfig::imagerEnableMask)
+        .def_readonly("width", &thermal_wire::ThermalConfig::width)
+        .def_readonly("height", &thermal_wire::ThermalConfig::height);
+
+    py::class_<thermal_wire::ThermalControl>(wire, "ThermalControl")
+        .def(py::init<>())
+        .def_readonly("magic", &thermal_wire::ThermalControl::magic)
+        .def_readonly("version", &thermal_wire::ThermalControl::version)
+        .def_readwrite("command", &thermal_wire::ThermalControl::command)
+        .def_readwrite("value", &thermal_wire::ThermalControl::value)
+        .def("send", [](const thermal_wire::ThermalControl &control,
+                        multisense::Channel &channel)
+        {
+            py::gil_scoped_release release;
+            return multisense::send_secondary_application_control(channel, control);
+        });
+
+    auto thermal_group_header =
+        py::class_<thermal_wire::ThermalGroupHeader>(wire, "ThermalGroupHeader")
+            .def_static("from_buffer",
+                        &parse_wire_message<thermal_wire::ThermalGroupHeader>,
+                        py::arg("buffer"), py::arg("offset") = 0)
+            .def_readonly("magic", &thermal_wire::ThermalGroupHeader::magic)
+            .def_readonly("version", &thermal_wire::ThermalGroupHeader::version)
+            .def_readonly("payload_type", &thermal_wire::ThermalGroupHeader::payloadType)
+            .def_readonly("header_length", &thermal_wire::ThermalGroupHeader::headerLength)
+            .def_readonly("frame_id", &thermal_wire::ThermalGroupHeader::frameId)
+            .def_readonly("time_seconds", &thermal_wire::ThermalGroupHeader::timeSeconds)
+            .def_readonly("time_microseconds", &thermal_wire::ThermalGroupHeader::timeMicroseconds)
+            .def_readonly("ptp_locked", &thermal_wire::ThermalGroupHeader::ptpLocked)
+            .def_readonly("num_images", &thermal_wire::ThermalGroupHeader::numImages)
+            .def_readonly("imager_enable_mask", &thermal_wire::ThermalGroupHeader::imagerEnableMask);
+    thermal_group_header.attr("WIRE_SIZE") = thermal_wire::ThermalGroupHeader::WIRE_SIZE;
+
+    auto thermal_image_descriptor =
+        py::class_<thermal_wire::ThermalImageDescriptor>(wire, "ThermalImageDescriptor")
+            .def_static("from_buffer",
+                        &parse_wire_message<thermal_wire::ThermalImageDescriptor>,
+                        py::arg("buffer"), py::arg("offset") = 0)
+            .def_readonly("offset", &thermal_wire::ThermalImageDescriptor::offset)
+            .def_readonly("length", &thermal_wire::ThermalImageDescriptor::length)
+            .def_readonly("width", &thermal_wire::ThermalImageDescriptor::width)
+            .def_readonly("height", &thermal_wire::ThermalImageDescriptor::height)
+            .def_readonly("bits_per_pixel", &thermal_wire::ThermalImageDescriptor::bitsPerPixel)
+            .def_readonly("flags", &thermal_wire::ThermalImageDescriptor::flags)
+            .def_readonly("imager_id", &thermal_wire::ThermalImageDescriptor::imagerId);
+    thermal_image_descriptor.attr("WIRE_SIZE") = thermal_wire::ThermalImageDescriptor::WIRE_SIZE;
+
+    py::class_<thermal_wire::ThermalImage>(wire, "ThermalImage", py::buffer_protocol())
+        .def_property_readonly("width", [](const thermal_wire::ThermalImage &image)
+        {
+            return image.descriptor().width;
+        })
+        .def_property_readonly("height", [](const thermal_wire::ThermalImage &image)
+        {
+            return image.descriptor().height;
+        })
+        .def_property_readonly("bits_per_pixel", [](const thermal_wire::ThermalImage &image)
+        {
+            return image.descriptor().bitsPerPixel;
+        })
+        .def_property_readonly("imager_id", [](const thermal_wire::ThermalImage &image)
+        {
+            return image.descriptor().imagerId;
+        })
+        .def_property_readonly("rectified", [](const thermal_wire::ThermalImage &image)
+        {
+            return (image.descriptor().flags & thermal_wire::THERMAL_IMAGE_FLAG_RECTIFIED) != 0;
+        })
+        .def_buffer([](const thermal_wire::ThermalImage &image)
+        {
+            const auto &descriptor = image.descriptor();
+            const py::ssize_t item_size = descriptor.bitsPerPixel / 8;
+            const auto format = descriptor.bitsPerPixel == 8
+                                    ? py::format_descriptor<uint8_t>::format()
+                                    : py::format_descriptor<uint16_t>::format();
+            return py::buffer_info(
+                const_cast<uint8_t *>(image.data()),
+                item_size,
+                format,
+                2,
+                {static_cast<py::ssize_t>(descriptor.height),
+                 static_cast<py::ssize_t>(descriptor.width)},
+                {static_cast<py::ssize_t>(descriptor.width) * item_size, item_size},
+                true);
+        });
+
+    py::class_<thermal_wire::ThermalFrameGroup>(wire, "ThermalFrameGroup")
+        .def_static("from_buffer",
+                    &parse_wire_message<thermal_wire::ThermalFrameGroup>,
+                    py::arg("buffer"), py::arg("offset") = 0,
+                    py::keep_alive<0, 1>())
+        .def_property_readonly(
+            "header", &thermal_wire::ThermalFrameGroup::header,
+            py::return_value_policy::reference_internal)
+        .def("__len__", &thermal_wire::ThermalFrameGroup::size)
+        .def("__getitem__", [](const thermal_wire::ThermalFrameGroup &group,
+                               std::size_t index) -> const thermal_wire::ThermalImage &
+        {
+            return group.at(index);
+        }, py::return_value_policy::reference_internal);
+
+    py::class_<multisense::SecondaryApplicationData>(m, "SecondaryApplicationData")
+        .def_readonly("application", &multisense::SecondaryApplicationData::application)
+        .def_readonly("output_index", &multisense::SecondaryApplicationData::output_index)
+        .def_readonly("frame_id", &multisense::SecondaryApplicationData::frame_id)
+        .def_readonly("camera_timestamp", &multisense::SecondaryApplicationData::camera_timestamp)
+        .def_readonly("payload", &multisense::SecondaryApplicationData::payload)
+        .def_readonly("metadata", &multisense::SecondaryApplicationData::metadata);
 
     // DataSource
     py::enum_<multisense::DataSource>(m, "DataSource")
@@ -125,6 +311,13 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("LEFT_RECTIFIED_ORB_FEATURES", multisense::DataSource::LEFT_RECTIFIED_ORB_FEATURES)
         .value("RIGHT_RECTIFIED_ORB_FEATURES", multisense::DataSource::RIGHT_RECTIFIED_ORB_FEATURES)
         .value("AUX_RECTIFIED_ORB_FEATURES", multisense::DataSource::AUX_RECTIFIED_ORB_FEATURES)
+        .value("SECONDARY_APPLICATION_0", multisense::DataSource::SECONDARY_APPLICATION_0)
+        .value("SECONDARY_APPLICATION_1", multisense::DataSource::SECONDARY_APPLICATION_1)
+        .value("SECONDARY_APPLICATION_2", multisense::DataSource::SECONDARY_APPLICATION_2)
+        .value("SECONDARY_APPLICATION_3", multisense::DataSource::SECONDARY_APPLICATION_3)
+        .value("SECONDARY_APPLICATION_4", multisense::DataSource::SECONDARY_APPLICATION_4)
+        .value("SECONDARY_APPLICATION_5", multisense::DataSource::SECONDARY_APPLICATION_5)
+        .value("THERMAL", multisense::DataSource::THERMAL)
         .value("IMU", multisense::DataSource::IMU)
         .def("__str__", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::prepend())
         .def("__repr__", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::prepend());
@@ -785,10 +978,39 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("stop_streams", &multisense::Channel::stop_streams, py::call_guard<py::gil_scoped_release>())
         .def("add_image_frame_callback", &multisense::Channel::add_image_frame_callback, py::call_guard<py::gil_scoped_acquire>())
         .def("add_imu_frame_callback", &multisense::Channel::add_imu_frame_callback, py::call_guard<py::gil_scoped_acquire>())
+        .def("get_secondary_application_config", &multisense::Channel::get_secondary_application_config,
+             py::call_guard<py::gil_scoped_release>())
+        .def("send_secondary_application_control",
+             [](multisense::Channel &channel, const py::buffer &control)
+             {
+                 const auto raw = py::module_::import("builtins").attr("bytes")(control).cast<std::string>();
+                 const std::vector<uint8_t> bytes(raw.begin(), raw.end());
+                 py::gil_scoped_release release;
+                 return channel.send_secondary_application_control(bytes);
+             })
+        .def("add_secondary_application_callback",
+             [](multisense::Channel &channel, py::function callback)
+             {
+                 channel.add_secondary_application_callback(
+                     [callback = std::move(callback)](const multisense::SecondaryApplicationData &data)
+                     {
+                         py::gil_scoped_acquire acquire;
+                         try
+                         {
+                            callback(py::cast(data, py::return_value_policy::copy));
+                         }
+                         catch (py::error_already_set &error)
+                         {
+                             error.discard_as_unraisable("secondary application callback");
+                         }
+                     });
+             })
         .def("connect", &multisense::Channel::connect)
         .def("disconnect", &multisense::Channel::disconnect)
         .def("get_next_image_frame", &multisense::Channel::get_next_image_frame, py::call_guard<py::gil_scoped_release>())
         .def("get_next_imu_frame", &multisense::Channel::get_next_imu_frame, py::call_guard<py::gil_scoped_release>())
+        .def("get_next_secondary_application_data", &multisense::Channel::get_next_secondary_application_data,
+             py::call_guard<py::gil_scoped_release>())
         .def("get_config", &multisense::Channel::get_config, py::call_guard<py::gil_scoped_release>())
         .def("set_config", &multisense::Channel::set_config, py::call_guard<py::gil_scoped_release>())
         .def("get_calibration", &multisense::Channel::get_calibration, py::call_guard<py::gil_scoped_release>())

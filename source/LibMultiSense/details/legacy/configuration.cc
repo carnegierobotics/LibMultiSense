@@ -531,13 +531,13 @@ crl::multisense::details::wire::LedSet convert(const MultiSenseConfig::LightingC
     return output;
 }
 
-std::vector<SecondaryApplication> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps)
+std::vector<SecondaryApplicationInfo> convert(const crl::multisense::details::wire::SecondaryAppRegisteredApps &apps)
 {
-    std::vector<SecondaryApplication> output;
+    std::vector<SecondaryApplicationInfo> output;
 
     for (const auto &app: apps.apps)
     {
-        output.emplace_back(secondary_application(app.appName));
+        output.push_back(SecondaryApplicationInfo{app.appName, app.appVersion});
     }
 
     return output;

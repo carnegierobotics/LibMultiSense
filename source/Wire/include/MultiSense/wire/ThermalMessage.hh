@@ -37,6 +37,8 @@
 #define LibMultiSense_ThermalMessage
 
 #include <stdint.h>
+#include <stdexcept>
+#include <vector>
 
 #include "MultiSense/utility/BufferStream.hh"
 #include "MultiSense/utility/Portability.hh"
@@ -139,6 +141,91 @@ public:
         stream & reserved[1];
         stream & imagerEnableMask;
     }
+};
+
+/// A validated, non-owning view of one image in a thermal frame group.
+class ThermalImage {
+public:
+    const ThermalImageDescriptor& descriptor() const { return m_descriptor; }
+    const uint8_t* data() const { return m_data; }
+    uint32_t size() const { return m_descriptor.length; }
+
+private:
+    friend class ThermalFrameGroup;
+
+    ThermalImage(const ThermalImageDescriptor& descriptor, const uint8_t *data)
+        : m_descriptor(descriptor), m_data(data) {}
+
+    ThermalImageDescriptor m_descriptor;
+    const uint8_t *m_data;
+};
+
+/// A validated, non-owning view of a complete thermal frame-group payload.
+/// The buffer used to construct this object must outlive the view.
+class ThermalFrameGroup {
+public:
+    static CRL_CONSTEXPR uint32_t WIRE_SIZE = ThermalGroupHeader::WIRE_SIZE;
+
+    explicit ThermalFrameGroup(utility::BufferStreamReader& stream)
+    {
+        const std::size_t payloadStart = stream.tell();
+        const std::size_t payloadSize = stream.size() - payloadStart;
+        const uint8_t *payload = static_cast<const uint8_t *>(stream.data()) + payloadStart;
+
+        if (payloadSize < ThermalGroupHeader::WIRE_SIZE)
+            throw std::runtime_error("Thermal payload is shorter than its group header");
+
+        m_header.serialize(stream);
+
+        if (m_header.magic != THERMAL_GROUP_MAGIC)
+            throw std::runtime_error("Invalid thermal frame-group magic");
+        if (m_header.version != THERMAL_GROUP_VERSION)
+            throw std::runtime_error("Unsupported thermal frame-group version");
+        if (m_header.payloadType != THERMAL_PAYLOAD_FRAME_GROUP)
+            throw std::runtime_error("Thermal payload is not a frame group");
+        if (m_header.numImages == 0 || m_header.numImages > THERMAL_MAX_IMAGERS)
+            throw std::runtime_error("Invalid thermal image count");
+
+        const uint32_t expectedHeaderLength =
+            ThermalGroupHeader::WIRE_SIZE +
+            static_cast<uint32_t>(m_header.numImages) * ThermalImageDescriptor::WIRE_SIZE;
+        if (m_header.headerLength != expectedHeaderLength ||
+            m_header.headerLength > payloadSize)
+            throw std::runtime_error("Invalid thermal frame-group header length");
+
+        uint64_t expectedOffset = m_header.headerLength;
+        m_images.reserve(m_header.numImages);
+        for (uint8_t index = 0; index < m_header.numImages; ++index) {
+            ThermalImageDescriptor descriptor(stream);
+            if (descriptor.bitsPerPixel != 8 && descriptor.bitsPerPixel != 16)
+                throw std::runtime_error("Unsupported thermal image depth");
+            if (descriptor.width == 0 || descriptor.height == 0)
+                throw std::runtime_error("Invalid thermal image dimensions");
+
+            const uint64_t expectedLength =
+                static_cast<uint64_t>(descriptor.width) * descriptor.height *
+                (descriptor.bitsPerPixel / 8u);
+            const uint64_t imageEnd = static_cast<uint64_t>(descriptor.offset) +
+                                      descriptor.length;
+            if (descriptor.offset != expectedOffset ||
+                descriptor.length != expectedLength || imageEnd > payloadSize)
+                throw std::runtime_error("Invalid thermal image descriptor");
+
+            m_images.push_back(ThermalImage(descriptor, payload + descriptor.offset));
+            expectedOffset = imageEnd;
+        }
+
+        if (expectedOffset != payloadSize)
+            throw std::runtime_error("Thermal image descriptors do not cover the payload");
+    }
+
+    const ThermalGroupHeader& header() const { return m_header; }
+    std::size_t size() const { return m_images.size(); }
+    const ThermalImage& at(std::size_t index) const { return m_images.at(index); }
+
+private:
+    ThermalGroupHeader m_header;
+    std::vector<ThermalImage> m_images;
 };
 
 class ThermalControl {

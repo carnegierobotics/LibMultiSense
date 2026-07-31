@@ -9,6 +9,7 @@ target_link_libraries(
     _libmultisense
     PRIVATE
     MultiSense::MultiSense
+    MultiSenseWire::MultiSenseWire
     ${FILESYSTEM_LIBRARY})
 
 if (BUILD_JSON_SERIALIZATION)

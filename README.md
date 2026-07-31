@@ -510,6 +510,7 @@ if __name__ == "__main__":
 
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
 
 namespace lms = multisense;
 
@@ -1191,6 +1192,103 @@ int main(int argc, char** argv)
 
     return 0;
 }
+```
+
+---
+
+## Secondary Applications
+
+The new API exposes secondary applications as opaque extensions. LibMultiSense handles application discovery,
+activation, control, and transport, but the application owns the format of its configuration, metadata, and output
+payloads. The generic `DataSource.SECONDARY_APPLICATION_0` through `SECONDARY_APPLICATION_5` values select the
+application's reserved output slots without assigning semantic types to them. `DataSource.THERMAL` is a convenience
+mapping for the thermal application's frame-group output on slot 0; the feature sources provide equivalent semantic
+mappings for the feature-detector application.
+
+### Python
+
+```python
+import libmultisense as lms
+import numpy as np
+
+with lms.Channel.create(lms.ChannelConfig()) as channel:
+    # start_streams discovers and activates the thermal application.
+    channel.start_streams([lms.DataSource.THERMAL])
+    packet = channel.get_next_secondary_application_data()
+    if packet is not None:
+        # C++ validates the complete group and every image descriptor.
+        group = lms.wire.ThermalFrameGroup.from_buffer(packet.payload)
+        for thermal_image in group:
+            # Zero-copy view with the correct shape and uint8/uint16 dtype.
+            image = np.asarray(thermal_image)
+            print(
+                f"imager {thermal_image.imager_id}: "
+                f"{image.shape}, {image.dtype}"
+            )
+
+    channel.stop_streams([lms.DataSource.THERMAL])
+```
+
+### C++
+
+```cpp
+#include <iostream>
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/utility/BufferStream.hh>
+#include <MultiSense/wire/ThermalMessage.hh>
+
+namespace thermal = crl::multisense::details::wire;
+namespace wire_utility = crl::multisense::details::utility;
+
+int main()
+{
+    auto channel = multisense::Channel::create(
+        multisense::Channel::Config{"10.66.171.21"});
+    if (!channel || channel->start_streams({multisense::DataSource::THERMAL}) !=
+                        multisense::Status::OK)
+        return 1;
+
+    if (const auto config =
+            multisense::get_secondary_application_config<thermal::ThermalConfig>(*channel))
+        std::cout << "thermal depth: " << static_cast<unsigned>(config->bitsPerPixel)
+                  << " bits\n";
+
+    if (const auto packet = channel->get_next_secondary_application_data();
+        packet && packet->payload)
+    {
+        wire_utility::BufferStreamReader reader(packet->payload->data(),
+                                                packet->payload->size());
+        const thermal::ThermalFrameGroup group(reader);
+
+        for (std::size_t index = 0; index < group.size(); ++index)
+        {
+            const auto &image = group.at(index);
+            const auto &description = image.descriptor();
+            const uint8_t *pixels = image.data();
+
+            std::cout << "imager " << static_cast<unsigned>(description.imagerId)
+                      << ": " << description.width << "x" << description.height
+                      << " mono" << static_cast<unsigned>(description.bitsPerPixel)
+                      << ", first byte=" << static_cast<unsigned>(pixels[0]) << '\n';
+        }
+    }
+
+    channel->stop_streams({multisense::DataSource::THERMAL});
+    return 0;
+}
+```
+
+Control messages accept any Python buffer object. Generic application packages remain responsible for their own
+payload protocols. `ThermalFrameGroup` is a MultiSenseWire protocol helper; thermal images remain opaque secondary
+application data rather than a native camera output type in the Channel API.
+
+Complete C++ and Python examples are also available as `SecondaryAppUtility` and
+`multisense_secondary_app_utility`:
+
+```bash
+SecondaryAppUtility -a 10.66.171.21 -n 1
+multisense_secondary_app_utility --ip-address 10.66.171.21 --frame-groups 1
 ```
 
 ---

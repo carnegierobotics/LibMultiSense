@@ -551,6 +551,22 @@ TEST(equality, not_equal)
     ASSERT_FALSE(config0 == config1);
 }
 
+TEST(convert, secondary_applications_preserve_unknown_identity)
+{
+    using namespace crl::multisense::details;
+
+    wire::SecondaryAppRegisteredApps registered;
+    wire::SecondaryAppRegisteredApp thermal;
+    thermal.appName = "crl_thermal";
+    thermal.appVersion = 7;
+    registered.apps.push_back(thermal);
+
+    const auto applications = convert(registered);
+    ASSERT_EQ(applications.size(), 1);
+    EXPECT_EQ(applications.front().name, "crl_thermal");
+    EXPECT_EQ(applications.front().version, 7);
+}
+
 TEST(convert, cam_resolution_full_res)
 {
     using namespace crl::multisense::details;

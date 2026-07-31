@@ -150,12 +150,17 @@ public:
 
     ///
     /// @brief Start a collection of data sources streaming from the camera.
+    ///        Semantic secondary-application sources automatically query and
+    ///        activate their required application. A generic secondary source
+    ///        selects the sole installed application; if multiple applications
+    ///        are installed, a semantic source is required.
     ///
     virtual Status start_streams(const std::vector<DataSource> &sources) = 0;
 
     ///
     /// @brief Stop specific data sources from streaming from the camera. An empty
-    ///        collection of sources will stop all sources
+    ///        collection of sources will stop all sources. Stopping the last
+    ///        secondary-application source also deactivates its application.
     ///
     virtual Status stop_streams(const std::vector<DataSource> &sources) = 0;
 
@@ -168,6 +173,16 @@ public:
     /// @brief Setup user callback that will be invoked whenever a new imu frame is received.
     ///
     virtual void add_imu_frame_callback(std::function<void(const ImuFrame&)> callback) = 0;
+
+    /// @brief Retrieve the active application's opaque configuration payload.
+    virtual std::optional<std::vector<uint8_t>> get_secondary_application_config() = 0;
+
+    /// @brief Send an opaque control payload to the active application.
+    virtual Status send_secondary_application_control(const std::vector<uint8_t> &control) = 0;
+
+    /// @brief Set the callback invoked for opaque secondary-application output.
+    virtual void add_secondary_application_callback(
+        std::function<void(const SecondaryApplicationData&)> callback) = 0;
 
     ///
     /// @brief Initialize the connection to the camera
@@ -198,6 +213,9 @@ public:
     /// @return The newly received ImuFrame, or std::nullopt if timed out (and you used a timeout).
     ///
     virtual std::optional<ImuFrame> get_next_imu_frame() = 0;
+
+    /// @brief Wait for one opaque secondary-application output packet.
+    virtual std::optional<SecondaryApplicationData> get_next_secondary_application_data() = 0;
 
     ///
     /// @brief Get the current MultiSense configuration

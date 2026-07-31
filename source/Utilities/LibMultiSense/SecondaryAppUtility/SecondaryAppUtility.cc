@@ -1,0 +1,222 @@
+/**
+ * @file SecondaryAppUtility.cc
+ *
+ * Copyright 2026
+ * Carnegie Robotics, LLC
+ * 4501 Hatfield Street, Pittsburgh, PA 15201
+ * http://www.carnegierobotics.com
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the Carnegie Robotics, LLC nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL CARNEGIE ROBOTICS, LLC BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **/
+
+#ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#include <csignal>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <limits>
+#include <string>
+#include <utility>
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+#include <MultiSense/wire/ThermalMessage.hh>
+
+#include "getopt/getopt.h"
+
+namespace lms = multisense;
+namespace thermal_wire = crl::multisense::details::wire;
+namespace wire_utility = crl::multisense::details::utility;
+
+namespace
+{
+
+volatile bool done = false;
+
+void usage(const char *name)
+{
+    std::cerr << "USAGE: " << name << " [<options>]" << std::endl;
+    std::cerr << "Where <options> are:" << std::endl;
+    std::cerr << "\t-a <current-address> : CURRENT IPV4 address (default=10.66.171.21)" << std::endl;
+    std::cerr << "\t-m <mtu>             : MTU to use to communicate with the camera (default=1500)" << std::endl;
+    std::cerr << "\t-n <frame-groups>    : Number of groups to read; 0 runs until Ctrl+C (default=1)" << std::endl;
+    std::cerr << "\t-r <0|1>             : Request raw or rectified thermal images" << std::endl;
+    exit(1);
+}
+
+#ifdef WIN32
+BOOL WINAPI signal_handler(DWORD control_type)
+{
+    (void) control_type;
+    done = true;
+    return TRUE;
+}
+#else
+void signal_handler(int signal)
+{
+    (void) signal;
+    done = true;
+}
+#endif
+
+std::pair<uint16_t, uint16_t> pixel_range(const thermal_wire::ThermalImage &image)
+{
+    if (image.descriptor().bitsPerPixel == 8)
+    {
+        const auto result = std::minmax_element(image.data(), image.data() + image.size());
+        return {static_cast<uint16_t>(*result.first), static_cast<uint16_t>(*result.second)};
+    }
+
+    uint16_t minimum = std::numeric_limits<uint16_t>::max();
+    uint16_t maximum = std::numeric_limits<uint16_t>::min();
+    for (uint32_t offset = 0; offset < image.size(); offset += sizeof(uint16_t))
+    {
+        uint16_t pixel = 0;
+        std::memcpy(&pixel, image.data() + offset, sizeof(pixel));
+        minimum = std::min(minimum, pixel);
+        maximum = std::max(maximum, pixel);
+    }
+    return {minimum, maximum};
+}
+
+} // namespace
+
+int main(int argc, char **argv)
+{
+#ifdef WIN32
+    SetConsoleCtrlHandler(signal_handler, TRUE);
+#else
+    signal(SIGINT, signal_handler);
+#endif
+
+    std::string ip_address = "10.66.171.21";
+    uint16_t mtu = 1500;
+    std::size_t requested_groups = 1;
+    int rectified = -1;
+
+    int option;
+    while (-1 != (option = getopt(argc, argv, "a:m:n:r:h")))
+    {
+        switch (option)
+        {
+            case 'a': ip_address = optarg; break;
+            case 'm': mtu = static_cast<uint16_t>(std::stoul(optarg)); break;
+            case 'n': requested_groups = std::stoul(optarg); break;
+            case 'r': rectified = std::stoi(optarg); break;
+            default: usage(*argv); break;
+        }
+    }
+
+    const auto channel = lms::Channel::create(lms::Channel::Config{ip_address, mtu});
+    if (!channel)
+    {
+        std::cerr << "Failed to create channel" << std::endl;
+        return 1;
+    }
+
+    if (const auto status = channel->start_streams({lms::DataSource::THERMAL});
+        status != lms::Status::OK)
+    {
+        std::cerr << "Failed to start thermal stream: " << lms::to_string(status) << std::endl;
+        return 1;
+    }
+
+    if (rectified != -1)
+    {
+        if (rectified != 0 && rectified != 1)
+        {
+            usage(*argv);
+        }
+        thermal_wire::ThermalControl control;
+        control.command = thermal_wire::THERMAL_CONTROL_SET_RECTIFIED;
+        control.value = static_cast<uint32_t>(rectified);
+        if (const auto status = lms::send_secondary_application_control(*channel, control);
+            status != lms::Status::OK)
+        {
+            std::cerr << "Failed to configure rectification: " << lms::to_string(status) << std::endl;
+            channel->stop_streams({lms::DataSource::THERMAL});
+            return 1;
+        }
+    }
+
+    if (const auto config =
+            lms::get_secondary_application_config<thermal_wire::ThermalConfig>(*channel); config)
+    {
+        std::cout << "thermal config: " << config->width << "x" << config->height
+                  << " mono" << static_cast<unsigned>(config->bitsPerPixel)
+                  << (config->rectified ? " rectified" : " raw")
+                  << ", enables=0x" << std::hex << config->imagerEnableMask << std::dec
+                  << std::endl;
+    }
+
+    std::size_t received_groups = 0;
+    while (!done && (requested_groups == 0 || received_groups < requested_groups))
+    {
+        const auto packet = channel->get_next_secondary_application_data();
+        if (!packet || !packet->payload)
+            continue;
+
+        try
+        {
+            wire_utility::BufferStreamReader reader(packet->payload->data(), packet->payload->size());
+            const thermal_wire::ThermalFrameGroup group(reader);
+            const auto &header = group.header();
+            std::cout << "frame " << header.frameId << ": " << group.size()
+                      << " images, timestamp " << header.timeSeconds << "."
+                      << header.timeMicroseconds << (header.ptpLocked ? " (PTP)" : "")
+                      << std::endl;
+
+            for (std::size_t index = 0; index < group.size(); ++index)
+            {
+                const auto &image = group.at(index);
+                const auto &descriptor = image.descriptor();
+                const auto range = pixel_range(image);
+                std::cout << "  imager " << static_cast<unsigned>(descriptor.imagerId)
+                          << ": " << descriptor.width << "x" << descriptor.height
+                          << " mono" << static_cast<unsigned>(descriptor.bitsPerPixel)
+                          << ((descriptor.flags & thermal_wire::THERMAL_IMAGE_FLAG_RECTIFIED)
+                                  ? " rectified" : " raw")
+                          << ", min=" << range.first << ", max=" << range.second
+                          << std::endl;
+            }
+            ++received_groups;
+        }
+        catch (const std::exception &error)
+        {
+            std::cerr << "Invalid thermal frame group: " << error.what() << std::endl;
+        }
+    }
+
+    channel->stop_streams({lms::DataSource::THERMAL});
+    return 0;
+}
