@@ -1217,6 +1217,7 @@ import libmultisense as lms
 with lms.Channel.create(lms.ChannelConfig()) as channel:
     # start_streams discovers and activates the thermal application.
     channel.start_streams([lms.DataSource.THERMAL])
+    lms.secondary_application.thermal.set_rectified(True).send(channel)
     packet = channel.get_next_secondary_application_data()
     if packet is not None:
         # C++ validates the complete group and every image descriptor.
@@ -1248,6 +1249,10 @@ int main()
         multisense::Channel::Config{"10.66.171.21"});
     if (!channel || channel->start_streams({multisense::DataSource::THERMAL}) !=
                         multisense::Status::OK)
+        return 1;
+
+    if (multisense::send_secondary_application_control(
+            *channel, thermal::set_rectified(true)) != multisense::Status::OK)
         return 1;
 
     if (const auto config =

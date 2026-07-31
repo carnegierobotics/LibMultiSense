@@ -69,11 +69,7 @@ def main():
                 raise RuntimeError(f"failed to start thermal stream: {status}")
 
             if args.rectified:
-                control = lms.secondary_application.thermal.Control()
-                control.command = (
-                    lms.secondary_application.thermal.ControlCommand.SET_RECTIFIED
-                )
-                control.value = 1
+                control = lms.secondary_application.thermal.set_rectified(True)
                 status = control.send(channel)
                 if status != lms.Status.OK:
                     raise RuntimeError(f"failed to configure rectification: {status}")

@@ -167,9 +167,7 @@ bool configure_rectification(lms::Channel &channel, const bool rectified)
         return true;
     }
 
-    const thermal::Control control{
-        thermal::ControlCommand::SET_RECTIFIED,
-        1u};
+    const auto control = thermal::set_rectified(true);
     const auto status = lms::send_secondary_application_control(channel, control);
     if (status != lms::Status::OK)
     {

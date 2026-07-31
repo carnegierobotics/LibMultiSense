@@ -178,15 +178,17 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("height", &public_thermal::Config::height);
 
     py::class_<public_thermal::Control>(thermal, "Control")
-        .def(py::init<>())
-        .def_readwrite("command", &public_thermal::Control::command)
-        .def_readwrite("value", &public_thermal::Control::value)
+        .def_property_readonly("command", &public_thermal::Control::command)
         .def("send", [](const public_thermal::Control &control,
                         multisense::Channel &channel)
         {
             py::gil_scoped_release release;
             return multisense::send_secondary_application_control(channel, control);
         });
+
+    thermal.def("set_rectified", &public_thermal::set_rectified, py::arg("enabled"));
+    thermal.def("set_bits_per_pixel", &public_thermal::set_bits_per_pixel,
+                py::arg("bits_per_pixel"));
 
     py::class_<multisense::SecondaryApplicationData>(m, "SecondaryApplicationData")
         .def_readonly("application", &multisense::SecondaryApplicationData::application)

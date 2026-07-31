@@ -13,6 +13,7 @@
 
 #include <chrono>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 
 #include <MultiSense/MultiSenseSecondaryApplication.hh>
@@ -41,6 +42,42 @@ std::optional<WireType> deserialize_thermal_wire_payload(
 }
 
 } // namespace
+
+namespace secondary_application
+{
+namespace thermal
+{
+
+struct ControlAccess
+{
+    static constexpr Control make(const ControlCommand command, const uint32_t value) noexcept
+    {
+        return Control{command, value};
+    }
+
+    static constexpr uint32_t value(const Control &control) noexcept
+    {
+        return control.m_value;
+    }
+};
+
+Control set_rectified(const bool enabled) noexcept
+{
+    return ControlAccess::make(ControlCommand::SET_RECTIFIED, enabled ? 1u : 0u);
+}
+
+Control set_bits_per_pixel(const uint8_t bits_per_pixel)
+{
+    if (bits_per_pixel != 8 && bits_per_pixel != 16)
+    {
+        throw std::invalid_argument("Thermal bits per pixel must be 8 or 16");
+    }
+
+    return ControlAccess::make(ControlCommand::SET_BITS_PER_PIXEL, bits_per_pixel);
+}
+
+} // namespace thermal
+} // namespace secondary_application
 
 template<>
 std::optional<thermal::Config>
@@ -90,17 +127,17 @@ deserialize_secondary_application_payload<thermal::Control>(
         return std::nullopt;
     }
 
-    return thermal::Control{
+    return thermal::ControlAccess::make(
         static_cast<thermal::ControlCommand>(wire_control->command),
-        wire_control->value};
+        wire_control->value);
 }
 
 template<>
 std::vector<uint8_t> serialize_secondary_application_payload(thermal::Control control)
 {
     thermal_wire::ThermalControl wire_control;
-    wire_control.command = static_cast<uint16_t>(control.command);
-    wire_control.value = control.value;
+    wire_control.command = static_cast<uint16_t>(control.command());
+    wire_control.value = thermal::ControlAccess::value(control);
     return serialize_secondary_application_payload(wire_control);
 }
 

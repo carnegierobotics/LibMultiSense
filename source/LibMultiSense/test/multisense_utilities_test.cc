@@ -75,15 +75,42 @@ TEST(secondary_application_payload, thermal_public_types)
     EXPECT_FALSE(deserialize_secondary_application_payload<thermal::Config>(
         std::vector<uint8_t>{}));
 
-    thermal::Control control;
-    control.command = thermal::ControlCommand::SET_RECTIFIED;
-    control.value = 1;
+    const auto control = thermal::set_rectified(true);
     const auto control_payload = serialize_secondary_application_payload(control);
     const auto decoded_control =
         deserialize_secondary_application_payload<thermal::Control>(control_payload);
     ASSERT_TRUE(decoded_control);
-    EXPECT_EQ(decoded_control->command, control.command);
-    EXPECT_EQ(decoded_control->value, control.value);
+    EXPECT_EQ(decoded_control->command(), thermal::ControlCommand::SET_RECTIFIED);
+
+    const auto wire_control =
+        deserialize_secondary_application_payload<
+            crl::multisense::details::wire::ThermalControl>(control_payload);
+    ASSERT_TRUE(wire_control);
+    EXPECT_EQ(wire_control->command,
+              static_cast<uint16_t>(thermal::ControlCommand::SET_RECTIFIED));
+    EXPECT_EQ(wire_control->value, 1u);
+
+    const auto raw_control = serialize_secondary_application_payload(
+        thermal::set_rectified(false));
+    const auto decoded_raw_control =
+        deserialize_secondary_application_payload<
+            crl::multisense::details::wire::ThermalControl>(raw_control);
+    ASSERT_TRUE(decoded_raw_control);
+    EXPECT_EQ(decoded_raw_control->value, 0u);
+
+    for (const uint8_t bits_per_pixel : {8, 16})
+    {
+        const auto bits_control = serialize_secondary_application_payload(
+            thermal::set_bits_per_pixel(bits_per_pixel));
+        const auto decoded_bits_control =
+            deserialize_secondary_application_payload<
+                crl::multisense::details::wire::ThermalControl>(bits_control);
+        ASSERT_TRUE(decoded_bits_control);
+        EXPECT_EQ(decoded_bits_control->command,
+                  static_cast<uint16_t>(thermal::ControlCommand::SET_BITS_PER_PIXEL));
+        EXPECT_EQ(decoded_bits_control->value, bits_per_pixel);
+    }
+    EXPECT_THROW(thermal::set_bits_per_pixel(12), std::invalid_argument);
 }
 
 TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)

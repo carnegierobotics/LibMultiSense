@@ -84,18 +84,45 @@ struct Config
 ///
 /// @brief A control request sent to the thermal secondary application
 ///
-struct Control
+class Control
 {
+public:
     ///
-    /// @brief The control command to execute
+    /// @brief Return the control command to execute
     ///
-    ControlCommand command = ControlCommand::SET_RECTIFIED;
+    [[nodiscard]] constexpr ControlCommand command() const noexcept
+    {
+        return m_command;
+    }
 
-    ///
-    /// @brief The command-specific value
-    ///
-    uint32_t value = 0;
+private:
+    constexpr Control(const ControlCommand command, const uint32_t value) noexcept
+        : m_command{command}, m_value{value}
+    {
+    }
+
+    ControlCommand m_command = ControlCommand::SET_RECTIFIED;
+    uint32_t m_value = 0;
+
+    friend struct ControlAccess;
 };
+
+///
+/// @brief Create a control request that enables or disables image rectification
+///
+/// @param enabled True to enable rectification, false to disable it
+/// @return The encoded control request
+///
+MULTISENSE_API Control set_rectified(bool enabled) noexcept;
+
+///
+/// @brief Create a control request that selects the thermal pixel depth
+///
+/// @param bits_per_pixel The desired pixel depth; must be 8 or 16
+/// @return The encoded control request
+/// @throws std::invalid_argument if bits_per_pixel is not 8 or 16
+///
+MULTISENSE_API Control set_bits_per_pixel(uint8_t bits_per_pixel);
 
 ///
 /// @brief Thermal-specific metadata paired with the standard MultiSense image type
