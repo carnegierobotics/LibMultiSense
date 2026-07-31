@@ -45,6 +45,7 @@
 #include <csignal>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <optional>
@@ -68,6 +69,7 @@ struct Options
     std::string ip_address = "10.66.171.21";
     uint16_t mtu = 1500;
     std::size_t frame_groups = 1;
+    std::filesystem::path output_directory = ".";
     bool rectified = false;
 };
 
@@ -80,6 +82,7 @@ void usage(const char *name)
               << "\t-a <current-address> : CURRENT IPV4 address (default=10.66.171.21)\n"
               << "\t-m <mtu>             : MTU to use to communicate with the camera (default=1500)\n"
               << "\t-n <frame-groups>    : Number of groups to read; 0 runs until Ctrl+C (default=1)\n"
+              << "\t-o <directory>       : Directory for output PGM files (default=current directory)\n"
               << "\t-r                   : Request rectified thermal images\n";
 }
 
@@ -87,13 +90,14 @@ std::optional<Options> parse_options(int argc, char **argv)
 {
     Options options;
     int option = 0;
-    while (-1 != (option = getopt(argc, argv, "a:m:n:rh")))
+    while (-1 != (option = getopt(argc, argv, "a:m:n:o:rh")))
     {
         switch (option)
         {
             case 'a': options.ip_address = optarg; break;
             case 'm': options.mtu = static_cast<uint16_t>(std::stoul(optarg)); break;
             case 'n': options.frame_groups = std::stoul(optarg); break;
+            case 'o': options.output_directory = optarg; break;
             case 'r': options.rectified = true; break;
             default:
             {
@@ -199,7 +203,56 @@ void print_frame_group(const thermal::FrameGroup &group)
     }
 }
 
-void read_frame_groups(lms::Channel &channel, const std::size_t requested_groups)
+bool prepare_output_directory(const std::filesystem::path &output_directory)
+{
+    try
+    {
+        if (!std::filesystem::exists(output_directory))
+        {
+            std::filesystem::create_directories(output_directory);
+        }
+        if (!std::filesystem::is_directory(output_directory))
+        {
+            std::cerr << "Output path is not a directory: " << output_directory << '\n';
+            return false;
+        }
+    }
+    catch (const std::filesystem::filesystem_error &error)
+    {
+        std::cerr << "Failed to create output directory: " << error.what() << '\n';
+        return false;
+    }
+    return true;
+}
+
+bool save_frame_group(const thermal::FrameGroup &group,
+                      const std::filesystem::path &output_directory)
+{
+    bool success = true;
+    for (const auto &thermal_image : group.images)
+    {
+        const std::string filename =
+            "thermal_frame_" + std::to_string(group.frame_id) +
+            "_imager_" + std::to_string(thermal_image.imager_id) +
+            (thermal_image.rectified ? "_rectified.pgm" : "_raw.pgm");
+        const auto output_path = output_directory / filename;
+
+        if (lms::write_image(thermal_image.image, output_path))
+        {
+            std::cout << "  saved " << output_path << '\n';
+        }
+        else
+        {
+            std::cerr << "Failed to save thermal image: " << output_path << '\n';
+            success = false;
+        }
+    }
+    return success;
+}
+
+bool read_frame_groups(lms::Channel &channel,
+                       const std::size_t requested_groups,
+                       const std::filesystem::path &output_directory)
 {
     std::size_t received_groups = 0;
     while (!stop_requested &&
@@ -219,6 +272,10 @@ void read_frame_groups(lms::Channel &channel, const std::size_t requested_groups
                 throw std::runtime_error("Payload is shorter than a thermal frame-group header");
             }
             print_frame_group(*group);
+            if (!save_frame_group(*group, output_directory))
+            {
+                return false;
+            }
             ++received_groups;
         }
         catch (const std::exception &error)
@@ -226,6 +283,7 @@ void read_frame_groups(lms::Channel &channel, const std::size_t requested_groups
             std::cerr << "Invalid thermal frame group: " << error.what() << '\n';
         }
     }
+    return true;
 }
 
 int run_thermal_stream(lms::Channel &channel, const Options &options)
@@ -234,10 +292,13 @@ int run_thermal_stream(lms::Channel &channel, const Options &options)
     {
         return 1;
     }
+    if (!prepare_output_directory(options.output_directory))
+    {
+        return 1;
+    }
 
     print_config(channel);
-    read_frame_groups(channel, options.frame_groups);
-    return 0;
+    return read_frame_groups(channel, options.frame_groups, options.output_directory) ? 0 : 1;
 }
 
 } // namespace

@@ -1283,7 +1283,7 @@ Complete C++ and Python examples are also available as `SecondaryAppUtility` and
 `multisense_secondary_app_utility`:
 
 ```bash
-SecondaryAppUtility -a 10.66.171.21 -n 1
+SecondaryAppUtility -a 10.66.171.21 -n 1 -o thermal_output
 multisense_secondary_app_utility --ip-address 10.66.171.21 --frame-groups 1
 ```
 
