@@ -68,13 +68,15 @@ def main():
             if status != lms.Status.OK:
                 raise RuntimeError(f"failed to start thermal stream: {status}")
 
+            config = lms.secondary_application.thermal.query_config(channel)
             if args.rectified:
-                control = lms.secondary_application.thermal.set_rectified(True)
-                status = control.send(channel)
+                if config is None:
+                    raise RuntimeError("failed to query thermal configuration")
+                config.rectified = True
+                status = lms.secondary_application.thermal.send_config(channel, config)
                 if status != lms.Status.OK:
                     raise RuntimeError(f"failed to configure rectification: {status}")
 
-            config = lms.secondary_application.thermal.Config.get(channel)
             if config is not None:
                 image_kind = "rectified" if config.rectified else "raw"
                 print(
@@ -90,7 +92,7 @@ def main():
                     continue
 
                 # C++ validates the entire payload and constructs Image views.
-                group = lms.secondary_application.thermal.FrameGroup.from_buffer(packet.payload)
+                group = lms.secondary_application.thermal.deserialize_frame_group(packet.payload)
                 print(
                     f"frame {group.frame_id}: {len(group)} images, "
                     f"timestamp {group.camera_timestamp}"

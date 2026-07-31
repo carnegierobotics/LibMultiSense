@@ -36,93 +36,61 @@ namespace thermal
 inline constexpr char APPLICATION_NAME[] = "crl_thermal";
 
 ///
-/// @brief Commands supported by the thermal secondary application
-///
-enum class ControlCommand : uint16_t
-{
-    SET_RECTIFIED = 1,
-    SET_BITS_PER_PIXEL = 2,
-    SET_POST_PROCESSING = 3,
-};
-
-///
 /// @brief The current thermal secondary-application configuration
 ///
 struct Config
 {
     ///
-    /// @brief True when the application produces rectified images
+    /// @brief True when the application produces rectified images; writable
     ///
     bool rectified = false;
 
     ///
-    /// @brief The number of bits used to represent each pixel
+    /// @brief The number of bits used to represent each pixel; writable as 8 or 16
     ///
     uint8_t bits_per_pixel = 0;
 
     ///
-    /// @brief The maximum number of imagers supported by the application
+    /// @brief The maximum number of imagers supported by the application; read-only
     ///
     uint8_t max_imagers = 0;
 
     ///
-    /// @brief A bitmask identifying the enabled imagers
+    /// @brief A bitmask identifying the enabled imagers; read-only
     ///
     uint32_t imager_enable_mask = 0;
 
     ///
-    /// @brief The image width in pixels
+    /// @brief The image width in pixels; read-only
     ///
     uint16_t width = 0;
 
     ///
-    /// @brief The image height in pixels
+    /// @brief The image height in pixels; read-only
     ///
     uint16_t height = 0;
 };
 
 ///
-/// @brief A control request sent to the thermal secondary application
+/// @brief Query the active thermal application's configuration
 ///
-class Control
-{
-public:
-    ///
-    /// @brief Return the control command to execute
-    ///
-    [[nodiscard]] constexpr ControlCommand command() const noexcept
-    {
-        return m_command;
-    }
-
-private:
-    constexpr Control(const ControlCommand command, const uint32_t value) noexcept
-        : m_command{command}, m_value{value}
-    {
-    }
-
-    ControlCommand m_command = ControlCommand::SET_RECTIFIED;
-    uint32_t m_value = 0;
-
-    friend struct ControlAccess;
-};
+/// @param channel The channel connected to the device
+/// @return The current configuration, or std::nullopt when it could not be retrieved
+///
+MULTISENSE_API std::optional<Config> query_config(Channel &channel);
 
 ///
-/// @brief Create a control request that enables or disables image rectification
+/// @brief Send the writable settings from a thermal configuration
 ///
-/// @param enabled True to enable rectification, false to disable it
-/// @return The encoded control request
+/// The rectified and bits_per_pixel settings are sent as individual controls.
+/// The remaining fields are device-reported and are not sent.
 ///
-MULTISENSE_API Control set_rectified(bool enabled) noexcept;
-
-///
-/// @brief Create a control request that selects the thermal pixel depth
-///
-/// @param bits_per_pixel The desired pixel depth; must be 8 or 16
-/// @return The encoded control request
+/// @param channel The channel connected to the device
+/// @param config The desired configuration
+/// @return The status of the first failed control request, or Status::OK
 /// @throws std::invalid_argument if bits_per_pixel is not 8 or 16
 ///
-MULTISENSE_API Control set_bits_per_pixel(uint8_t bits_per_pixel);
+MULTISENSE_API Status send_config(Channel &channel, const Config &config);
 
 ///
 /// @brief Thermal-specific metadata paired with the standard MultiSense image type
@@ -175,6 +143,24 @@ struct FrameGroup
     ///
     std::vector<ThermalImage> images{};
 };
+
+///
+/// @brief Validate and convert a thermal payload into public, zero-copy image views
+///
+/// @param payload The thermal frame-group payload
+/// @return The decoded frame group, or std::nullopt when the payload is too small
+///
+MULTISENSE_API std::optional<FrameGroup> deserialize_frame_group(
+    const BufferWrapper &payload);
+
+///
+/// @brief Validate and convert a shared thermal payload into public, zero-copy image views
+///
+/// @param payload The shared thermal frame-group payload
+/// @return The decoded frame group, or std::nullopt when the payload is null or too small
+///
+MULTISENSE_API std::optional<FrameGroup> deserialize_frame_group(
+    const std::shared_ptr<const BufferWrapper> &payload);
 
 } // namespace thermal
 } // namespace secondary_application
@@ -274,46 +260,6 @@ deserialize_secondary_application_payload<secondary_application::thermal::Config
 template<>
 MULTISENSE_API std::vector<uint8_t> serialize_secondary_application_payload(
     secondary_application::thermal::Config config);
-
-///
-/// @brief Deserialize a thermal secondary-application control payload
-///
-/// @param payload A pointer to the first payload byte
-/// @param payload_size The number of bytes in the payload
-/// @return The decoded control request, or std::nullopt when the payload is invalid
-///
-template<>
-MULTISENSE_API std::optional<secondary_application::thermal::Control>
-deserialize_secondary_application_payload<secondary_application::thermal::Control>(
-    const uint8_t *payload, std::size_t payload_size);
-
-///
-/// @brief Serialize a thermal secondary-application control request
-///
-/// @param control The control request to serialize
-/// @return The serialized control payload
-///
-template<>
-MULTISENSE_API std::vector<uint8_t> serialize_secondary_application_payload(
-    secondary_application::thermal::Control control);
-
-///
-/// @brief Validate and convert a thermal payload into public, zero-copy image views
-///
-/// @param payload The thermal frame-group payload
-/// @return The decoded frame group, or std::nullopt when the payload is too small
-///
-MULTISENSE_API std::optional<secondary_application::thermal::FrameGroup>
-deserialize_thermal_frame_group(const BufferWrapper &payload);
-
-///
-/// @brief Validate and convert a shared thermal payload into public, zero-copy image views
-///
-/// @param payload The shared thermal frame-group payload
-/// @return The decoded frame group, or std::nullopt when the payload is null or too small
-///
-MULTISENSE_API std::optional<secondary_application::thermal::FrameGroup>
-deserialize_thermal_frame_group(const std::shared_ptr<const BufferWrapper> &payload);
 
 // Typed channel helpers
 

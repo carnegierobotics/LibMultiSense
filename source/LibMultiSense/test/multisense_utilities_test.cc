@@ -47,9 +47,60 @@
 
 using namespace multisense;
 
+namespace
+{
+
+class SecondaryApplicationTestChannel final : public Channel
+{
+public:
+    std::optional<std::vector<uint8_t>> config_payload;
+    std::vector<std::vector<uint8_t>> control_payloads;
+    Status control_status = Status::OK;
+
+    Status start_streams(const std::vector<DataSource> &) override {return Status::OK;}
+    Status stop_streams(const std::vector<DataSource> &) override {return Status::OK;}
+    void add_image_frame_callback(std::function<void(const ImageFrame &)>) override {}
+    void add_imu_frame_callback(std::function<void(const ImuFrame &)>) override {}
+    std::optional<std::vector<uint8_t>> get_secondary_application_config() override
+    {
+        return config_payload;
+    }
+    Status send_secondary_application_control(const std::vector<uint8_t> &control) override
+    {
+        control_payloads.push_back(control);
+        return control_status;
+    }
+    void add_secondary_application_callback(
+        std::function<void(const SecondaryApplicationData &)>) override {}
+    Status connect(const Channel::Config &) override {return Status::OK;}
+    void disconnect() override {}
+    std::optional<ImageFrame> get_next_image_frame() override {return std::nullopt;}
+    std::optional<ImuFrame> get_next_imu_frame() override {return std::nullopt;}
+    std::optional<SecondaryApplicationData>
+    get_next_secondary_application_data() override {return std::nullopt;}
+    MultiSenseConfig get_config() override {return {};}
+    Status set_config(const MultiSenseConfig &) override {return Status::OK;}
+    StereoCalibration get_calibration() override {return {};}
+    Status set_calibration(const StereoCalibration &) override {return Status::OK;}
+    MultiSenseInfo get_info() override {return {};}
+    Status set_device_info(const MultiSenseInfo::DeviceInfo &, const std::string &) override
+    {
+        return Status::OK;
+    }
+    std::optional<MultiSenseStatus> get_system_status() override {return std::nullopt;}
+    Status set_network_config(const MultiSenseInfo::NetworkInfo &,
+                              const std::optional<std::string> &) override
+    {
+        return Status::OK;
+    }
+};
+
+} // namespace
+
 TEST(secondary_application_payload, thermal_public_types)
 {
     namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
 
     thermal::Config input;
     input.rectified = true;
@@ -72,45 +123,67 @@ TEST(secondary_application_payload, thermal_public_types)
     EXPECT_EQ(output->width, input.width);
     EXPECT_EQ(output->height, input.height);
 
+    const auto round_trip_payload = serialize_secondary_application_payload(*output);
+    const auto round_trip =
+        deserialize_secondary_application_payload<wire::ThermalConfig>(round_trip_payload);
+    ASSERT_TRUE(round_trip);
+    EXPECT_EQ(round_trip->rectified, 1u);
+    EXPECT_EQ(round_trip->bitsPerPixel, input.bits_per_pixel);
+    EXPECT_EQ(round_trip->maxImagers, input.max_imagers);
+    EXPECT_EQ(round_trip->imagerEnableMask, input.imager_enable_mask);
+    EXPECT_EQ(round_trip->width, input.width);
+    EXPECT_EQ(round_trip->height, input.height);
+
     EXPECT_FALSE(deserialize_secondary_application_payload<thermal::Config>(
         std::vector<uint8_t>{}));
+}
 
-    const auto control = thermal::set_rectified(true);
-    const auto control_payload = serialize_secondary_application_payload(control);
-    const auto decoded_control =
-        deserialize_secondary_application_payload<thermal::Control>(control_payload);
-    ASSERT_TRUE(decoded_control);
-    EXPECT_EQ(decoded_control->command(), thermal::ControlCommand::SET_RECTIFIED);
+TEST(secondary_application_payload, thermal_config_query_update_send)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
 
-    const auto wire_control =
-        deserialize_secondary_application_payload<
-            crl::multisense::details::wire::ThermalControl>(control_payload);
-    ASSERT_TRUE(wire_control);
-    EXPECT_EQ(wire_control->command,
-              static_cast<uint16_t>(thermal::ControlCommand::SET_RECTIFIED));
-    EXPECT_EQ(wire_control->value, 1u);
+    wire::ThermalConfig wire_config;
+    wire_config.magic = wire::THERMAL_GROUP_MAGIC;
+    wire_config.version = wire::THERMAL_GROUP_VERSION;
+    wire_config.rectified = 0;
+    wire_config.bitsPerPixel = 8;
+    wire_config.maxImagers = 6;
+    wire_config.imagerEnableMask = 0x3f;
+    wire_config.width = 640;
+    wire_config.height = 512;
 
-    const auto raw_control = serialize_secondary_application_payload(
-        thermal::set_rectified(false));
-    const auto decoded_raw_control =
-        deserialize_secondary_application_payload<
-            crl::multisense::details::wire::ThermalControl>(raw_control);
-    ASSERT_TRUE(decoded_raw_control);
-    EXPECT_EQ(decoded_raw_control->value, 0u);
+    SecondaryApplicationTestChannel channel;
+    channel.config_payload = serialize_secondary_application_payload(wire_config);
 
-    for (const uint8_t bits_per_pixel : {8, 16})
-    {
-        const auto bits_control = serialize_secondary_application_payload(
-            thermal::set_bits_per_pixel(bits_per_pixel));
-        const auto decoded_bits_control =
-            deserialize_secondary_application_payload<
-                crl::multisense::details::wire::ThermalControl>(bits_control);
-        ASSERT_TRUE(decoded_bits_control);
-        EXPECT_EQ(decoded_bits_control->command,
-                  static_cast<uint16_t>(thermal::ControlCommand::SET_BITS_PER_PIXEL));
-        EXPECT_EQ(decoded_bits_control->value, bits_per_pixel);
-    }
-    EXPECT_THROW(thermal::set_bits_per_pixel(12), std::invalid_argument);
+    auto config = thermal::query_config(channel);
+    ASSERT_TRUE(config);
+    config->rectified = true;
+    config->bits_per_pixel = 16;
+    EXPECT_EQ(thermal::send_config(channel, *config), Status::OK);
+    ASSERT_EQ(channel.control_payloads.size(), 2u);
+
+    const auto rectified_control =
+        deserialize_secondary_application_payload<wire::ThermalControl>(
+            channel.control_payloads[0]);
+    ASSERT_TRUE(rectified_control);
+    EXPECT_EQ(rectified_control->command,
+              wire::THERMAL_CONTROL_SET_RECTIFIED);
+    EXPECT_EQ(rectified_control->value, 1u);
+
+    const auto bits_control =
+        deserialize_secondary_application_payload<wire::ThermalControl>(
+            channel.control_payloads[1]);
+    ASSERT_TRUE(bits_control);
+    EXPECT_EQ(bits_control->command, wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL);
+    EXPECT_EQ(bits_control->value, 16u);
+
+    EXPECT_EQ(thermal::send_config(channel, *config), Status::OK);
+    EXPECT_EQ(channel.control_payloads.size(), 4u);
+
+    config->bits_per_pixel = 12;
+    EXPECT_THROW(thermal::send_config(channel, *config), std::invalid_argument);
+    EXPECT_EQ(channel.control_payloads.size(), 4u);
 }
 
 TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)
@@ -168,7 +241,7 @@ TEST(secondary_application_payload, thermal_frame_group_uses_image_views)
     std::shared_ptr<const std::vector<uint8_t>> storage = mutable_storage;
     const BufferWrapper payload(storage, storage_prefix, writer.tell());
 
-    const auto group = deserialize_thermal_frame_group(payload);
+    const auto group = thermal::deserialize_frame_group(payload);
     ASSERT_TRUE(group);
     EXPECT_EQ(group->frame_id, 42);
     EXPECT_EQ(group->camera_timestamp,

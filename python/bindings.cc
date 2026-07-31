@@ -158,37 +158,27 @@ PYBIND11_MODULE(_libmultisense, m) {
     auto thermal = secondary_application.def_submodule("thermal", "Thermal application types");
     thermal.attr("APPLICATION_NAME") = public_thermal::APPLICATION_NAME;
 
-    py::enum_<public_thermal::ControlCommand>(thermal, "ControlCommand")
-        .value("SET_RECTIFIED", public_thermal::ControlCommand::SET_RECTIFIED)
-        .value("SET_BITS_PER_PIXEL", public_thermal::ControlCommand::SET_BITS_PER_PIXEL)
-        .value("SET_POST_PROCESSING", public_thermal::ControlCommand::SET_POST_PROCESSING);
-
     py::class_<public_thermal::Config>(thermal, "Config")
         .def(py::init<>())
-        .def_static("get", [](multisense::Channel &channel)
-        {
-            py::gil_scoped_release release;
-            return multisense::get_secondary_application_config<public_thermal::Config>(channel);
-        })
         .def_readwrite("rectified", &public_thermal::Config::rectified)
         .def_readwrite("bits_per_pixel", &public_thermal::Config::bits_per_pixel)
-        .def_readwrite("max_imagers", &public_thermal::Config::max_imagers)
-        .def_readwrite("imager_enable_mask", &public_thermal::Config::imager_enable_mask)
-        .def_readwrite("width", &public_thermal::Config::width)
-        .def_readwrite("height", &public_thermal::Config::height);
+        .def_readonly("max_imagers", &public_thermal::Config::max_imagers)
+        .def_readonly("imager_enable_mask", &public_thermal::Config::imager_enable_mask)
+        .def_readonly("width", &public_thermal::Config::width)
+        .def_readonly("height", &public_thermal::Config::height);
 
-    py::class_<public_thermal::Control>(thermal, "Control")
-        .def_property_readonly("command", &public_thermal::Control::command)
-        .def("send", [](const public_thermal::Control &control,
-                        multisense::Channel &channel)
-        {
-            py::gil_scoped_release release;
-            return multisense::send_secondary_application_control(channel, control);
-        });
+    thermal.def("query_config", [](multisense::Channel &channel)
+    {
+        py::gil_scoped_release release;
+        return public_thermal::query_config(channel);
+    }, py::arg("channel"));
 
-    thermal.def("set_rectified", &public_thermal::set_rectified, py::arg("enabled"));
-    thermal.def("set_bits_per_pixel", &public_thermal::set_bits_per_pixel,
-                py::arg("bits_per_pixel"));
+    thermal.def("send_config", [](multisense::Channel &channel,
+                                   const public_thermal::Config &config)
+    {
+        py::gil_scoped_release release;
+        return public_thermal::send_config(channel, config);
+    }, py::arg("channel"), py::arg("config"));
 
     py::class_<multisense::SecondaryApplicationData>(m, "SecondaryApplicationData")
         .def_readonly("application", &multisense::SecondaryApplicationData::application)
@@ -393,15 +383,6 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("image", &public_thermal::ThermalImage::image);
 
     py::class_<public_thermal::FrameGroup>(thermal, "FrameGroup")
-        .def_static("from_buffer", [](const multisense::BufferWrapper &payload)
-        {
-            auto group = multisense::deserialize_thermal_frame_group(payload);
-            if (!group)
-            {
-                throw py::value_error("Buffer is too short for a thermal frame group");
-            }
-            return std::move(*group);
-        })
         .def_readonly("frame_id", &public_thermal::FrameGroup::frame_id)
         .def_readonly("camera_timestamp", &public_thermal::FrameGroup::camera_timestamp)
         .def_readonly("ptp_locked", &public_thermal::FrameGroup::ptp_locked)
@@ -416,6 +397,16 @@ PYBIND11_MODULE(_libmultisense, m) {
         {
             return group.images.at(index);
         }, py::return_value_policy::reference_internal);
+
+    thermal.def("deserialize_frame_group", [](const multisense::BufferWrapper &payload)
+    {
+        auto group = public_thermal::deserialize_frame_group(payload);
+        if (!group)
+        {
+            throw py::value_error("Buffer is too short for a thermal frame group");
+        }
+        return std::move(*group);
+    }, py::arg("payload"));
 
     // ImageHistogram
     py::class_<multisense::ImageHistogram>(m, "ImageHistogram")

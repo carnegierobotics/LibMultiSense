@@ -147,7 +147,7 @@ std::pair<uint16_t, uint16_t> pixel_range(const lms::Image &image)
 
 void print_config(lms::Channel &channel)
 {
-    const auto config = lms::get_secondary_application_config<thermal::Config>(channel);
+    const auto config = thermal::query_config(channel);
     if (!config)
     {
         return;
@@ -167,8 +167,15 @@ bool configure_rectification(lms::Channel &channel, const bool rectified)
         return true;
     }
 
-    const auto control = thermal::set_rectified(true);
-    const auto status = lms::send_secondary_application_control(channel, control);
+    auto config = thermal::query_config(channel);
+    if (!config)
+    {
+        std::cerr << "Failed to query thermal configuration\n";
+        return false;
+    }
+
+    config->rectified = rectified;
+    const auto status = thermal::send_config(channel, *config);
     if (status != lms::Status::OK)
     {
         std::cerr << "Failed to configure rectification: " << lms::to_string(status) << '\n';
@@ -264,7 +271,7 @@ bool read_frame_groups(lms::Channel &channel,
 
         try
         {
-            const auto group = lms::deserialize_thermal_frame_group(packet->payload);
+            const auto group = thermal::deserialize_frame_group(packet->payload);
             if (!group)
             {
                 throw std::runtime_error("Payload is shorter than a thermal frame-group header");

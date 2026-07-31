@@ -1217,11 +1217,14 @@ import libmultisense as lms
 with lms.Channel.create(lms.ChannelConfig()) as channel:
     # start_streams discovers and activates the thermal application.
     channel.start_streams([lms.DataSource.THERMAL])
-    lms.secondary_application.thermal.set_rectified(True).send(channel)
+    config = lms.secondary_application.thermal.query_config(channel)
+    if config is not None:
+        config.rectified = True
+        lms.secondary_application.thermal.send_config(channel, config)
     packet = channel.get_next_secondary_application_data()
     if packet is not None:
         # C++ validates the complete group and every image descriptor.
-        group = lms.secondary_application.thermal.FrameGroup.from_buffer(packet.payload)
+        group = lms.secondary_application.thermal.deserialize_frame_group(packet.payload)
         for thermal_image in group:
             # Zero-copy view with the correct shape and uint8/uint16 dtype.
             image = thermal_image.image.as_array
@@ -1251,19 +1254,20 @@ int main()
                         multisense::Status::OK)
         return 1;
 
-    if (multisense::send_secondary_application_control(
-            *channel, thermal::set_rectified(true)) != multisense::Status::OK)
-        return 1;
+    if (auto config = thermal::query_config(*channel))
+    {
+        config->rectified = true;
+        if (thermal::send_config(*channel, *config) != multisense::Status::OK)
+            return 1;
 
-    if (const auto config =
-            multisense::get_secondary_application_config<thermal::Config>(*channel))
         std::cout << "thermal depth: " << static_cast<unsigned>(config->bits_per_pixel)
                   << " bits\n";
+    }
 
     if (const auto packet = channel->get_next_secondary_application_data();
         packet && packet->payload)
     {
-        const auto group = multisense::deserialize_thermal_frame_group(packet->payload);
+        const auto group = thermal::deserialize_frame_group(packet->payload);
         if (!group)
             return 1;
 
@@ -1285,7 +1289,8 @@ int main()
 
 Generic application packages remain responsible for their own payload protocols. `thermal.FrameGroup` is a
 secondary-application helper whose entries reuse the standard `multisense::Image` type; the transport remains generic
-secondary-application data rather than becoming a native camera output in the Channel API.
+secondary-application data rather than becoming a native camera output in the Channel API. In both C++ and Python,
+thermal settings follow the same `query_config`, modify fields, then `send_config` workflow.
 
 Complete C++ and Python examples are also available as `ThermalUtility` and
 `multisense_thermal_utility`:

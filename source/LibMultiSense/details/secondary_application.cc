@@ -41,43 +41,15 @@ std::optional<WireType> deserialize_thermal_wire_payload(
     return wire_message;
 }
 
+Status send_thermal_control(Channel &channel, const uint16_t command, const uint32_t value)
+{
+    thermal_wire::ThermalControl control;
+    control.command = command;
+    control.value = value;
+    return send_secondary_application_control(channel, control);
+}
+
 } // namespace
-
-namespace secondary_application
-{
-namespace thermal
-{
-
-struct ControlAccess
-{
-    static constexpr Control make(const ControlCommand command, const uint32_t value) noexcept
-    {
-        return Control{command, value};
-    }
-
-    static constexpr uint32_t value(const Control &control) noexcept
-    {
-        return control.m_value;
-    }
-};
-
-Control set_rectified(const bool enabled) noexcept
-{
-    return ControlAccess::make(ControlCommand::SET_RECTIFIED, enabled ? 1u : 0u);
-}
-
-Control set_bits_per_pixel(const uint8_t bits_per_pixel)
-{
-    if (bits_per_pixel != 8 && bits_per_pixel != 16)
-    {
-        throw std::invalid_argument("Thermal bits per pixel must be 8 or 16");
-    }
-
-    return ControlAccess::make(ControlCommand::SET_BITS_PER_PIXEL, bits_per_pixel);
-}
-
-} // namespace thermal
-} // namespace secondary_application
 
 template<>
 std::optional<thermal::Config>
@@ -115,33 +87,34 @@ std::vector<uint8_t> serialize_secondary_application_payload(thermal::Config con
     return serialize_secondary_application_payload(wire_config);
 }
 
-template<>
-std::optional<thermal::Control>
-deserialize_secondary_application_payload<thermal::Control>(
-    const uint8_t *payload, std::size_t payload_size)
+std::optional<thermal::Config> thermal::query_config(Channel &channel)
 {
-    const auto wire_control = deserialize_thermal_wire_payload<thermal_wire::ThermalControl>(
-        payload, payload_size);
-    if (!wire_control)
+    return get_secondary_application_config<Config>(channel);
+}
+
+Status thermal::send_config(Channel &channel, const Config &config)
+{
+    if (config.bits_per_pixel != 8 && config.bits_per_pixel != 16)
     {
-        return std::nullopt;
+        throw std::invalid_argument("Thermal bits per pixel must be 8 or 16");
     }
 
-    return thermal::ControlAccess::make(
-        static_cast<thermal::ControlCommand>(wire_control->command),
-        wire_control->value);
+    const auto rectified_status = send_thermal_control(
+        channel,
+        thermal_wire::THERMAL_CONTROL_SET_RECTIFIED,
+        config.rectified ? 1u : 0u);
+    if (rectified_status != Status::OK)
+    {
+        return rectified_status;
+    }
+
+    return send_thermal_control(
+        channel,
+        thermal_wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL,
+        config.bits_per_pixel);
 }
 
-template<>
-std::vector<uint8_t> serialize_secondary_application_payload(thermal::Control control)
-{
-    thermal_wire::ThermalControl wire_control;
-    wire_control.command = static_cast<uint16_t>(control.command());
-    wire_control.value = thermal::ControlAccess::value(control);
-    return serialize_secondary_application_payload(wire_control);
-}
-
-std::optional<thermal::FrameGroup> deserialize_thermal_frame_group(
+std::optional<thermal::FrameGroup> thermal::deserialize_frame_group(
     const BufferWrapper &payload)
 {
     if (payload.data() == nullptr ||
@@ -198,14 +171,14 @@ std::optional<thermal::FrameGroup> deserialize_thermal_frame_group(
     return output;
 }
 
-std::optional<thermal::FrameGroup> deserialize_thermal_frame_group(
+std::optional<thermal::FrameGroup> thermal::deserialize_frame_group(
     const std::shared_ptr<const BufferWrapper> &payload)
 {
     if (!payload)
     {
         return std::nullopt;
     }
-    return deserialize_thermal_frame_group(*payload);
+    return deserialize_frame_group(*payload);
 }
 
 } // namespace multisense
