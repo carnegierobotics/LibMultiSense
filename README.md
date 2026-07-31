@@ -1236,7 +1236,6 @@ with lms.Channel.create(lms.ChannelConfig()) as channel:
 
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseSecondaryApplication.hh>
-#include <MultiSense/MultiSenseUtilities.hh>
 
 namespace thermal = multisense::secondary_application::thermal;
 

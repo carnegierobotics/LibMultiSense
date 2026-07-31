@@ -138,27 +138,6 @@ bool write_binary_image(const Image &image, const std::filesystem::path &path)
 
 }
 
-template<>
-std::optional<secondary_application::thermal::Config>
-get_secondary_application_config<secondary_application::thermal::Config>(Channel &channel)
-{
-    const auto payload = channel.get_secondary_application_config();
-    if (!payload)
-    {
-        return std::nullopt;
-    }
-    return deserialize_secondary_application_payload<secondary_application::thermal::Config>(
-        *payload);
-}
-
-template<>
-Status send_secondary_application_control<secondary_application::thermal::Control>(
-    Channel &channel, secondary_application::thermal::Control control)
-{
-    return channel.send_secondary_application_control(
-        serialize_secondary_application_payload(std::move(control)));
-}
-
 std::string to_string(const Status &status)
 {
     switch(status)
