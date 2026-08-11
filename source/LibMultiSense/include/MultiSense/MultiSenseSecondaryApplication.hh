@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -91,6 +92,55 @@ MULTISENSE_API std::optional<Config> query_config(Channel &channel);
 /// @throws std::invalid_argument if bits_per_pixel is not 8 or 16
 ///
 MULTISENSE_API Status send_config(Channel &channel, const Config &config);
+
+///
+/// @brief One imager's calibration, as the OpenCV FileStorage YAML the device stores
+///
+struct Calibration
+{
+    ///
+    /// @brief The imager this calibration belongs to, (0a, 0b, 1a, 1b, 2a, 2b)
+    ///
+    uint8_t imager_id = 0;
+
+    ///
+    /// @brief True when this calibration has been uploaded but not yet applied
+    ///
+    /// An uploaded calibration is staged until the imaging pipeline next start
+    /// Reading it back before then returns the staged copy with this set
+    ///
+    bool staged = false;
+
+    ///
+    /// @brief The calibration text
+    ///
+    std::string data{};
+};
+
+///
+/// @brief Query one imager's calibration
+///
+/// Works without any stream running, but the thermal application must be active
+///
+/// @param channel The channel connected to the device
+/// @param imager_id The imager to read, in canonical order
+/// @return The calibration, or std::nullopt when it could not be retrieved
+///
+MULTISENSE_API std::optional<Calibration> get_calibration(Channel &channel, uint8_t imager_id);
+
+///
+/// @brief Upload one imager's calibration
+///
+/// The device validates the text and writes it to the imager's flash at the next pipeline start
+/// Invalid calibrations are rejected without being stored
+///
+/// @param channel The channel connected to the device
+/// @param imager_id The imager to write, in canonical order
+/// @param data The calibration text
+/// @return The status of the upload
+/// @throws std::invalid_argument if data is empty or larger than the device limit
+///
+MULTISENSE_API Status set_calibration(Channel &channel, uint8_t imager_id, const std::string &data);
 
 ///
 /// @brief Thermal-specific metadata paired with the standard MultiSense image type

@@ -65,6 +65,31 @@ enum ThermalControlCommand : uint16_t {
     THERMAL_CONTROL_SET_RECTIFIED = 1,
     THERMAL_CONTROL_SET_BITS_PER_PIXEL = 2,
     THERMAL_CONTROL_SET_POST_PROCESSING = 3,
+    THERMAL_CONTROL_SELECT_CALIBRATION = 4,
+    THERMAL_CONTROL_SET_CALIBRATION = 5,
+};
+
+///
+/// @brief Calibration transfer constants
+///
+static CRL_CONSTEXPR uint32_t THERMAL_CALIBRATION_MAGIC = 0x4C414354u; // TCAL
+static CRL_CONSTEXPR uint32_t THERMAL_CALIBRATION_SELECT_NONE = 0xFFFFFFFFu;
+static CRL_CONSTEXPR uint16_t THERMAL_CALIBRATION_MAX_BYTES = 1000;
+static CRL_CONSTEXPR uint32_t THERMAL_CALIBRATION_TOTAL_MAX = 1024;
+
+enum ThermalCalibrationStatus : uint16_t {
+    THERMAL_CALIBRATION_OK = 0,
+    THERMAL_CALIBRATION_ERR_IMAGER = 1,
+    THERMAL_CALIBRATION_ERR_READ = 2,
+    THERMAL_CALIBRATION_ERR_CHUNK = 3,
+    THERMAL_CALIBRATION_ERR_FORMAT = 4,
+    THERMAL_CALIBRATION_ERR_WRITE = 5,
+    THERMAL_CALIBRATION_ERR_STATE = 6,
+};
+
+enum ThermalCalibrationSource : uint8_t {
+    THERMAL_CALIBRATION_SRC_ACTIVE = 0,
+    THERMAL_CALIBRATION_SRC_STAGED = 1,
 };
 
 class ThermalImageDescriptor {
@@ -294,6 +319,79 @@ public:
         stream & imagerEnableMask;
         stream & width;
         stream & height;
+    }
+};
+
+///
+/// @brief Header for one chunk of an uploaded calibration
+///
+class ThermalCalibrationTransfer {
+public:
+    static CRL_CONSTEXPR uint32_t WIRE_SIZE = 12;
+
+    uint8_t imagerId;
+    uint8_t chunk;
+    uint8_t chunkCount;
+    uint8_t reserved;
+    uint32_t totalLength;
+    uint32_t chunkLength;
+
+    ThermalCalibrationTransfer()
+        : imagerId(0), chunk(0), chunkCount(1), reserved(0), totalLength(0),
+          chunkLength(0) {}
+
+    explicit ThermalCalibrationTransfer(utility::BufferStreamReader& stream)
+        : ThermalCalibrationTransfer() { serialize(stream); }
+
+    template<class Archive>
+    void serialize(Archive& stream)
+    {
+        stream & imagerId;
+        stream & chunk;
+        stream & chunkCount;
+        stream & reserved;
+        stream & totalLength;
+        stream & chunkLength;
+    }
+};
+
+///
+/// @brief Config-channel response returned while a calibration selector is armed
+/// Followed on the wire by chunkLength calibration bytes.
+///
+class ThermalCalibrationResponse {
+public:
+    static CRL_CONSTEXPR uint32_t WIRE_SIZE = 20;
+
+    uint32_t magic;
+    uint16_t version;
+    uint16_t status;
+    uint8_t imagerId;
+    uint8_t chunk;
+    uint8_t chunkCount;
+    uint8_t source;
+    uint32_t totalLength;
+    uint32_t chunkLength;
+
+    ThermalCalibrationResponse()
+        : magic(0), version(0), status(0), imagerId(0), chunk(0), chunkCount(0),
+          source(0), totalLength(0), chunkLength(0) {}
+
+    explicit ThermalCalibrationResponse(utility::BufferStreamReader& stream)
+        : ThermalCalibrationResponse() { serialize(stream); }
+
+    template<class Archive>
+    void serialize(Archive& stream)
+    {
+        stream & magic;
+        stream & version;
+        stream & status;
+        stream & imagerId;
+        stream & chunk;
+        stream & chunkCount;
+        stream & source;
+        stream & totalLength;
+        stream & chunkLength;
     }
 };
 

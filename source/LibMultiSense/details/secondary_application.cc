@@ -11,9 +11,11 @@
  * All rights reserved.
  **/
 
+#include <algorithm>
 #include <chrono>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 #include <MultiSense/MultiSenseSecondaryApplication.hh>
@@ -28,12 +30,12 @@ namespace thermal = secondary_application::thermal;
 namespace thermal_wire = crl::multisense::details::wire;
 
 template<typename WireType>
-std::optional<WireType> deserialize_thermal_wire_payload(
-    const uint8_t *payload, std::size_t payload_size)
+std::optional<WireType> deserialize_thermal_wire_payload(const uint8_t *payload,
+    std::size_t payload_size, const uint32_t expected_magic = thermal_wire::THERMAL_GROUP_MAGIC)
 {
     const auto wire_message = deserialize_secondary_application_payload<WireType>(
         payload, payload_size);
-    if (!wire_message || wire_message->magic != thermal_wire::THERMAL_GROUP_MAGIC ||
+    if (!wire_message || wire_message->magic != expected_magic ||
         wire_message->version != thermal_wire::THERMAL_GROUP_VERSION)
     {
         return std::nullopt;
@@ -112,6 +114,133 @@ Status thermal::send_config(Channel &channel, const Config &config)
         channel,
         thermal_wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL,
         config.bits_per_pixel);
+}
+
+///
+/// @brief Arm or clear the device's calibration selector
+///
+Status select_thermal_calibration(Channel &channel, uint32_t value)
+{
+    return send_thermal_control(channel, thermal_wire::THERMAL_CONTROL_SELECT_CALIBRATION, value);
+}
+
+///
+/// @brief Read the config channel and split it into calibration header + bytes
+///
+std::optional<std::pair<thermal_wire::ThermalCalibrationResponse, std::string>>
+read_thermal_calibration_chunk(Channel &channel)
+{
+    const auto payload = channel.get_secondary_application_config();
+    if (!payload)
+    {
+        return std::nullopt;
+    }
+
+    const auto header = deserialize_thermal_wire_payload<
+        thermal_wire::ThermalCalibrationResponse>(
+            payload->data(),
+            payload->size(),
+            thermal_wire::THERMAL_CALIBRATION_MAGIC);
+    if (!header)
+    {
+        return std::nullopt;
+    }
+
+    const std::size_t offset = thermal_wire::ThermalCalibrationResponse::WIRE_SIZE;
+    if (header->chunkLength > payload->size() - offset)
+    {
+        return std::nullopt;
+    }
+
+    const auto *begin = reinterpret_cast<const char *>(payload->data()) + offset;
+    return std::make_pair(*header, std::string(begin, begin + header->chunkLength));
+}
+
+std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, const uint8_t imager_id)
+{
+    thermal::Calibration output;
+    output.imager_id = imager_id;
+
+    uint8_t chunk = 0;
+    uint8_t chunk_count = 1;
+
+    do
+    {
+        const uint32_t selector = static_cast<uint32_t>(imager_id) | (static_cast<uint32_t>(chunk) << 8);
+        if (select_thermal_calibration(channel, selector) != Status::OK)
+        {
+            select_thermal_calibration(channel, thermal_wire::THERMAL_CALIBRATION_SELECT_NONE);
+            return std::nullopt;
+        }
+
+        const auto piece = read_thermal_calibration_chunk(channel);
+        if (!piece || piece->first.status != thermal_wire::THERMAL_CALIBRATION_OK ||
+            piece->first.imagerId != imager_id || piece->first.chunk != chunk)
+        {
+            select_thermal_calibration(channel, thermal_wire::THERMAL_CALIBRATION_SELECT_NONE);
+            return std::nullopt;
+        }
+
+        chunk_count = piece->first.chunkCount;
+        output.staged = piece->first.source == thermal_wire::THERMAL_CALIBRATION_SRC_STAGED;
+        output.data += piece->second;
+
+        if (output.data.size() > piece->first.totalLength)
+        {
+            select_thermal_calibration(channel, thermal_wire::THERMAL_CALIBRATION_SELECT_NONE);
+            return std::nullopt;
+        }
+    }
+    while (++chunk < chunk_count);
+
+    //
+    // Leave the config channel answering with ThermalConfig again
+    //
+    select_thermal_calibration(channel, thermal_wire::THERMAL_CALIBRATION_SELECT_NONE);
+
+    return output;
+}
+
+Status thermal::set_calibration(Channel &channel, const uint8_t imager_id, const std::string &data)
+{
+    if (data.empty() || data.size() > thermal_wire::THERMAL_CALIBRATION_TOTAL_MAX)
+    {
+        throw std::invalid_argument("Thermal calibration size is out of range");
+    }
+
+    const std::size_t max_per = thermal_wire::THERMAL_CALIBRATION_MAX_BYTES;
+    const std::size_t count = (data.size() + max_per - 1) / max_per;
+
+    for (std::size_t chunk = 0; chunk < count; ++chunk)
+    {
+        const std::size_t offset = chunk * max_per;
+        const std::size_t length = std::min(max_per, data.size() - offset);
+
+        thermal_wire::ThermalControl control;
+        control.command = thermal_wire::THERMAL_CONTROL_SET_CALIBRATION;
+        control.value = imager_id;
+
+        thermal_wire::ThermalCalibrationTransfer transfer;
+        transfer.imagerId = imager_id;
+        transfer.chunk = static_cast<uint8_t>(chunk);
+        transfer.chunkCount = static_cast<uint8_t>(count);
+        transfer.totalLength = static_cast<uint32_t>(data.size());
+        transfer.chunkLength = static_cast<uint32_t>(length);
+
+        auto payload = serialize_secondary_application_payload(control);
+        const auto transfer_bytes = serialize_secondary_application_payload(transfer);
+
+        payload.insert(payload.end(), transfer_bytes.begin(), transfer_bytes.end());
+        payload.insert(payload.end(), data.begin() + offset, data.begin() + offset + length);
+
+        if (const auto status = channel.send_secondary_application_control(payload);
+            status != Status::OK)
+        {
+            return status;
+        }
+    }
+
+    return Status::OK;
 }
 
 std::optional<thermal::FrameGroup> thermal::deserialize_frame_group(
