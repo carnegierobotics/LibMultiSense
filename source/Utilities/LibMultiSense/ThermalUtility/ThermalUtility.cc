@@ -80,6 +80,8 @@ struct Options
     std::string calibration_action{};
     uint8_t calibration_imager = 0;
     std::filesystem::path calibration_file{};
+    std::optional<uint8_t> bits_per_pixel = std::nullopt;
+    std::optional<uint16_t> post_proc_mask = std::nullopt;
 };
 
 volatile std::sig_atomic_t stop_requested = 0;
@@ -97,14 +99,19 @@ void usage(const char *name)
               << "\t                       one of get, set, verify\n"
               << "\t-i <imager>          : Imager for -c, 0-5 in order 0a,0b,1a,1b,2a,2b (default=0)\n"
               << "\t-f <file>            : Calibration file; required for 'set',\n"
-              << "\t                       output file for 'get' (default=stdout)\n";
+              << "\t                       output file for 'get' (default=stdout)\n"
+              << "\t-b <8|16>            : Request 8bpp tonemapped or 16bpp raw pixels (restarts the pipeline)\n"
+              << "\t-p <mask>            : Set the imager correction mask, e.g. 0x37f (decimal or 0x hex)\n"
+              << "\t                       bits 0:FFC 1:Gain 2:Temp 3:BadPixel 4:SCNR 5:SRNR\n"
+              << "\t                            6:TF 7:SPNR 8:SFFC 9:TOSS 10:BCNR\n"
+              << "\t                       vendor guidance: leave all on except 7 (burn-in) and 9 (artifacts)\n";
 }
 
 std::optional<Options> parse_options(int argc, char **argv)
 {
     Options options;
     int option = 0;
-    while (-1 != (option = getopt(argc, argv, "a:m:n:o:c:i:f:rh")))
+    while (-1 != (option = getopt(argc, argv, "a:m:n:o:c:i:f:b:p:rh")))
     {
         switch (option)
         {
@@ -116,6 +123,31 @@ std::optional<Options> parse_options(int argc, char **argv)
             case 'c': options.calibration_action = optarg; break;
             case 'i': options.calibration_imager = static_cast<uint8_t>(std::stoul(optarg)); break;
             case 'f': options.calibration_file = optarg; break;
+            case 'b':
+            {
+                const auto bits = std::stoul(optarg);
+                if (bits != 8 && bits != 16)
+                {
+                    std::cerr << "Bits per pixel must be 8 or 16\n";
+                    return std::nullopt;
+                }
+                options.bits_per_pixel = static_cast<uint8_t>(bits);
+                break;
+            }
+            case 'p':
+            {
+                //
+                // base 0 so both 0x37f and 895 work
+                //
+                const auto mask = std::stoul(optarg, nullptr, 0);
+                if (mask & ~static_cast<unsigned long>(thermal::POST_PROCESSING_VALID))
+                {
+                    std::cerr << "Correction mask has undefined bits (valid 0x7ff)\n";
+                    return std::nullopt;
+                }
+                options.post_proc_mask = static_cast<uint16_t>(mask);
+                break;
+            }
             default:
             {
                 usage(*argv);
@@ -191,15 +223,22 @@ void print_config(lms::Channel &channel)
     std::cout << "thermal config: " << config->width << "x" << config->height
               << " mono" << static_cast<unsigned>(config->bits_per_pixel)
               << (config->rectified ? " rectified" : " raw")
-              << ", enables=0x" << std::hex << config->imager_enable_mask << std::dec
+              << ", enables=0x" << std::hex << config->imager_enable_mask
+              << ", correction mask=0x" << config->post_proc_mask.value_or(0) << std::dec
               << '\n';
 }
 
-bool configure_rectification(lms::Channel &channel, const bool rectified)
+bool configure_device(lms::Channel &channel, const Options &options)
 {
-    if (!rectified)
+    if (!options.rectified && !options.bits_per_pixel && !options.post_proc_mask)
     {
         return true;
+    }
+
+    if (options.bits_per_pixel && options.post_proc_mask)
+    {
+        std::cerr << "Warning: a bits-per-pixel change restarts the pipeline and clears the\n"
+                     "         correction mask. Set the mask in a separate run afterwards.\n";
     }
 
     auto config = thermal::query_config(channel);
@@ -209,11 +248,21 @@ bool configure_rectification(lms::Channel &channel, const bool rectified)
         return false;
     }
 
-    config->rectified = rectified;
+    config->rectified = options.rectified;
+    if (options.bits_per_pixel)
+    {
+        config->bits_per_pixel = *options.bits_per_pixel;
+    }
+
+    //
+    // Carry the mask only when it was asked for, so a run that just wants rectification does not re-send one
+    //
+    config->post_proc_mask = options.post_proc_mask;
+
     const auto status = thermal::send_config(channel, *config);
     if (status != lms::Status::OK)
     {
-        std::cerr << "Failed to configure rectification: " << lms::to_string(status) << '\n';
+        std::cerr << "Failed to configure thermal application: " << lms::to_string(status) << '\n';
         return false;
     }
     return true;
@@ -328,7 +377,7 @@ bool read_frame_groups(lms::Channel &channel,
 
 int run_thermal_stream(lms::Channel &channel, const Options &options)
 {
-    if (!configure_rectification(channel, options.rectified))
+    if (!configure_device(channel, options))
     {
         return 1;
     }

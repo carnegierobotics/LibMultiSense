@@ -162,6 +162,7 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def(py::init<>())
         .def_readwrite("rectified", &public_thermal::Config::rectified)
         .def_readwrite("bits_per_pixel", &public_thermal::Config::bits_per_pixel)
+        .def_readwrite("post_proc_mask", &public_thermal::Config::post_proc_mask)
         .def_readonly("max_imagers", &public_thermal::Config::max_imagers)
         .def_readonly("imager_enable_mask", &public_thermal::Config::imager_enable_mask)
         .def_readonly("width", &public_thermal::Config::width)

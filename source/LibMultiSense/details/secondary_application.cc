@@ -68,6 +68,7 @@ deserialize_secondary_application_payload<thermal::Config>(
     return thermal::Config{
         wire_config->rectified != 0,
         wire_config->bitsPerPixel,
+        wire_config->postProcMask,
         wire_config->maxImagers,
         wire_config->imagerEnableMask,
         wire_config->width,
@@ -82,6 +83,7 @@ std::vector<uint8_t> serialize_secondary_application_payload(thermal::Config con
     wire_config.version = thermal_wire::THERMAL_GROUP_VERSION;
     wire_config.rectified = config.rectified ? 1 : 0;
     wire_config.bitsPerPixel = config.bits_per_pixel;
+    wire_config.postProcMask = config.post_proc_mask.value_or(0);
     wire_config.maxImagers = config.max_imagers;
     wire_config.imagerEnableMask = config.imager_enable_mask;
     wire_config.width = config.width;
@@ -101,6 +103,12 @@ Status thermal::send_config(Channel &channel, const Config &config)
         throw std::invalid_argument("Thermal bits per pixel must be 8 or 16");
     }
 
+    if (config.post_proc_mask &&
+        (*config.post_proc_mask & ~thermal_wire::THERMAL_POST_PROCESSING_VALID))
+    {
+        throw std::invalid_argument("Thermal post processing mask has undefined bits");
+    }
+
     const auto rectified_status = send_thermal_control(
         channel,
         thermal_wire::THERMAL_CONTROL_SET_RECTIFIED,
@@ -110,10 +118,24 @@ Status thermal::send_config(Channel &channel, const Config &config)
         return rectified_status;
     }
 
-    return send_thermal_control(
+    const auto bits_status = send_thermal_control(
         channel,
         thermal_wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL,
         config.bits_per_pixel);
+    if (bits_status != Status::OK)
+    {
+        return bits_status;
+    }
+
+    if (!config.post_proc_mask)
+    {
+        return Status::OK;
+    }
+
+    return send_thermal_control(
+        channel,
+        thermal_wire::THERMAL_CONTROL_SET_POST_PROCESSING,
+        *config.post_proc_mask);
 }
 
 ///

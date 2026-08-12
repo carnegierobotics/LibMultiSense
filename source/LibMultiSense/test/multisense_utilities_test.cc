@@ -146,6 +146,7 @@ TEST(secondary_application_payload, thermal_config_query_update_send)
     wire::ThermalConfig wire_config;
     wire_config.magic = wire::THERMAL_GROUP_MAGIC;
     wire_config.version = wire::THERMAL_GROUP_VERSION;
+    wire_config.postProcMask = 0x37f;
     wire_config.rectified = 0;
     wire_config.bitsPerPixel = 8;
     wire_config.maxImagers = 6;
@@ -158,10 +159,12 @@ TEST(secondary_application_payload, thermal_config_query_update_send)
 
     auto config = thermal::query_config(channel);
     ASSERT_TRUE(config);
+    ASSERT_TRUE(config->post_proc_mask);
+    EXPECT_EQ(*config->post_proc_mask, wire_config.postProcMask);
     config->rectified = true;
     config->bits_per_pixel = 16;
     EXPECT_EQ(thermal::send_config(channel, *config), Status::OK);
-    ASSERT_EQ(channel.control_payloads.size(), 2u);
+    ASSERT_EQ(channel.control_payloads.size(), 3u);
 
     const auto rectified_control =
         deserialize_secondary_application_payload<wire::ThermalControl>(
@@ -178,12 +181,20 @@ TEST(secondary_application_payload, thermal_config_query_update_send)
     EXPECT_EQ(bits_control->command, wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL);
     EXPECT_EQ(bits_control->value, 16u);
 
+    const auto post_processing_control =
+        deserialize_secondary_application_payload<wire::ThermalControl>(
+            channel.control_payloads[2]);
+    ASSERT_TRUE(post_processing_control);
+    EXPECT_EQ(post_processing_control->command,
+              wire::THERMAL_CONTROL_SET_POST_PROCESSING);
+    EXPECT_EQ(post_processing_control->value, wire_config.postProcMask);
+
     EXPECT_EQ(thermal::send_config(channel, *config), Status::OK);
-    EXPECT_EQ(channel.control_payloads.size(), 4u);
+    EXPECT_EQ(channel.control_payloads.size(), 6u);
 
     config->bits_per_pixel = 12;
     EXPECT_THROW(thermal::send_config(channel, *config), std::invalid_argument);
-    EXPECT_EQ(channel.control_payloads.size(), 4u);
+    EXPECT_EQ(channel.control_payloads.size(), 6u);
 }
 
 TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)
