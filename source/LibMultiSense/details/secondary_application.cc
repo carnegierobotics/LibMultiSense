@@ -424,7 +424,18 @@ Status thermal::set_calibration(Channel &channel,
         }
     }
 
-    return Status::OK;
+    //
+    // The application stages uploaded calibration until its imaging pipeline
+    // starts. Cycle the thermal stream so the new calibration is loaded before
+    // this call returns, without disturbing unrelated camera streams.
+    //
+    if (const auto status = channel.stop_streams({DataSource::THERMAL});
+        status != Status::OK)
+    {
+        return status;
+    }
+
+    return channel.start_streams({DataSource::THERMAL});
 }
 
 std::optional<thermal::FrameGroup> thermal::deserialize_frame_group(

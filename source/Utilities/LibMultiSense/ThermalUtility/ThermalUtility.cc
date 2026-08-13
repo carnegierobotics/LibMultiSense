@@ -214,7 +214,10 @@ bool configure_device(lms::Channel &channel, const Options &options)
         return false;
     }
 
-    config->rectified = options.rectified;
+    if (options.rectified)
+    {
+        config->rectified = true;
+    }
     if (options.bits_per_pixel)
     {
         config->bits_per_pixel = *options.bits_per_pixel;

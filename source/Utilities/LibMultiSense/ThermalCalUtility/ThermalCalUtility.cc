@@ -180,12 +180,12 @@ int run_calibration(lms::Channel &channel, const Options &options)
     const auto status = thermal::set_calibration(channel, options.imager, *calibration);
     if (status != lms::Status::OK)
     {
-        std::cerr << "Failed to upload calibration for imager "
+        std::cerr << "Failed to upload and load calibration for imager "
                   << static_cast<unsigned>(options.imager) << ": "
                   << lms::to_string(status) << '\n';
         return 1;
     }
-    std::cout << "uploaded calibration to imager "
+    std::cout << "uploaded and loaded calibration for imager "
               << static_cast<unsigned>(options.imager) << '\n';
 
     if (options.action == "set")
@@ -194,8 +194,8 @@ int run_calibration(lms::Channel &channel, const Options &options)
     }
 
     //
-    // The device returns the staged copy until the pipeline restarts, allowing
-    // verification without applying the new calibration first.
+    // set_calibration restarts the thermal pipeline before returning, so this
+    // verifies the calibration after it has been loaded.
     //
     const auto readback = thermal::get_calibration(channel, options.imager);
     if (!readback)

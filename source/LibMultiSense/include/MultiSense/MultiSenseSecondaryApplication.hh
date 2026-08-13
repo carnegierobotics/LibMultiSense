@@ -162,13 +162,15 @@ MULTISENSE_API std::optional<CameraCalibration> get_calibration(Channel &channel
 ///
 /// @brief Upload one imager's calibration
 ///
-/// The device validates the calibration and writes it to the imager's flash at the next pipeline start
-/// Invalid calibrations are rejected without being stored
+/// The device validates and stages the calibration. After the upload completes,
+/// this function stops and restarts the thermal stream so the calibration is
+/// written to the imager's flash and loaded before the function returns.
+/// Invalid calibrations are rejected without being stored.
 ///
 /// @param channel The channel connected to the device
 /// @param imager_id The imager to write, in canonical order
 /// @param calibration The standard MultiSense calibration to upload
-/// @return The status of the upload
+/// @return The status of the upload or thermal-stream restart
 /// @throws std::invalid_argument if the calibration cannot be represented for the device
 ///
 MULTISENSE_API Status set_calibration(Channel &channel, uint8_t imager_id,

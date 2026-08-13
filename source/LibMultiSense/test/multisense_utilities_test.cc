@@ -55,10 +55,22 @@ class SecondaryApplicationTestChannel final : public Channel
 public:
     std::optional<std::vector<uint8_t>> config_payload;
     std::vector<std::vector<uint8_t>> control_payloads;
+    std::vector<std::vector<DataSource>> start_requests;
+    std::vector<std::vector<DataSource>> stop_requests;
     Status control_status = Status::OK;
+    Status start_status = Status::OK;
+    Status stop_status = Status::OK;
 
-    Status start_streams(const std::vector<DataSource> &) override {return Status::OK;}
-    Status stop_streams(const std::vector<DataSource> &) override {return Status::OK;}
+    Status start_streams(const std::vector<DataSource> &sources) override
+    {
+        start_requests.push_back(sources);
+        return start_status;
+    }
+    Status stop_streams(const std::vector<DataSource> &sources) override
+    {
+        stop_requests.push_back(sources);
+        return stop_status;
+    }
     void add_image_frame_callback(std::function<void(const ImageFrame &)>) override {}
     void add_imu_frame_callback(std::function<void(const ImuFrame &)>) override {}
     std::optional<std::vector<uint8_t>> get_secondary_application_config() override
@@ -330,6 +342,12 @@ TEST(secondary_application_payload, thermal_calibration_set_serializes_camera_ca
     constexpr uint8_t imager_id = 4;
     SecondaryApplicationTestChannel channel;
     EXPECT_EQ(thermal::set_calibration(channel, imager_id, *calibration), Status::OK);
+    ASSERT_EQ(channel.stop_requests.size(), 1u);
+    ASSERT_EQ(channel.stop_requests.front().size(), 1u);
+    EXPECT_EQ(channel.stop_requests.front().front(), DataSource::THERMAL);
+    ASSERT_EQ(channel.start_requests.size(), 1u);
+    ASSERT_EQ(channel.start_requests.front().size(), 1u);
+    EXPECT_EQ(channel.start_requests.front().front(), DataSource::THERMAL);
     ASSERT_EQ(channel.control_payloads.size(), 1u);
 
     const auto &payload = channel.control_payloads.front();
@@ -362,6 +380,32 @@ TEST(secondary_application_payload, thermal_calibration_set_serializes_camera_ca
     EXPECT_EQ(uploaded->P, calibration->P);
     EXPECT_EQ(uploaded->distortion_type, calibration->distortion_type);
     EXPECT_EQ(uploaded->D, calibration->D);
+}
+
+TEST(secondary_application_payload, thermal_calibration_set_propagates_restart_errors)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+
+    const auto calibration = thermal::deserialize_calibration(thermal_calibration_yaml);
+    ASSERT_TRUE(calibration);
+
+    SecondaryApplicationTestChannel upload_failure;
+    upload_failure.control_status = Status::TIMEOUT;
+    EXPECT_EQ(thermal::set_calibration(upload_failure, 0, *calibration), Status::TIMEOUT);
+    EXPECT_TRUE(upload_failure.stop_requests.empty());
+    EXPECT_TRUE(upload_failure.start_requests.empty());
+
+    SecondaryApplicationTestChannel stop_failure;
+    stop_failure.stop_status = Status::TIMEOUT;
+    EXPECT_EQ(thermal::set_calibration(stop_failure, 0, *calibration), Status::TIMEOUT);
+    ASSERT_EQ(stop_failure.stop_requests.size(), 1u);
+    EXPECT_TRUE(stop_failure.start_requests.empty());
+
+    SecondaryApplicationTestChannel start_failure;
+    start_failure.start_status = Status::TIMEOUT;
+    EXPECT_EQ(thermal::set_calibration(start_failure, 0, *calibration), Status::TIMEOUT);
+    ASSERT_EQ(start_failure.stop_requests.size(), 1u);
+    ASSERT_EQ(start_failure.start_requests.size(), 1u);
 }
 
 TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)

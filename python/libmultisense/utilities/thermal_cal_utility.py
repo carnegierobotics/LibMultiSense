@@ -64,8 +64,10 @@ def set_calibration(channel, action, imager, calibration_file):
     expected = lms.secondary_application.thermal.serialize_calibration(calibration)
     status = lms.secondary_application.thermal.set_calibration(channel, imager, calibration)
     if status != lms.Status.OK:
-        raise RuntimeError(f"failed to upload calibration for imager {imager}: {status}")
-    print(f"uploaded calibration to imager {imager}")
+        raise RuntimeError(
+            f"failed to upload and load calibration for imager {imager}: {status}"
+        )
+    print(f"uploaded and loaded calibration for imager {imager}")
 
     if action == "set":
         return
