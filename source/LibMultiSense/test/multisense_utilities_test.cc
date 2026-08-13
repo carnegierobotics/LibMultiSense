@@ -294,8 +294,10 @@ TEST(secondary_application_payload, thermal_calibration_get_parses_device_yaml)
 
     constexpr uint8_t imager_id = 2;
     SecondaryApplicationTestChannel channel;
+    const std::string device_calibration =
+        "reading blocks ... [OK]\n" + thermal_calibration_yaml;
     channel.config_payload =
-        make_thermal_calibration_response(imager_id, true, thermal_calibration_yaml);
+        make_thermal_calibration_response(imager_id, true, device_calibration);
 
     const auto calibration = thermal::get_calibration(channel, imager_id);
     ASSERT_TRUE(calibration);

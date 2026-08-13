@@ -32,14 +32,15 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
+import sys
 from pathlib import Path
 
 import libmultisense as lms
 
 
-def print_calibration(calibration):
+def print_calibration(calibration, file=sys.stdout):
     state = "STAGED (applies at next pipeline start)" if calibration.staged else "active"
-    print(f"imager {calibration.imager_id}: {state}")
+    print(f"imager {calibration.imager_id}: {state}", file=file)
 
 
 def get_calibration(channel, imager, calibration_file):
@@ -47,13 +48,15 @@ def get_calibration(channel, imager, calibration_file):
     if calibration is None:
         raise RuntimeError(f"failed to read calibration for imager {imager}")
 
-    print_calibration(calibration)
     serialized = lms.secondary_application.thermal.serialize_calibration(
         calibration.calibration
     )
     if calibration_file is None:
+        # Keep stdout as reloadable calibration YAML when no output file was requested.
+        print_calibration(calibration, file=sys.stderr)
         print(serialized, end="")
     else:
+        print_calibration(calibration)
         with calibration_file.open("w", encoding="utf-8", newline="") as output:
             output.write(serialized)
         print(f"wrote {calibration_file}")

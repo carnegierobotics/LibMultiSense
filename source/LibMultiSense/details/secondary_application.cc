@@ -86,6 +86,27 @@ std::array<float, Rows * Columns> flatten_matrix(
     return output;
 }
 
+std::optional<std::string> extract_thermal_calibration_yaml(const std::string &data)
+{
+    //
+    // The thermal application may prefix calibration data with a status line,
+    // for example "reading blocks ... [OK]". Keep deserialize_calibration()
+    // strict for callers parsing YAML directly, and remove the device-specific
+    // preamble here at the transfer boundary.
+    //
+    if (data.rfind("M:", 0) == 0)
+    {
+        return data;
+    }
+
+    const auto start = data.find("\nM:");
+    if (start == std::string::npos)
+    {
+        return std::nullopt;
+    }
+    return data.substr(start + 1);
+}
+
 } // namespace
 
 template<>
@@ -354,7 +375,13 @@ std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, c
         return std::nullopt;
     }
 
-    const auto calibration = deserialize_calibration(data);
+    const auto calibration_yaml = extract_thermal_calibration_yaml(data);
+    if (!calibration_yaml)
+    {
+        return std::nullopt;
+    }
+
+    const auto calibration = deserialize_calibration(*calibration_yaml);
     if (!calibration)
     {
         return std::nullopt;
