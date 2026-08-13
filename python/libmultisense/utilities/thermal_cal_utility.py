@@ -116,6 +116,14 @@ def main():
     channel_config.mtu = args.mtu
 
     with lms.Channel.create(channel_config) as channel:
+        device = channel.get_info().device
+        if device.hardware_revision != lms.HardwareRevision.STT6:
+            raise RuntimeError(
+                "thermal calibration utility requires an STT6 thermal setup; "
+                f"connected device '{device.camera_name}' has hardware revision "
+                f"{device.hardware_revision}"
+            )
+
         status = channel.start_streams([lms.DataSource.THERMAL])
         if status != lms.Status.OK:
             raise RuntimeError(f"failed to start thermal application: {status}")

@@ -383,6 +383,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    const auto device = channel->get_info().device;
+    if (device.hardware_revision !=
+        lms::MultiSenseInfo::DeviceInfo::HardwareRevision::STT6)
+    {
+        std::cerr << "ThermalUtility requires an STT6 thermal setup; connected device '"
+                  << device.camera_name << "' has hardware revision "
+                  << static_cast<unsigned>(device.hardware_revision) << '\n';
+        return 1;
+    }
+
     const auto start_status = channel->start_streams({lms::DataSource::THERMAL});
     if (start_status != lms::Status::OK)
     {
