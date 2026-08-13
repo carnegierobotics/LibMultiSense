@@ -128,30 +128,6 @@ MULTISENSE_API std::optional<Config> query_config(Channel &channel);
 MULTISENSE_API Status send_config(Channel &channel, const Config &config);
 
 ///
-/// @brief One thermal imager's calibration and transfer state
-///
-struct Calibration
-{
-    ///
-    /// @brief The imager this calibration belongs to, (0a, 0b, 1a, 1b, 2a, 2b)
-    ///
-    uint8_t imager_id = 0;
-
-    ///
-    /// @brief True when this calibration has been uploaded but not yet applied
-    ///
-    /// An uploaded calibration is staged until the imaging pipeline next start
-    /// Reading it back before then returns the staged copy with this set
-    ///
-    bool staged = false;
-
-    ///
-    /// @brief The standard MultiSense calibration for this imager
-    ///
-    CameraCalibration calibration{};
-};
-
-///
 /// @brief Parse one imager's calibration from the YAML representation used by the thermal application
 ///
 /// Both the compact representation returned by the thermal application and OpenCV FileStorage
@@ -180,7 +156,8 @@ MULTISENSE_API std::string serialize_calibration(const CameraCalibration &calibr
 /// @param imager_id The imager to read, in canonical order
 /// @return The calibration, or std::nullopt when it could not be retrieved
 ///
-MULTISENSE_API std::optional<Calibration> get_calibration(Channel &channel, uint8_t imager_id);
+MULTISENSE_API std::optional<CameraCalibration> get_calibration(Channel &channel,
+                                                               uint8_t imager_id);
 
 ///
 /// @brief Upload one imager's calibration

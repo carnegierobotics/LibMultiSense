@@ -131,14 +131,6 @@ std::optional<std::string> read_text_file(const std::filesystem::path &path)
                        std::istreambuf_iterator<char>());
 }
 
-void print_calibration(std::ostream &stream, const thermal::Calibration &calibration)
-{
-    stream << "imager " << static_cast<unsigned>(calibration.imager_id) << ": "
-           << (calibration.staged ? "STAGED (applies at next pipeline start)"
-                                  : "active")
-           << '\n';
-}
-
 int run_calibration(lms::Channel &channel, const Options &options)
 {
     if (options.action == "get")
@@ -151,20 +143,14 @@ int run_calibration(lms::Channel &channel, const Options &options)
             return 1;
         }
 
-        const std::string serialized = thermal::serialize_calibration(calibration->calibration);
+        const std::string serialized = thermal::serialize_calibration(*calibration);
 
         if (options.calibration_file.empty())
         {
-            //
-            // Keep stdout as reloadable calibration YAML when no output file
-            // was requested. Human-readable state belongs on stderr.
-            //
-            print_calibration(std::cerr, *calibration);
             std::cout << serialized;
         }
         else
         {
-            print_calibration(std::cout, *calibration);
             std::ofstream output(options.calibration_file, std::ios::binary);
             if (!output)
             {
@@ -218,8 +204,7 @@ int run_calibration(lms::Channel &channel, const Options &options)
         return 1;
     }
 
-    print_calibration(std::cout, *readback);
-    if (thermal::serialize_calibration(readback->calibration) != serialized)
+    if (thermal::serialize_calibration(*readback) != serialized)
     {
         std::cerr << "Verify FAILED: readback calibration differs\n";
         return 1;

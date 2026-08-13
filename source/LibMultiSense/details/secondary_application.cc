@@ -325,10 +325,9 @@ read_thermal_calibration_chunk(Channel &channel)
     return std::make_pair(*header, std::string(begin, begin + header->chunkLength));
 }
 
-std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, const uint8_t imager_id)
+std::optional<CameraCalibration> thermal::get_calibration(Channel &channel,
+                                                         const uint8_t imager_id)
 {
-    thermal::Calibration output;
-    output.imager_id = imager_id;
     std::string data;
 
     uint8_t chunk = 0;
@@ -354,7 +353,6 @@ std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, c
 
         chunk_count = piece->first.chunkCount;
         total_length = piece->first.totalLength;
-        output.staged = piece->first.source == thermal_wire::THERMAL_CALIBRATION_SRC_STAGED;
         data += piece->second;
 
         if (data.size() > piece->first.totalLength)
@@ -381,13 +379,7 @@ std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, c
         return std::nullopt;
     }
 
-    const auto calibration = deserialize_calibration(*calibration_yaml);
-    if (!calibration)
-    {
-        return std::nullopt;
-    }
-    output.calibration = *calibration;
-    return output;
+    return deserialize_calibration(*calibration_yaml);
 }
 
 Status thermal::set_calibration(Channel &channel,

@@ -250,11 +250,6 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("distortion_type", &multisense::CameraCalibration::distortion_type)
         .def_readwrite("D", &multisense::CameraCalibration::D);
 
-    py::class_<public_thermal::Calibration>(thermal, "Calibration")
-        .def_readonly("imager_id", &public_thermal::Calibration::imager_id)
-        .def_readonly("staged", &public_thermal::Calibration::staged)
-        .def_readonly("calibration", &public_thermal::Calibration::calibration);
-
     thermal.def("deserialize_calibration", &public_thermal::deserialize_calibration,
                 py::arg("data"));
     thermal.def("serialize_calibration", &public_thermal::serialize_calibration,

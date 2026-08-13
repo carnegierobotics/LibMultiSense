@@ -301,10 +301,8 @@ TEST(secondary_application_payload, thermal_calibration_get_parses_device_yaml)
 
     const auto calibration = thermal::get_calibration(channel, imager_id);
     ASSERT_TRUE(calibration);
-    EXPECT_EQ(calibration->imager_id, imager_id);
-    EXPECT_TRUE(calibration->staged);
-    EXPECT_FLOAT_EQ(calibration->calibration.K[0][0], 530.4502721474282f);
-    EXPECT_EQ(calibration->calibration.distortion_type,
+    EXPECT_FLOAT_EQ(calibration->K[0][0], 530.4502721474282f);
+    EXPECT_EQ(calibration->distortion_type,
               CameraCalibration::DistortionType::PLUMBBOB);
     ASSERT_EQ(channel.control_payloads.size(), 2u);
 
