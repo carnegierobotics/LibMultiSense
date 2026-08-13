@@ -544,12 +544,18 @@ void LegacyChannel::disconnect()
     //
     // Deactivate our current secondary application after all of its streams have stopped
     //
-    if (m_active_secondary_application)
+    std::optional<std::string> active_secondary_application;
     {
-        manage_secondary_application(m_active_secondary_application->name, false);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_active_secondary_application)
+        {
+            active_secondary_application = m_active_secondary_application->name;
+        }
     }
-
-    std::lock_guard<std::mutex> lock(m_mutex);
+    if (active_secondary_application)
+    {
+        manage_secondary_application(*active_secondary_application, false);
+    }
 
     disconnect_internal();
 
@@ -562,6 +568,11 @@ void LegacyChannel::disconnect_internal()
 
     m_connected = false;
 
+    // Stop and join the dispatch thread before unregistering callbacks. A
+    // callback may acquire m_mutex, while callback removal acquires the message
+    // assembler's callback mutex, so teardown must not hold m_mutex here.
+    m_udp_receiver = nullptr;
+
     m_message_assembler.remove_callback(wire::ImageMeta::ID);
     m_message_assembler.remove_callback(wire::Image::ID);
     m_message_assembler.remove_callback(wire::CompressedImage::ID);
@@ -569,10 +580,6 @@ void LegacyChannel::disconnect_internal()
     m_message_assembler.remove_callback(wire::ImuData::ID);
     m_message_assembler.remove_callback(wire::SecondaryAppData::ID);
     m_message_assembler.remove_callback(wire::SecondaryAppMetadata::ID);
-
-    m_socket = NetworkSocket{};
-
-    m_udp_receiver = nullptr;
 
     if (m_socket.sensor_socket != INVALID_SOCKET)
     {
