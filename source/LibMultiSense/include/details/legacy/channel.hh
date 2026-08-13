@@ -157,6 +157,22 @@ public:
     void add_imu_frame_callback(std::function<void(const ImuFrame&)> callback) final override;
 
     ///
+    /// @brief Retrieve the active secondary application's opaque configuration payload
+    ///
+    std::optional<std::vector<uint8_t>> get_secondary_application_config() final override;
+
+    ///
+    /// @brief Send an opaque control payload to the active secondary application
+    ///
+    Status send_secondary_application_control(const std::vector<uint8_t> &control) final override;
+
+    ///
+    /// @brief Set the callback invoked when secondary-application output is received
+    ///
+    void add_secondary_application_callback(
+        std::function<void(const SecondaryApplicationData&)> callback) final override;
+
+    ///
     /// @brief Initialize the connection to the camera
     ///
     Status connect(const Config &config) final override;
@@ -185,6 +201,11 @@ public:
     /// @return The newly received ImuFrame, or std::nullopt if timed out (and you used a timeout).
     ///
     std::optional<ImuFrame> get_next_imu_frame() final override;
+
+    ///
+    /// @brief Wait for one secondary-application output packet
+    ///
+    std::optional<SecondaryApplicationData> get_next_secondary_application_data() final override;
 
     ///
     /// @brief Get the current MultiSense configuration
@@ -274,21 +295,26 @@ private:
     Status stop_streams_internal(const std::vector<DataSource> &sources);
 
     ///
+    /// @brief Select and activate the secondary application required by a set of streams.
+    ///        The secondary-application command mutex must be held by the caller.
+    ///
+    Status activate_secondary_application_for_streams(const std::vector<DataSource> &sources);
+
+    ///
     /// @brief Query the full set of secondary applications which the camera supports. Note there is an assumption
     ///        only one secondary application can be active at a given time
     ///
-    std::optional<std::vector<SecondaryApplication>> query_available_secondary_applications();
+    std::optional<std::vector<SecondaryApplicationInfo>> query_available_secondary_applications();
 
     ///
     /// @brief Manage secondary application on the camera. Handle auto deactivate
     ///
-    Status manage_secondary_application(const SecondaryApplication &app, bool activate);
+    Status manage_secondary_application(const std::string &name, bool activate);
 
     ///
-    /// @brief Manage secondary application on the camera. Send raw control messages without regard for
-    ///        the current state
+    /// @brief Manage secondary application on the camera. Handle sending data to the camera
     ///
-    Status manage_secondary_application_raw(const SecondaryApplication &app, bool activate);
+    Status manage_secondary_application_raw(const std::string &name, bool activate);
 
     ///
     /// @brief Image meta callback used to internally receive images sent from the MultiSense
@@ -357,6 +383,16 @@ private:
     std::mutex m_imu_callback_mutex{};
 
     ///
+    /// @brief Internal mutex used to handle secondary-application callbacks
+    ///
+    std::mutex m_secondary_application_callback_mutex{};
+
+    ///
+    /// @brief Serialize secondary-application commands without blocking receive callbacks from reading state
+    ///
+    std::mutex m_secondary_application_command_mutex{};
+
+    ///
     /// @brief Atomic flag to determine if we are connected to an active camera
     ///
     std::atomic_bool m_connected = false;
@@ -404,12 +440,17 @@ private:
     ///
     /// @brief The current active secondary application
     ///
-    std::optional<SecondaryApplication> m_active_secondary_application{};
+    std::optional<SecondaryApplicationInfo> m_active_secondary_application{};
 
     ///
     /// @brief Secondary applications which are available
     ///
-    std::optional<std::vector<SecondaryApplication>> m_avaliable_secondary_applications{};
+    std::optional<std::vector<SecondaryApplicationInfo>> m_available_secondary_applications{};
+
+    ///
+    /// @brief Active opaque output slots for the current secondary application
+    ///
+    std::set<uint8_t> m_active_secondary_application_streams{};
 
     ///
     /// @brief The currently active image frame user callback
@@ -422,6 +463,11 @@ private:
     std::function<void(const ImuFrame&)> m_user_imu_frame_callback{};
 
     ///
+    /// @brief The currently active opaque secondary-application callback
+    ///
+    std::function<void(const SecondaryApplicationData&)> m_user_secondary_application_callback{};
+
+    ///
     /// @brief Notifier used to service the get_next_image_frame member function
     ///
     FrameNotifier<ImageFrame> m_image_frame_notifier{};
@@ -432,6 +478,11 @@ private:
     FrameNotifier<ImuFrame> m_imu_frame_notifier{};
 
     ///
+    /// @brief Notifier used by get_next_secondary_application_data
+    ///
+    FrameNotifier<SecondaryApplicationData> m_secondary_application_notifier{};
+
+    ///
     /// @brief A cache of image metadata associated with a specific frame id
     ///
     std::map<int64_t, crl::multisense::details::wire::ImageMeta> m_meta_cache{};
@@ -439,7 +490,7 @@ private:
     ///
     /// @brief A cache of secondary app metadata associated with a specific frame id
     ///
-    std::map<int64_t, std::shared_ptr<crl::multisense::details::wire::SecondaryAppMetadata>> m_secondary_app_meta_cache{};
+    std::map<int64_t, std::shared_ptr<const BufferWrapper>> m_secondary_app_meta_cache{};
 
     ///
     /// @brief A cache of image frames associated with a specific frame id

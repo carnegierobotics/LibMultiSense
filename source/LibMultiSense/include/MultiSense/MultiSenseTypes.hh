@@ -81,7 +81,8 @@ enum class Status : uint8_t
     UNSUPPORTED,
     EXCEPTION,
     UNINITIALIZED,
-    INCOMPLETE_APPLICATION
+    INCOMPLETE_APPLICATION,
+    BUSY
 };
 
 ///
@@ -116,7 +117,14 @@ enum class DataSource : uint16_t
     AUX_ORB_FEATURES,
     LEFT_RECTIFIED_ORB_FEATURES,
     RIGHT_RECTIFIED_ORB_FEATURES,
-    AUX_RECTIFIED_ORB_FEATURES
+    AUX_RECTIFIED_ORB_FEATURES,
+    SECONDARY_APPLICATION_0,
+    SECONDARY_APPLICATION_1,
+    SECONDARY_APPLICATION_2,
+    SECONDARY_APPLICATION_3,
+    SECONDARY_APPLICATION_4,
+    SECONDARY_APPLICATION_5,
+    THERMAL
 };
 
 enum class ColorImageEncoding : uint16_t
@@ -642,12 +650,167 @@ struct ImuRange
 };
 
 ///
-/// @brief supported secondary applications
+/// @brief Information describing a secondary application registered on the device
 ///
-enum class SecondaryApplication : uint8_t
+struct SecondaryApplicationInfo
 {
-    NONE,
-    FEATURE_DETECTOR
+    ///
+    /// @brief The application name
+    ///
+    std::string name{};
+
+    ///
+    /// @brief The application version
+    ///
+    uint32_t version = 0;
+
+    ///
+    /// @brief Equality operator
+    ///
+    bool operator==(const SecondaryApplicationInfo &rhs) const
+    {
+        return name == rhs.name && version == rhs.version;
+    }
+};
+
+///
+/// @brief Wrap shared or externally owned byte buffers without copying
+///
+class BufferWrapper
+{
+public:
+    ///
+    /// @brief Construct a view spanning from an offset to the end of shared storage
+    ///
+    /// @param data The shared storage which owns the bytes
+    /// @param offset The byte offset where the view begins
+    ///
+    BufferWrapper(std::shared_ptr<const std::vector<uint8_t>> data, size_t offset)
+        : m_data(std::move(data))
+    {
+        if (!m_data || offset > m_data->size())
+        {
+            throw std::runtime_error("Invalid buffer offset");
+        }
+        m_raw_data = m_data->data() + offset;
+        m_size = m_data->size() - offset;
+    }
+
+    ///
+    /// @brief Construct a bounded view into shared storage
+    ///
+    /// @param data The shared storage which owns the bytes
+    /// @param offset The byte offset where the view begins
+    /// @param length The number of bytes in the view
+    ///
+    BufferWrapper(std::shared_ptr<const std::vector<uint8_t>> data, size_t offset, size_t length)
+        : m_data(std::move(data)),
+          m_raw_data(nullptr),
+          m_size(length)
+    {
+        if (!m_data || offset > m_data->size() || length > m_data->size() - offset)
+        {
+            throw std::runtime_error("Invalid buffer range");
+        }
+        m_raw_data = m_data->data() + offset;
+    }
+
+    ///
+    /// @brief Construct a non-owning view over externally managed storage
+    ///
+    /// @param data A pointer to the first byte in the view
+    /// @param size The number of bytes in the view
+    ///
+    BufferWrapper(const uint8_t *data, size_t size)
+        : m_raw_data(data), m_size(size)
+    {
+        if (data == nullptr && size != 0)
+        {
+            throw std::runtime_error("Non-empty buffer view requires valid data");
+        }
+    }
+
+    ///
+    /// @brief Get the number of bytes in the view
+    ///
+    /// @return The size of the view in bytes
+    ///
+    size_t size() const { return m_size; }
+
+    ///
+    /// @brief Get a pointer to the first byte in the view
+    ///
+    /// @return A pointer to the view data
+    ///
+    const uint8_t *data() const
+    {
+        return m_raw_data;
+    }
+
+    ///
+    /// @brief Get the shared storage backing this view, when available
+    ///
+    /// @return The shared storage, or nullptr for externally managed storage
+    ///
+    std::shared_ptr<const std::vector<uint8_t>> shared_data() const
+    {
+        return m_data;
+    }
+
+    ///
+    /// @brief Get the offset of this view within its shared storage
+    ///
+    /// @return The byte offset, or 0 for externally managed storage
+    ///
+    size_t shared_data_offset() const
+    {
+        if (!m_data || !m_raw_data)
+        {
+            return 0;
+        }
+        return static_cast<size_t>(m_raw_data - m_data->data());
+    }
+
+private:
+    std::shared_ptr<const std::vector<uint8_t>> m_data = nullptr;
+    const uint8_t *m_raw_data = nullptr;
+    size_t m_size = 0;
+};
+
+///
+/// @brief Opaque output produced by a secondary application
+///
+struct SecondaryApplicationData
+{
+    ///
+    /// @brief Information describing the application which produced this output
+    ///
+    SecondaryApplicationInfo application{};
+
+    ///
+    /// @brief The application-defined output index associated with this packet
+    ///
+    uint8_t output_index = 0;
+
+    ///
+    /// @brief The frame identifier associated with this packet
+    ///
+    int64_t frame_id = 0;
+
+    ///
+    /// @brief The camera timestamp associated with this packet
+    ///
+    TimeT camera_timestamp{};
+
+    ///
+    /// @brief The opaque application output payload
+    ///
+    std::shared_ptr<const BufferWrapper> payload = nullptr;
+
+    ///
+    /// @brief The opaque application metadata associated with this output
+    ///
+    std::shared_ptr<const BufferWrapper> metadata = nullptr;
 };
 
 

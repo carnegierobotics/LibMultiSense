@@ -45,6 +45,7 @@
 
 #include <MultiSense/MultiSenseChannel.hh>
 #include <MultiSense/MultiSenseMultiChannel.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 #ifdef BUILD_JSON
@@ -77,6 +78,45 @@ namespace py = pybind11;
 
 namespace {
 using SSizeVector = std::vector<py::ssize_t>;
+
+namespace public_thermal = multisense::secondary_application::thermal;
+
+py::array readonly_image_array(const multisense::Image &image,
+                               const py::ssize_t element_size,
+                               const std::string &format,
+                               const SSizeVector &shape,
+                               const SSizeVector &strides)
+{
+    if (!image.raw_data || image.image_data_offset < 0)
+    {
+        throw std::runtime_error("Invalid image buffer");
+    }
+
+    const auto offset = static_cast<size_t>(image.image_data_offset);
+    if (offset > image.raw_data->size() ||
+        image.image_data_length > image.raw_data->size() - offset)
+    {
+        throw std::runtime_error("Invalid image buffer range");
+    }
+
+    using ImageStorage = std::shared_ptr<const std::vector<uint8_t>>;
+    auto owner = py::capsule(new ImageStorage(image.raw_data), [](void *storage)
+    {
+        delete static_cast<ImageStorage *>(storage);
+    });
+
+    py::array output(
+        py::buffer_info(
+            const_cast<uint8_t *>(image.raw_data->data() + offset),
+            element_size,
+            format,
+            static_cast<py::ssize_t>(shape.size()),
+            shape,
+            strides),
+        owner);
+    output.attr("setflags")(false);
+    return output;
+}
 }
 
 PYBIND11_MODULE(_libmultisense, m) {
@@ -93,8 +133,60 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("EXCEPTION", multisense::Status::EXCEPTION)
         .value("UNINITIALIZED", multisense::Status::UNINITIALIZED)
         .value("INCOMPLETE_APPLICATION", multisense::Status::INCOMPLETE_APPLICATION)
+        .value("BUSY", multisense::Status::BUSY)
         .def("__str__", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::prepend())
         .def("__repr__", py::overload_cast<const multisense::Status&>(&multisense::to_string), py::prepend());
+
+    py::class_<multisense::SecondaryApplicationInfo>(m, "SecondaryApplicationInfo")
+        .def_readonly("name", &multisense::SecondaryApplicationInfo::name)
+        .def_readonly("version", &multisense::SecondaryApplicationInfo::version)
+        .def(py::self == py::self);
+
+    py::class_<multisense::BufferWrapper>(m, "BufferWrapper", py::buffer_protocol())
+        .def_buffer([](const multisense::BufferWrapper &buffer)
+        {
+            if (buffer.size() != 0 && buffer.data() == nullptr)
+            {
+                throw std::runtime_error("Invalid buffer");
+            }
+            return py::buffer_info(buffer.data(), static_cast<py::ssize_t>(buffer.size()));
+        })
+        .def("__len__", &multisense::BufferWrapper::size);
+
+    auto secondary_application =
+        m.def_submodule("secondary_application", "Secondary-application protocol types");
+    auto thermal = secondary_application.def_submodule("thermal", "Thermal application types");
+    thermal.attr("APPLICATION_NAME") = public_thermal::APPLICATION_NAME;
+
+    py::class_<public_thermal::Config>(thermal, "Config")
+        .def(py::init<>())
+        .def_readwrite("rectified", &public_thermal::Config::rectified)
+        .def_readwrite("bits_per_pixel", &public_thermal::Config::bits_per_pixel)
+        .def_readonly("max_imagers", &public_thermal::Config::max_imagers)
+        .def_readonly("imager_enable_mask", &public_thermal::Config::imager_enable_mask)
+        .def_readonly("width", &public_thermal::Config::width)
+        .def_readonly("height", &public_thermal::Config::height);
+
+    thermal.def("query_config", [](multisense::Channel &channel)
+    {
+        py::gil_scoped_release release;
+        return public_thermal::query_config(channel);
+    }, py::arg("channel"));
+
+    thermal.def("send_config", [](multisense::Channel &channel,
+                                   const public_thermal::Config &config)
+    {
+        py::gil_scoped_release release;
+        return public_thermal::send_config(channel, config);
+    }, py::arg("channel"), py::arg("config"));
+
+    py::class_<multisense::SecondaryApplicationData>(m, "SecondaryApplicationData")
+        .def_readonly("application", &multisense::SecondaryApplicationData::application)
+        .def_readonly("output_index", &multisense::SecondaryApplicationData::output_index)
+        .def_readonly("frame_id", &multisense::SecondaryApplicationData::frame_id)
+        .def_readonly("camera_timestamp", &multisense::SecondaryApplicationData::camera_timestamp)
+        .def_readonly("payload", &multisense::SecondaryApplicationData::payload)
+        .def_readonly("metadata", &multisense::SecondaryApplicationData::metadata);
 
     // DataSource
     py::enum_<multisense::DataSource>(m, "DataSource")
@@ -125,6 +217,13 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("LEFT_RECTIFIED_ORB_FEATURES", multisense::DataSource::LEFT_RECTIFIED_ORB_FEATURES)
         .value("RIGHT_RECTIFIED_ORB_FEATURES", multisense::DataSource::RIGHT_RECTIFIED_ORB_FEATURES)
         .value("AUX_RECTIFIED_ORB_FEATURES", multisense::DataSource::AUX_RECTIFIED_ORB_FEATURES)
+        .value("SECONDARY_APPLICATION_0", multisense::DataSource::SECONDARY_APPLICATION_0)
+        .value("SECONDARY_APPLICATION_1", multisense::DataSource::SECONDARY_APPLICATION_1)
+        .value("SECONDARY_APPLICATION_2", multisense::DataSource::SECONDARY_APPLICATION_2)
+        .value("SECONDARY_APPLICATION_3", multisense::DataSource::SECONDARY_APPLICATION_3)
+        .value("SECONDARY_APPLICATION_4", multisense::DataSource::SECONDARY_APPLICATION_4)
+        .value("SECONDARY_APPLICATION_5", multisense::DataSource::SECONDARY_APPLICATION_5)
+        .value("THERMAL", multisense::DataSource::THERMAL)
         .value("IMU", multisense::DataSource::IMU)
         .def("__str__", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::prepend())
         .def("__repr__", py::overload_cast<const multisense::DataSource&>(&multisense::to_string), py::prepend());
@@ -212,16 +311,15 @@ PYBIND11_MODULE(_libmultisense, m) {
                 image.format == multisense::Image::PixelFormat::JPEG)
             {
                 const SSizeVector shape = {
-                    static_cast<py::ssize_t>(image.raw_data->size() - image.image_data_offset)
+                    static_cast<py::ssize_t>(image.image_data_length)
                 };
                 const SSizeVector strides = {static_cast<py::ssize_t>(sizeof(uint8_t))};
-                return py::array(py::buffer_info(
-                                 const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
-                                 static_cast<py::ssize_t>(sizeof(uint8_t)),
-                                 py::format_descriptor<uint8_t>::format(),
-                                 1,
-                                 shape,
-                                 strides));
+                return readonly_image_array(
+                    image,
+                    static_cast<py::ssize_t>(sizeof(uint8_t)),
+                    py::format_descriptor<uint8_t>::format(),
+                    shape,
+                    strides);
             }
 
             SSizeVector shape = {static_cast<py::ssize_t>(image.height), static_cast<py::ssize_t>(image.width)};
@@ -268,14 +366,8 @@ PYBIND11_MODULE(_libmultisense, m) {
                 default: {throw std::runtime_error("Unknown pixel format");}
             }
 
-            // Map the cv::Mat to a NumPy array without copying the data
-            return py::array(py::buffer_info(
-                             const_cast<uint8_t*>(image.raw_data->data() + image.image_data_offset),
-                             element_size,
-                             format,
-                             static_cast<py::ssize_t>(shape.size()),
-                             shape,
-                             strides));
+            return readonly_image_array(
+                image, element_size, format, shape, strides);
         })
         .def_readonly("format", &multisense::Image::format)
         .def_readonly("width", &multisense::Image::width)
@@ -284,6 +376,37 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readonly("ptp_timestamp", &multisense::Image::ptp_timestamp)
         .def_readonly("source", &multisense::Image::source)
         .def_readonly("calibration", &multisense::Image::calibration);
+
+    py::class_<public_thermal::ThermalImage>(thermal, "ThermalImage")
+        .def_readonly("imager_id", &public_thermal::ThermalImage::imager_id)
+        .def_readonly("rectified", &public_thermal::ThermalImage::rectified)
+        .def_readonly("image", &public_thermal::ThermalImage::image);
+
+    py::class_<public_thermal::FrameGroup>(thermal, "FrameGroup")
+        .def_readonly("frame_id", &public_thermal::FrameGroup::frame_id)
+        .def_readonly("camera_timestamp", &public_thermal::FrameGroup::camera_timestamp)
+        .def_readonly("ptp_locked", &public_thermal::FrameGroup::ptp_locked)
+        .def_readonly("imager_enable_mask", &public_thermal::FrameGroup::imager_enable_mask)
+        .def_readonly("images", &public_thermal::FrameGroup::images)
+        .def("__len__", [](const public_thermal::FrameGroup &group)
+        {
+            return group.images.size();
+        })
+        .def("__getitem__", [](const public_thermal::FrameGroup &group,
+                               std::size_t index) -> const public_thermal::ThermalImage &
+        {
+            return group.images.at(index);
+        }, py::return_value_policy::reference_internal);
+
+    thermal.def("deserialize_frame_group", [](const multisense::BufferWrapper &payload)
+    {
+        auto group = public_thermal::deserialize_frame_group(payload);
+        if (!group)
+        {
+            throw py::value_error("Buffer is too short for a thermal frame group");
+        }
+        return std::move(*group);
+    }, py::arg("payload"));
 
     // ImageHistogram
     py::class_<multisense::ImageHistogram>(m, "ImageHistogram")
@@ -785,10 +908,39 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def("stop_streams", &multisense::Channel::stop_streams, py::call_guard<py::gil_scoped_release>())
         .def("add_image_frame_callback", &multisense::Channel::add_image_frame_callback, py::call_guard<py::gil_scoped_acquire>())
         .def("add_imu_frame_callback", &multisense::Channel::add_imu_frame_callback, py::call_guard<py::gil_scoped_acquire>())
+        .def("get_secondary_application_config", &multisense::Channel::get_secondary_application_config,
+             py::call_guard<py::gil_scoped_release>())
+        .def("send_secondary_application_control",
+             [](multisense::Channel &channel, const py::buffer &control)
+             {
+                 const auto raw = py::module_::import("builtins").attr("bytes")(control).cast<std::string>();
+                 const std::vector<uint8_t> bytes(raw.begin(), raw.end());
+                 py::gil_scoped_release release;
+                 return channel.send_secondary_application_control(bytes);
+             })
+        .def("add_secondary_application_callback",
+             [](multisense::Channel &channel, py::function callback)
+             {
+                 channel.add_secondary_application_callback(
+                     [callback = std::move(callback)](const multisense::SecondaryApplicationData &data)
+                     {
+                         py::gil_scoped_acquire acquire;
+                         try
+                         {
+                            callback(py::cast(data, py::return_value_policy::copy));
+                         }
+                         catch (py::error_already_set &error)
+                         {
+                             error.discard_as_unraisable("secondary application callback");
+                         }
+                     });
+             })
         .def("connect", &multisense::Channel::connect)
         .def("disconnect", &multisense::Channel::disconnect)
         .def("get_next_image_frame", &multisense::Channel::get_next_image_frame, py::call_guard<py::gil_scoped_release>())
         .def("get_next_imu_frame", &multisense::Channel::get_next_imu_frame, py::call_guard<py::gil_scoped_release>())
+        .def("get_next_secondary_application_data", &multisense::Channel::get_next_secondary_application_data,
+             py::call_guard<py::gil_scoped_release>())
         .def("get_config", &multisense::Channel::get_config, py::call_guard<py::gil_scoped_release>())
         .def("set_config", &multisense::Channel::set_config, py::call_guard<py::gil_scoped_release>())
         .def("get_calibration", &multisense::Channel::get_calibration, py::call_guard<py::gil_scoped_release>())

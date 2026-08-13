@@ -54,4 +54,77 @@ TEST(ThermalMessage, PayloadTypesHaveStableWireSizes)
     EXPECT_EQ(configWriter.tell(), wire::ThermalConfig::WIRE_SIZE);
 }
 
+TEST(ThermalMessage, FrameGroupValidatesAndExposesImages)
+{
+    constexpr uint16_t width = 2;
+    constexpr uint16_t height = 2;
+    constexpr uint8_t imageCount = 2;
+    constexpr uint32_t imageLength = width * height * sizeof(uint16_t);
+    constexpr uint32_t headerLength = wire::ThermalGroupHeader::WIRE_SIZE +
+                                      imageCount * wire::ThermalImageDescriptor::WIRE_SIZE;
+    constexpr uint32_t payloadLength = headerLength + imageCount * imageLength;
+
+    wire::ThermalGroupHeader header;
+    header.magic = wire::THERMAL_GROUP_MAGIC;
+    header.version = wire::THERMAL_GROUP_VERSION;
+    header.payloadType = wire::THERMAL_PAYLOAD_FRAME_GROUP;
+    header.headerLength = headerLength;
+    header.frameId = 42;
+    header.numImages = imageCount;
+
+    utility::BufferStreamWriter writer(payloadLength);
+    header.serialize(writer);
+    for (uint8_t index = 0; index < imageCount; ++index) {
+        wire::ThermalImageDescriptor descriptor;
+        descriptor.offset = headerLength + index * imageLength;
+        descriptor.length = imageLength;
+        descriptor.width = width;
+        descriptor.height = height;
+        descriptor.bitsPerPixel = 16;
+        descriptor.imagerId = index;
+        descriptor.serialize(writer);
+    }
+    const uint16_t pixels[width * height * imageCount] = {};
+    writer.write(pixels, sizeof(pixels));
+
+    utility::BufferStreamReader reader(
+        static_cast<const uint8_t *>(writer.data()), writer.tell());
+    wire::ThermalFrameGroup group(reader);
+    ASSERT_EQ(group.size(), imageCount);
+    EXPECT_EQ(group.header().frameId, 42);
+    EXPECT_EQ(group.at(1).descriptor().imagerId, 1);
+    EXPECT_EQ(group.at(1).size(), imageLength);
+    EXPECT_EQ(group.at(1).data(),
+              static_cast<const uint8_t *>(writer.data()) + headerLength + imageLength);
+}
+
+TEST(ThermalMessage, FrameGroupRejectsInvalidImageGeometry)
+{
+    constexpr uint32_t headerLength = wire::ThermalGroupHeader::WIRE_SIZE +
+                                      wire::ThermalImageDescriptor::WIRE_SIZE;
+    wire::ThermalGroupHeader header;
+    header.magic = wire::THERMAL_GROUP_MAGIC;
+    header.version = wire::THERMAL_GROUP_VERSION;
+    header.payloadType = wire::THERMAL_PAYLOAD_FRAME_GROUP;
+    header.headerLength = headerLength;
+    header.numImages = 1;
+
+    wire::ThermalImageDescriptor descriptor;
+    descriptor.offset = headerLength;
+    descriptor.length = 1;
+    descriptor.width = 2;
+    descriptor.height = 2;
+    descriptor.bitsPerPixel = 16;
+
+    utility::BufferStreamWriter writer(headerLength + descriptor.length);
+    header.serialize(writer);
+    descriptor.serialize(writer);
+    const uint8_t pixel = 0;
+    writer.write(&pixel, sizeof(pixel));
+
+    utility::BufferStreamReader reader(
+        static_cast<const uint8_t *>(writer.data()), writer.tell());
+    EXPECT_THROW(wire::ThermalFrameGroup{reader}, std::runtime_error);
+}
+
 } // namespace

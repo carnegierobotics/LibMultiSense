@@ -189,6 +189,13 @@ crl::multisense::details::wire::SourceType convert_sources(const std::vector<Dat
             case DataSource::LEFT_RECTIFIED_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_3; break;}
             case DataSource::RIGHT_RECTIFIED_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_4; break;}
             case DataSource::AUX_RECTIFIED_ORB_FEATURES: {mask |= wire::SOURCE_SECONDARY_APP_DATA_5; break;}
+            case DataSource::SECONDARY_APPLICATION_0: {mask |= wire::SOURCE_SECONDARY_APP_DATA_0; break;}
+            case DataSource::SECONDARY_APPLICATION_1: {mask |= wire::SOURCE_SECONDARY_APP_DATA_1; break;}
+            case DataSource::SECONDARY_APPLICATION_2: {mask |= wire::SOURCE_SECONDARY_APP_DATA_2; break;}
+            case DataSource::SECONDARY_APPLICATION_3: {mask |= wire::SOURCE_SECONDARY_APP_DATA_3; break;}
+            case DataSource::SECONDARY_APPLICATION_4: {mask |= wire::SOURCE_SECONDARY_APP_DATA_4; break;}
+            case DataSource::SECONDARY_APPLICATION_5: {mask |= wire::SOURCE_SECONDARY_APP_DATA_5; break;}
+            case DataSource::THERMAL: {mask |= wire::SOURCE_SECONDARY_APP_DATA_0; break;}
             case DataSource::ALL: {mask |= all_sources; break;}
             default: {CRL_DEBUG("Unsupported source %d", static_cast<int32_t>(source));}
         }
@@ -213,39 +220,72 @@ std::vector<DataSource> expand_source(const DataSource &source)
     }
 }
 
-std::string application_string(const SecondaryApplication &app)
+std::optional<crl::multisense::details::wire::SourceType>
+secondary_application_source(uint8_t output_index)
 {
-    switch (app)
-    {
-        case SecondaryApplication::FEATURE_DETECTOR:
-        {
-            return crl::multisense::details::wire::SECONDARY_APP_FEATURE_DETECTOR;
-        }
-        case SecondaryApplication::NONE:
-        default:
-        {
-            return "";
-        }
+    using namespace crl::multisense::details;
+    constexpr std::array<wire::SourceType, 6> sources{
+        wire::SOURCE_SECONDARY_APP_DATA_0,
+        wire::SOURCE_SECONDARY_APP_DATA_1,
+        wire::SOURCE_SECONDARY_APP_DATA_2,
+        wire::SOURCE_SECONDARY_APP_DATA_3,
+        wire::SOURCE_SECONDARY_APP_DATA_4,
+        wire::SOURCE_SECONDARY_APP_DATA_5};
 
+    if (output_index >= sources.size())
+    {
+        return std::nullopt;
+    }
+    return sources[output_index];
+}
+
+std::optional<uint8_t>
+secondary_application_output_index(crl::multisense::details::wire::SourceType source)
+{
+    for (uint8_t i = 0; i < 6; ++i)
+    {
+        const auto candidate = secondary_application_source(i);
+        if (candidate && *candidate == source)
+        {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<uint8_t> secondary_application_output_index(const DataSource &source)
+{
+    switch (source)
+    {
+        case DataSource::LEFT_ORB_FEATURES: return 0;
+        case DataSource::RIGHT_ORB_FEATURES: return 1;
+        case DataSource::AUX_ORB_FEATURES: return 2;
+        case DataSource::LEFT_RECTIFIED_ORB_FEATURES: return 3;
+        case DataSource::RIGHT_RECTIFIED_ORB_FEATURES: return 4;
+        case DataSource::AUX_RECTIFIED_ORB_FEATURES: return 5;
+        case DataSource::SECONDARY_APPLICATION_0: return 0;
+        case DataSource::SECONDARY_APPLICATION_1: return 1;
+        case DataSource::SECONDARY_APPLICATION_2: return 2;
+        case DataSource::SECONDARY_APPLICATION_3: return 3;
+        case DataSource::SECONDARY_APPLICATION_4: return 4;
+        case DataSource::SECONDARY_APPLICATION_5: return 5;
+        case DataSource::THERMAL: return 0;
+        default: return std::nullopt;
     }
 }
 
-SecondaryApplication secondary_application(const std::string &app)
+std::optional<std::string> secondary_application_name(const DataSource &source)
 {
-    if (app == crl::multisense::details::wire::SECONDARY_APP_FEATURE_DETECTOR)
+    using namespace crl::multisense::details;
+    if (is_feature_source(source))
     {
-        return SecondaryApplication::FEATURE_DETECTOR;
+        return wire::SECONDARY_APP_FEATURE_DETECTOR;
     }
-    else
+    if (source == DataSource::THERMAL)
     {
-        return SecondaryApplication::NONE;
+        return wire::SECONDARY_APP_THERMAL;
     }
-}
-
-
-bool supported_application(const std::vector<SecondaryApplication> &available_apps, const SecondaryApplication &target_app)
-{
-    return std::find(std::begin(available_apps), std::end(available_apps), target_app) != std::end(available_apps);
+    return std::nullopt;
 }
 
 ImuSample add_wire_sample(ImuSample sample,

@@ -1,4 +1,5 @@
 set(MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseChannel.hh
+                       ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseSecondaryApplication.hh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseTypes.hh
                        ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseUtilities.hh)
 
@@ -8,6 +9,7 @@ endif()
 
 set(DETAILS_SRC details/factory.cc
                 details/multi_channel.cc
+                details/secondary_application.cc
                 details/utilities.cc
                 details/legacy/calibration.cc
                 details/legacy/channel.cc
@@ -35,7 +37,7 @@ endif()
 # target name that the installed package exports.
 add_library(MultiSense::MultiSense ALIAS MultiSense)
 
-target_link_libraries(MultiSense PRIVATE MultiSenseWire::MultiSenseWire)
+target_link_libraries(MultiSense PUBLIC MultiSenseWire::MultiSenseWire)
 if (FILESYSTEM_LIBRARY)
     target_link_libraries(MultiSense PUBLIC ${FILESYSTEM_LIBRARY})
 endif()

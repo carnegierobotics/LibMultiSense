@@ -344,6 +344,7 @@ static CRL_CONSTEXPR float WIRE_IMAGER_GAIN_MAX = 1000.0f;
 // Secondary Application names
 
 static CRL_CONSTEXPR char SECONDARY_APP_FEATURE_DETECTOR[] = "FeatureDetector";
+static CRL_CONSTEXPR char SECONDARY_APP_THERMAL[] = "crl_thermal";
 
 //
 // Some helper macros

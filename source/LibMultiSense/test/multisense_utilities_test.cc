@@ -35,13 +35,237 @@
  **/
 
 #include <cmath>
+#include <cstring>
 #include <filesystem>
+#include <memory>
 
 #include <gtest/gtest.h>
 
 #include <MultiSense/MultiSenseUtilities.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
+#include <MultiSense/wire/ThermalMessage.hh>
 
 using namespace multisense;
+
+namespace
+{
+
+class SecondaryApplicationTestChannel final : public Channel
+{
+public:
+    std::optional<std::vector<uint8_t>> config_payload;
+    std::vector<std::vector<uint8_t>> control_payloads;
+    Status control_status = Status::OK;
+
+    Status start_streams(const std::vector<DataSource> &) override {return Status::OK;}
+    Status stop_streams(const std::vector<DataSource> &) override {return Status::OK;}
+    void add_image_frame_callback(std::function<void(const ImageFrame &)>) override {}
+    void add_imu_frame_callback(std::function<void(const ImuFrame &)>) override {}
+    std::optional<std::vector<uint8_t>> get_secondary_application_config() override
+    {
+        return config_payload;
+    }
+    Status send_secondary_application_control(const std::vector<uint8_t> &control) override
+    {
+        control_payloads.push_back(control);
+        return control_status;
+    }
+    void add_secondary_application_callback(
+        std::function<void(const SecondaryApplicationData &)>) override {}
+    Status connect(const Channel::Config &) override {return Status::OK;}
+    void disconnect() override {}
+    std::optional<ImageFrame> get_next_image_frame() override {return std::nullopt;}
+    std::optional<ImuFrame> get_next_imu_frame() override {return std::nullopt;}
+    std::optional<SecondaryApplicationData>
+    get_next_secondary_application_data() override {return std::nullopt;}
+    MultiSenseConfig get_config() override {return {};}
+    Status set_config(const MultiSenseConfig &) override {return Status::OK;}
+    StereoCalibration get_calibration() override {return {};}
+    Status set_calibration(const StereoCalibration &) override {return Status::OK;}
+    MultiSenseInfo get_info() override {return {};}
+    Status set_device_info(const MultiSenseInfo::DeviceInfo &, const std::string &) override
+    {
+        return Status::OK;
+    }
+    std::optional<MultiSenseStatus> get_system_status() override {return std::nullopt;}
+    Status set_network_config(const MultiSenseInfo::NetworkInfo &,
+                              const std::optional<std::string> &) override
+    {
+        return Status::OK;
+    }
+};
+
+} // namespace
+
+TEST(secondary_application_payload, thermal_public_types)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
+
+    thermal::Config input;
+    input.rectified = true;
+    input.bits_per_pixel = 16;
+    input.max_imagers = 6;
+    input.imager_enable_mask = 0x3f;
+    input.width = 640;
+    input.height = 512;
+
+    const auto payload = serialize_secondary_application_payload(input);
+    ASSERT_FALSE(payload.empty());
+
+    const auto output =
+        deserialize_secondary_application_payload<thermal::Config>(payload);
+    ASSERT_TRUE(output);
+    EXPECT_EQ(output->rectified, input.rectified);
+    EXPECT_EQ(output->bits_per_pixel, input.bits_per_pixel);
+    EXPECT_EQ(output->max_imagers, input.max_imagers);
+    EXPECT_EQ(output->imager_enable_mask, input.imager_enable_mask);
+    EXPECT_EQ(output->width, input.width);
+    EXPECT_EQ(output->height, input.height);
+
+    const auto round_trip_payload = serialize_secondary_application_payload(*output);
+    const auto round_trip =
+        deserialize_secondary_application_payload<wire::ThermalConfig>(round_trip_payload);
+    ASSERT_TRUE(round_trip);
+    EXPECT_EQ(round_trip->rectified, 1u);
+    EXPECT_EQ(round_trip->bitsPerPixel, input.bits_per_pixel);
+    EXPECT_EQ(round_trip->maxImagers, input.max_imagers);
+    EXPECT_EQ(round_trip->imagerEnableMask, input.imager_enable_mask);
+    EXPECT_EQ(round_trip->width, input.width);
+    EXPECT_EQ(round_trip->height, input.height);
+
+    EXPECT_FALSE(deserialize_secondary_application_payload<thermal::Config>(
+        std::vector<uint8_t>{}));
+}
+
+TEST(secondary_application_payload, thermal_config_query_update_send)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
+
+    wire::ThermalConfig wire_config;
+    wire_config.magic = wire::THERMAL_GROUP_MAGIC;
+    wire_config.version = wire::THERMAL_GROUP_VERSION;
+    wire_config.rectified = 0;
+    wire_config.bitsPerPixel = 8;
+    wire_config.maxImagers = 6;
+    wire_config.imagerEnableMask = 0x3f;
+    wire_config.width = 640;
+    wire_config.height = 512;
+
+    SecondaryApplicationTestChannel channel;
+    channel.config_payload = serialize_secondary_application_payload(wire_config);
+
+    auto config = thermal::query_config(channel);
+    ASSERT_TRUE(config);
+    config->rectified = true;
+    config->bits_per_pixel = 16;
+    EXPECT_EQ(thermal::send_config(channel, *config), Status::OK);
+    ASSERT_EQ(channel.control_payloads.size(), 2u);
+
+    const auto rectified_control =
+        deserialize_secondary_application_payload<wire::ThermalControl>(
+            channel.control_payloads[0]);
+    ASSERT_TRUE(rectified_control);
+    EXPECT_EQ(rectified_control->command,
+              wire::THERMAL_CONTROL_SET_RECTIFIED);
+    EXPECT_EQ(rectified_control->value, 1u);
+
+    const auto bits_control =
+        deserialize_secondary_application_payload<wire::ThermalControl>(
+            channel.control_payloads[1]);
+    ASSERT_TRUE(bits_control);
+    EXPECT_EQ(bits_control->command, wire::THERMAL_CONTROL_SET_BITS_PER_PIXEL);
+    EXPECT_EQ(bits_control->value, 16u);
+
+    EXPECT_EQ(thermal::send_config(channel, *config), Status::OK);
+    EXPECT_EQ(channel.control_payloads.size(), 4u);
+
+    config->bits_per_pixel = 12;
+    EXPECT_THROW(thermal::send_config(channel, *config), std::invalid_argument);
+    EXPECT_EQ(channel.control_payloads.size(), 4u);
+}
+
+TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)
+{
+    EXPECT_THROW(
+        BufferWrapper(static_cast<const uint8_t *>(nullptr), 1),
+        std::runtime_error);
+    EXPECT_NO_THROW(
+        BufferWrapper(static_cast<const uint8_t *>(nullptr), 0));
+}
+
+TEST(secondary_application_payload, thermal_frame_group_uses_image_views)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
+    namespace utility = crl::multisense::details::utility;
+
+    constexpr uint16_t width = 2;
+    constexpr uint16_t height = 2;
+    constexpr uint32_t image_length = width * height * sizeof(uint16_t);
+    constexpr uint32_t header_length = wire::ThermalGroupHeader::WIRE_SIZE +
+                                       wire::ThermalImageDescriptor::WIRE_SIZE;
+    constexpr size_t storage_prefix = 4;
+
+    wire::ThermalGroupHeader header;
+    header.magic = wire::THERMAL_GROUP_MAGIC;
+    header.version = wire::THERMAL_GROUP_VERSION;
+    header.payloadType = wire::THERMAL_PAYLOAD_FRAME_GROUP;
+    header.headerLength = header_length;
+    header.frameId = 42;
+    header.timeSeconds = 10;
+    header.timeMicroseconds = 20;
+    header.ptpLocked = 1;
+    header.numImages = 1;
+    header.imagerEnableMask = 0x4;
+
+    wire::ThermalImageDescriptor descriptor;
+    descriptor.offset = header_length;
+    descriptor.length = image_length;
+    descriptor.width = width;
+    descriptor.height = height;
+    descriptor.bitsPerPixel = 16;
+    descriptor.flags = wire::THERMAL_IMAGE_FLAG_RECTIFIED;
+    descriptor.imagerId = 2;
+
+    utility::BufferStreamWriter writer(header_length + image_length);
+    header.serialize(writer);
+    descriptor.serialize(writer);
+    const uint16_t pixels[width * height] = {100, 200, 300, 400};
+    writer.write(pixels, sizeof(pixels));
+
+    auto mutable_storage = std::make_shared<std::vector<uint8_t>>(
+        storage_prefix + writer.tell());
+    std::memcpy(mutable_storage->data() + storage_prefix, writer.data(), writer.tell());
+    std::shared_ptr<const std::vector<uint8_t>> storage = mutable_storage;
+    const BufferWrapper payload(storage, storage_prefix, writer.tell());
+
+    const auto group = thermal::deserialize_frame_group(payload);
+    ASSERT_TRUE(group);
+    EXPECT_EQ(group->frame_id, 42);
+    EXPECT_EQ(group->camera_timestamp,
+              TimeT{std::chrono::seconds{10} + std::chrono::microseconds{20}});
+    EXPECT_TRUE(group->ptp_locked);
+    EXPECT_EQ(group->imager_enable_mask, 0x4u);
+    ASSERT_EQ(group->images.size(), 1u);
+
+    const thermal::ThermalImage &thermal_image = group->images.front();
+    EXPECT_EQ(thermal_image.imager_id, 2);
+    EXPECT_TRUE(thermal_image.rectified);
+    const Image &image = thermal_image.image;
+    EXPECT_EQ(image.raw_data, storage);
+    EXPECT_EQ(image.image_data_offset, storage_prefix + header_length);
+    EXPECT_EQ(image.image_data_length, image_length);
+    EXPECT_EQ(image.format, Image::PixelFormat::MONO16);
+    EXPECT_EQ(image.width, width);
+    EXPECT_EQ(image.height, height);
+    EXPECT_EQ(image.source, DataSource::THERMAL);
+    EXPECT_EQ(image.camera_timestamp, group->camera_timestamp);
+    EXPECT_EQ(image.ptp_timestamp, group->camera_timestamp);
+    ASSERT_TRUE(image.at<uint16_t>(1, 1));
+    EXPECT_EQ(*image.at<uint16_t>(1, 1), 400);
+}
 
 //
 // Create a disparity image of a circular disk centered in the image
@@ -499,6 +723,7 @@ TEST(to_string, status)
     EXPECT_EQ(to_string(Status::EXCEPTION), "EXCEPTION");
     EXPECT_EQ(to_string(Status::UNINITIALIZED), "UNINITIALIZED");
     EXPECT_EQ(to_string(Status::INCOMPLETE_APPLICATION), "INCOMPLETE_APPLICATION");
+    EXPECT_EQ(to_string(Status::BUSY), "BUSY");
     EXPECT_EQ(to_string(static_cast<Status>(999)), "UNKNOWN");
 }
 
@@ -510,6 +735,9 @@ TEST(to_string, data_source)
     EXPECT_EQ(to_string(DataSource::RIGHT_MONO_RAW), "RIGHT");
     EXPECT_EQ(to_string(DataSource::LEFT_MONO_COMPRESSED), "LEFT_COMPRESSED");
     EXPECT_EQ(to_string(DataSource::RIGHT_MONO_COMPRESSED), "RIGHT_COMPRESSED");
+    EXPECT_EQ(to_string(DataSource::SECONDARY_APPLICATION_0), "SECONDARY_APPLICATION_0");
+    EXPECT_EQ(to_string(DataSource::SECONDARY_APPLICATION_5), "SECONDARY_APPLICATION_5");
+    EXPECT_EQ(to_string(DataSource::THERMAL), "THERMAL");
     EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_RAW), "LEFT_RECTIFIED");
     EXPECT_EQ(to_string(DataSource::RIGHT_RECTIFIED_RAW), "RIGHT_RECTIFIED");
     EXPECT_EQ(to_string(DataSource::LEFT_RECTIFIED_COMPRESSED), "LEFT_RECTIFIED_COMPRESSED");
@@ -952,4 +1180,3 @@ TEST(create_bgr_image, valid_images)
 
     EXPECT_TRUE(create_bgr_image(frame, DataSource::AUX_RECTIFIED_RAW));
 }
-

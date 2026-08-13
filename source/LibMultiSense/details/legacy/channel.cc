@@ -99,7 +99,6 @@
 #include <MultiSense/wire/VersionRequestMessage.hh>
 #include <MultiSense/wire/VersionResponseMessage.hh>
 #include <MultiSense/wire/FeatureMessage.hh>
-#include <MultiSense/wire/FeatureMetaMessage.hh>
 #include <MultiSense/wire/FeatureConfig.hh>
 
 #include "details/legacy/channel.hh"
@@ -125,6 +124,8 @@ namespace {
     /// @brief MTU's to test if the user would like to pick the largest MTU
     ///
     constexpr std::array<uint16_t, 10> MTUS_TO_TEST{9000, 8167, 7333, 6500, 5667, 4833, 4000, 3167, 2333, 1500};
+
+    constexpr size_t SECONDARY_APPLICATION_METADATA_CACHE_DEPTH = 4;
 }
 
 LegacyChannel::LegacyChannel(const Config &config):
@@ -151,10 +152,17 @@ Status LegacyChannel::start_streams(const std::vector<DataSource> &sources)
 {
     using namespace crl::multisense::details;
     using namespace std::chrono_literals;
+    std::lock_guard<std::mutex> command_lock(m_secondary_application_command_mutex);
 
     if (!m_connected)
     {
         return Status::UNINITIALIZED;
+    }
+
+    if (const auto status = activate_secondary_application_for_streams(sources);
+        status != Status::OK)
+    {
+        return status;
     }
 
     wire::StreamControl cmd;
@@ -176,8 +184,20 @@ Status LegacyChannel::start_streams(const std::vector<DataSource> &sources)
 
         for (const auto &source : sources)
         {
-            const auto expanded = expand_source(source);
-            m_active_streams.insert(std::begin(expanded), std::end(expanded));
+            if (const auto output_index = secondary_application_output_index(source); output_index)
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_active_secondary_application_streams.insert(*output_index);
+                if (is_feature_source(source))
+                {
+                    m_active_streams.insert(source);
+                }
+            }
+            else
+            {
+                const auto expanded = expand_source(source);
+                m_active_streams.insert(std::begin(expanded), std::end(expanded));
+            }
         }
 
         return Status::OK;
@@ -188,12 +208,146 @@ Status LegacyChannel::start_streams(const std::vector<DataSource> &sources)
 
 Status LegacyChannel::stop_streams(const std::vector<DataSource> &sources)
 {
+    std::lock_guard<std::mutex> command_lock(m_secondary_application_command_mutex);
     if (!m_connected)
     {
         return Status::UNINITIALIZED;
     }
 
-    return stop_streams_internal(sources);
+    const auto status = stop_streams_internal(sources);
+    if (status != Status::OK)
+    {
+        return status;
+    }
+
+    const bool stopping_secondary_application =
+        sources.empty() ||
+        std::any_of(sources.begin(), sources.end(), [](const DataSource &source)
+        {
+            return source == DataSource::ALL || secondary_application_output_index(source).has_value();
+        });
+
+    std::optional<std::string> application_to_deactivate;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (stopping_secondary_application && m_active_secondary_application &&
+            m_active_secondary_application_streams.empty())
+        {
+            application_to_deactivate = m_active_secondary_application->name;
+        }
+    }
+    if (application_to_deactivate)
+    {
+        const auto deactivate_status =
+            manage_secondary_application_raw(*application_to_deactivate, false);
+        if (deactivate_status != Status::OK)
+        {
+            return deactivate_status;
+        }
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_active_secondary_application.reset();
+    }
+    return Status::OK;
+}
+
+Status LegacyChannel::activate_secondary_application_for_streams(
+    const std::vector<DataSource> &sources)
+{
+    using namespace crl::multisense::details;
+
+    bool has_secondary_source = false;
+    std::optional<std::string> required_application;
+    for (const auto &source : sources)
+    {
+        if (!secondary_application_output_index(source))
+        {
+            continue;
+        }
+        has_secondary_source = true;
+
+        auto source_application = secondary_application_name(source);
+
+        if (source_application)
+        {
+            if (required_application && *required_application != *source_application)
+            {
+                return Status::BUSY;
+            }
+            required_application = std::move(source_application);
+        }
+    }
+
+    if (!has_secondary_source)
+    {
+        return Status::OK;
+    }
+
+    std::optional<SecondaryApplicationInfo> active_application;
+    std::optional<std::vector<SecondaryApplicationInfo>> available_applications;
+    bool has_active_secondary_streams = false;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        active_application = m_active_secondary_application;
+        available_applications = m_available_secondary_applications;
+        has_active_secondary_streams = !m_active_secondary_application_streams.empty();
+    }
+
+    if (!required_application && active_application)
+    {
+        return Status::OK;
+    }
+
+    if (!available_applications)
+    {
+        return Status::UNSUPPORTED;
+    }
+
+    if (!required_application)
+    {
+        if (available_applications->size() != 1)
+        {
+            return Status::INCOMPLETE_APPLICATION;
+        }
+        required_application = available_applications->front().name;
+    }
+
+    const auto target = std::find_if(
+        available_applications->begin(), available_applications->end(),
+        [&required_application](const auto &application)
+        {
+            return application.name == *required_application;
+        });
+    if (target == available_applications->end())
+    {
+        return Status::UNSUPPORTED;
+    }
+    if (active_application && active_application->name == target->name)
+    {
+        return Status::OK;
+    }
+    if (active_application && has_active_secondary_streams)
+    {
+        return Status::BUSY;
+    }
+
+    if (active_application)
+    {
+        const auto status = manage_secondary_application_raw(active_application->name, false);
+        if (status != Status::OK)
+        {
+            return status;
+        }
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_active_secondary_application.reset();
+    }
+
+    const auto status = manage_secondary_application_raw(target->name, true);
+    if (status == Status::OK)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_active_secondary_application = *target;
+    }
+    return status;
 }
 
 void LegacyChannel::add_image_frame_callback(std::function<void(const ImageFrame&)> callback)
@@ -210,6 +364,13 @@ void LegacyChannel::add_imu_frame_callback(std::function<void(const ImuFrame&)> 
     m_user_imu_frame_callback = callback;
 }
 
+void LegacyChannel::add_secondary_application_callback(
+    std::function<void(const SecondaryApplicationData&)> callback)
+{
+    std::lock_guard<std::mutex> lock(m_secondary_application_callback_mutex);
+    m_user_secondary_application_callback = std::move(callback);
+}
+
 Status LegacyChannel::connect(const Config &config)
 {
     using namespace crl::multisense::details;
@@ -219,8 +380,6 @@ Status LegacyChannel::connect(const Config &config)
         CRL_DEBUG("Channel is already connected to the MultiSense\n");
         return Status::FAILED;
     }
-
-    std::lock_guard<std::mutex> lock(m_mutex);
 
     disconnect_internal();
 
@@ -305,6 +464,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (auto calibration = query_calibration(); calibration)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_calibration = std::move(calibration.value());
     }
     else
@@ -319,6 +479,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (auto info = query_info(); info)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_info = std::move(info.value());
     }
     else
@@ -348,6 +509,7 @@ Status LegacyChannel::connect(const Config &config)
     //
     if (auto cam_config = query_configuration(m_info.device.has_aux_camera(), m_info.imu.has_value(), false); cam_config)
     {
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_multisense_config = std::move(cam_config.value());
     }
     else
@@ -357,26 +519,20 @@ Status LegacyChannel::connect(const Config &config)
         return Status::FAILED;
     }
 
-    //
-    // Check secondary applications available
-    //
-    m_avaliable_secondary_applications = query_available_secondary_applications();
-
-    m_connected = true;
+    // Cache secondary applications during connection so stream lifecycle
+    // operations only need to select and activate the required application.
+    auto available_secondary_applications = query_available_secondary_applications();
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_available_secondary_applications = std::move(available_secondary_applications);
+        m_connected = true;
+    }
 
     return Status::OK;
 }
 
 void LegacyChannel::disconnect()
 {
-    //
-    // Deactivate our current secondary application if one exists
-    //
-    if (m_active_secondary_application)
-    {
-        manage_secondary_application(m_active_secondary_application.value(), false);
-    }
-
     //
     // Stop all our streams before disconnecting
     //
@@ -385,7 +541,21 @@ void LegacyChannel::disconnect()
         stop_streams({DataSource::ALL});
     }
 
-    std::lock_guard<std::mutex> lock(m_mutex);
+    //
+    // Deactivate our current secondary application after all of its streams have stopped
+    //
+    std::optional<std::string> active_secondary_application;
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_active_secondary_application)
+        {
+            active_secondary_application = m_active_secondary_application->name;
+        }
+    }
+    if (active_secondary_application)
+    {
+        manage_secondary_application(*active_secondary_application, false);
+    }
 
     disconnect_internal();
 
@@ -398,6 +568,11 @@ void LegacyChannel::disconnect_internal()
 
     m_connected = false;
 
+    // Stop and join the dispatch thread before unregistering callbacks. A
+    // callback may acquire m_mutex, while callback removal acquires the message
+    // assembler's callback mutex, so teardown must not hold m_mutex here.
+    m_udp_receiver = nullptr;
+
     m_message_assembler.remove_callback(wire::ImageMeta::ID);
     m_message_assembler.remove_callback(wire::Image::ID);
     m_message_assembler.remove_callback(wire::CompressedImage::ID);
@@ -405,10 +580,6 @@ void LegacyChannel::disconnect_internal()
     m_message_assembler.remove_callback(wire::ImuData::ID);
     m_message_assembler.remove_callback(wire::SecondaryAppData::ID);
     m_message_assembler.remove_callback(wire::SecondaryAppMetadata::ID);
-
-    m_socket = NetworkSocket{};
-
-    m_udp_receiver = nullptr;
 
     if (m_socket.sensor_socket != INVALID_SOCKET)
     {
@@ -436,6 +607,16 @@ std::optional<ImuFrame> LegacyChannel::get_next_imu_frame()
     }
 
     return m_imu_frame_notifier.wait(m_config.receive_timeout);
+}
+
+std::optional<SecondaryApplicationData> LegacyChannel::get_next_secondary_application_data()
+{
+    if (!m_connected)
+    {
+        return std::nullopt;
+    }
+
+    return m_secondary_application_notifier.wait(m_config.receive_timeout);
 }
 
 MultiSenseConfig LegacyChannel::get_config()
@@ -607,13 +788,17 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
         //
         // Activate the application
         //
-        if (const auto status = manage_secondary_application(SecondaryApplication::FEATURE_DETECTOR, true); status != Status::OK)
+        if (const auto status = manage_secondary_application(wire::SECONDARY_APP_FEATURE_DETECTOR, true); status != Status::OK)
         {
+            if (status == Status::BUSY)
+            {
+                return status;
+            }
             responses.push_back(status);
         }
 
         if (m_active_secondary_application &&
-            m_active_secondary_application.value() == SecondaryApplication::FEATURE_DETECTOR)
+            m_active_secondary_application->name == wire::SECONDARY_APP_FEATURE_DETECTOR)
         {
             // We first need to get the current config to preserve internal options
             const auto secondary_config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
@@ -655,9 +840,14 @@ Status LegacyChannel::set_config(const MultiSenseConfig &config)
         //
         // Deactivate the application
         //
-        if (const auto status = manage_secondary_application(SecondaryApplication::FEATURE_DETECTOR, false); status != Status::OK)
+        if (m_active_secondary_application &&
+            m_active_secondary_application->name == wire::SECONDARY_APP_FEATURE_DETECTOR)
         {
-            responses.push_back(status);
+            if (const auto status = manage_secondary_application(wire::SECONDARY_APP_FEATURE_DETECTOR, false);
+                status != Status::OK)
+            {
+                responses.push_back(status);
+            }
         }
     }
 
@@ -1006,12 +1196,15 @@ std::optional<MultiSenseConfig> LegacyChannel::query_configuration(bool has_aux_
                                                                   m_current_mtu,
                                                                   m_config.receive_timeout);
 
-    const auto secondary_config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
-                                                                          m_socket,
-                                                                          wire::SecondaryAppGetConfig(),
-                                                                          m_transmit_id++,
-                                                                          m_current_mtu,
-                                                                          m_config.receive_timeout);
+    const auto secondary_config = (m_active_secondary_application &&
+                                   m_active_secondary_application->name == wire::SECONDARY_APP_FEATURE_DETECTOR)
+                                    ? wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
+                                                                              m_socket,
+                                                                              wire::SecondaryAppGetConfig(),
+                                                                              m_transmit_id++,
+                                                                              m_current_mtu,
+                                                                              m_config.receive_timeout)
+                                    : std::nullopt;
 
     std::optional<wire::FeatureDetectorConfigParams> feature_config = std::nullopt;
     if (secondary_config && secondary_config->dataLength >= sizeof(wire::FeatureDetectorConfigParams))
@@ -1148,9 +1341,13 @@ Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sourc
     using namespace crl::multisense::details;
     using namespace std::chrono_literals;
 
+    const std::vector<DataSource> requested = sources.empty()
+                                                ? std::vector<DataSource>{DataSource::ALL}
+                                                : sources;
+
     wire::StreamControl cmd;
 
-    cmd.disable(convert_sources(sources));
+    cmd.disable(convert_sources(requested));
 
     if (const auto ack = wait_for_ack(m_message_assembler,
                                       m_socket,
@@ -1165,11 +1362,29 @@ Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sourc
             return get_status(ack->status);
         }
 
-        for (const auto &source : sources)
+        for (const auto &source : requested)
         {
-            for (const auto &expanded : expand_source(source))
+            if (source == DataSource::ALL)
             {
-                m_active_streams.erase(expanded);
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_active_streams.clear();
+                m_active_secondary_application_streams.clear();
+            }
+            else if (const auto output_index = secondary_application_output_index(source); output_index)
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                m_active_secondary_application_streams.erase(*output_index);
+                if (is_feature_source(source))
+                {
+                    m_active_streams.erase(source);
+                }
+            }
+            else
+            {
+                for (const auto &expanded : expand_source(source))
+                {
+                    m_active_streams.erase(expanded);
+                }
             }
         }
 
@@ -1179,7 +1394,7 @@ Status LegacyChannel::stop_streams_internal(const std::vector<DataSource> &sourc
     return Status::TIMEOUT;
 }
 
-std::optional<std::vector<SecondaryApplication>> LegacyChannel::query_available_secondary_applications()
+std::optional<std::vector<SecondaryApplicationInfo>> LegacyChannel::query_available_secondary_applications()
 {
     using namespace crl::multisense::details;
 
@@ -1196,60 +1411,60 @@ std::optional<std::vector<SecondaryApplication>> LegacyChannel::query_available_
     return std::nullopt;
 }
 
-Status LegacyChannel::manage_secondary_application(const SecondaryApplication &app, bool activate)
+Status LegacyChannel::manage_secondary_application(const std::string &name, bool activate)
 {
-    if (m_active_secondary_application && m_active_secondary_application.value() == app && activate)
+    std::lock_guard<std::mutex> command_lock(m_secondary_application_command_mutex);
+    SecondaryApplicationInfo target;
     {
-        return Status::OK;
-    }
-
-    if (!m_active_secondary_application && !activate)
-    {
-        return Status::OK;
-    }
-
-    if (!m_avaliable_secondary_applications || !supported_application(m_avaliable_secondary_applications.value(), app))
-    {
-        return Status::UNSUPPORTED;
-    }
-
-    //
-    // Deactivate the current application first if one is running and we want to activate a new application
-    //
-    if (activate && m_active_secondary_application && m_active_secondary_application.value() != app)
-    {
-        if (const auto status = manage_secondary_application_raw(m_active_secondary_application.value(), false); status == Status::OK)
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_available_secondary_applications)
         {
-            m_active_secondary_application = std::nullopt;
+            return Status::UNSUPPORTED;
+        }
+
+        const auto application = std::find_if(m_available_secondary_applications->begin(),
+                                              m_available_secondary_applications->end(),
+                                              [&name](const auto &candidate) { return candidate.name == name; });
+        if (application == m_available_secondary_applications->end())
+        {
+            return Status::UNSUPPORTED;
+        }
+        target = *application;
+
+        if (activate)
+        {
+            if (m_active_secondary_application)
+            {
+                return m_active_secondary_application->name == name ? Status::OK : Status::BUSY;
+            }
         }
         else
         {
-            return status;
+            if (!m_active_secondary_application)
+            {
+                return Status::OK;
+            }
+            if (m_active_secondary_application->name != name || !m_active_secondary_application_streams.empty())
+            {
+                return Status::BUSY;
+            }
         }
     }
 
-    //
-    // Manage the application
-    //
-    if (const auto status = manage_secondary_application_raw(app, activate); status == Status::OK)
+    const auto status = manage_secondary_application_raw(name, activate);
+    if (status == Status::OK)
     {
-        m_active_secondary_application = activate ? std::make_optional(app) : std::nullopt;
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_active_secondary_application = activate ? std::make_optional(target) : std::nullopt;
     }
-    else
-    {
-        return status;
-    }
-
-    return Status::OK;
+    return status;
 }
 
-Status LegacyChannel::manage_secondary_application_raw(const SecondaryApplication &app, bool activate)
+Status LegacyChannel::manage_secondary_application_raw(const std::string &name, bool activate)
 {
     using namespace crl::multisense::details;
 
-    const auto app_string = application_string(app);
-
-    wire::SecondaryAppActivate cmd(activate ? 1 : 0, app_string);
+    wire::SecondaryAppActivate cmd(activate ? 1 : 0, name);
 
     if (const auto ack = wait_for_ack(m_message_assembler,
                                       m_socket,
@@ -1260,7 +1475,7 @@ Status LegacyChannel::manage_secondary_application_raw(const SecondaryApplicatio
     {
         if (ack->status != wire::Ack::Status_Ok)
         {
-            CRL_DEBUG("Manage secondary app %s ack invalid: %" PRIi32 "\n", app_string.c_str(), ack->status);
+            CRL_DEBUG("Manage secondary app %s ack invalid: %" PRIi32 "\n", name.c_str(), ack->status);
             return get_status(ack->status);
         }
 
@@ -1270,12 +1485,90 @@ Status LegacyChannel::manage_secondary_application_raw(const SecondaryApplicatio
     return Status::TIMEOUT;
 }
 
+std::optional<std::vector<uint8_t>> LegacyChannel::get_secondary_application_config()
+{
+    using namespace crl::multisense::details;
+    std::lock_guard<std::mutex> command_lock(m_secondary_application_command_mutex);
+
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_connected || !m_active_secondary_application)
+        {
+            return std::nullopt;
+        }
+    }
+
+    const auto config = wait_for_data<wire::SecondaryAppConfig>(m_message_assembler,
+                                                                 m_socket,
+                                                                 wire::SecondaryAppGetConfig(),
+                                                                 m_transmit_id++,
+                                                                 m_current_mtu,
+                                                                 m_config.receive_timeout);
+    if (!config || config->dataLength > sizeof(config->data))
+    {
+        return std::nullopt;
+    }
+    return std::vector<uint8_t>(config->data, config->data + config->dataLength);
+}
+
+Status LegacyChannel::send_secondary_application_control(const std::vector<uint8_t> &control_data)
+{
+    using namespace crl::multisense::details;
+    std::lock_guard<std::mutex> command_lock(m_secondary_application_command_mutex);
+
+    if (!m_connected)
+    {
+        return Status::UNINITIALIZED;
+    }
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_active_secondary_application)
+        {
+            return Status::INCOMPLETE_APPLICATION;
+        }
+    }
+
+    wire::SecondaryAppControl control;
+    if (control_data.size() > sizeof(control.data))
+    {
+        return Status::UNSUPPORTED;
+    }
+    control.dataLength = static_cast<uint32_t>(control_data.size());
+    std::copy(control_data.begin(), control_data.end(), control.data);
+
+    if (const auto ack = wait_for_ack(m_message_assembler,
+                                      m_socket,
+                                      control,
+                                      m_transmit_id++,
+                                      m_current_mtu,
+                                      m_config.receive_timeout); ack)
+    {
+        return get_status(ack->status);
+    }
+    return Status::TIMEOUT;
+}
+
 void LegacyChannel::secondary_app_meta_callback(std::shared_ptr<const std::vector<uint8_t>> data)
 {
     using namespace crl::multisense::details;
-    auto wire_meta = std::make_shared<wire::SecondaryAppMetadata>(deserialize<wire::SecondaryAppMetadata>(*data));
-    const auto frame_id = wire_meta->frameId;
-    m_secondary_app_meta_cache[frame_id] = std::move(wire_meta);
+    const auto wire_meta = deserialize<wire::SecondaryAppMetadata>(*data);
+    const auto metadata = reinterpret_cast<const uint8_t *>(wire_meta.dataP);
+    if (metadata < data->data() ||
+        static_cast<size_t>(metadata - data->data()) > data->size() ||
+        wire_meta.dataLength > data->size() - static_cast<size_t>(metadata - data->data()))
+    {
+        CRL_DEBUG("Invalid secondary application metadata buffer\n");
+        return;
+    }
+
+    m_secondary_app_meta_cache[wire_meta.frameId] =
+        std::make_shared<const BufferWrapper>(data,
+                                              static_cast<size_t>(metadata - data->data()),
+                                              wire_meta.dataLength);
+    while (m_secondary_app_meta_cache.size() > SECONDARY_APPLICATION_METADATA_CACHE_DEPTH)
+    {
+        m_secondary_app_meta_cache.erase(m_secondary_app_meta_cache.begin());
+    }
 }
 
 void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vector<uint8_t>> data)
@@ -1284,24 +1577,62 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
     using namespace std::chrono;
 
     const auto wire_data = deserialize<wire::SecondaryAppData>(*data);
-    const auto source = convert_sources(static_cast<uint64_t>(wire_data.sourceExtended) << 32 | wire_data.source);
+    const auto wire_source = static_cast<uint64_t>(wire_data.sourceExtended) << 32 | wire_data.source;
+    const auto output_index = secondary_application_output_index(wire_source);
+    const auto payload = reinterpret_cast<const uint8_t *>(wire_data.dataP);
 
-    if (source.size() != 1 || !is_feature_source(source.front()))
+    if (!output_index || payload < data->data() ||
+        static_cast<size_t>(payload - data->data()) > data->size() ||
+        wire_data.length > data->size() - static_cast<size_t>(payload - data->data()))
     {
+        CRL_DEBUG("Invalid secondary application data buffer or output source\n");
         return;
     }
 
     const auto meta = m_secondary_app_meta_cache.find(wire_data.frameId);
-    if (meta == std::end(m_secondary_app_meta_cache))
+    const auto metadata = meta == m_secondary_app_meta_cache.end() ? nullptr : meta->second;
+
+    SecondaryApplicationInfo application;
     {
-        CRL_DEBUG("Missing corresponding meta for feature frame_id %" PRIu64 "\n", wire_data.frameId);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (m_active_secondary_application)
+        {
+            application = *m_active_secondary_application;
+        }
+    }
+
+    const nanoseconds capture_time{seconds{wire_data.timeSeconds} + microseconds{wire_data.timeMicroSeconds}};
+    SecondaryApplicationData application_data{
+        std::move(application),
+        *output_index,
+        wire_data.frameId,
+        TimeT{capture_time},
+        std::make_shared<const BufferWrapper>(data,
+                                              static_cast<size_t>(payload - data->data()),
+                                              wire_data.length),
+        metadata};
+
+    m_secondary_application_notifier.set_and_notify(application_data);
+    std::function<void(const SecondaryApplicationData&)> callback;
+    {
+        std::lock_guard<std::mutex> lock(m_secondary_application_callback_mutex);
+        callback = m_user_secondary_application_callback;
+    }
+    if (callback)
+    {
+        callback(application_data);
+    }
+
+    const auto source = convert_sources(wire_source);
+    if (application_data.application.name != wire::SECONDARY_APP_FEATURE_DETECTOR ||
+        source.size() != 1 || !is_feature_source(source.front()) || !metadata)
+    {
+        // Secondary-application metadata is frame-scoped and may be shared by
+        // multiple output slots. Keep it until the bounded cache evicts it.
         return;
     }
 
-    utility::BufferStreamReader meta_stream(reinterpret_cast<const uint8_t *>(meta->second->dataP), meta->second->dataLength);
-    wire::FeatureDetectorMeta feature_meta(meta_stream, wire::FeatureDetectorMeta::VERSION);
-
-    utility::BufferStreamReader stream(reinterpret_cast<const uint8_t*>(wire_data.dataP), wire_data.length);
+    utility::BufferStreamReader stream(application_data.payload->data(), application_data.payload->size());
     wire::FeatureDetector detector(stream, wire::FeatureDetector::VERSION);
 
     FeatureMessage feature_msg;
@@ -1333,10 +1664,6 @@ void LegacyChannel::secondary_app_data_callback(std::shared_ptr<const std::vecto
         const uint8_t* d_bytes = reinterpret_cast<const uint8_t*>(d.d);
         feature_msg.descriptors.insert(feature_msg.descriptors.end(), d_bytes, d_bytes + sizeof(wire::Descriptor));
     }
-
-    const nanoseconds capture_time{seconds{wire_data.timeSeconds} + microseconds{wire_data.timeMicroSeconds}};
-    const TimeT capture_time_point{capture_time};
-    const TimeT ptp_capture_time_point{nanoseconds{feature_meta.ptpNanoSeconds}};
 
     handle_and_dispatch_feature(std::move(feature_msg), wire_data.frameId);
 }

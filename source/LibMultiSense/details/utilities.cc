@@ -151,6 +151,7 @@ std::string to_string(const Status &status)
         case Status::EXCEPTION: {return "EXCEPTION";}
         case Status::UNINITIALIZED: {return "UNINITIALIZED";}
         case Status::INCOMPLETE_APPLICATION: {return "INCOMPLETE_APPLICATION";}
+        case Status::BUSY: {return "BUSY";}
     }
 
     return "UNKNOWN";
@@ -188,6 +189,13 @@ std::string to_string(const DataSource &source)
         case DataSource::LEFT_RECTIFIED_ORB_FEATURES: {return "LEFT_RECTIFIED_ORB";}
         case DataSource::RIGHT_RECTIFIED_ORB_FEATURES: {return "RIGHT_RECTIFIED_ORB";}
         case DataSource::AUX_RECTIFIED_ORB_FEATURES: {return "AUX_RECTIFIED_ORB";}
+        case DataSource::SECONDARY_APPLICATION_0: {return "SECONDARY_APPLICATION_0";}
+        case DataSource::SECONDARY_APPLICATION_1: {return "SECONDARY_APPLICATION_1";}
+        case DataSource::SECONDARY_APPLICATION_2: {return "SECONDARY_APPLICATION_2";}
+        case DataSource::SECONDARY_APPLICATION_3: {return "SECONDARY_APPLICATION_3";}
+        case DataSource::SECONDARY_APPLICATION_4: {return "SECONDARY_APPLICATION_4";}
+        case DataSource::SECONDARY_APPLICATION_5: {return "SECONDARY_APPLICATION_5";}
+        case DataSource::THERMAL: {return "THERMAL";}
     }
     return "UNKNOWN";
 }

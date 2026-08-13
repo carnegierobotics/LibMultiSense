@@ -95,6 +95,51 @@ TEST(convert_sources_round_trip, all)
     ASSERT_EQ(convert_sources(convert_sources(all_sources)), all_sources);
 }
 
+TEST(secondary_application_source, all_outputs_round_trip)
+{
+    for (uint8_t i = 0; i < 6; ++i)
+    {
+        const auto source = secondary_application_source(i);
+        ASSERT_TRUE(source);
+        EXPECT_EQ(secondary_application_output_index(*source), i);
+    }
+
+    EXPECT_FALSE(secondary_application_source(6));
+    EXPECT_FALSE(secondary_application_output_index(0));
+    EXPECT_FALSE(secondary_application_output_index(all_sources));
+    EXPECT_EQ(secondary_application_output_index(multisense::DataSource::LEFT_ORB_FEATURES), 0);
+    EXPECT_EQ(secondary_application_output_index(multisense::DataSource::THERMAL), 0);
+    EXPECT_EQ(secondary_application_output_index(multisense::DataSource::SECONDARY_APPLICATION_5), 5);
+    EXPECT_EQ(convert_sources({multisense::DataSource::THERMAL}),
+              *secondary_application_source(0));
+    EXPECT_EQ(convert_sources({multisense::DataSource::LEFT_ORB_FEATURES}),
+              convert_sources({multisense::DataSource::SECONDARY_APPLICATION_0}));
+    const auto thermal_name = secondary_application_name(multisense::DataSource::THERMAL);
+    const auto feature_name = secondary_application_name(multisense::DataSource::LEFT_ORB_FEATURES);
+    ASSERT_TRUE(thermal_name);
+    ASSERT_TRUE(feature_name);
+    EXPECT_EQ(*thermal_name, crl::multisense::details::wire::SECONDARY_APP_THERMAL);
+    EXPECT_EQ(*feature_name, crl::multisense::details::wire::SECONDARY_APP_FEATURE_DETECTOR);
+    EXPECT_FALSE(secondary_application_name(multisense::DataSource::SECONDARY_APPLICATION_0));
+    EXPECT_FALSE(secondary_application_name(multisense::DataSource::LEFT_MONO_RAW));
+}
+
+TEST(buffer_wrapper, retains_and_bounds_backing_buffer)
+{
+    auto storage = std::make_shared<const std::vector<uint8_t>>(
+        std::vector<uint8_t>{1, 2, 3, 4});
+    multisense::BufferWrapper buffer{storage, 1, 2};
+    storage.reset();
+
+    ASSERT_NE(buffer.data(), nullptr);
+    EXPECT_EQ(buffer.size(), 2);
+    EXPECT_EQ(buffer.data()[0], 2);
+    EXPECT_EQ(buffer.data()[1], 3);
+    EXPECT_THROW((multisense::BufferWrapper{
+                     std::shared_ptr<const std::vector<uint8_t>>{}, 0}),
+                 std::exception);
+}
+
 TEST(get_status, status)
 {
     using namespace crl::multisense::details::wire;

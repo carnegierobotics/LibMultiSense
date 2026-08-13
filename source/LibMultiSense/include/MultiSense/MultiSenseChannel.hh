@@ -150,12 +150,17 @@ public:
 
     ///
     /// @brief Start a collection of data sources streaming from the camera.
+    ///        Semantic secondary-application sources automatically query and
+    ///        activate their required application. A generic secondary source
+    ///        selects the sole installed application; if multiple applications
+    ///        are installed, a semantic source is required.
     ///
     virtual Status start_streams(const std::vector<DataSource> &sources) = 0;
 
     ///
     /// @brief Stop specific data sources from streaming from the camera. An empty
-    ///        collection of sources will stop all sources
+    ///        collection of sources will stop all sources. Stopping the last
+    ///        secondary-application source also deactivates its application.
     ///
     virtual Status stop_streams(const std::vector<DataSource> &sources) = 0;
 
@@ -246,6 +251,42 @@ public:
     ///
     virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
                                       const std::optional<std::string> &broadcast_interface) = 0;
+
+    // Keep secondary-application methods after the original Channel interface so
+    // existing virtual-function slots remain stable for binary compatibility.
+
+    ///
+    /// @brief Retrieve the active secondary application's opaque configuration payload
+    ///
+    /// @return The configuration payload, or std::nullopt when it could not be retrieved
+    ///
+    virtual std::optional<std::vector<uint8_t>> get_secondary_application_config() = 0;
+
+    ///
+    /// @brief Send an opaque control payload to the active secondary application
+    ///
+    /// @param control The application-specific control payload
+    /// @return The status of the control request
+    ///
+    virtual Status send_secondary_application_control(const std::vector<uint8_t> &control) = 0;
+
+    ///
+    /// @brief Set the callback invoked when secondary-application output is received
+    ///
+    /// @param callback The callback invoked for each output packet
+    ///
+    virtual void add_secondary_application_callback(
+        std::function<void(const SecondaryApplicationData&)> callback) = 0;
+
+    ///
+    /// @brief A blocking call that waits for one secondary-application output packet
+    ///
+    /// If a receive timeout is configured, this call blocks until the timeout expires.
+    /// Otherwise, it blocks indefinitely until data arrives.
+    ///
+    /// @return The received packet, or std::nullopt when the configured timeout expires
+    ///
+    virtual std::optional<SecondaryApplicationData> get_next_secondary_application_data() = 0;
 };
 
 }

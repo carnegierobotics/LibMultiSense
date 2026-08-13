@@ -74,9 +74,12 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Query Camera Calibration](#query-camera-calibration)
   - [Python](#python-10)
   - [C++](#c-10)
-- [Feature Rendering](#feature-rendering)
+- [Secondary Applications](#secondary-applications)
   - [Python](#python-11)
   - [C++](#c-11)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-12)
+  - [C++](#c-12)
 
 ## Client Networking Prerequisite
 
@@ -107,6 +110,7 @@ several command-line utilities are automatically installed and can be run direct
 - `multisense_ptp_utility`: Check the current PTP sync of the MultiSense device.
 - `multisense_rectified_focal_length_utility`: Update the focal length of the rectified image used to compute disparity.
 - `multisense_feature_detector_utility`: Display a live feed of detected features on the left rectified image.
+- `multisense_thermal_utility`: Read thermal frame groups from the thermal secondary application.
 
 Example usage:
 ```bash
@@ -509,6 +513,7 @@ if __name__ == "__main__":
 #include <iostream>
 
 #include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
 #include <MultiSense/MultiSenseUtilities.hh>
 
 namespace lms = multisense;
@@ -1191,6 +1196,108 @@ int main(int argc, char** argv)
 
     return 0;
 }
+```
+
+---
+
+## Secondary Applications
+
+The new API exposes secondary applications as opaque extensions. LibMultiSense handles application discovery,
+activation, control, and transport, but the application owns the format of its configuration, metadata, and output
+payloads. The generic `DataSource.SECONDARY_APPLICATION_0` through `SECONDARY_APPLICATION_5` values select the
+application's reserved output slots without assigning semantic types to them. `DataSource.THERMAL` is a convenience
+mapping for the thermal application's frame-group output on slot 0; the feature sources provide equivalent semantic
+mappings for the feature-detector application.
+
+### Python
+
+```python
+import libmultisense as lms
+
+with lms.Channel.create(lms.ChannelConfig()) as channel:
+    # start_streams discovers and activates the thermal application.
+    channel.start_streams([lms.DataSource.THERMAL])
+    config = lms.secondary_application.thermal.query_config(channel)
+    if config is not None:
+        config.rectified = True
+        lms.secondary_application.thermal.send_config(channel, config)
+    packet = channel.get_next_secondary_application_data()
+    if packet is not None:
+        # C++ validates the complete group and every image descriptor.
+        group = lms.secondary_application.thermal.deserialize_frame_group(packet.payload)
+        for thermal_image in group:
+            # Zero-copy view with the correct shape and uint8/uint16 dtype.
+            image = thermal_image.image.as_array
+            print(
+                f"imager {thermal_image.imager_id}: "
+                f"{image.shape}, {image.dtype}"
+            )
+
+    channel.stop_streams([lms.DataSource.THERMAL])
+```
+
+### C++
+
+```cpp
+#include <iostream>
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseSecondaryApplication.hh>
+
+namespace thermal = multisense::secondary_application::thermal;
+
+int main()
+{
+    auto channel = multisense::Channel::create(
+        multisense::Channel::Config{"10.66.171.21"});
+    if (!channel || channel->start_streams({multisense::DataSource::THERMAL}) !=
+                        multisense::Status::OK)
+        return 1;
+
+    if (auto config = thermal::query_config(*channel))
+    {
+        config->rectified = true;
+        if (thermal::send_config(*channel, *config) != multisense::Status::OK)
+            return 1;
+
+        std::cout << "thermal depth: " << static_cast<unsigned>(config->bits_per_pixel)
+                  << " bits\n";
+    }
+
+    if (const auto packet = channel->get_next_secondary_application_data();
+        packet && packet->payload)
+    {
+        const auto group = thermal::deserialize_frame_group(packet->payload);
+        if (!group)
+            return 1;
+
+        for (const auto &thermal_image : group->images)
+        {
+            const auto &image = thermal_image.image;
+            const uint8_t *pixels = image.raw_data->data() + image.image_data_offset;
+
+            std::cout << "imager " << static_cast<unsigned>(thermal_image.imager_id)
+                      << ": " << image.width << "x" << image.height
+                      << ", first byte=" << static_cast<unsigned>(pixels[0]) << '\n';
+        }
+    }
+
+    channel->stop_streams({multisense::DataSource::THERMAL});
+    return 0;
+}
+```
+
+Generic application packages remain responsible for their own payload protocols. `thermal.FrameGroup` is a
+secondary-application helper whose entries reuse the standard `multisense::Image` type; the transport remains generic
+secondary-application data rather than becoming a native camera output in the Channel API. In both C++ and Python,
+thermal settings follow the same `query_config`, modify fields, then `send_config` workflow.
+
+Complete C++ and Python examples are also available as `ThermalUtility` and
+`multisense_thermal_utility`:
+
+```bash
+ThermalUtility -a 10.66.171.21 -n 1 -o thermal_output
+multisense_thermal_utility --ip-address 10.66.171.21 --frame-groups 1
 ```
 
 ---
