@@ -43,7 +43,8 @@ if (FILESYSTEM_LIBRARY)
 endif()
 target_include_directories(MultiSense
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        PUBLIC $<INSTALL_INTERFACE:include>)
+        PUBLIC $<INSTALL_INTERFACE:include>
+        PRIVATE ${MULTISENSE_SHARED_INCLUDE_DIR})
 
 if (BUILD_OPENCV AND OpenCV_FOUND)
     target_compile_definitions(MultiSense PUBLIC MULTISENSE_HAVE_OPENCV)

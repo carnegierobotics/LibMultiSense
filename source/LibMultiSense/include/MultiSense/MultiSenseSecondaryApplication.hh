@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -36,6 +37,32 @@ namespace thermal
 inline constexpr char APPLICATION_NAME[] = "crl_thermal";
 
 ///
+/// @brief Imager correction-mask bits
+///
+/// The mask is global: one value is applied to every enabled imager
+enum class PostProcessing : uint16_t
+{
+    FFC = (1u << 0),
+    GAIN = (1u << 1),
+    TEMPERATURE = (1u << 2),
+    BAD_PIXEL = (1u << 3),
+    COLUMN_NOISE = (1u << 4),
+    ROW_NOISE = (1u << 5),
+    TEMPORAL_FILTER = (1u << 6),
+    SPATIAL_NOISE = (1u << 7),
+    SUPPLEMENTAL_FFC = (1u << 8),
+    HIGH_PASS = (1u << 9),
+    BAD_PIXEL_COLUMN = (1u << 10),
+};
+
+///
+/// @brief The bitwise-or of every defined PostProcessing value
+///
+/// A mask with any other bit set is rejected.
+///
+inline constexpr uint16_t POST_PROCESSING_VALID = 0x07FFu;
+
+///
 /// @brief The current thermal secondary-application configuration
 ///
 struct Config
@@ -48,7 +75,15 @@ struct Config
     ///
     /// @brief The number of bits used to represent each pixel; writable as 8 or 16
     ///
+    /// Normalized 8bpp or raw 16bpp. Switching it restarts the pipeline, which also clears post_proc_mask.
+    ///
     uint8_t bits_per_pixel = 0;
+
+    ///
+    /// @brief The imager correction mask, a bitwise-or of PostProcessing values;
+    ///        writable
+    ///
+    std::optional<uint16_t> post_proc_mask = std::nullopt;
 
     ///
     /// @brief The maximum number of imagers supported by the application; read-only
@@ -82,15 +117,64 @@ MULTISENSE_API std::optional<Config> query_config(Channel &channel);
 ///
 /// @brief Send the writable settings from a thermal configuration
 ///
-/// The rectified and bits_per_pixel settings are sent as individual controls.
-/// The remaining fields are device-reported and are not sent.
-///
 /// @param channel The channel connected to the device
 /// @param config The desired configuration
 /// @return The status of the first failed control request, or Status::OK
-/// @throws std::invalid_argument if bits_per_pixel is not 8 or 16
+/// @throws std::invalid_argument if bits_per_pixel is not 8 or 16, or if
+///         post_proc_mask has bits outside the defined PostProcessing set
+///
+/// @note Changing bits_per_pixel restarts the imaging pipeline, which clears the correction mask
 ///
 MULTISENSE_API Status send_config(Channel &channel, const Config &config);
+
+///
+/// @brief Parse one imager's calibration from the YAML representation used by the thermal application
+///
+/// Both the compact representation returned by the thermal application and OpenCV FileStorage
+/// matrices are accepted.
+///
+/// @param data The calibration YAML
+/// @return The standard MultiSense calibration, or std::nullopt when the YAML is invalid
+///
+MULTISENSE_API std::optional<CameraCalibration> deserialize_calibration(const std::string &data);
+
+///
+/// @brief Serialize a standard MultiSense calibration for the thermal application
+///
+/// @param calibration The single-imager calibration to serialize
+/// @return The calibration YAML accepted by the thermal application
+/// @throws std::invalid_argument if the distortion type and coefficient count do not agree
+///
+MULTISENSE_API std::string serialize_calibration(const CameraCalibration &calibration);
+
+///
+/// @brief Query one imager's calibration
+///
+/// Works without any stream running, but the thermal application must be active
+///
+/// @param channel The channel connected to the device
+/// @param imager_id The imager to read, in canonical order
+/// @return The calibration, or std::nullopt when it could not be retrieved
+///
+MULTISENSE_API std::optional<CameraCalibration> get_calibration(Channel &channel,
+                                                               uint8_t imager_id);
+
+///
+/// @brief Upload one imager's calibration
+///
+/// The device validates and stages the calibration. After the upload completes,
+/// this function stops and restarts the thermal stream so the calibration is
+/// written to the imager's flash and loaded before the function returns.
+/// Invalid calibrations are rejected without being stored.
+///
+/// @param channel The channel connected to the device
+/// @param imager_id The imager to write, in canonical order
+/// @param calibration The standard MultiSense calibration to upload
+/// @return The status of the upload or thermal-stream restart
+/// @throws std::invalid_argument if the calibration cannot be represented for the device
+///
+MULTISENSE_API Status set_calibration(Channel &channel, uint8_t imager_id,
+                                     const CameraCalibration &calibration);
 
 ///
 /// @brief Thermal-specific metadata paired with the standard MultiSense image type

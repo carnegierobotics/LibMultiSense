@@ -162,6 +162,7 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def(py::init<>())
         .def_readwrite("rectified", &public_thermal::Config::rectified)
         .def_readwrite("bits_per_pixel", &public_thermal::Config::bits_per_pixel)
+        .def_readwrite("post_proc_mask", &public_thermal::Config::post_proc_mask)
         .def_readonly("max_imagers", &public_thermal::Config::max_imagers)
         .def_readonly("imager_enable_mask", &public_thermal::Config::imager_enable_mask)
         .def_readonly("width", &public_thermal::Config::width)
@@ -248,6 +249,23 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("P", &multisense::CameraCalibration::P)
         .def_readwrite("distortion_type", &multisense::CameraCalibration::distortion_type)
         .def_readwrite("D", &multisense::CameraCalibration::D);
+
+    thermal.def("deserialize_calibration", &public_thermal::deserialize_calibration,
+                py::arg("data"));
+    thermal.def("serialize_calibration", &public_thermal::serialize_calibration,
+                py::arg("calibration"));
+    thermal.def("get_calibration", [](multisense::Channel &channel, uint8_t imager_id)
+    {
+        py::gil_scoped_release release;
+        return public_thermal::get_calibration(channel, imager_id);
+    }, py::arg("channel"), py::arg("imager_id"));
+    thermal.def("set_calibration", [](multisense::Channel &channel,
+                                       uint8_t imager_id,
+                                       const multisense::CameraCalibration &calibration)
+    {
+        py::gil_scoped_release release;
+        return public_thermal::set_calibration(channel, imager_id, calibration);
+    }, py::arg("channel"), py::arg("imager_id"), py::arg("calibration"));
 
     // StereoCalibration
     py::class_<multisense::StereoCalibration>(m, "StereoCalibration")

@@ -111,6 +111,7 @@ several command-line utilities are automatically installed and can be run direct
 - `multisense_rectified_focal_length_utility`: Update the focal length of the rectified image used to compute disparity.
 - `multisense_feature_detector_utility`: Display a live feed of detected features on the left rectified image.
 - `multisense_thermal_utility`: Read thermal frame groups from the thermal secondary application.
+- `multisense_thermal_cal_utility`: Manage per-imager thermal calibrations.
 
 Example usage:
 ```bash
@@ -1221,6 +1222,14 @@ with lms.Channel.create(lms.ChannelConfig()) as channel:
     if config is not None:
         config.rectified = True
         lms.secondary_application.thermal.send_config(channel, config)
+
+    # Query the standard CameraCalibration for thermal imager 0 (0a).
+    calibration = lms.secondary_application.thermal.get_calibration(channel, 0)
+    if calibration is None:
+        raise RuntimeError("failed to query thermal calibration for imager 0")
+    print("thermal imager 0 intrinsic matrix (K):")
+    print(calibration.K)
+
     packet = channel.get_next_secondary_application_data()
     if packet is not None:
         # C++ validates the complete group and every image descriptor.
@@ -1264,6 +1273,18 @@ int main()
                   << " bits\n";
     }
 
+    const auto calibration = thermal::get_calibration(*channel, 0);
+    if (!calibration)
+        return 1;
+
+    std::cout << "thermal imager 0 intrinsic matrix (K):\n";
+    for (const auto &row : calibration->K)
+    {
+        for (const float value : row)
+            std::cout << value << ' ';
+        std::cout << '\n';
+    }
+
     if (const auto packet = channel->get_next_secondary_application_data();
         packet && packet->payload)
     {
@@ -1290,14 +1311,19 @@ int main()
 Generic application packages remain responsible for their own payload protocols. `thermal.FrameGroup` is a
 secondary-application helper whose entries reuse the standard `multisense::Image` type; the transport remains generic
 secondary-application data rather than becoming a native camera output in the Channel API. In both C++ and Python,
-thermal settings follow the same `query_config`, modify fields, then `send_config` workflow.
+thermal settings follow the same `query_config`, modify fields, then `send_config` workflow. Per-imager thermal
+calibrations are returned as the standard `CameraCalibration` type by `thermal.get_calibration` in Python and
+`thermal::get_calibration` in C++.
 
-Complete C++ and Python examples are also available as `ThermalUtility` and
-`multisense_thermal_utility`:
+Complete C++ and Python image-capture examples are also available as `ThermalUtility` and
+`multisense_thermal_utility`. `ThermalCalUtility` and `multisense_thermal_cal_utility` manage
+per-imager calibrations:
 
 ```bash
 ThermalUtility -a 10.66.171.21 -n 1 -o thermal_output
+ThermalCalUtility -a 10.66.171.21 -c get -i 0 -f thermal_calibration.yml
 multisense_thermal_utility --ip-address 10.66.171.21 --frame-groups 1
+multisense_thermal_cal_utility --ip-address 10.66.171.21 --action get --imager 0 --file thermal_calibration.yml
 ```
 
 ---
