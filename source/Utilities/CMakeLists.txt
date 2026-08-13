@@ -5,7 +5,8 @@
 include (CheckFunctionExists)
 check_function_exists (getopt HAVE_GETOPT)
 
-include_directories(portability)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/portability)
+include_directories(${MULTISENSE_SHARED_INCLUDE_DIR})
 
 if (HAVE_GETOPT)
     add_definitions (-DCRL_HAVE_GETOPT=1)

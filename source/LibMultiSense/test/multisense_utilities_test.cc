@@ -95,6 +95,47 @@ public:
     }
 };
 
+const std::string thermal_calibration_yaml = R"yaml(M:
+  rows: 3
+  cols: 3
+  data: [530.4502721474282, 0.0, 322.0, 0.0, 530.7201013027634, 258.0, 0.0, 0.0, 1.0]
+D:
+  rows: 1
+  cols: 8
+  data: [-0.3248406083797826, 0.03503164536143042, 0.00014280067397728712, 1.839263727731578e-05, 0.07023470801529305, 0.0, 0.0, 0.0]
+R:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+P:
+  rows: 3
+  cols: 4
+  data: [530.4502721474282, 0.0, 322.0, 0.0, 0.0, 530.7201013027634, 258.0, 0.0, 0.0, 0.0, 1.0, 0.0]
+)yaml";
+
+std::vector<uint8_t> make_thermal_calibration_response(const uint8_t imager_id,
+                                                       const bool staged,
+                                                       const std::string &yaml)
+{
+    namespace wire = crl::multisense::details::wire;
+
+    wire::ThermalCalibrationResponse response;
+    response.magic = wire::THERMAL_CALIBRATION_MAGIC;
+    response.version = wire::THERMAL_GROUP_VERSION;
+    response.status = wire::THERMAL_CALIBRATION_OK;
+    response.imagerId = imager_id;
+    response.chunk = 0;
+    response.chunkCount = 1;
+    response.source = staged ? wire::THERMAL_CALIBRATION_SRC_STAGED
+                             : wire::THERMAL_CALIBRATION_SRC_ACTIVE;
+    response.totalLength = static_cast<uint32_t>(yaml.size());
+    response.chunkLength = static_cast<uint32_t>(yaml.size());
+
+    auto output = serialize_secondary_application_payload(response);
+    output.insert(output.end(), yaml.begin(), yaml.end());
+    return output;
+}
+
 } // namespace
 
 TEST(secondary_application_payload, thermal_public_types)
@@ -195,6 +236,132 @@ TEST(secondary_application_payload, thermal_config_query_update_send)
     config->bits_per_pixel = 12;
     EXPECT_THROW(thermal::send_config(channel, *config), std::invalid_argument);
     EXPECT_EQ(channel.control_payloads.size(), 6u);
+}
+
+TEST(secondary_application_payload, thermal_calibration_yaml_uses_camera_calibration)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+
+    const auto calibration = thermal::deserialize_calibration(thermal_calibration_yaml);
+    ASSERT_TRUE(calibration);
+    EXPECT_FLOAT_EQ(calibration->K[0][0], 530.4502721474282f);
+    EXPECT_FLOAT_EQ(calibration->K[0][2], 322.0f);
+    EXPECT_FLOAT_EQ(calibration->K[1][1], 530.7201013027634f);
+    EXPECT_FLOAT_EQ(calibration->R[2][2], 1.0f);
+    EXPECT_FLOAT_EQ(calibration->P[1][2], 258.0f);
+    EXPECT_EQ(calibration->distortion_type,
+              CameraCalibration::DistortionType::PLUMBBOB);
+    ASSERT_EQ(calibration->D.size(), 5u);
+    EXPECT_FLOAT_EQ(calibration->D[0], -0.3248406083797826f);
+    EXPECT_FLOAT_EQ(calibration->D[4], 0.07023470801529305f);
+
+    std::string opencv_yaml = thermal_calibration_yaml;
+    for (const char name : std::array<char, 4>{{'M', 'D', 'R', 'P'}})
+    {
+        const std::string matrix_key = std::string(1, name) + ":";
+        const auto position = opencv_yaml.find(matrix_key);
+        ASSERT_NE(position, std::string::npos);
+        opencv_yaml.insert(position + matrix_key.size(), " !!opencv-matrix");
+    }
+    std::size_t data_position = 0;
+    while ((data_position = opencv_yaml.find("  data:", data_position)) != std::string::npos)
+    {
+        opencv_yaml.insert(data_position, "  dt: d\n");
+        data_position += std::string("  dt: d\n  data:").size();
+    }
+    EXPECT_TRUE(thermal::deserialize_calibration(opencv_yaml));
+
+    const auto round_trip =
+        thermal::deserialize_calibration(thermal::serialize_calibration(*calibration));
+    ASSERT_TRUE(round_trip);
+    EXPECT_EQ(round_trip->K, calibration->K);
+    EXPECT_EQ(round_trip->R, calibration->R);
+    EXPECT_EQ(round_trip->P, calibration->P);
+    EXPECT_EQ(round_trip->distortion_type, calibration->distortion_type);
+    EXPECT_EQ(round_trip->D, calibration->D);
+
+    EXPECT_FALSE(thermal::deserialize_calibration("M:\n  rows: 3\n  cols: 3\n  data: []\n"));
+
+    CameraCalibration invalid = *calibration;
+    invalid.D.pop_back();
+    EXPECT_THROW(thermal::serialize_calibration(invalid), std::invalid_argument);
+}
+
+TEST(secondary_application_payload, thermal_calibration_get_parses_device_yaml)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
+
+    constexpr uint8_t imager_id = 2;
+    SecondaryApplicationTestChannel channel;
+    channel.config_payload =
+        make_thermal_calibration_response(imager_id, true, thermal_calibration_yaml);
+
+    const auto calibration = thermal::get_calibration(channel, imager_id);
+    ASSERT_TRUE(calibration);
+    EXPECT_EQ(calibration->imager_id, imager_id);
+    EXPECT_TRUE(calibration->staged);
+    EXPECT_FLOAT_EQ(calibration->calibration.K[0][0], 530.4502721474282f);
+    EXPECT_EQ(calibration->calibration.distortion_type,
+              CameraCalibration::DistortionType::PLUMBBOB);
+    ASSERT_EQ(channel.control_payloads.size(), 2u);
+
+    const auto select = deserialize_secondary_application_payload<wire::ThermalControl>(
+        channel.control_payloads[0]);
+    ASSERT_TRUE(select);
+    EXPECT_EQ(select->command, wire::THERMAL_CONTROL_SELECT_CALIBRATION);
+    EXPECT_EQ(select->value, imager_id);
+
+    const auto clear = deserialize_secondary_application_payload<wire::ThermalControl>(
+        channel.control_payloads[1]);
+    ASSERT_TRUE(clear);
+    EXPECT_EQ(clear->command, wire::THERMAL_CONTROL_SELECT_CALIBRATION);
+    EXPECT_EQ(clear->value, wire::THERMAL_CALIBRATION_SELECT_NONE);
+}
+
+TEST(secondary_application_payload, thermal_calibration_set_serializes_camera_calibration)
+{
+    namespace thermal = multisense::secondary_application::thermal;
+    namespace wire = crl::multisense::details::wire;
+
+    const auto calibration = thermal::deserialize_calibration(thermal_calibration_yaml);
+    ASSERT_TRUE(calibration);
+
+    constexpr uint8_t imager_id = 4;
+    SecondaryApplicationTestChannel channel;
+    EXPECT_EQ(thermal::set_calibration(channel, imager_id, *calibration), Status::OK);
+    ASSERT_EQ(channel.control_payloads.size(), 1u);
+
+    const auto &payload = channel.control_payloads.front();
+    const auto control = deserialize_secondary_application_payload<wire::ThermalControl>(payload);
+    ASSERT_TRUE(control);
+    EXPECT_EQ(control->command, wire::THERMAL_CONTROL_SET_CALIBRATION);
+    EXPECT_EQ(control->value, imager_id);
+
+    constexpr std::size_t transfer_offset = wire::ThermalControl::WIRE_SIZE;
+    const auto transfer =
+        deserialize_secondary_application_payload<wire::ThermalCalibrationTransfer>(
+            payload.data() + transfer_offset, payload.size() - transfer_offset);
+    ASSERT_TRUE(transfer);
+    EXPECT_EQ(transfer->imagerId, imager_id);
+    EXPECT_EQ(transfer->chunk, 0u);
+    EXPECT_EQ(transfer->chunkCount, 1u);
+
+    constexpr std::size_t yaml_offset =
+        wire::ThermalControl::WIRE_SIZE + wire::ThermalCalibrationTransfer::WIRE_SIZE;
+    ASSERT_LE(yaml_offset + transfer->chunkLength, payload.size());
+    const std::string yaml(reinterpret_cast<const char *>(payload.data() + yaml_offset),
+                           transfer->chunkLength);
+    EXPECT_EQ(transfer->totalLength, yaml.size());
+    EXPECT_NE(yaml.find("D:\n  rows: 1\n  cols: 8\n"), std::string::npos);
+
+    const auto uploaded = thermal::deserialize_calibration(yaml);
+    ASSERT_TRUE(uploaded);
+    EXPECT_EQ(uploaded->K, calibration->K);
+    EXPECT_EQ(uploaded->R, calibration->R);
+    EXPECT_EQ(uploaded->P, calibration->P);
+    EXPECT_EQ(uploaded->distortion_type, calibration->distortion_type);
+    EXPECT_EQ(uploaded->D, calibration->D);
 }
 
 TEST(secondary_application_payload, buffer_wrapper_rejects_nonempty_null_view)

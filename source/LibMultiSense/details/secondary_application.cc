@@ -12,14 +12,21 @@
  **/
 
 #include <algorithm>
+#include <array>
 #include <chrono>
+#include <locale>
+#include <map>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <MultiSense/MultiSenseSecondaryApplication.hh>
 #include <MultiSense/wire/ThermalMessage.hh>
+
+#include "CalibrationYaml.hh"
 
 namespace multisense
 {
@@ -49,6 +56,34 @@ Status send_thermal_control(Channel &channel, const uint16_t command, const uint
     control.command = command;
     control.value = value;
     return send_secondary_application_control(channel, control);
+}
+
+template<std::size_t Rows, std::size_t Columns>
+void assign_matrix(std::array<std::array<float, Columns>, Rows> &output,
+                   const std::vector<float> &input)
+{
+    for (std::size_t row = 0; row < Rows; ++row)
+    {
+        for (std::size_t column = 0; column < Columns; ++column)
+        {
+            output[row][column] = input[row * Columns + column];
+        }
+    }
+}
+
+template<std::size_t Rows, std::size_t Columns>
+std::array<float, Rows * Columns> flatten_matrix(
+    const std::array<std::array<float, Columns>, Rows> &input)
+{
+    std::array<float, Rows * Columns> output{};
+    for (std::size_t row = 0; row < Rows; ++row)
+    {
+        for (std::size_t column = 0; column < Columns; ++column)
+        {
+            output[row * Columns + column] = input[row][column];
+        }
+    }
+    return output;
 }
 
 } // namespace
@@ -138,6 +173,97 @@ Status thermal::send_config(Channel &channel, const Config &config)
         *config.post_proc_mask);
 }
 
+std::optional<CameraCalibration> thermal::deserialize_calibration(const std::string &data)
+{
+    std::istringstream stream(data);
+    stream.imbue(std::locale::classic());
+    std::map<std::string, std::vector<float>> matrices;
+    parseYaml(stream, matrices);
+
+    const auto intrinsics = matrices.find("M");
+    const auto distortion = matrices.find("D");
+    const auto rotation = matrices.find("R");
+    const auto projection = matrices.find("P");
+    if (stream.fail() || matrices.size() != 4 ||
+        intrinsics == matrices.end() || intrinsics->second.size() != 9 ||
+        distortion == matrices.end() ||
+        rotation == matrices.end() || rotation->second.size() != 9 ||
+        projection == matrices.end() || projection->second.size() != 12)
+    {
+        return std::nullopt;
+    }
+
+    CameraCalibration output;
+    assign_matrix(output.K, intrinsics->second);
+    assign_matrix(output.R, rotation->second);
+    assign_matrix(output.P, projection->second);
+
+    if (distortion->second.empty())
+    {
+        output.distortion_type = CameraCalibration::DistortionType::NONE;
+    }
+    else if (distortion->second.size() == 5 ||
+             (distortion->second.size() == 8 && distortion->second[5] == 0.0f &&
+                                                   distortion->second[6] == 0.0f &&
+                                                   distortion->second[7] == 0.0f))
+    {
+        output.distortion_type = CameraCalibration::DistortionType::PLUMBBOB;
+        output.D.assign(distortion->second.begin(), distortion->second.begin() + 5);
+    }
+    else if (distortion->second.size() == 8)
+    {
+        output.distortion_type = CameraCalibration::DistortionType::RATIONAL_POLYNOMIAL;
+        output.D = distortion->second;
+    }
+    else
+    {
+        return std::nullopt;
+    }
+
+    return output;
+}
+
+std::string thermal::serialize_calibration(const CameraCalibration &calibration)
+{
+    std::vector<float> device_distortion = calibration.D;
+    switch (calibration.distortion_type)
+    {
+        case CameraCalibration::DistortionType::NONE:
+            if (!calibration.D.empty())
+            {
+                throw std::invalid_argument("A calibration without distortion must not have coefficients");
+            }
+            break;
+        case CameraCalibration::DistortionType::PLUMBBOB:
+            if (calibration.D.size() != 5)
+            {
+                throw std::invalid_argument("A plumb-bob calibration must have 5 distortion coefficients");
+            }
+            device_distortion.resize(8, 0.0f);
+            break;
+        case CameraCalibration::DistortionType::RATIONAL_POLYNOMIAL:
+            if (calibration.D.size() != 8)
+            {
+                throw std::invalid_argument("A rational-polynomial calibration must have 8 distortion coefficients");
+            }
+            break;
+        default:
+            throw std::invalid_argument("Unknown calibration distortion type");
+    }
+
+    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    const auto intrinsics = flatten_matrix(calibration.K);
+    const auto rotation = flatten_matrix(calibration.R);
+    const auto projection = flatten_matrix(calibration.P);
+    writeCompactMatrix(stream, "M", 3, 3, intrinsics.data());
+    writeCompactMatrix(stream, "D", 1, static_cast<uint32_t>(device_distortion.size()),
+                       device_distortion.data());
+    writeCompactMatrix(stream, "R", 3, 3, rotation.data());
+    writeCompactMatrix(stream, "P", 3, 4, projection.data());
+    return stream.str();
+}
+
 ///
 /// @brief Arm or clear the device's calibration selector
 ///
@@ -182,9 +308,11 @@ std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, c
 {
     thermal::Calibration output;
     output.imager_id = imager_id;
+    std::string data;
 
     uint8_t chunk = 0;
     uint8_t chunk_count = 1;
+    uint32_t total_length = 0;
 
     do
     {
@@ -204,10 +332,11 @@ std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, c
         }
 
         chunk_count = piece->first.chunkCount;
+        total_length = piece->first.totalLength;
         output.staged = piece->first.source == thermal_wire::THERMAL_CALIBRATION_SRC_STAGED;
-        output.data += piece->second;
+        data += piece->second;
 
-        if (output.data.size() > piece->first.totalLength)
+        if (data.size() > piece->first.totalLength)
         {
             select_thermal_calibration(channel, thermal_wire::THERMAL_CALIBRATION_SELECT_NONE);
             return std::nullopt;
@@ -220,12 +349,26 @@ std::optional<thermal::Calibration> thermal::get_calibration(Channel &channel, c
     //
     select_thermal_calibration(channel, thermal_wire::THERMAL_CALIBRATION_SELECT_NONE);
 
+    if (data.size() != total_length)
+    {
+        return std::nullopt;
+    }
+
+    const auto calibration = deserialize_calibration(data);
+    if (!calibration)
+    {
+        return std::nullopt;
+    }
+    output.calibration = *calibration;
     return output;
 }
 
-Status thermal::set_calibration(Channel &channel, const uint8_t imager_id, const std::string &data)
+Status thermal::set_calibration(Channel &channel,
+                                const uint8_t imager_id,
+                                const CameraCalibration &calibration)
 {
-    if (data.empty() || data.size() > thermal_wire::THERMAL_CALIBRATION_TOTAL_MAX)
+    const std::string data = serialize_calibration(calibration);
+    if (data.size() > thermal_wire::THERMAL_CALIBRATION_TOTAL_MAX)
     {
         throw std::invalid_argument("Thermal calibration size is out of range");
     }

@@ -128,7 +128,7 @@ MULTISENSE_API std::optional<Config> query_config(Channel &channel);
 MULTISENSE_API Status send_config(Channel &channel, const Config &config);
 
 ///
-/// @brief One imager's calibration, as the OpenCV FileStorage YAML the device stores
+/// @brief One thermal imager's calibration and transfer state
 ///
 struct Calibration
 {
@@ -146,10 +146,30 @@ struct Calibration
     bool staged = false;
 
     ///
-    /// @brief The calibration text
+    /// @brief The standard MultiSense calibration for this imager
     ///
-    std::string data{};
+    CameraCalibration calibration{};
 };
+
+///
+/// @brief Parse one imager's calibration from the YAML representation used by the thermal application
+///
+/// Both the compact representation returned by the thermal application and OpenCV FileStorage
+/// matrices are accepted.
+///
+/// @param data The calibration YAML
+/// @return The standard MultiSense calibration, or std::nullopt when the YAML is invalid
+///
+MULTISENSE_API std::optional<CameraCalibration> deserialize_calibration(const std::string &data);
+
+///
+/// @brief Serialize a standard MultiSense calibration for the thermal application
+///
+/// @param calibration The single-imager calibration to serialize
+/// @return The calibration YAML accepted by the thermal application
+/// @throws std::invalid_argument if the distortion type and coefficient count do not agree
+///
+MULTISENSE_API std::string serialize_calibration(const CameraCalibration &calibration);
 
 ///
 /// @brief Query one imager's calibration
@@ -165,16 +185,17 @@ MULTISENSE_API std::optional<Calibration> get_calibration(Channel &channel, uint
 ///
 /// @brief Upload one imager's calibration
 ///
-/// The device validates the text and writes it to the imager's flash at the next pipeline start
+/// The device validates the calibration and writes it to the imager's flash at the next pipeline start
 /// Invalid calibrations are rejected without being stored
 ///
 /// @param channel The channel connected to the device
 /// @param imager_id The imager to write, in canonical order
-/// @param data The calibration text
+/// @param calibration The standard MultiSense calibration to upload
 /// @return The status of the upload
-/// @throws std::invalid_argument if data is empty or larger than the device limit
+/// @throws std::invalid_argument if the calibration cannot be represented for the device
 ///
-MULTISENSE_API Status set_calibration(Channel &channel, uint8_t imager_id, const std::string &data);
+MULTISENSE_API Status set_calibration(Channel &channel, uint8_t imager_id,
+                                     const CameraCalibration &calibration);
 
 ///
 /// @brief Thermal-specific metadata paired with the standard MultiSense image type

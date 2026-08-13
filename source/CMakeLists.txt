@@ -2,6 +2,8 @@
 # MultiSense - Makefile
 #
 
+set(MULTISENSE_SHARED_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/Shared")
+
 add_subdirectory(Wire)
 
 if (${BUILD_LEGACY_API})
@@ -13,5 +15,4 @@ endif()
 if (${MULTISENSE_BUILD_UTILITIES})
     add_subdirectory(Utilities)
 endif ()
-
 

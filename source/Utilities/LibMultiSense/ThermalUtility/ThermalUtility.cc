@@ -46,9 +46,7 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
-#include <iterator>
 #include <limits>
 #include <optional>
 #include <string>
@@ -73,13 +71,6 @@ struct Options
     std::size_t frame_groups = 1;
     std::filesystem::path output_directory = ".";
     bool rectified = false;
-
-    //
-    // Calibration mode: get, set or verify one imager, instead of streaming
-    //
-    std::string calibration_action{};
-    uint8_t calibration_imager = 0;
-    std::filesystem::path calibration_file{};
     std::optional<uint8_t> bits_per_pixel = std::nullopt;
     std::optional<uint16_t> post_proc_mask = std::nullopt;
 };
@@ -95,11 +86,6 @@ void usage(const char *name)
               << "\t-n <frame-groups>    : Number of groups to read; 0 runs until Ctrl+C (default=1)\n"
               << "\t-o <directory>       : Directory for output PGM files (default=current directory)\n"
               << "\t-r                   : Request rectified thermal images\n"
-              << "\t-c <action>          : Calibration mode instead of streaming;\n"
-              << "\t                       one of get, set, verify\n"
-              << "\t-i <imager>          : Imager for -c, 0-5 in order 0a,0b,1a,1b,2a,2b (default=0)\n"
-              << "\t-f <file>            : Calibration file; required for 'set',\n"
-              << "\t                       output file for 'get' (default=stdout)\n"
               << "\t-b <8|16>            : Request 8bpp tonemapped or 16bpp raw pixels (restarts the pipeline)\n"
               << "\t-p <mask>            : Set the imager correction mask, e.g. 0x37f (decimal or 0x hex)\n"
               << "\t                       bits 0:FFC 1:Gain 2:Temp 3:BadPixel 4:SCNR 5:SRNR\n"
@@ -111,7 +97,7 @@ std::optional<Options> parse_options(int argc, char **argv)
 {
     Options options;
     int option = 0;
-    while (-1 != (option = getopt(argc, argv, "a:m:n:o:c:i:f:b:p:rh")))
+    while (-1 != (option = getopt(argc, argv, "a:m:n:o:b:p:rh")))
     {
         switch (option)
         {
@@ -120,9 +106,6 @@ std::optional<Options> parse_options(int argc, char **argv)
             case 'n': options.frame_groups = std::stoul(optarg); break;
             case 'o': options.output_directory = optarg; break;
             case 'r': options.rectified = true; break;
-            case 'c': options.calibration_action = optarg; break;
-            case 'i': options.calibration_imager = static_cast<uint8_t>(std::stoul(optarg)); break;
-            case 'f': options.calibration_file = optarg; break;
             case 'b':
             {
                 const auto bits = std::stoul(optarg);
@@ -154,23 +137,6 @@ std::optional<Options> parse_options(int argc, char **argv)
                 return std::nullopt;
             }
         }
-    }
-
-    if (!options.calibration_action.empty() &&
-        options.calibration_action != "get" &&
-        options.calibration_action != "set" &&
-        options.calibration_action != "verify")
-    {
-        std::cerr << "Unknown calibration action: " << options.calibration_action << '\n';
-        usage(*argv);
-        return std::nullopt;
-    }
-
-    if ((options.calibration_action == "set" || options.calibration_action == "verify") &&
-        options.calibration_file.empty())
-    {
-        std::cerr << "Calibration action '" << options.calibration_action << "' requires -f <file>\n";
-        return std::nullopt;
     }
 
     return options;
@@ -390,107 +356,6 @@ int run_thermal_stream(lms::Channel &channel, const Options &options)
     return read_frame_groups(channel, options.frame_groups, options.output_directory) ? 0 : 1;
 }
 
-std::optional<std::string> read_text_file(const std::filesystem::path &path)
-{
-    std::ifstream input(path, std::ios::binary);
-    if (!input)
-    {
-        std::cerr << "Failed to open " << path << '\n';
-        return std::nullopt;
-    }
-    return std::string(std::istreambuf_iterator<char>(input),
-                       std::istreambuf_iterator<char>());
-}
-
-void print_calibration(const thermal::Calibration &calibration)
-{
-    std::cout << "imager " << static_cast<unsigned>(calibration.imager_id) << ": "
-              << calibration.data.size() << " bytes, "
-              << (calibration.staged ? "STAGED (applies at next pipeline start)"
-                                     : "active")
-              << '\n';
-}
-
-int run_calibration(lms::Channel &channel, const Options &options)
-{
-    const uint8_t imager = options.calibration_imager;
-
-    if (options.calibration_action == "get")
-    {
-        const auto calibration = thermal::get_calibration(channel, imager);
-        if (!calibration)
-        {
-            std::cerr << "Failed to read calibration for imager "
-                      << static_cast<unsigned>(imager) << '\n';
-            return 1;
-        }
-
-        print_calibration(*calibration);
-
-        if (options.calibration_file.empty())
-        {
-            std::cout << calibration->data;
-        }
-        else
-        {
-            std::ofstream output(options.calibration_file, std::ios::binary);
-            if (!output)
-            {
-                std::cerr << "Failed to open " << options.calibration_file << '\n';
-                return 1;
-            }
-            output << calibration->data;
-            std::cout << "wrote " << options.calibration_file << '\n';
-        }
-        return 0;
-    }
-
-    const auto contents = read_text_file(options.calibration_file);
-    if (!contents)
-    {
-        return 1;
-    }
-
-    const auto status = thermal::set_calibration(channel, imager, *contents);
-    if (status != lms::Status::OK)
-    {
-        std::cerr << "Failed to upload calibration for imager "
-                  << static_cast<unsigned>(imager) << ": "
-                  << lms::to_string(status) << '\n';
-        return 1;
-    }
-    std::cout << "uploaded " << contents->size() << " bytes to imager "
-              << static_cast<unsigned>(imager) << '\n';
-
-    if (options.calibration_action == "set")
-    {
-        return 0;
-    }
-
-    //
-    // verify: read it back and compare. The device answers with the staged copy
-    // until the pipeline restarts, so this confirms the upload without one.
-    //
-    const auto readback = thermal::get_calibration(channel, imager);
-    if (!readback)
-    {
-        std::cerr << "Verify failed: could not read calibration back\n";
-        return 1;
-    }
-
-    print_calibration(*readback);
-
-    if (readback->data != *contents)
-    {
-        std::cerr << "Verify FAILED: readback differs (sent " << contents->size()
-                  << " bytes, got " << readback->data.size() << ")\n";
-        return 1;
-    }
-
-    std::cout << "Verify OK: readback is byte-identical\n";
-    return 0;
-}
-
 } // namespace
 
 int main(int argc, char **argv)
@@ -513,25 +378,6 @@ int main(int argc, char **argv)
     {
         std::cerr << "Failed to create channel\n";
         return 1;
-    }
-
-    //
-    // Activating a secondary application is coupled to its semantic stream in
-    // the public API, so keep the thermal stream active during calibration.
-    //
-    if (!options->calibration_action.empty())
-    {
-        const auto start_status = channel->start_streams({lms::DataSource::THERMAL});
-        if (start_status != lms::Status::OK)
-        {
-            std::cerr << "Failed to start thermal application: "
-                      << lms::to_string(start_status) << '\n';
-            return 1;
-        }
-
-        const int result = run_calibration(*channel, *options);
-        channel->stop_streams({lms::DataSource::THERMAL});
-        return result;
     }
 
     const auto start_status = channel->start_streams({lms::DataSource::THERMAL});

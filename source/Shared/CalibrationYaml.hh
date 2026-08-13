@@ -1,5 +1,5 @@
 /**
- * @file shared/CalibrationYaml.hh
+ * @file Shared/CalibrationYaml.hh
  *
  * Copyright 2013-2025
  * Carnegie Robotics, LLC
@@ -36,9 +36,13 @@
 #define CALIBRATION_YAML_HH
 
 #include <stdint.h>
+#include <cstddef>
+#include <limits>
 #include <iostream>
 #include <iomanip>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 template<typename T>
@@ -68,6 +72,36 @@ std::ostream& writeMatrix (std::ostream& stream, std::string const& name, uint32
   return stream;
 }
 
+template<typename T>
+std::ostream& writeCompactMatrix(std::ostream& stream,
+                                 std::string const& name,
+                                 uint32_t rows,
+                                 uint32_t columns,
+                                 T const* data)
+{
+  stream << name << ":\n";
+  stream << "  rows: " << rows << "\n";
+  stream << "  cols: " << columns << "\n";
+  stream << "  data: [";
+
+  const std::streamsize oldPrecision = stream.precision();
+  const std::ios_base::fmtflags oldFlags = stream.flags();
+  stream.precision(std::numeric_limits<T>::max_digits10);
+  stream << std::defaultfloat;
+  for (uint32_t i = 0; i < rows * columns; ++i)
+  {
+    if (i != 0)
+    {
+      stream << ", ";
+    }
+    stream << data[i];
+  }
+  stream << "]\n";
+  stream.precision(oldPrecision);
+  stream.flags(oldFlags);
+  return stream;
+}
+
 class Expect
 {
 private:
@@ -85,7 +119,7 @@ public:
     }
 };
 
-std::istream& operator >> (std::istream& stream, Expect const& expect)
+inline std::istream& operator >> (std::istream& stream, Expect const& expect)
 {
     stream >> std::ws;
 
@@ -109,33 +143,39 @@ std::istream& operator >> (std::istream& stream, Expect const& expect)
 template<typename T>
 std::istream& operator >> (std::istream& stream, std::vector<T>& data)
 {
-    char input;
-    while (stream.good ())
+    while (stream.good())
     {
-        input = 0;
-        stream >> input;
-        if (input == '[')
+        stream >> std::ws;
+        if (stream.peek() == ']')
         {
+            stream.get();
+            break;
+        }
+
+        if (stream.peek() == '[')
+        {
+            stream.get();
             stream >> data;
         }
         else
         {
-            stream.putback (input);
-
-            T value;
-            stream >> value;
-            data.push_back (value);
+            T value{};
+            if (!(stream >> value))
+            {
+                break;
+            }
+            data.push_back(value);
         }
 
-        input = 0;
-        stream >> input;
-        if (input == ']')
+        stream >> std::ws;
+        const int separator = stream.get();
+        if (separator == ']')
         {
             break;
         }
-        else if (input != ',')
+        if (separator != ',')
         {
-            stream.clear (std::ios_base::failbit);
+            stream.setstate(std::ios_base::failbit);
             break;
         }
     }
@@ -143,68 +183,93 @@ std::istream& operator >> (std::istream& stream, std::vector<T>& data)
     return stream;
 }
 
-std::istream& parseYaml (std::istream& stream, std::map<std::string, std::vector<float> >& data)
+inline std::istream& parseYaml(std::istream& stream,
+                              std::map<std::string, std::vector<float>>& data)
 {
-    char input;
-    while (stream.good ())
+    while (stream.good())
     {
-        input = 0;
-        stream >> input;
-        if (input == '%' || input == '-')
+        stream >> std::ws;
+        if (stream.eof())
+        {
+            break;
+        }
+        const int next = stream.peek();
+        if (next == std::char_traits<char>::eof())
+        {
+            break;
+        }
+        if (next == '%' || next == '-' || next == '#')
         {
             std::string comment;
-            std::getline (stream, comment);
+            std::getline(stream, comment);
             continue;
         }
-        stream.putback (input);
 
         std::string name;
         stream >> name;
-        if (name.empty ())
+        if (name.empty())
         {
             break;
         }
-        if (name[name.size () - 1] != ':')
+        if (name.back() != ':')
         {
-            stream.clear (std::ios_base::failbit);
+            stream.setstate(std::ios_base::failbit);
             break;
         }
-        name.resize (name.size () - 1);
+        name.pop_back();
 
         std::vector<float> arrayContents;
-        arrayContents.clear ();
-
-        input = 0;
-        stream >> input;
-        if (input == '[')
+        stream >> std::ws;
+        if (stream.peek() == '[')
         {
+            stream.get();
             stream >> arrayContents;
         }
         else
         {
-            stream.putback (input);
-
             uint32_t rows = 0;
             uint32_t columns = 0;
-            stream >> Expect ("!!opencv-matrix");
-            stream >> Expect ("rows:") >> rows;
-            stream >> Expect ("cols:") >> columns;
-            stream >> Expect ("dt: d");
-            stream >> Expect ("data: [") >> arrayContents;
+            if (stream.peek() == '!')
+            {
+                stream >> Expect("!!opencv-matrix");
+            }
+            stream >> Expect("rows:") >> rows;
+            stream >> Expect("cols:") >> columns;
+
+            std::string field;
+            stream >> field;
+            if (field == "dt:")
+            {
+                std::string dataType;
+                stream >> dataType;
+                stream >> field;
+            }
+            if (field != "data:")
+            {
+                stream.setstate(std::ios_base::failbit);
+            }
+            else
+            {
+                stream >> Expect("[") >> arrayContents;
+            }
+
+            if (rows != 0 && columns > std::numeric_limits<uint32_t>::max() / rows)
+            {
+                stream.setstate(std::ios_base::failbit);
+            }
+            else if (static_cast<size_t>(rows) * columns != arrayContents.size())
+            {
+                stream.setstate(std::ios_base::failbit);
+            }
         }
 
-		if (stream.good())
-		{
-			data.insert (std::make_pair(name, arrayContents));
-		}
-		else
-		{
-			fprintf (stderr, "Error parsing data near array \"%s\"", name.c_str());
-		}
+        if (!stream.fail() && !data.emplace(name, std::move(arrayContents)).second)
+        {
+            stream.setstate(std::ios_base::failbit);
+        }
     }
 
     return stream;
 }
 
 #endif //CALIBRATION_YAML_HH
-
