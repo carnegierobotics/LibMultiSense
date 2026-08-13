@@ -94,6 +94,7 @@ set(WIRE_HEADERS
   include/MultiSense/wire/SysTestMtuMessage.hh
   include/MultiSense/wire/SysTestMtuResponseMessage.hh
   include/MultiSense/wire/SysTransmitDelayMessage.hh
+  include/MultiSense/wire/ThermalMessage.hh
   include/MultiSense/wire/VersionRequestMessage.hh
   include/MultiSense/wire/VersionResponseMessage.hh
 )

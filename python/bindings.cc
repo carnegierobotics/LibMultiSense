@@ -626,7 +626,8 @@ PYBIND11_MODULE(_libmultisense, m) {
         .value("KS21_SILVER", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21_SILVER)
         .value("ST25", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::ST25)
         .value("KS21i", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i)
-        .value("STLC", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STLC);
+        .value("STLC", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STLC)
+        .value("STT6", multisense::MultiSenseInfo::DeviceInfo::HardwareRevision::STT6);
 
     // MultiSenseInfo::DeviceInfo::ImagerType
     py::enum_<multisense::MultiSenseInfo::DeviceInfo::ImagerType>(m, "ImagerType")

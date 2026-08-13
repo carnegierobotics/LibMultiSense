@@ -226,6 +226,8 @@ void check_equal(const crl::multisense::details::wire::SysDeviceInfo &wire,
             ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i); break;
         case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STLC:
             ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::STLC); break;
+        case wire::SysDeviceInfo::HARDWARE_REV_MULTISENSE_STT6:
+            ASSERT_EQ(info.hardware_revision, MultiSenseInfo::DeviceInfo::HardwareRevision::STT6); break;
         default: {CRL_EXCEPTION("Unsupported hardware revision");}
     }
 

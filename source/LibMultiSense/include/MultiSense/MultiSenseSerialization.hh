@@ -210,7 +210,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::HardwareRevision, {
     {MultiSenseInfo::DeviceInfo::HardwareRevision::KS21_SILVER, "KS21_SILVER"},
     {MultiSenseInfo::DeviceInfo::HardwareRevision::ST25, "ST25"},
     {MultiSenseInfo::DeviceInfo::HardwareRevision::KS21i, "KS21i"},
-    {MultiSenseInfo::DeviceInfo::HardwareRevision::STLC, "STLC"}
+    {MultiSenseInfo::DeviceInfo::HardwareRevision::STLC, "STLC"},
+    {MultiSenseInfo::DeviceInfo::HardwareRevision::STT6, "STT6"}
 })
 
 NLOHMANN_JSON_SERIALIZE_ENUM(MultiSenseInfo::DeviceInfo::ImagerType, {
