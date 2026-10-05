@@ -1019,6 +1019,25 @@ public:
      */
     void setGainMax(const float g) { m_gainMax = g; };
 
+    /**
+     * Set the shutter delay.
+     *
+     * This can temporarily disable the shutter on applicable cameras.
+     * The shutter will be disabled for 5s, therefore it needs to be set before the 5s is complete.
+     *
+     * @param d true if shutter should be inhibited for 5s false if you want the shutter to automatically 
+     */
+    void setDelayShutterCal(const bool d) { m_delayShutter = d; };
+    
+    /**
+     * Set the shutter calibration to happen now.
+     *
+     * This will force the camera shutter calibration to happen.
+     *
+     * @param d true if shutter calibration should be triggered immediately. 
+     */
+    void setForceShutterCal(const bool f) { m_forceShutter = f; };
+
 
     //
     // Query
@@ -1220,6 +1239,20 @@ public:
      */
     float gainMax() const { return m_gainMax; };
 
+    /**
+     * Query if the shutterDelay is currently enabled.
+     *
+     * @return true if currently enabled, and false if currently disabled
+     */
+    bool delayShutter() const { return m_delayShutter; };
+
+    /**
+     * Query the status of the force shutter calibration.
+     *
+     * @return true if currently enabled, and false if currently disabled
+     */
+    bool forceShutter() const { return m_forceShutter; };
+
     //
     // Query camera calibration (read-only)
     //
@@ -1344,6 +1377,7 @@ public:
                m_hdrEnabled(false),
                m_profile(User_Control),
                m_gamma(2.0),
+               m_delayShutter(false), m_forceShutter(false),
                m_fx(0), m_fy(0), m_cx(0), m_cy(0),
                m_tx(0), m_ty(0), m_tz(0), m_roll(0), m_pitch(0), m_yaw(0) {};
 private:
@@ -1362,6 +1396,8 @@ private:
     CameraProfile m_profile;
     float    m_gamma;
     float    m_gainMax;
+    bool     m_delayShutter;
+    bool     m_forceShutter;
 
 protected:
 

@@ -1370,6 +1370,34 @@ struct MultiSenseConfig
     };
 
     ///
+    /// @brief Configuration for the on-camera feature detector
+    ///
+    struct ShutterConfig
+    {
+
+        ///
+        /// @brief Temporarily pause the shutter from closing for 5s
+        ///
+        uint32_t delay_shutter_close = false;
+
+        ///
+        /// @brief Force the shutter to close to perform necessary thermal image calibration
+        ///
+        bool force_shutter_calibration = false;
+
+
+        ///
+        /// @brief Equality operator
+        ///
+        bool operator==(const ShutterConfig &rhs) const
+        {
+            return delay_shutter_close == rhs.delay_shutter_close &&
+                   force_shutter_calibration == rhs.force_shutter_calibration;
+        }
+    };
+
+
+    ///
     /// @brief The operating width of the MultiSense in pixels. For available operating resolutions
     ///        see the MultiSenseInfo::SupportedOperatingMode
     ///
@@ -1433,6 +1461,11 @@ struct MultiSenseConfig
     std::optional<FeatureDetectorConfig> feature_detector_config = std::nullopt;
 
     ///
+    /// @brief The shutter configuration for the thermal camera. If invalid, the camera does not support thermal shutter calibration
+    ///
+    std::optional<ShutterConfig> shutter_config = std::nullopt;
+
+    ///
     /// @brief Equality operator
     ///
     bool operator==(const MultiSenseConfig &rhs) const
@@ -1448,7 +1481,8 @@ struct MultiSenseConfig
                network_config == rhs.network_config &&
                imu_config == rhs.imu_config &&
                lighting_config == rhs.lighting_config &&
-               feature_detector_config == rhs.feature_detector_config;
+               feature_detector_config == rhs.feature_detector_config &&
+               shutter_config == rhs.shutter_config;
     }
 };
 

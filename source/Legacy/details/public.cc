@@ -921,6 +921,8 @@ Status impl::getImageConfig(image::Config& config)
 
     a.setGamma(d.gamma);
     a.setGainMax(d.gainMax);
+    a.setDelayShutterCal(d.delayShutterCal);
+    a.setForceShutterCal(d.forceShutterCal);
 
     return Status_Ok;
 }
@@ -1102,6 +1104,8 @@ Status impl::setImageConfig(const image::Config& c)
 
     cmd.gamma = c.gamma();
     cmd.gainMax = c.gainMax();
+    cmd.delayShutterCal = c.delayShutter();
+    cmd.forceShutterCal = c.forceShutter();
 
     if (m_sensorVersion.firmwareVersion < 0x0600)
     {

@@ -54,7 +54,7 @@ namespace wire {
 class CamControl {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_CMD_CAM_CONTROL;
-    static CRL_CONSTEXPR VersionType VERSION = 10;
+    static CRL_CONSTEXPR VersionType VERSION = 11;
 
     //
     // Parameters representing the current camera configuration
@@ -125,6 +125,10 @@ public:
     // Additions in version 10
     float gainMax;
 
+    //
+    // Additions in version 11
+    bool delayShutterCal = false;
+    bool forceShutterCal = false;
 
     //
     // Constructors
@@ -234,6 +238,17 @@ public:
         else
         {
             gainMax = WIRE_IMAGER_GAIN_MAX;
+        }
+
+        if (version >= 11)
+        {
+            message & delayShutterCal;
+            message & forceShutterCal;
+        }
+        else 
+        {
+            delayShutterCal = false;
+            forceShutterCal = false;
         }
 
     }
