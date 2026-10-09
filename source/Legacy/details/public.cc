@@ -1661,6 +1661,10 @@ Status impl::getDeviceStatus(system::StatusMessage& status)
         wire::StatusResponse::STATUS_EXTERNAL_LED_OK;
     status.processingPipelineOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_PIPELINE_OK) ==
         wire::StatusResponse::STATUS_PIPELINE_OK;
+    status.calibrationInProgress = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CALIBRATION_IN_PROGRESS) == 
+        wire::StatusResponse::STATUS_CALIBRATION_IN_PROGRESS;
+    status.calibrationRequired = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CALIBRATION_REQUIRED) == 
+        wire::StatusResponse::STATUS_CALIBRATION_REQUIRED;
 
     status.cpuTemperature = m_statusResponseMessage.temperature0;
     status.fpgaTemperature = m_statusResponseMessage.temperature1;
