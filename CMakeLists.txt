@@ -35,6 +35,12 @@ else()
     add_compile_options(-Wall -Wextra -Werror -Wpedantic -Wno-variadic-macros)
 endif()
 
+# Prevent the Windows SDK's min/max macros from colliding with the C++ standard
+# library. This must be defined before any translation unit includes windows.h.
+if(WIN32)
+    add_compile_definitions(NOMINMAX)
+endif()
+
 if ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NOT MSVC)
     #
     # Fix warnings with __VA__OPT__ when we port to c++2a
