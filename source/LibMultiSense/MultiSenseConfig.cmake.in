@@ -6,7 +6,7 @@ if (@BUILD_JSON_SERIALIZATION@)
     find_dependency(nlohmann_json 3.9)
 endif ()
 if (@BUILD_OPENCV@)
-    find_dependency(OpenCV REQUIRED COMPONENTS core features2d imgcodecs)
+    find_dependency(OpenCV @OpenCV_VERSION_MAJOR@ COMPONENTS core imgcodecs @MULTISENSE_OPENCV_FEATURES_COMPONENT@)
 endif ()
 find_dependency(Threads)
 
