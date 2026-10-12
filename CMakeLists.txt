@@ -47,7 +47,7 @@ option(BUILD_LEGACY_API "Build the legacy MultiSense API. Defaults to On for bac
 option(MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
 option(BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
 option(BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
-option(BUILD_OPENCV "Use OpenCV if found on the host system" OFF)
+option(BUILD_OPENCV "Build OpenCV-dependent functionality. Defaults to OFF." OFF)
 option(BUILD_PYTHON_BINDINGS "Build Python bindings with pybind11." OFF)
 option(BUILD_JSON_SERIALIZATION "Build json type serialization with nlohmann json." OFF)
 option(ENABLE_ASAN "Build with AddressSanitizer instrumentation." OFF)
@@ -126,18 +126,31 @@ set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #
 # Setup optional dependencies
 #
-if (BUILD_OPENCV)
-   set(OPENCV_COMPONENTS core features2d imgcodecs)
-   if (MULTISENSE_BUILD_UTILITIES)
-      list(APPEND OPENCV_COMPONENTS highgui imgproc)
-   endif()
-   find_package(OpenCV QUIET COMPONENTS ${OPENCV_COMPONENTS})
+if(BUILD_OPENCV)
+    # OpenCV 5 renamed the `features2d` component/target to `features`. Find the
+    # `core` component first to determine the installed OpenCV major version,
+    # then select the appropriate features component name based on that.
+    find_package(OpenCV REQUIRED COMPONENTS core)
+    if(OpenCV_VERSION_MAJOR GREATER_EQUAL 5)
+        set(MULTISENSE_OPENCV_FEATURES_COMPONENT features)
+    else()
+        set(MULTISENSE_OPENCV_FEATURES_COMPONENT features2d)
+    endif()
 
-  if(OpenCV_FOUND)
-    message(STATUS "OpenCV found. Enabling OpenCV-specific code.")
-  else()
-    message(STATUS "OpenCV not found. Building without OpenCV support.")
-  endif()
+    set(MULTISENSE_OPENCV_COMPONENTS
+        core
+        imgcodecs
+        ${MULTISENSE_OPENCV_FEATURES_COMPONENT}
+    )
+    if(MULTISENSE_BUILD_UTILITIES)
+        list(APPEND MULTISENSE_OPENCV_COMPONENTS highgui imgproc)
+    endif()
+    find_package(OpenCV REQUIRED COMPONENTS ${MULTISENSE_OPENCV_COMPONENTS})
+
+    message(
+        STATUS
+        "OpenCV ${OpenCV_VERSION} found. Enabling OpenCV-specific code."
+    )
 endif()
 
 if (BUILD_JSON_SERIALIZATION)
