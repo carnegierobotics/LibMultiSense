@@ -124,9 +124,6 @@ MultiSenseConfig convert(const crl::multisense::details::wire::CamConfig &config
                                 std::nullopt,
                             feature_config ?
                                 std::make_optional(convert(feature_config.value())) :
-                                std::nullopt,
-                            shutter_config ?
-                                std::make_optional(convert(shutter_config.value())) :
                                 std::nullopt };
 }
 
