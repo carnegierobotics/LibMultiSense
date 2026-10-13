@@ -138,7 +138,7 @@ LegacyChannel::LegacyChannel(const Config &config):
 {
     if (config.connect_on_initialization && connect(config) != Status::OK)
     {
-        CRL_EXCEPTION("Connection to MultiSense failed\n");
+        CRL_EXCEPTION("Connection to the MultiSense device failed\n");
     }
 }
 
@@ -178,7 +178,7 @@ Status LegacyChannel::start_streams(const std::vector<DataSource> &sources)
     {
         if (ack->status != wire::Ack::Status_Ok)
         {
-            CRL_DEBUG("Start streams ack invalid: %" PRIi32 "\n", ack->status);
+            CRL_DEBUG("Start streams acked with invalid status: %" PRIi32 "\n", ack->status);
             return get_status(ack->status);
         }
 
