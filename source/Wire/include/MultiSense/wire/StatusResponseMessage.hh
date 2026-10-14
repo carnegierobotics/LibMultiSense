@@ -65,6 +65,7 @@ public:
     static CRL_CONSTEXPR uint32_t STATUS_PIPELINE_OK                = (1<<6);
     static CRL_CONSTEXPR uint32_t STATUS_CALIBRATION_IN_PROGRESS    = (1<<7);
     static CRL_CONSTEXPR uint32_t STATUS_CALIBRATION_REQUIRED       = (1<<8);
+    static CRL_CONSTEXPR uint32_t STATUS_CALIBRATION_DELAYED        = (1<<9);
 
     //
     // The reported uptime for the system

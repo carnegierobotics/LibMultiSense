@@ -54,7 +54,7 @@ namespace wire {
 class CamConfig {
 public:
     static CRL_CONSTEXPR IdType      ID      = ID_DATA_CAM_CONFIG;
-    static CRL_CONSTEXPR VersionType VERSION = 11;
+    static CRL_CONSTEXPR VersionType VERSION = 10;
 
     //
     // Parameters representing the current camera configuration
@@ -133,11 +133,6 @@ public:
     float gainMax;
 
     //
-    // Version 11 additions
-    bool delayShutterCal;
-    bool forceShutterCal;
-
-    //
     // Constructors
 
     CamConfig(utility::BufferStreamReader&r, VersionType v) {serialize(r,v);};
@@ -181,9 +176,7 @@ public:
         sharpeningEnable(false),
         sharpeningPercentage(0.0f),
         sharpeningLimit(0),
-        gainMax(WIRE_IMAGER_GAIN_MAX),
-        delayShutterCal(false),
-        forceShutterCal(false)
+        gainMax(WIRE_IMAGER_GAIN_MAX)
         {};
 
     //
@@ -305,17 +298,6 @@ public:
         else
         {
             gainMax = WIRE_IMAGER_GAIN_MAX;
-        }
-
-        if (version >= 11)
-        {
-            message & delayShutterCal;
-            message & forceShutterCal;
-        }
-        else 
-        {
-            delayShutterCal = false;
-            forceShutterCal = false;
         }
 
     }

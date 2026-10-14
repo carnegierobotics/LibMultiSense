@@ -215,6 +215,14 @@ public:
     virtual Status set_config(const MultiSenseConfig &config) = 0;
 
     ///
+    /// @brief Send the populated groups of one-time requests to the camera.
+    ///        An empty request sends no commands. Calling again requests another action;
+    ///        automatic transport retries retain the original request identity.
+    /// @return OK acknowledges acceptance, not completion. Use get_system_status() for progress.
+    ///
+    virtual Status send_request(const MultiSenseRequest &request) = 0;
+
+    ///
     /// @brief Get the current stereo calibration. The output calibration will correspond to the full-resolution
     ///        operating mode of the camera
     ///
@@ -251,9 +259,6 @@ public:
     ///
     virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
                                       const std::optional<std::string> &broadcast_interface) = 0;
-
-    // Keep secondary-application methods after the original Channel interface so
-    // existing virtual-function slots remain stable for binary compatibility.
 
     ///
     /// @brief Retrieve the active secondary application's opaque configuration payload

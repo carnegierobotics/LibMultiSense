@@ -8,6 +8,7 @@ set(TEST_NAMES
     message_test
     multi_channel_test
     multisense_utilities_test
+    request_test
     status_test
     storage_test
     utilities_test)
@@ -21,3 +22,6 @@ foreach(TEST_NAME ${TEST_NAMES})
     add_test(${TEST_NAME} ${TEST_NAME})
 endforeach()
 
+if (BUILD_JSON_SERIALIZATION)
+    target_compile_definitions(request_test PRIVATE MULTISENSE_TEST_JSON)
+endif()

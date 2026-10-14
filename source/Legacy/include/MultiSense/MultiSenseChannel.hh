@@ -1269,6 +1269,14 @@ public:
      * contains various metrics of this channel object
      */
     virtual system::ChannelStatistics getStats() = 0;
+    /** Request thermal calibration now. OK acknowledges acceptance, not completion. */
+    virtual Status requestCalibration() { return Status_Unsupported; }
+    /** Defer automatic calibration for 1..60000 ms. New requests renew the deadline. */
+    virtual Status delayCalibration(uint32_t durationMs = 5000)
+    { (void) durationMs; return Status_Unsupported; }
+    /** Cancel the delay and allow pending automatic calibration. */
+    virtual Status resumeAutoCalibration() { return Status_Unsupported; }
+
 };
 
 

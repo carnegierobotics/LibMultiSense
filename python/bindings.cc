@@ -683,6 +683,26 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def_readwrite("lighting_config", &multisense::MultiSenseConfig::lighting_config)
         .def_readwrite("feature_detector_config", &multisense::MultiSenseConfig::feature_detector_config);
 
+    // One-time requests, separate from persistent configuration.
+    auto request_type = py::class_<multisense::MultiSenseRequest>(m, "MultiSenseRequest");
+    auto shutter_request_type = py::class_<multisense::MultiSenseRequest::ShutterRequest>(
+        request_type, "ShutterRequest");
+    py::enum_<multisense::MultiSenseRequest::ShutterRequest::Action>(shutter_request_type, "Action")
+        .value("CALIBRATE", multisense::MultiSenseRequest::ShutterRequest::Action::CALIBRATE)
+        .value("DELAY", multisense::MultiSenseRequest::ShutterRequest::Action::DELAY)
+        .value("RESUME", multisense::MultiSenseRequest::ShutterRequest::Action::RESUME);
+    shutter_request_type
+        .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::MultiSenseRequest::ShutterRequest)
+        .def(py::self == py::self)
+        .def_readwrite("action", &multisense::MultiSenseRequest::ShutterRequest::action)
+        .def_readwrite("delay", &multisense::MultiSenseRequest::ShutterRequest::delay);
+    request_type
+        .def(py::init<>())
+        PYBIND11_JSON_SUPPORT(multisense::MultiSenseRequest)
+        .def(py::self == py::self)
+        .def_readwrite("shutter", &multisense::MultiSenseRequest::shutter);
+
     // MultiSenseStatus::PtpStatus
     py::class_<multisense::MultiSenseStatus::PtpStatus>(m, "PtpStatus")
         .def(py::init<>())
@@ -698,7 +718,10 @@ PYBIND11_MODULE(_libmultisense, m) {
         .def(py::init<>())
         PYBIND11_JSON_SUPPORT(multisense::MultiSenseStatus::CameraStatus)
         .def_readwrite("cameras_ok", &multisense::MultiSenseStatus::CameraStatus::cameras_ok)
-        .def_readwrite("processing_pipeline_ok", &multisense::MultiSenseStatus::CameraStatus::processing_pipeline_ok);
+        .def_readwrite("processing_pipeline_ok", &multisense::MultiSenseStatus::CameraStatus::processing_pipeline_ok)
+        .def_readwrite("calibration_required", &multisense::MultiSenseStatus::CameraStatus::calibration_required)
+        .def_readwrite("calibration_in_progress", &multisense::MultiSenseStatus::CameraStatus::calibration_in_progress)
+        .def_readwrite("calibration_delayed", &multisense::MultiSenseStatus::CameraStatus::calibration_delayed);
 
     // MultiSenseStatus::TemperatureStatus
     py::class_<multisense::MultiSenseStatus::TemperatureStatus>(m, "TemperatureStatus")
@@ -961,6 +984,8 @@ PYBIND11_MODULE(_libmultisense, m) {
              py::call_guard<py::gil_scoped_release>())
         .def("get_config", &multisense::Channel::get_config, py::call_guard<py::gil_scoped_release>())
         .def("set_config", &multisense::Channel::set_config, py::call_guard<py::gil_scoped_release>())
+        .def("send_request", &multisense::Channel::send_request, py::arg("request"),
+             py::call_guard<py::gil_scoped_release>())
         .def("get_calibration", &multisense::Channel::get_calibration, py::call_guard<py::gil_scoped_release>())
         .def("set_calibration", &multisense::Channel::set_calibration, py::call_guard<py::gil_scoped_release>())
         .def("get_info", &multisense::Channel::get_info, py::call_guard<py::gil_scoped_release>())

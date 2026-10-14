@@ -56,30 +56,33 @@ The LibMultiSense C++ and Python library has been tested with the following oper
 - [Camera Configuration](#camera-configuration)
   - [Python](#python-4)
   - [C++](#c-4)
-- [Point Cloud Generation](#point-cloud-generation)
+- [One-Time Requests](#one-time-requests)
   - [Python](#python-5)
   - [C++](#c-5)
-- [Depth Image Generation](#depth-image-generation)
+- [Point Cloud Generation](#point-cloud-generation)
   - [Python](#python-6)
   - [C++](#c-6)
-- [Color Image Generation](#color-image-generation)
+- [Depth Image Generation](#depth-image-generation)
   - [Python](#python-7)
   - [C++](#c-7)
-- [Lighting Control](#lighting-control)
+- [Color Image Generation](#color-image-generation)
   - [Python](#python-8)
   - [C++](#c-8)
-- [IMU Data Streaming](#imu-data-streaming)
+- [Lighting Control](#lighting-control)
   - [Python](#python-9)
   - [C++](#c-9)
-- [Query Camera Calibration](#query-camera-calibration)
+- [IMU Data Streaming](#imu-data-streaming)
   - [Python](#python-10)
   - [C++](#c-10)
-- [Secondary Applications](#secondary-applications)
+- [Query Camera Calibration](#query-camera-calibration)
   - [Python](#python-11)
   - [C++](#c-11)
-- [Feature Rendering](#feature-rendering)
+- [Secondary Applications](#secondary-applications)
   - [Python](#python-12)
   - [C++](#c-12)
+- [Feature Rendering](#feature-rendering)
+  - [Python](#python-13)
+  - [C++](#c-13)
 
 ## Client Networking Prerequisite
 
@@ -545,6 +548,157 @@ int main(int argc, char** argv)
 }
 ```
 ---
+
+## One-Time Requests
+
+The API separates four kinds of camera data:
+
+| Type | Purpose | Channel operation |
+| --- | --- | --- |
+| `MultiSenseInfo` | Static device information and capabilities | `get_info()` |
+| `MultiSenseStatus` | Dynamic operating state | `get_system_status()` |
+| `MultiSenseConfig` | Persistent settings controlled by the user | `get_config()`, `set_config()` |
+| `MultiSenseRequest` | One-time actions requested by the user | `send_request()` |
+
+`MultiSenseRequest` contains optional request groups. An empty request performs
+no actions. Its nested `ShutterRequest` selects `CALIBRATE`, `DELAY`, or `RESUME`;
+other request groups can be added alongside `shutter` as needed. Requests are
+never stored as camera configuration or automatically replayed by config updates.
+Sending the same request object again asks for a new action; transport retries
+retain the identity of the original send. `Status::OK` acknowledges acceptance,
+not completion. Use status to observe the camera's dynamic state.
+
+The examples below connect to the camera, submit a five-second delay request,
+check the response, and print its calibration status. Change `DELAY` to
+`CALIBRATE` or `RESUME` to issue either of the other shutter actions.
+
+### Python
+
+```python
+from datetime import timedelta
+import sys
+
+import libmultisense as lms
+
+
+def main():
+    channel_config = lms.ChannelConfig()
+    channel_config.ip_address = "10.66.171.21"
+
+    try:
+        with lms.Channel.create(channel_config) as channel:
+            if not channel:
+                print("Failed to create channel", file=sys.stderr)
+                return 1
+
+            ShutterRequest = lms.MultiSenseRequest.ShutterRequest
+            shutter = ShutterRequest()
+            shutter.action = ShutterRequest.Action.DELAY
+            shutter.delay = timedelta(seconds=5)
+
+            request = lms.MultiSenseRequest()
+            request.shutter = shutter
+            result = channel.send_request(request)
+            if result != lms.Status.OK:
+                print(f"Cannot send shutter request: {result}", file=sys.stderr)
+                return 1
+
+            status = channel.get_system_status()
+            if status is None:
+                print("Cannot query camera status", file=sys.stderr)
+                return 1
+
+            print("Calibration required:", status.camera.calibration_required)
+            print("Calibration in progress:", status.camera.calibration_in_progress)
+            print("Calibration delayed:", status.camera.calibration_delayed)
+            return 0
+    except RuntimeError as error:
+        print(f"Camera request failed: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+### C++
+
+```c++
+#include <chrono>
+#include <exception>
+#include <iostream>
+
+#include <MultiSense/MultiSenseChannel.hh>
+#include <MultiSense/MultiSenseUtilities.hh>
+
+namespace lms = multisense;
+
+int main()
+{
+    try
+    {
+        lms::Channel::Config channel_config;
+        channel_config.ip_address = "10.66.171.21";
+        const auto channel = lms::Channel::create(channel_config);
+        if (!channel)
+        {
+            std::cerr << "Failed to create channel" << std::endl;
+            return 1;
+        }
+
+        using ShutterRequest = lms::MultiSenseRequest::ShutterRequest;
+        lms::MultiSenseRequest request;
+        request.shutter = ShutterRequest{ShutterRequest::Action::DELAY,
+                                        std::chrono::milliseconds{5000}};
+        if (const auto result = channel->send_request(request); result != lms::Status::OK)
+        {
+            std::cerr << "Cannot send shutter request: " << lms::to_string(result) << std::endl;
+            return 1;
+        }
+
+        const auto status = channel->get_system_status();
+        if (!status)
+        {
+            std::cerr << "Cannot query camera status" << std::endl;
+            return 1;
+        }
+
+        std::cout << std::boolalpha
+                  << "Calibration required: " << status->camera.calibration_required << '\n'
+                  << "Calibration in progress: " << status->camera.calibration_in_progress << '\n'
+                  << "Calibration delayed: " << status->camera.calibration_delayed << std::endl;
+        return 0;
+    }
+    catch (const std::exception &error)
+    {
+        std::cerr << "Camera request failed: " << error.what() << std::endl;
+        return 1;
+    }
+}
+```
+
+`ShutterRequest::delay` defaults to 5000 ms and is used only for `DELAY`, with a
+supported range of 1..60000 ms. Each new delay request starts a fresh deadline.
+`CALIBRATE` overrides an active delay and `RESUME` cancels it. A calibration
+already running is not interrupted or queued a second time.
+
+The `camera` status contains independent `calibration_required`,
+`calibration_in_progress`, and `calibration_delayed` flags. Required and delayed
+can both be true. Required is polled from the thermal imagers approximately every
+60 seconds, or set by a firmware-scheduled calibration. In-progress describes
+the firmware calibration command window, including preparation and the existing
+300 ms settling wait; it is not sensor feedback confirming mechanical shutter
+position or calibration completion.
+
+The legacy C++ API uses `requestCalibration()`, `delayCalibration(durationMs)`,
+and `resumeAutoCalibration()`. Its `system::StatusMessage` exposes
+`calibrationRequired`, `calibrationInProgress`, and `calibrationDelayed`.
+
+The former config-based shutter controls have been removed from both public APIs
+and the camera config/control wire messages, which use version 10 again. The
+request protocol requires the matching firmware; older firmware reports
+unsupported. This API concerns the ST25's main thermal pair; it does not control
+the separate STT6 thermal secondary application. Image metadata is unchanged.
 
 ## Point Cloud Generation
 
