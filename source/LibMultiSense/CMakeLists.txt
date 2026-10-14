@@ -17,6 +17,7 @@ set(DETAILS_SRC details/factory.cc
                 details/legacy/info.cc
                 details/legacy/ip.cc
                 details/legacy/message.cc
+                details/legacy/requests.cc
                 details/legacy/status.cc
                 details/legacy/storage.cc
                 details/legacy/udp.cc

@@ -150,9 +150,6 @@ crl::multisense::details::wire::CamConfig create_valid_wire_config()
 
     config.gamma = 1.2;
 
-    config.delayShutterCal = true;
-    config.forceShutterCal = true;
-    
     return config;
 }
 

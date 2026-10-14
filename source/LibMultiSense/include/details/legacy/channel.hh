@@ -252,7 +252,10 @@ public:
     Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
                               const std::optional<std::string> &broadcast_interface) final override;
 
+    Status send_request(const MultiSenseRequest &request) final override;
+
 private:
+    std::mutex m_request_mutex;
 
     ///
     /// @brief Internal member to disconnect without locking

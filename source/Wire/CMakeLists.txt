@@ -61,6 +61,7 @@ set(WIRE_HEADERS
   include/MultiSense/wire/SecondaryAppGetRegisteredAppsMessage.hh
   include/MultiSense/wire/SecondaryAppMetaMessage.hh
   include/MultiSense/wire/SecondaryAppRegisteredAppsMessage.hh
+  include/MultiSense/wire/ShutterRequestMessage.hh
   include/MultiSense/wire/StatusRequestMessage.hh
   include/MultiSense/wire/StatusResponseMessage.hh
   include/MultiSense/wire/StreamControlMessage.hh

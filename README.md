@@ -546,6 +546,68 @@ int main(int argc, char** argv)
 ```
 ---
 
+## One-Time Requests
+
+The API separates four kinds of camera data:
+
+| Type | Purpose | Channel operation |
+| --- | --- | --- |
+| `MultiSenseInfo` | Static device information and capabilities | `get_info()` |
+| `MultiSenseStatus` | Dynamic operating state | `get_system_status()` |
+| `MultiSenseConfig` | Persistent settings controlled by the user | `get_config()`, `set_config()` |
+| `MultiSenseRequest` | One-time actions requested by the user | `send_request()` |
+
+`MultiSenseRequest` contains optional request groups. An empty request performs
+no actions. Its nested `ShutterRequest` selects `CALIBRATE`, `DELAY`, or `RESUME`;
+other request groups can be added alongside `shutter` as needed. Requests are
+never stored as camera configuration or automatically replayed by config updates.
+Sending the same request object again asks for a new action; transport retries
+retain the identity of the original send. `Status::OK` acknowledges acceptance,
+not completion. Use status to observe the camera's dynamic state.
+
+```cpp
+using ShutterRequest = multisense::MultiSenseRequest::ShutterRequest;
+multisense::MultiSenseRequest request;
+request.shutter = ShutterRequest{ShutterRequest::Action::DELAY,
+                                std::chrono::milliseconds{5000}};
+channel->send_request(request);
+```
+
+```python
+from datetime import timedelta
+import libmultisense as lms
+
+request = lms.MultiSenseRequest()
+shutter = lms.MultiSenseRequest.ShutterRequest()
+shutter.action = lms.MultiSenseRequest.ShutterRequest.Action.DELAY
+shutter.delay = timedelta(seconds=5)
+request.shutter = shutter
+channel.send_request(request)
+```
+
+`ShutterRequest::delay` defaults to 5000 ms and is used only for `DELAY`, with a
+supported range of 1..60000 ms. Each new delay request starts a fresh deadline.
+`CALIBRATE` overrides an active delay and `RESUME` cancels it. A calibration
+already running is not interrupted or queued a second time.
+
+The `camera` status contains independent `calibration_required`,
+`calibration_in_progress`, and `calibration_delayed` flags. Required and delayed
+can both be true. Required is polled from the thermal imagers approximately every
+60 seconds, or set by a firmware-scheduled calibration. In-progress describes
+the firmware calibration command window, including preparation and the existing
+300 ms settling wait; it is not sensor feedback confirming mechanical shutter
+position or calibration completion.
+
+The legacy C++ API uses `requestCalibration()`, `delayCalibration(durationMs)`,
+and `resumeAutoCalibration()`. Its `system::StatusMessage` exposes
+`calibrationRequired`, `calibrationInProgress`, and `calibrationDelayed`.
+
+The former config-based shutter controls have been removed from both public APIs
+and the camera config/control wire messages, which use version 10 again. The
+request protocol requires the matching firmware; older firmware reports
+unsupported. This API concerns the ST25's main thermal pair; it does not control
+the separate STT6 thermal secondary application. Image metadata is unchanged.
+
 ## Point Cloud Generation
 
 Disparity images can be converted to 3D point cloud images using the client API.

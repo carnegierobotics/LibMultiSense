@@ -70,7 +70,10 @@ MultiSenseStatus::CameraStatus convert(const crl::multisense::details::wire::Sta
 
     return MultiSenseStatus::CameraStatus{
         (status.status & wire::StatusResponse::STATUS_CAMERAS_OK) == wire::StatusResponse::STATUS_CAMERAS_OK,
-        (status.status & wire::StatusResponse::STATUS_PIPELINE_OK) == wire::StatusResponse::STATUS_PIPELINE_OK};
+        (status.status & wire::StatusResponse::STATUS_PIPELINE_OK) == wire::StatusResponse::STATUS_PIPELINE_OK,
+        (status.status & wire::StatusResponse::STATUS_CALIBRATION_REQUIRED) != 0,
+        (status.status & wire::StatusResponse::STATUS_CALIBRATION_IN_PROGRESS) != 0,
+        (status.status & wire::StatusResponse::STATUS_CALIBRATION_DELAYED) != 0};
 }
 
 MultiSenseStatus::PtpStatus convert(const crl::multisense::details::wire::PtpStatusResponse &status)

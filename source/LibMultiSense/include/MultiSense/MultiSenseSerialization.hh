@@ -368,6 +368,36 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseConfig,
                                    lighting_config,
                                    feature_detector_config)
 
+// Unknown request actions must not silently fall back to calibrating.
+inline void to_json(nlohmann::json &json, MultiSenseRequest::ShutterRequest::Action action)
+{
+    using Action = MultiSenseRequest::ShutterRequest::Action;
+    switch (action)
+    {
+        case Action::CALIBRATE: json = "CALIBRATE"; return;
+        case Action::DELAY: json = "DELAY"; return;
+        case Action::RESUME: json = "RESUME"; return;
+        default: throw std::invalid_argument("Unknown shutter request action");
+    }
+}
+
+inline void from_json(const nlohmann::json &json, MultiSenseRequest::ShutterRequest::Action &action)
+{
+    using Action = MultiSenseRequest::ShutterRequest::Action;
+    const auto name = json.get<std::string>();
+    if (name == "CALIBRATE") action = Action::CALIBRATE;
+    else if (name == "DELAY") action = Action::DELAY;
+    else if (name == "RESUME") action = Action::RESUME;
+    else throw std::invalid_argument("Unknown shutter request action: " + name);
+}
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseRequest::ShutterRequest,
+                                   action,
+                                   delay)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseRequest,
+                                   shutter)
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::PtpStatus,
                                    grandmaster_present,
                                    grandmaster_id,
@@ -377,7 +407,10 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::PtpStatus,
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::CameraStatus,
                                    cameras_ok,
-                                   processing_pipeline_ok)
+                                   processing_pipeline_ok,
+                                   calibration_required,
+                                   calibration_in_progress,
+                                   calibration_delayed)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(MultiSenseStatus::TemperatureStatus,
                                    cpu_temperature,
