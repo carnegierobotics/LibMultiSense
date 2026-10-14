@@ -125,6 +125,7 @@ public:
     // Additions in version 10
     float gainMax;
 
+
     //
     // Constructors
 

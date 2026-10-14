@@ -690,16 +690,6 @@ the firmware calibration command window, including preparation and the existing
 300 ms settling wait; it is not sensor feedback confirming mechanical shutter
 position or calibration completion.
 
-The legacy C++ API uses `requestCalibration()`, `delayCalibration(durationMs)`,
-and `resumeAutoCalibration()`. Its `system::StatusMessage` exposes
-`calibrationRequired`, `calibrationInProgress`, and `calibrationDelayed`.
-
-The former config-based shutter controls have been removed from both public APIs
-and the camera config/control wire messages, which use version 10 again. The
-request protocol requires the matching firmware; older firmware reports
-unsupported. This API concerns the ST25's main thermal pair; it does not control
-the separate STT6 thermal secondary application. Image metadata is unchanged.
-
 ## Point Cloud Generation
 
 Disparity images can be converted to 3D point cloud images using the client API.
