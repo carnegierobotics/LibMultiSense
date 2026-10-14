@@ -7,5 +7,4 @@ ignore:
   - "*/test/*"
   - "**/*_test.cc"
   - "vcpkg_installed/*"
-  - "source/LibMultiSense/details/legacy/**"
-  - "source/LibMultiSense/include/details/legacy/**"
+  - "source/Legacy/**"
