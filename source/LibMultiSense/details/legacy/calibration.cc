@@ -36,6 +36,8 @@
 
 #include "details/legacy/calibration.hh"
 
+#include <cmath>
+
 namespace multisense {
 namespace legacy {
 

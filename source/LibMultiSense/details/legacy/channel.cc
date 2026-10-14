@@ -1877,7 +1877,7 @@ void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<
 
     Image image{data,
                 static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
-                ((wire_image.bitsPerPixel / 8) * wire_image.width * wire_image.height),
+                static_cast<size_t>(wire_image.compressedDataBufferSize),
                 pixel_format,
                 wire_image.width,
                 wire_image.height,

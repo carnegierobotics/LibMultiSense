@@ -46,6 +46,7 @@
 
 #include <stdint.h>
 #include <cstddef>
+#include <new>
 #include <vector>
 
 namespace crl {

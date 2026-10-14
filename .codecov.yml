@@ -7,4 +7,4 @@ ignore:
   - "*/test/*"
   - "**/*_test.cc"
   - "vcpkg_installed/*"
-  - "details/legacy/*"
+  - "source/Legacy"

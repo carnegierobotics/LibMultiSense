@@ -47,13 +47,13 @@ target_include_directories(MultiSense
         PUBLIC $<INSTALL_INTERFACE:include>
         PRIVATE ${MULTISENSE_SHARED_INCLUDE_DIR})
 
-if (BUILD_OPENCV AND OpenCV_FOUND)
+if (BUILD_OPENCV)
     target_compile_definitions(MultiSense PUBLIC MULTISENSE_HAVE_OPENCV)
 
     target_link_libraries(MultiSense
         PUBLIC
             opencv_core
-            opencv_features2d
+            opencv_${MULTISENSE_OPENCV_FEATURES_COMPONENT}
         PRIVATE
             opencv_imgcodecs)
 endif()
