@@ -259,7 +259,10 @@ public:
     ///
     virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
                                       const std::optional<std::string> &broadcast_interface) = 0;
-
+                                 
+    // Keep secondary-application methods after the original Channel interface so
+    // existing virtual-function slots remain stable for binary compatibility.
+    
     ///
     /// @brief Retrieve the active secondary application's opaque configuration payload
     ///
