@@ -52,8 +52,6 @@ std::unique_ptr<Channel> Channel::create(const Config &config,
             }
             catch(const std::exception &e)
             {
-                // REVERT: Just trying to trigger a coverage check
-                throw e;
                 CRL_DEBUG("Unable to create legacy channel %s\n", e.what());
                 return nullptr;
             }
