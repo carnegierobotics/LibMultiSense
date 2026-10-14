@@ -215,14 +215,6 @@ public:
     virtual Status set_config(const MultiSenseConfig &config) = 0;
 
     ///
-    /// @brief Send the populated groups of one-time requests to the camera.
-    ///        An empty request sends no commands. Calling again requests another action;
-    ///        automatic transport retries retain the original request identity.
-    /// @return OK acknowledges acceptance, not completion. Use get_system_status() for progress.
-    ///
-    virtual Status send_request(const MultiSenseRequest &request) = 0;
-
-    ///
     /// @brief Get the current stereo calibration. The output calibration will correspond to the full-resolution
     ///        operating mode of the camera
     ///
@@ -295,6 +287,15 @@ public:
     /// @return The received packet, or std::nullopt when the configured timeout expires
     ///
     virtual std::optional<SecondaryApplicationData> get_next_secondary_application_data() = 0;
+
+    ///
+    /// @brief Send the populated groups of one-time requests to the camera.
+    ///        An empty request sends no commands. Calling again requests another action;
+    ///        automatic transport retries retain the original request identity.
+    /// @return OK acknowledges acceptance, not completion. Use get_system_status() for progress.
+    ///
+    virtual Status send_request(const MultiSenseRequest &request) = 0;
+
 };
 
 }
