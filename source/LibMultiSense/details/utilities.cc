@@ -59,6 +59,7 @@
 #endif
 
 #include "MultiSense/MultiSenseUtilities.hh"
+#include "details/color_conversion.hh"
 #include <MultiSense/utility/Exception.hh>
 
 namespace multisense {
@@ -478,29 +479,11 @@ std::optional<Image> create_bgr_from_ycbcr420(const Image &luma, const Image &ch
 
     std::vector<uint8_t> raw_data(color_length, static_cast<uint8_t>(0));
 
-    for (int h = 0 ; h < luma.height ; ++h)
+    if (luma.width > 0 && luma.height > 0)
     {
-        const size_t row_offset = h * luma.width * 3;
-
-        for (int w = 0 ; w < luma.width ; ++w)
-        {
-            const size_t luma_offset = (h * luma.width) + w;
-            const size_t chroma_offset = 2 * (((h / 2) * (luma.width / 2)) + (w / 2));
-
-            const float px_y = static_cast<float>(*(luma.raw_data->data() + luma.image_data_offset + luma_offset));
-            const float px_cb = static_cast<float>(*(chroma.raw_data->data() + chroma.image_data_offset + chroma_offset)) - 128.0f;
-            const float px_cr = static_cast<float>(*(chroma.raw_data->data() + chroma.image_data_offset + chroma_offset + 1)) - 128.0f;
-
-            const float px_r = std::clamp(px_y + 1.13983f * px_cr, 0.0f, 255.0f);
-            const float px_g = std::clamp(px_y - 0.39465f * px_cb - 0.58060f * px_cr, 0.0f, 255.0f);
-            const float px_b = std::clamp(px_y + 2.03211f * px_cb, 0.0f, 255.0f);
-
-            auto bgr_pixel_ptr = reinterpret_cast<uint8_t*>(raw_data.data() + row_offset + (3 * w));
-
-            bgr_pixel_ptr[0] = static_cast<uint8_t>(px_b);
-            bgr_pixel_ptr[1] = static_cast<uint8_t>(px_g);
-            bgr_pixel_ptr[2] = static_cast<uint8_t>(px_r);
-        }
+        details::convert_ycbcr420_to_bgr(luma.raw_data->data() + luma.image_data_offset,
+                                        chroma.raw_data->data() + chroma.image_data_offset,
+                                        raw_data.data(), luma.width, luma.height);
     }
 
     return Image{std::make_shared<std::vector<uint8_t>>(std::move(raw_data)),

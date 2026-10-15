@@ -34,6 +34,7 @@
  *   2025-01-10, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -888,6 +889,68 @@ TEST(create_bgr_from_ycbcr420, gray_image)
             ASSERT_EQ(pixel->at(2), val);
         }
     }
+}
+
+TEST(create_bgr_from_ycbcr420, colors_offsets_and_metadata)
+{
+    // Ten columns exercise a vector group and a scalar tail. The last row
+    // exercises conversion without a second luma row.
+    constexpr int width = 10;
+    constexpr int height = 3;
+    const std::vector<uint8_t> row{0, 16, 128, 255, 0, 16, 128, 255, 1, 255};
+    auto y_data = std::make_shared<std::vector<uint8_t>>(7, 0xff);
+    for (int h = 0; h < height; ++h)
+    {
+        y_data->insert(y_data->end(), row.begin(), row.end());
+    }
+    auto uv_data = std::make_shared<std::vector<uint8_t>>(5, 0xff);
+    const std::vector<uint8_t> colors{128, 128, 0, 255, 255, 0, 129, 129, 128, 128};
+    uv_data->insert(uv_data->end(), colors.begin(), colors.end());
+    uv_data->insert(uv_data->end(), width, 128);
+
+    Image y{y_data, 7, width * height, Image::PixelFormat::MONO8,
+            width, height, TimeT{std::chrono::nanoseconds{123}},
+            TimeT{std::chrono::nanoseconds{456}}, DataSource::AUX_LUMA_RAW, {}};
+    y.calibration.K[0][0] = 123.0f;
+    const Image uv{uv_data, 5, 20, Image::PixelFormat::MONO16,
+                   width / 2, 2, {}, {}, DataSource::AUX_CHROMA_RAW, {}};
+    const std::vector<uint8_t> color_row{
+        0, 0, 0, 16, 16, 16, 0, 104, 255, 0, 231, 255, 255, 24, 0,
+        255, 40, 0, 130, 127, 129, 255, 254, 255, 1, 1, 1, 255, 255, 255};
+    // Fill the final buffer directly to avoid GCC 11's vector::insert overread warning.
+    std::vector<uint8_t> expected(width * height * 3);
+    auto output = std::copy(color_row.begin(), color_row.end(), expected.begin());
+    output = std::copy(color_row.begin(), color_row.end(), output);
+    for (const auto value : row)
+    {
+        output = std::fill_n(output, 3, value);
+    }
+
+    const auto bgr = create_bgr_from_ycbcr420(y, uv, DataSource::AUX_RECTIFIED_RAW);
+    ASSERT_TRUE(bgr);
+    EXPECT_EQ(*bgr->raw_data, expected);
+    EXPECT_EQ(bgr->image_data_offset, 0);
+    EXPECT_EQ(bgr->image_data_length, expected.size());
+    EXPECT_EQ(bgr->format, Image::PixelFormat::BGR8);
+    EXPECT_EQ(bgr->width, width);
+    EXPECT_EQ(bgr->height, height);
+    EXPECT_EQ(bgr->camera_timestamp, y.camera_timestamp);
+    EXPECT_EQ(bgr->ptp_timestamp, y.ptp_timestamp);
+    EXPECT_EQ(bgr->source, DataSource::AUX_RECTIFIED_RAW);
+    EXPECT_EQ(bgr->calibration.K, y.calibration.K);
+}
+
+TEST(create_bgr_from_ycbcr420, empty_image)
+{
+    Image y;
+    y.format = Image::PixelFormat::MONO8;
+    y.width = 0;
+    y.height = 0;
+    Image uv;
+    uv.format = Image::PixelFormat::MONO16;
+    const auto bgr = create_bgr_from_ycbcr420(y, uv, DataSource::AUX_RAW);
+    ASSERT_TRUE(bgr);
+    EXPECT_TRUE(bgr->raw_data->empty());
 }
 
 TEST(create_pointcloud, basic_tests)

@@ -7,6 +7,32 @@ if (BUILD_JSON_SERIALIZATION)
     list("APPEND" MULTISENSE_HEADERS ${CMAKE_CURRENT_LIST_DIR}/include/MultiSense/MultiSenseSerialization.hh)
 endif()
 
+# Keep CPU detection and the scalar fallback at the baseline instruction set.
+# Only the AVX2 kernel receives architecture-specific compiler options.
+add_library(MultiSenseColorConversion OBJECT details/color_conversion.cc)
+set_target_properties(MultiSenseColorConversion PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(MultiSenseColorConversion PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+if (MSVC)
+    target_compile_options(MultiSenseColorConversion PRIVATE /fp:strict)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
+    target_compile_options(MultiSenseColorConversion PRIVATE -ffp-contract=off)
+endif()
+
+set(MULTISENSE_HAVE_AVX2 OFF)
+if (BUILD_SIMD)
+    include(MultiSenseSimd)
+    multisense_check_avx2(MULTISENSE_HAVE_AVX2 MULTISENSE_AVX2_OPTIONS)
+    if (MULTISENSE_HAVE_AVX2)
+        target_sources(MultiSenseColorConversion PRIVATE details/color_conversion_avx2.cc)
+        set_source_files_properties(details/color_conversion_avx2.cc PROPERTIES
+            COMPILE_OPTIONS "${MULTISENSE_AVX2_OPTIONS}")
+        target_compile_definitions(MultiSenseColorConversion PRIVATE MULTISENSE_HAVE_AVX2)
+        message(STATUS "Enabling AVX2 color conversion with runtime CPU detection")
+    else()
+        message(STATUS "AVX2 color conversion is unavailable for this target/toolchain; using scalar conversion")
+    endif()
+endif()
+
 set(DETAILS_SRC details/factory.cc
                 details/multi_channel.cc
                 details/secondary_application.cc
@@ -37,6 +63,7 @@ endif()
 # Provide a namespaced alias so that in-tree consumers can link against the same
 # target name that the installed package exports.
 add_library(MultiSense::MultiSense ALIAS MultiSense)
+target_sources(MultiSense PRIVATE $<TARGET_OBJECTS:MultiSenseColorConversion>)
 
 target_link_libraries(MultiSense PUBLIC MultiSenseWire::MultiSenseWire)
 if (FILESYSTEM_LIBRARY)
