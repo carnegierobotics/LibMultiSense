@@ -251,10 +251,10 @@ public:
     ///
     virtual Status set_network_config(const MultiSenseInfo::NetworkInfo &config,
                                       const std::optional<std::string> &broadcast_interface) = 0;
-
+                                 
     // Keep secondary-application methods after the original Channel interface so
     // existing virtual-function slots remain stable for binary compatibility.
-
+    
     ///
     /// @brief Retrieve the active secondary application's opaque configuration payload
     ///
@@ -287,6 +287,15 @@ public:
     /// @return The received packet, or std::nullopt when the configured timeout expires
     ///
     virtual std::optional<SecondaryApplicationData> get_next_secondary_application_data() = 0;
+
+    ///
+    /// @brief Send the populated groups of one-time requests to the camera.
+    ///        An empty request sends no commands. Calling again requests another action;
+    ///        automatic transport retries retain the original request identity.
+    /// @return OK acknowledges acceptance, not completion. Use get_system_status() for progress.
+    ///
+    virtual Status send_request(const MultiSenseRequest &request) = 0;
+
 };
 
 }

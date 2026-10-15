@@ -160,6 +160,9 @@ public:
 
     virtual Status getImageConfig        (image::Config& c);
     virtual Status setImageConfig        (const image::Config& c);
+    virtual Status requestCalibration();
+    virtual Status delayCalibration(uint32_t durationMs = 5000);
+    virtual Status resumeAutoCalibration();
 
     virtual Status getAuxImageConfig     (image::AuxConfig& c);
     virtual Status setAuxImageConfig     (const image::AuxConfig& c);

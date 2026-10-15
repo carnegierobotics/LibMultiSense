@@ -2,7 +2,8 @@ find_package(GTest REQUIRED)
 
 set(TEST_NAMES
     TestTimestamp
-    TestThermalMessage)
+    TestThermalMessage
+    TestShutterMessage)
 
 foreach(TEST_NAME ${TEST_NAMES})
     add_executable(${TEST_NAME} ${TEST_NAME}.cc)
