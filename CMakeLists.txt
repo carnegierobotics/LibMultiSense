@@ -51,6 +51,7 @@ endif()
 
 option(BUILD_LEGACY_API "Build the legacy MultiSense API. Defaults to On for backwards compatibility." ON)
 option(MULTISENSE_BUILD_UTILITIES "Build MultiSense utility applications. Defaults to ON for backwards compatibility." ON)
+option(MULTISENSE_ENABLE_SIMD "Enable runtime-selected SIMD color conversion in the modern API. Defaults to OFF." OFF)
 option(BUILD_SHARED_LIBS "Build LibMultiSense as a shared library. Defaults to ON." ON)
 option(BUILD_TESTS "Build LibMultiSense GTests. Defaults to OFF." OFF)
 option(BUILD_OPENCV "Build OpenCV-dependent functionality. Defaults to OFF." OFF)

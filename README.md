@@ -37,6 +37,7 @@ The LibMultiSense C++ and Python library has been tested with the following oper
   - [nlohmann_json](#nlohmann_json)
   - [pybind11](#pybind11)
   - [googletest](#googletest)
+  - [SIMD Color Conversion](#simd-color-conversion)
 - [Installation](#installation)
   - [Linux](#linux)
     - [Python](#python-1)
@@ -214,6 +215,28 @@ the following CMake argument should be set
 
 This will require a system installation of googletest, or an installation which can be pointed to with CMake's
 `CMAKE_PREFIX_PATH` argument
+
+### SIMD Color Conversion
+
+The modern API can optionally accelerate `create_bgr_from_ycbcr420` and `create_bgr_image`
+with AVX2. Enable it when configuring the library:
+
+```bash
+cmake -S . -B build -DBUILD_LEGACY_API=OFF -DMULTISENSE_ENABLE_SIMD=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+```
+
+`MULTISENSE_ENABLE_SIMD` defaults to `OFF` and requires no additional dependencies. When enabled
+on a supported x86 compiler/target, the library checks CPU and operating-system AVX support once
+at runtime. It uses AVX2 when available and the scalar implementation otherwise. Unsupported
+targets or toolchains also build with the scalar implementation. The option does not affect the
+legacy API.
+
+Only the specialized conversion kernel is compiled with AVX2 instructions; the rest of the library
+keeps its baseline instruction set. Do not add global `-mavx2`, `/arch:AVX2`, or `-march=native`
+flags when building a binary intended for older CPUs. The conversion retains the current color
+coefficients, truncation, BGR layout, and public API. Python bindings use the same selection when
+built against a library configured with this option.
 
 ### Code Coverage
 
