@@ -159,3 +159,19 @@ TEST(convert, ptp)
     ASSERT_EQ(ptp.path_delay.count(), status.path_delay);
     ASSERT_EQ(ptp.steps_from_local_to_grandmaster, status.steps_removed);
 }
+
+TEST(convert, calibration_flags_are_independent)
+{
+    using namespace crl::multisense::details;
+    using namespace multisense;
+    for (uint32_t flags = 0; flags < 8; ++flags) {
+        auto status = create_valid_status();
+        if (flags & 1) status.status |= wire::StatusResponse::STATUS_CALIBRATION_REQUIRED;
+        if (flags & 2) status.status |= wire::StatusResponse::STATUS_CALIBRATION_IN_PROGRESS;
+        if (flags & 4) status.status |= wire::StatusResponse::STATUS_CALIBRATION_DELAYED;
+        const auto camera = convert<MultiSenseStatus::CameraStatus>(status);
+        EXPECT_EQ(camera.calibration_required, (flags & 1) != 0);
+        EXPECT_EQ(camera.calibration_in_progress, (flags & 2) != 0);
+        EXPECT_EQ(camera.calibration_delayed, (flags & 4) != 0);
+    }
+}

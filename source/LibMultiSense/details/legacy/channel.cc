@@ -106,6 +106,7 @@
 #include "details/legacy/configuration.hh"
 #include "details/legacy/info.hh"
 #include "details/legacy/message.hh"
+#include "details/legacy/requests.hh"
 #include "details/legacy/status.hh"
 #include "details/legacy/utilities.hh"
 
@@ -629,6 +630,20 @@ MultiSenseConfig LegacyChannel::get_config()
     }
 
     return m_multisense_config;
+}
+
+Status LegacyChannel::send_request(const MultiSenseRequest &request)
+{
+    using namespace crl::multisense::details;
+    std::lock_guard<std::mutex> command_lock(m_request_mutex);
+    if (!m_connected) return Status::UNINITIALIZED;
+    if (!request.shutter) return Status::OK;
+
+    const auto command = convert(*request.shutter);
+    if (!command) return Status::UNSUPPORTED;
+    const auto ack = wait_for_ack(m_message_assembler, m_socket, *command,
+                                  m_transmit_id++, m_current_mtu, m_config.receive_timeout, 3);
+    return ack ? get_status(ack->status) : Status::TIMEOUT;
 }
 
 Status LegacyChannel::set_config(const MultiSenseConfig &config)
@@ -1862,7 +1877,7 @@ void LegacyChannel::compressed_image_callback(std::shared_ptr<const std::vector<
 
     Image image{data,
                 static_cast<const uint8_t*>(wire_image.dataP) - data->data(),
-                ((wire_image.bitsPerPixel / 8) * wire_image.width * wire_image.height),
+                static_cast<size_t>(wire_image.compressedDataBufferSize),
                 pixel_format,
                 wire_image.width,
                 wire_image.height,

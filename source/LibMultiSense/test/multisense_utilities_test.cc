@@ -93,6 +93,7 @@ public:
     get_next_secondary_application_data() override {return std::nullopt;}
     MultiSenseConfig get_config() override {return {};}
     Status set_config(const MultiSenseConfig &) override {return Status::OK;}
+    Status send_request(const MultiSenseRequest &) override {return Status::UNSUPPORTED;}
     StereoCalibration get_calibration() override {return {};}
     Status set_calibration(const StereoCalibration &) override {return Status::OK;}
     MultiSenseInfo get_info() override {return {};}

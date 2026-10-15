@@ -53,6 +53,7 @@
 #include <MultiSense/wire/SysSetPtpMessage.hh>
 
 #include <MultiSense/wire/CamControlMessage.hh>
+#include <MultiSense/wire/ShutterRequestMessage.hh>
 #include <MultiSense/wire/AuxCamControlMessage.hh>
 #include <MultiSense/wire/CamSetResolutionMessage.hh>
 #include <MultiSense/wire/CamGetConfigMessage.hh>
@@ -647,6 +648,30 @@ Status impl::networkTimeSynchronization(bool enabled)
 
 //
 // Enable/disable PTP time synchronization
+
+Status impl::requestCalibration()
+{
+    wire::ShutterRequest request;
+    request.requestId = wire::ShutterRequest::nextRequestId();
+    return waitAck(request);
+}
+
+Status impl::delayCalibration(uint32_t durationMs)
+{
+    wire::ShutterRequest request;
+    request.requestId = wire::ShutterRequest::nextRequestId();
+    request.action = wire::ShutterRequest::DELAY;
+    request.delayMs = durationMs;
+    return request.valid() ? waitAck(request) : Status_Unsupported;
+}
+
+Status impl::resumeAutoCalibration()
+{
+    wire::ShutterRequest request;
+    request.requestId = wire::ShutterRequest::nextRequestId();
+    request.action = wire::ShutterRequest::RESUME;
+    return waitAck(request);
+}
 
 Status impl::ptpTimeSynchronization(bool enabled)
 {
@@ -1657,6 +1682,12 @@ Status impl::getDeviceStatus(system::StatusMessage& status)
         wire::StatusResponse::STATUS_EXTERNAL_LED_OK;
     status.processingPipelineOk = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_PIPELINE_OK) ==
         wire::StatusResponse::STATUS_PIPELINE_OK;
+    status.calibrationInProgress = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CALIBRATION_IN_PROGRESS) == 
+        wire::StatusResponse::STATUS_CALIBRATION_IN_PROGRESS;
+    status.calibrationRequired = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CALIBRATION_REQUIRED) == 
+        wire::StatusResponse::STATUS_CALIBRATION_REQUIRED;
+
+    status.calibrationDelayed = (m_statusResponseMessage.status & wire::StatusResponse::STATUS_CALIBRATION_DELAYED) != 0;
 
     status.cpuTemperature = m_statusResponseMessage.temperature0;
     status.fpgaTemperature = m_statusResponseMessage.temperature1;

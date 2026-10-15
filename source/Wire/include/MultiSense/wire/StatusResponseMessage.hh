@@ -56,13 +56,16 @@ public:
     //
     // Subsytem status
 
-    static CRL_CONSTEXPR uint32_t STATUS_GENERAL_OK      = (1<<0);
-    static CRL_CONSTEXPR uint32_t STATUS_LASER_OK        = (1<<1);
-    static CRL_CONSTEXPR uint32_t STATUS_LASER_MOTOR_OK  = (1<<2);
-    static CRL_CONSTEXPR uint32_t STATUS_CAMERAS_OK      = (1<<3);
-    static CRL_CONSTEXPR uint32_t STATUS_IMU_OK          = (1<<4);
-    static CRL_CONSTEXPR uint32_t STATUS_EXTERNAL_LED_OK = (1<<5);
-    static CRL_CONSTEXPR uint32_t STATUS_PIPELINE_OK     = (1<<6);
+    static CRL_CONSTEXPR uint32_t STATUS_GENERAL_OK                 = (1<<0);
+    static CRL_CONSTEXPR uint32_t STATUS_LASER_OK                   = (1<<1);
+    static CRL_CONSTEXPR uint32_t STATUS_LASER_MOTOR_OK             = (1<<2);
+    static CRL_CONSTEXPR uint32_t STATUS_CAMERAS_OK                 = (1<<3);
+    static CRL_CONSTEXPR uint32_t STATUS_IMU_OK                     = (1<<4);
+    static CRL_CONSTEXPR uint32_t STATUS_EXTERNAL_LED_OK            = (1<<5);
+    static CRL_CONSTEXPR uint32_t STATUS_PIPELINE_OK                = (1<<6);
+    static CRL_CONSTEXPR uint32_t STATUS_CALIBRATION_IN_PROGRESS    = (1<<7);
+    static CRL_CONSTEXPR uint32_t STATUS_CALIBRATION_REQUIRED       = (1<<8);
+    static CRL_CONSTEXPR uint32_t STATUS_CALIBRATION_DELAYED        = (1<<9);
 
     //
     // The reported uptime for the system

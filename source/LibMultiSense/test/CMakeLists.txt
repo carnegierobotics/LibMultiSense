@@ -8,6 +8,7 @@ set(TEST_NAMES
     message_test
     multi_channel_test
     multisense_utilities_test
+    request_test
     status_test
     storage_test
     utilities_test)
@@ -32,3 +33,6 @@ if (MULTISENSE_HAVE_AVX2)
 endif()
 add_test(color_conversion_test color_conversion_test)
 
+if (BUILD_JSON_SERIALIZATION)
+    target_compile_definitions(request_test PRIVATE MULTISENSE_TEST_JSON)
+endif()

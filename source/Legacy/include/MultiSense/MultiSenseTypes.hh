@@ -1019,7 +1019,6 @@ public:
      */
     void setGainMax(const float g) { m_gainMax = g; };
 
-
     //
     // Query
 
@@ -3558,6 +3557,15 @@ class MULTISENSE_API StatusMessage {
         /** The power consumed by the imager chips. Value is in Watts */
         float imagerPower;
 
+        /** The shutter calibration is in progress. Only available on thermal cameras with shutter calibration. */
+        bool calibrationInProgress;
+
+        /** The shutter calibration is required. Only available on thermal cameras with shutter calibration. */
+        bool calibrationRequired;
+
+        /** Automatic thermal calibration is deferred until the delay expires. */
+        bool calibrationDelayed;
+
         /** Default constructor for a single StatusMessage object */
         StatusMessage():
             uptime(0.),
@@ -3576,7 +3584,10 @@ class MULTISENSE_API StatusMessage {
             inputCurrent(0.),
             fpgaPower(0.),
             logicPower(0.),
-            imagerPower(0.) {};
+            imagerPower(0.),
+            calibrationInProgress(false),
+            calibrationRequired(false),
+            calibrationDelayed(false) {};
 };
 
 /**

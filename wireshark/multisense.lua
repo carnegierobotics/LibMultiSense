@@ -220,6 +220,8 @@ function multisense_protocol.dissector(tvb, pinfo, tree)
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SECONDARY_APP_GET_REGISTERED_APPS")
     elseif idType == 0x0034 then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SECONDARY_APP_ACTIVATE")
+    elseif idType == 0x0035 then
+        payload = tree:add(multisense_protocol, tvb(18, length - 18), "CMD_SHUTTER_REQUEST")
     elseif idType == 0x0102 then
         payload = tree:add(multisense_protocol, tvb(18, length - 18), "DATA_VERSION")
     elseif idType == 0x0103 then

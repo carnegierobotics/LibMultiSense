@@ -1453,6 +1453,45 @@ struct MultiSenseConfig
 };
 
 ///
+/// @brief One-time actions requested by the user. Only populated request groups
+///        are sent; requests are never stored in or replayed by camera configuration.
+///
+struct MultiSenseRequest
+{
+    ///
+    /// @brief One-time thermal shutter calibration actions for the main stereo pair.
+    ///
+    struct ShutterRequest
+    {
+        enum class Action : uint8_t
+        {
+            CALIBRATE,
+            DELAY,
+            RESUME
+        };
+
+        /// CALIBRATE overrides any active delay. RESUME cancels the delay.
+        Action action = Action::CALIBRATE;
+
+        /// Used only for DELAY: 1..60000 ms. Each new request renews the deadline.
+        std::chrono::milliseconds delay{5000};
+
+        bool operator==(const ShutterRequest &rhs) const
+        {
+            return action == rhs.action && delay == rhs.delay;
+        }
+    };
+
+    /// Absent means no shutter action. Future request groups can be added here.
+    std::optional<ShutterRequest> shutter = std::nullopt;
+
+    bool operator==(const MultiSenseRequest &rhs) const
+    {
+        return shutter == rhs.shutter;
+    }
+};
+
+///
 /// @brief Consolidated status information which can be queried on demand from the MultiSense. Will change
 ///        during camera operation
 ///
@@ -1498,6 +1537,13 @@ struct MultiSenseStatus
         /// @brief True if the onboard processing pipeline is ok and currently processing images
         ///
         bool processing_pipeline_ok = false;
+
+        /// Thermal calibration is needed; can also be delayed.
+        bool calibration_required = false;
+        /// Thermal calibration is currently running.
+        bool calibration_in_progress = false;
+        /// Automatic thermal calibration is deferred until the delay expires.
+        bool calibration_delayed = false;
     };
 
     struct TemperatureStatus
