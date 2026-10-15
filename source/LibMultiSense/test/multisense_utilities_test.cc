@@ -34,6 +34,7 @@
  *   2025-01-10, malvarado@carnegierobotics.com, IRAD, Created file.
  **/
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -915,11 +916,13 @@ TEST(create_bgr_from_ycbcr420, colors_offsets_and_metadata)
     const std::vector<uint8_t> color_row{
         0, 0, 0, 16, 16, 16, 0, 104, 255, 0, 231, 255, 255, 24, 0,
         255, 40, 0, 130, 127, 129, 255, 254, 255, 1, 1, 1, 255, 255, 255};
-    auto expected = color_row;
-    expected.insert(expected.end(), color_row.begin(), color_row.end());
+    // Fill the final buffer directly to avoid GCC 11's vector::insert overread warning.
+    std::vector<uint8_t> expected(width * height * 3);
+    auto output = std::copy(color_row.begin(), color_row.end(), expected.begin());
+    output = std::copy(color_row.begin(), color_row.end(), output);
     for (const auto value : row)
     {
-        expected.insert(expected.end(), 3, value);
+        output = std::fill_n(output, 3, value);
     }
 
     const auto bgr = create_bgr_from_ycbcr420(y, uv, DataSource::AUX_RECTIFIED_RAW);
