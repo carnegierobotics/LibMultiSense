@@ -27,7 +27,7 @@ on:
         type: boolean
         default: false
         description: Whether to build the legacy API.
-      enable_simd:
+      build_simd:
         type: boolean
         default: false
         description: Whether to enable runtime-selected SIMD color conversion.
@@ -105,7 +105,7 @@ jobs:
             -DBUILD_SHARED_LIBS=${{ inputs.shared_libs }} \
             -DBUILD_TESTS=${{ inputs.testing }} \
             -DBUILD_LEGACY_API=${{ inputs.legacy_api }} \
-            -DMULTISENSE_ENABLE_SIMD=${{ inputs.enable_simd }} \
+            -DBUILD_SIMD=${{ inputs.build_simd }} \
             -DBUILD_JSON_SERIALIZATION=${{ inputs.build_json_serialization }} \
             -DBUILD_OPENCV=${{ inputs.build_opencv }} \
             -DBUILD_PYTHON_BINDINGS=${{ inputs.python_bindings }} \

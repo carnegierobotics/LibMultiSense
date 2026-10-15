@@ -222,11 +222,11 @@ The modern API can optionally accelerate `create_bgr_from_ycbcr420` and `create_
 with AVX2. Enable it when configuring the library:
 
 ```bash
-cmake -S . -B build -DBUILD_LEGACY_API=OFF -DMULTISENSE_ENABLE_SIMD=ON -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DBUILD_LEGACY_API=OFF -DBUILD_SIMD=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ```
 
-`MULTISENSE_ENABLE_SIMD` defaults to `OFF` and requires no additional dependencies. When enabled
+`BUILD_SIMD` defaults to `OFF` and requires no additional dependencies. When enabled
 on a supported x86 compiler/target, the library checks CPU and operating-system AVX support once
 at runtime. It uses AVX2 when available and the scalar implementation otherwise. Unsupported
 targets or toolchains also build with the scalar implementation. The option does not affect the

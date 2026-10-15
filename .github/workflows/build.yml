@@ -52,7 +52,7 @@ jobs:
       build_json_serialization: ${{ !matrix.minimal }}
       build_opencv: ${{ !matrix.minimal }}
       python_bindings: ${{ !matrix.minimal }} # Python bindings require JSON serialization.
-      enable_simd: ${{ !matrix.minimal }} # Cover SIMD enabled and disabled without expanding the matrix.
+      build_simd: ${{ !matrix.minimal }} # Cover SIMD enabled and disabled without expanding the matrix.
       asan: false
       coverage: false
       upload_artifacts: ${{ matrix.compiler == 'gcc' && matrix.build_type == 'Release' && matrix.shared_libs && !matrix.minimal }}
@@ -176,7 +176,7 @@ jobs:
     secrets: inherit
     with:
       macos_version: ${{ matrix.macos_version }}
-      enable_simd: true # Also exercise scalar fallback when targeting Apple Silicon.
+      build_simd: true # Also exercise scalar fallback when targeting Apple Silicon.
       compiler: ${{ matrix.compiler }}
       build_type: ${{ matrix.build_type }}
       shared_libs: ${{ matrix.shared_libs }}
@@ -230,7 +230,7 @@ jobs:
     uses: ./.github/workflows/build-windows.yml
     with:
       windows_version: ${{ matrix.windows_version }}
-      enable_simd: true
+      build_simd: true
       compiler: ${{ matrix.compiler }}
       build_type: ${{ matrix.build_type }}
       shared_libs: ${{ matrix.shared_libs }}

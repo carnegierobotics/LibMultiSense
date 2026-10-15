@@ -19,7 +19,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
 endif()
 
 set(MULTISENSE_HAVE_AVX2 OFF)
-if (MULTISENSE_ENABLE_SIMD)
+if (BUILD_SIMD)
     include(MultiSenseSimd)
     multisense_check_avx2(MULTISENSE_HAVE_AVX2 MULTISENSE_AVX2_OPTIONS)
     if (MULTISENSE_HAVE_AVX2)
